@@ -1,0 +1,73 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+}
+
+.gradient-border {
+  position: relative;
+  border-radius: 9999px;      /* pill */
+  /* isolation: isolate;         keeps z-index:-1 inside this element's stack */
+}
+
+/* Hidden by default; shows a gradient "ring" around the element */
+.gradient-border::before {
+  content: "";
+  position: absolute;
+  inset: -1px;                /* extend 1px around for the border effect */
+  border-radius: inherit;
+  background: linear-gradient(90deg, #fff, rgba(255,255,255,.3));
+  z-index: -1;                 /* start hidden so hover is visible */
+  transition: all .4s ease;
+}
+
+/* Hover state: actually changes (fades in + brightens) */
+.gradient-border:hover::before {
+  background: linear-gradient(60deg, #fff, rgba(255,255,255,.3));
+}
+
+.box-gradient-border {
+  position: relative;
+  border-radius: 22px;
+}
+
+.box-gradient-border::before {
+  content: "";
+  position: absolute;
+  border-radius: 24px;
+  top: -6px;
+  left: -6px;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  background-image: linear-gradient(to bottom, rgba(255, 255, 255, 0.19) 1%, rgba(255, 255, 255, 0.2) 100%);
+  z-index: -1;
+}
+
+.firefly {
+  width: 2px;
+  height: 2px;
+  background-color: #d9d9d9;
+  border-radius: 50%;
+  opacity: 0.7;
+  position: absolute; /* Add this to position them absolutely */
+  top: 0; /* Start at the top */
+  animation: float ease-in-out infinite;
+}
+
+@keyframes float {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px); /* Adjust for the float height */
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
