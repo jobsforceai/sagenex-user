@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import HeroButton from "./HeroButton";
 import Image from "next/image";
+import { useAuth } from "../context/AuthContext";
 
 const navbarVariants = {
   hidden: { opacity: 0, y: "-100%" },
@@ -17,6 +18,8 @@ const navbarVariants = {
 };
 
 export default function Navbar() {
+  const { isAuthenticated, logout } = useAuth();
+
   return (
     <motion.nav
       className="fixed top-0 left-1/2 -translate-x-1/2 max-w-7xl text-white z-50"
@@ -40,7 +43,16 @@ export default function Navbar() {
         </div>
 
         {/* Join Us Button */}
-        <HeroButton href="/join-us">Login</HeroButton>
+        {isAuthenticated ? (
+          <button
+            onClick={logout}
+            className="bg-red-500 text-white px-4 py-2 rounded-md hover:bg-red-600 ml-4"
+          >
+            Logout
+          </button>
+        ) : (
+          <HeroButton href="/login">Login</HeroButton>
+        )}
       </div>
     </motion.nav>
   );
