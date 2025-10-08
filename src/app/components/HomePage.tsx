@@ -119,7 +119,9 @@ export default function HomePage() {
           </div>
           <div className="sec-text flex gap-8">
             <HeroButton href="/">Join the revolution</HeroButton>
-            <HeroButton intent='secondary' className="" href="/">packages</HeroButton>
+            <HeroButton intent="secondary" className="" href="/">
+              packages
+            </HeroButton>
           </div>
         </div>
 
