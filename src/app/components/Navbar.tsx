@@ -8,16 +8,25 @@ import { usePathname } from "next/navigation";
 import HeroButton from "./HeroButton";
 import { useAuth } from "../context/AuthContext";
 
+type NavLink = { href: string; label: string };
 
-
-const links = [
+const links: NavLink[] = [
   { href: "/about-us", label: "About" },
   { href: "/timeline", label: "Timeline" },
   { href: "/levels", label: "Levels" },
   { href: "/package", label: "Packages" },
 ];
 
-export default function Navbar() {
+const navbarVariants = {
+  hidden: { opacity: 0, y: "-100%" },
+  show: {
+    opacity: 1,
+    y: "0%",
+    transition: { duration: 0.5 },
+  },
+};
+
+export default function Navbar(): JSX.Element {
   const { isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -38,22 +47,19 @@ export default function Navbar() {
 
   // Prevent body scroll when drawer is open
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      if (open) {
-        document.documentElement.classList.add("overflow-y-hidden");
-      } else {
-        document.documentElement.classList.remove("overflow-y-hidden");
-      }
+    if (open) {
+      document.documentElement.classList.add("overflow-y-hidden");
+    } else {
+      document.documentElement.classList.remove("overflow-y-hidden");
     }
     return () => {
-      if (typeof window !== 'undefined') {
-        document.documentElement.classList.remove("overflow-y-hidden");
-      }
+      document.documentElement.classList.remove("overflow-y-hidden");
     };
   }, [open]);
 
   return (
     <motion.header
+      variants={navbarVariants}
       initial={prefersReducedMotion ? undefined : "hidden"}
       animate="show"
       className="fixed inset-x-0 top-0 z-50"
@@ -76,7 +82,7 @@ export default function Navbar() {
               <span className="relative inline-block h-8 w-8">
                 <Image
                   src="/icon.png"
-                  alt=""
+                  alt="Sagenex"
                   fill
                   sizes="32px"
                   className="object-contain"
@@ -105,24 +111,6 @@ export default function Navbar() {
                 </Link>
               ))}
             </nav>
-        {/* Navigation Links */}
-        <div className="space-x-6">
-          {isAuthenticated ? (
-            <>
-              <Link href="/dashboard">Dashboard</Link>
-              <Link href="/wallet">Wallet</Link>
-              <Link href="/team">Team</Link>
-              <Link href="/payouts">Payouts</Link>
-            </>
-          ) : (
-            <>
-              <Link href="/about-us">About Us</Link>
-              <Link href="/timeline">Timeline</Link>
-              <Link href="/levels">Levels</Link>
-              <Link href="/package">Package</Link>
-            </>
-          )}
-        </div>
 
             {/* Right actions */}
             <div className="hidden md:flex items-center gap-2">
