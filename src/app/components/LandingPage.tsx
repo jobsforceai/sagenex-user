@@ -26,14 +26,7 @@ import { motion } from "framer-motion";
  * For quick preview, you can render <LandingPage/> directly in app/page.tsx.
  */
 
-// ---- Brand Tokens (easy to theme) ----
-const brand = {
-  // Primary glass gradient (Jobsforce/Sagenex style)
-  gradient: "from-[#6EE7F9] via-[#A7F3D0] to-[#A78BFA]",
-  primary: "#8B5CF6", // violet-500
-  accent: "#10B981", // emerald-500
-  dark: "#0B0B0F",
-};
+
 
 const container = "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8";
 const glass =
@@ -47,7 +40,9 @@ const Section: React.FC<React.PropsWithChildren<{ id?: string; className?: strin
   </section>
 );
 
-const Badge: React.FC<React.PropsWithChildren<{ tone?: "emerald" | "violet" | "zinc" }>> = ({ tone = "emerald", children }) => (
+type BadgeTone = "emerald" | "violet" | "zinc";
+
+const Badge: React.FC<React.PropsWithChildren<{ tone?: BadgeTone }>> = ({ tone = "emerald", children }) => (
   <span
     className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
       tone === "emerald"
@@ -213,7 +208,7 @@ function AcademySection() {
           >
             <div className="flex items-center justify-between">
               <h3 className="text-lg font-semibold">{t.name} Academy</h3>
-              <Badge tone={t.tone as any}>${t.price}</Badge>
+              <Badge tone={t.tone}>${t.price}</Badge>
             </div>
             <ul className="mt-4 space-y-2 text-sm text-zinc-300">
               {t.bullets.map((b) => (
@@ -421,7 +416,7 @@ function TimelineSection() {
 
       <div className="mt-8">
         <ol className="relative ml-2 border-l border-white/10">
-          {items.map((it, idx) => (
+          {items.map((it) => (
             <li key={it.title} className="mb-6 ml-6">
               <span className="absolute -left-2 flex h-4 w-4 items-center justify-center rounded-full bg-violet-400/80 ring-2 ring-zinc-900"/>
               <div className="rounded-2xl bg-white/5 p-4 ring-1 ring-white/10">

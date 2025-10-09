@@ -3,15 +3,12 @@
 import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
-import { useState, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import HeroButton from "./HeroButton";
 import { useAuth } from "../context/AuthContext";
 
-const containerVariants = {
-  hidden: { opacity: 0, y: -16 },
-  show: { opacity: 1, y: 0, transition: { duration: 0.35, ease: "easeOut" } },
-};
+
 
 const links = [
   { href: "/about-us", label: "About" },
@@ -40,10 +37,19 @@ export default function Navbar() {
       .join(" ");
 
   // Prevent body scroll when drawer is open
-  useMemo(() => {
-    if (open) document.documentElement.classList.add("overflow-y-hidden");
-    else document.documentElement.classList.remove("overflow-y-hidden");
-    return () => document.documentElement.classList.remove("overflow-y-hidden");
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (open) {
+        document.documentElement.classList.add("overflow-y-hidden");
+      } else {
+        document.documentElement.classList.remove("overflow-y-hidden");
+      }
+    }
+    return () => {
+      if (typeof window !== 'undefined') {
+        document.documentElement.classList.remove("overflow-y-hidden");
+      }
+    };
   }, [open]);
 
   return (
@@ -99,6 +105,24 @@ export default function Navbar() {
                 </Link>
               ))}
             </nav>
+        {/* Navigation Links */}
+        <div className="space-x-6">
+          {isAuthenticated ? (
+            <>
+              <Link href="/dashboard">Dashboard</Link>
+              <Link href="/wallet">Wallet</Link>
+              <Link href="/team">Team</Link>
+              <Link href="/payouts">Payouts</Link>
+            </>
+          ) : (
+            <>
+              <Link href="/about-us">About Us</Link>
+              <Link href="/timeline">Timeline</Link>
+              <Link href="/levels">Levels</Link>
+              <Link href="/package">Package</Link>
+            </>
+          )}
+        </div>
 
             {/* Right actions */}
             <div className="hidden md:flex items-center gap-2">
