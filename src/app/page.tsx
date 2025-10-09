@@ -1,6 +1,9 @@
 import Navbar from './components/Navbar';
-import HomePage from './components/HomePage';
-import AboutUs from './components/AboutUs';
+import HomePage from './components/home-page';
+import AboutUs from './components/about-us';
+import SagenexAcademy from './components/sagenex-academy';
+import LevelsEarnings from './components/level-earning';
+import CashCardSection from './components/cash-card';
 
 export default function Home() {
   return (
@@ -8,6 +11,9 @@ export default function Home() {
       <Navbar />
       <HomePage />
       <AboutUs />
+      <CashCardSection/>
+      <SagenexAcademy/>
+      <LevelsEarnings/>
     </div>
   );
 }

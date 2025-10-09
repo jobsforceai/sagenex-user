@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
-import HeroButton from "./HeroButton";
+import HeroButton from "./hero-button";
 gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
 
 const fireflyCount = 10; // Number of fireflies
@@ -20,11 +20,11 @@ const fireflies = Array.from({ length: fireflyCount }, (_, i) => ({
 
 export default function HomePage() {
   useGSAP(() => {
-    const split = SplitText.create(".hero-heading", {
-      type: "chars, lines",
-      mask: "lines",
-      linesClass: "line++",
-    });
+    // const split = SplitText.create(".hero-heading", {
+    //   type: "lines",
+    //   mask: "lines",
+    //   linesClass: "line++",
+    // });
 
     const tl = gsap.timeline();
     tl.fromTo(
@@ -57,7 +57,7 @@ export default function HomePage() {
       .fromTo(
         ".sec-text",
         {
-          y: 100,
+          y: -100,
           opacity: 0,
           ease: "power1.in",
           duration: 0.4,
@@ -68,13 +68,13 @@ export default function HomePage() {
           delay: 0.4,
         }
       )
-      .from(split.chars, {
+      .from(".hero-heading", {
         opacity: 0,
-        rotate: 10,
+        rotate: -10,
         y: -120,
         ease: "back",
-        duration: 0.4,
-        stagger: 0.07,
+        duration: 0.6,
+        stagger: 0.2,
       })
       .fromTo(
         ".spotlight",
@@ -101,15 +101,18 @@ export default function HomePage() {
   });
 
   return (
-    <div className="h-[200vh] text-white overflow-hidden relative bg-gradient-to-b from-black to-zinc-900 hero-scene">
+    <div className="h-[150vh] text-white overflow-hidden relative bg-black hero-scene">
       <div className="relative h-screen">
         {/* Text at the top */}
         <div className="absolute top-[35%] -translate-y-1/2 left-0 w-full z-20 flex flex-col items-center justify-center gap-8 h-1/3">
           {" "}
           {/* Added z-20 */}
           <div className="text-[60px] font-semibold flex items-center flex-col">
-            <h1 className="hero-heading bg-clip-text text-center leading-17 text-white bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
-              Innovation. Trust. Growth. <br /> Powering the Future of crypto
+            <h1 className="hero-heading bg-clip-text text-center leading-17 text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
+              Innovation. Trust. Growth.
+            </h1>
+            <h1 className="hero-heading bg-clip-text text-center leading-17 text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
+              Powering the Future of crypto
             </h1>
           </div>
           <div className="sec-text">
@@ -119,7 +122,9 @@ export default function HomePage() {
           </div>
           <div className="sec-text flex gap-8">
             <HeroButton href="/">Join the revolution</HeroButton>
-            <HeroButton intent='secondary' className="" href="/">packages</HeroButton>
+            <HeroButton intent="secondary" className="w-full" href="/">
+              Explore packages
+            </HeroButton>
           </div>
         </div>
 
@@ -151,7 +156,7 @@ export default function HomePage() {
       </div>
 
       {/* Dashboard content here */}
-      <div className="absolute dashboard flex items-center justify-center top-1/2 left-1/2 -translate-y-1/2 -translate-x-1/2">
+      <div className="absolute dashboard flex items-center justify-center top-[45%] left-1/2 -translate-x-1/2">
         <div className="absolute -top-[6px] bg-gradient-to-r from-transparent via-white to-transparent h-[6px] w-270"></div>
         <div className="box-gradient-border w-270 h-150 bg-black"></div>
       </div>
