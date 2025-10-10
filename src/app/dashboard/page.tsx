@@ -105,7 +105,7 @@ interface LeaderboardEntry {
   earnings: number;
 }
 
-const ALL_RANKS = ["Member", "Starter", "Builder", "Director", "Executive"];
+const ALL_RANKS = ["Member", "Starter", "Builder","Leader","Manager", "Director", "Crown"];
 
 // --- COMPONENT ---
 const DashboardPage = () => {
