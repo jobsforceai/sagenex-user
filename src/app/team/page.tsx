@@ -12,6 +12,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { UserNode, ParentNode } from "@/types";
+import { getTeamTree } from "@/actions/user";
 
 interface TreeApiResponse {
   tree: UserNode;
@@ -19,7 +20,7 @@ interface TreeApiResponse {
 }
 
 const TeamPage = () => {
-  const { token, isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
   const [treeData, setTreeData] = useState<TreeApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,23 +34,11 @@ const TeamPage = () => {
 
     const fetchTeamTree = async () => {
       try {
-        const backendUrl =
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-        const res = await fetch(
-          `${backendUrl}/api/v1/user/team/tree`,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
-          }
-        );
-
-        if (res.ok) {
-          const data: TreeApiResponse = await res.json();
-          setTreeData(data);
+        const data = await getTeamTree();
+        if (data.error) {
+          setError(data.error);
         } else {
-          const errorData = await res.json();
-          setError(errorData.message || "Failed to fetch team data");
+          setTreeData(data);
         }
       } catch {
         setError("An error occurred while fetching team data");
@@ -58,10 +47,10 @@ const TeamPage = () => {
       }
     };
 
-    if (token) {
+    if (isAuthenticated) {
       fetchTeamTree();
     }
-  }, [token, isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, router]);
 
   if (authLoading || dataLoading) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;

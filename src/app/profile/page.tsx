@@ -13,6 +13,7 @@ import {
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Copy, BadgeCheck, XCircle } from "lucide-react";
+import { getProfileData } from "@/actions/user";
 
 interface UserProfile {
   userId: string;
@@ -32,7 +33,7 @@ interface UserProfile {
 }
 
 const ProfilePage = () => {
-  const { token, isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -53,30 +54,22 @@ const ProfilePage = () => {
     }
 
     const fetchProfileData = async () => {
-      try {
-        const backendUrl =
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-        const res = await fetch(`${backendUrl}/api/v1/user/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setProfile(data);
-        } else {
-          setError((await res.json()).message || "Failed to fetch profile data");
+        try {
+            const data = await getProfileData();
+            if (data.error) {
+                setError(data.error);
+            } else {
+                setProfile(data);
+            }
+        } catch (err) {
+            setError(err instanceof Error ? err.message : "An unknown error occurred");
         }
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An unknown error occurred");
-      }
     };
 
-    if (token) {
+    if (isAuthenticated) {
       fetchProfileData();
     }
-  }, [token, isAuthenticated, loading, router]);
+  }, [isAuthenticated, loading, router]);
 
   if (loading || !profile) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;

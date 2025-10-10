@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getPayouts } from "@/actions/user";
 
 interface Payout {
   month: string;
@@ -30,7 +31,7 @@ interface Payout {
 }
 
 const PayoutsPage = () => {
-  const { token, isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
   const [payouts, setPayouts] = useState<Payout[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -44,20 +45,11 @@ const PayoutsPage = () => {
 
     const fetchPayouts = async () => {
       try {
-        const backendUrl =
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-        const res = await fetch(`${backendUrl}/api/v1/user/payouts`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setPayouts(data);
+        const data = await getPayouts();
+        if (data.error) {
+          setError(data.error);
         } else {
-          const errorData = await res.json();
-          setError(errorData.message || "Failed to fetch payouts");
+          setPayouts(data);
         }
       } catch {
         setError("An error occurred while fetching payouts");
@@ -66,10 +58,10 @@ const PayoutsPage = () => {
       }
     };
 
-    if (token) {
+    if (isAuthenticated) {
       fetchPayouts();
     }
-  }, [token, isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, router]);
 
   if (authLoading || dataLoading) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;

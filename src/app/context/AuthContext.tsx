@@ -2,6 +2,7 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useRouter } from 'next/navigation';
+import Cookies from 'js-cookie';
 
 interface AuthContextType {
   token: string | null;
@@ -20,25 +21,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   useEffect(() => {
     try {
-      const storedToken = localStorage.getItem('authToken');
+      const storedToken = Cookies.get('authToken');
       if (storedToken) {
         setToken(storedToken);
       }
     } catch (error) {
-      console.error("Failed to access localStorage", error);
+      console.error("Failed to access Cookies", error);
     } finally {
       setLoading(false); // Set loading to false after checking
     }
   }, []);
 
   const login = (newToken: string) => {
-    localStorage.setItem('authToken', newToken);
+    Cookies.set('authToken', newToken, { secure: true, sameSite: 'strict' });
     setToken(newToken);
     router.push('/dashboard');
   };
 
   const logout = () => {
-    localStorage.removeItem('authToken');
+    Cookies.remove('authToken');
     setToken(null);
     router.push('/login');
   };

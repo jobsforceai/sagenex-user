@@ -7,6 +7,8 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import HeroButton from "./hero-button";
 import { useAuth } from "../context/AuthContext";
+import { getRankProgress } from "@/actions/user";
+import { Crown } from "lucide-react";
 
 type NavLink = { href: string; label: string };
 
@@ -38,7 +40,24 @@ export default function Navbar() {
   const { isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const [userLevel, setUserLevel] = useState<string | null>(null);
   const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      const fetchRank = async () => {
+        try {
+          const rankData = await getRankProgress();
+          if (rankData && !rankData.error) {
+            setUserLevel(rankData.currentRank.name);
+          }
+        } catch (error) {
+          console.error("Failed to fetch user rank for navbar:", error);
+        }
+      };
+      fetchRank();
+    }
+  }, [isAuthenticated]);
 
   const links = isAuthenticated ? authLinks : guestLinks;
 
@@ -123,17 +142,25 @@ export default function Navbar() {
             </nav>
 
             {/* Right actions */}
-            <div className="hidden md:flex items-center gap-2">
+            <div className="hidden md:flex items-center gap-4">
               {isAuthenticated ? (
-                <button
-                  onClick={logout}
-                  className="px-3.5 py-2 rounded-lg text-sm font-medium text-white/90 hover:text-white
+                <>
+                  {userLevel && (
+                    <div className="flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1.5 text-sm font-semibold text-emerald-300 border border-emerald-600/50">
+                      <Crown className="h-4 w-4" />
+                      <span>{userLevel}</span>
+                    </div>
+                  )}
+                  <button
+                    onClick={logout}
+                    className="px-3.5 py-2 rounded-lg text-sm font-medium text-white/90 hover:text-white
                              bg-gradient-to-b from-red-500 to-red-600 hover:from-red-500/95 hover:to-red-600/95
                              shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_8px_20px_rgba(239,68,68,0.35)]
                              focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
-                >
-                  Logout
-                </button>
+                  >
+                    Logout
+                  </button>
+                </>
               ) : (
                 <HeroButton href="/login">Login</HeroButton>
               )}

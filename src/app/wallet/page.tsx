@@ -18,6 +18,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { getWalletTransactions, getDashboardData } from "@/actions/user";
 
 interface WalletTransaction {
   _id: string;
@@ -41,7 +42,7 @@ interface DashboardData {
 }
 
 const WalletPage = () => {
-  const { token, isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
@@ -56,24 +57,14 @@ const WalletPage = () => {
 
     const fetchData = async () => {
       try {
-        const backendUrl =
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-        
-        const [walletRes, dashboardRes] = await Promise.all([
-          fetch(`${backendUrl}/api/v1/user/wallet`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
-          fetch(`${backendUrl}/api/v1/user/dashboard`, {
-            headers: { Authorization: `Bearer ${token}` },
-          }),
+        const [walletData, dashboardData] = await Promise.all([
+            getWalletTransactions(),
+            getDashboardData(),
         ]);
 
-        if (!walletRes.ok || !dashboardRes.ok) {
-          throw new Error("Failed to fetch wallet data");
+        if (walletData.error || dashboardData.error) {
+          throw new Error(walletData.error || dashboardData.error || "Failed to fetch wallet data");
         }
-
-        const walletData = await walletRes.json();
-        const dashboardData = await dashboardRes.json();
 
         setTransactions(walletData);
         setDashboardData(dashboardData);
@@ -85,10 +76,10 @@ const WalletPage = () => {
       }
     };
 
-    if (token) {
+    if (isAuthenticated) {
       fetchData();
     }
-  }, [token, isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, router]);
 
   if (authLoading || dataLoading) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;

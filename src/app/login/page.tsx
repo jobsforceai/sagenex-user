@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/app/context/AuthContext";
 import {
@@ -13,16 +14,22 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { checkUser, finalLogin } from "@/actions/auth";
 
-const LoginPage = () => {
+function Login() {
   const { login } = useAuth();
+  const searchParams = useSearchParams();
   const [sponsorId, setSponsorId] = useState("");
   const [googleToken, setGoogleToken] = useState<string | null>(null);
   const [isNewUser, setIsNewUser] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const backendUrl =
-    process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+  useEffect(() => {
+    const ref = searchParams.get("ref");
+    if (ref) {
+      setSponsorId(ref);
+    }
+  }, [searchParams]);
 
   const handleGoogleSuccess = async (
     credentialResponse: CredentialResponse
@@ -35,21 +42,11 @@ const LoginPage = () => {
 
     try {
       // Step 1: Check if user exists
-      const checkUserRes = await fetch(`${backendUrl}/api/v1/auth/google/check-user`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken }),
-      });
-
-      if (!checkUserRes.ok) {
-        throw new Error("Failed to verify user status.");
-      }
-
-      const { exists } = await checkUserRes.json();
+      const { exists } = await checkUser(idToken);
 
       if (exists) {
         // Scenario A: User exists, log them in directly
-        await finalLogin(idToken);
+        await handleFinalLogin(idToken);
       } else {
         // Scenario B: New user, show referral input
         setGoogleToken(idToken);
@@ -61,26 +58,14 @@ const LoginPage = () => {
     }
   };
 
-  const finalLogin = async (idToken: string, sponsor?: string) => {
+  const handleFinalLogin = async (idToken: string, sponsor?: string) => {
     try {
-      const body: { idToken: string; sponsorId?: string } = { idToken };
-      if (sponsor) {
-        body.sponsorId = sponsor;
-      }
-
-      const res = await fetch(`${backendUrl}/api/v1/auth/google/login`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        login(data.token); // The login function handles redirect
+      const data = await finalLogin(idToken, sponsor);
+      if (data.error) {
+        setError(`Login failed: ${data.error}`);
+        console.error("Google login failed:", data.error);
       } else {
-        const errorText = await res.text();
-        setError(`Login failed: ${errorText}`);
-        console.error("Google login failed:", errorText);
+        login(data.token); // The login function handles redirect
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -90,7 +75,7 @@ const LoginPage = () => {
 
   const handleNewUserSubmit = () => {
     if (googleToken) {
-      finalLogin(googleToken, sponsorId);
+      handleFinalLogin(googleToken, sponsorId);
     }
   };
 
@@ -139,5 +124,11 @@ const LoginPage = () => {
     </div>
   );
 };
+
+const LoginPage = () => (
+  <Suspense fallback={<div>Loading...</div>}>
+    <Login />
+  </Suspense>
+);
 
 export default LoginPage;

@@ -3,169 +3,349 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
-import Navbar from "@/app/components/Navbar";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Copy, Wallet, Box, User } from "lucide-react";
+  getDashboardData,
+  getReferralSummary,
+  getTeamTree,
+  getRankProgress,
+  getLeaderboard,
+  getFinancialSummary,
+} from "@/actions/user";
+import Navbar from "@/app/components/Navbar";
+import { Crown } from "lucide-react";
+import AgentOverview from "../components/dashboard/AgentOverview";
+import EarningsSummary from "../components/dashboard/EarningsSummary";
+import GamifiedChallenges from "../components/dashboard/GamifiedChallenges";
+import Leaderboard from "../components/dashboard/Leaderboard";
+import ReferralGrowthTools from "../components/dashboard/ReferralAndGrowth";
+import SixLegTreeView from "../components/dashboard/BinaryTreeView";
+import SmartUpdates from "../components/dashboard/SmartUpdates";
 
-// Interfaces remain the same
-interface UserProfile {
-  userId: string;
+// --- INTERFACES ---
+interface Profile {
   fullName: string;
-  email: string;
   profilePicture: string;
   referralCode: string;
-  dateJoined: string;
-}
-interface UserPackage {
-  packageUSD: number;
-  pvPoints: number;
-}
-interface UserWallet {
-  availableToWithdraw: number;
-  lifetimeEarnings: number;
-}
-interface DashboardData {
-  profile: UserProfile;
-  package: UserPackage;
-  wallet: UserWallet;
+  joinDate: string;
+  userId: string;
 }
 
+interface Wallet {
+  lifetimeEarnings: number;
+}
+
+interface UserPackage {
+  packageUSD: number;
+}
+
+interface DashboardData {
+  profile: Profile;
+  wallet: Wallet;
+  package: UserPackage;
+}
+
+interface Referral {
+  activityStatus: string;
+}
+
+interface ReferralSummary {
+  totalReferrals: number;
+  referrals: Referral[];
+  investedCount: number;
+  totalDownlineVolume: number;
+}
+
+interface TreeLeg {
+  userId: string;
+  fullName: string;
+  packageUSD: number;
+  activityStatus: string;
+  children?: TreeLeg[];
+}
+
+interface TreeData {
+  tree: {
+    children: TreeLeg[];
+  };
+}
+
+interface RankProgress {
+  currentRank: {
+    name: string;
+  };
+  progress: {
+    percentage: number;
+    nextRankName: string | null;
+    requirements: {
+      directs: {
+        current: number;
+        required: number;
+      };
+      team: {
+        current: number;
+        required: number;
+      };
+    } | null;
+  };
+}
+
+interface FinancialSummary {
+  investedPrincipal: number;
+  referralEarnings: number;
+  oneTimePromotionBonus: number;
+  monthlyIncentive: number;
+}
+
+interface LeaderboardEntry {
+  rank: number;
+  userId: string | null;
+  fullName: string;
+  profilePicture: string | null;
+  packagesSold: number;
+  earnings: number;
+}
+
+const ALL_RANKS = ["Member", "Starter", "Builder", "Director", "Executive"];
+
+// --- COMPONENT ---
 const DashboardPage = () => {
   const { token, isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
+  const [treeData, setTreeData] = useState<TreeData | null>(null);
+  const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [copyText, setCopyText] = useState("Copy");
+
+  const referralLink =
+    dashboardData?.profile.referralCode
+      ? `${window.location.origin}/login?ref=${dashboardData.profile.referralCode}`
+      : "";
 
   const handleCopy = () => {
-    if (dashboardData?.profile.referralCode) {
-      navigator.clipboard.writeText(dashboardData.profile.referralCode);
-      setCopyText("Copied!");
-      setTimeout(() => setCopyText("Copy"), 2000);
+    if (referralLink) {
+      navigator.clipboard.writeText(referralLink);
+      alert("Referral link copied to clipboard!");
     }
   };
 
   useEffect(() => {
-    // Auth and data fetching logic remains the same
     if (!loading && !isAuthenticated) {
       router.push("/login");
       return;
     }
-    const fetchDashboardData = async () => {
+
+    const fetchData = async () => {
       try {
-        const backendUrl =
-          process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-        const res = await fetch(`${backendUrl}/api/v1/user/dashboard`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (res.ok) {
-          const data = await res.json();
-          setDashboardData(data);
-        } else {
-          setError((await res.json()).message || "Failed to fetch dashboard data");
-        }
-      } catch {
-        setError("An error occurred while fetching dashboard data");
+        const [
+          dashboardRes,
+          summaryRes,
+          treeRes,
+          rankRes,
+          leaderboardRes,
+          financialRes,
+        ] = await Promise.all([
+          getDashboardData(),
+          getReferralSummary(),
+          getTeamTree(),
+          getRankProgress(),
+          getLeaderboard(),
+          getFinancialSummary(),
+        ]);
+
+        if (dashboardRes.error) setError(dashboardRes.error);
+        else setDashboardData(dashboardRes);
+
+        if (summaryRes.error) console.error("Failed to fetch referral summary:", summaryRes.error);
+        else setReferralSummary(summaryRes);
+
+        if (treeRes.error) console.error("Failed to fetch team tree:", treeRes.error);
+        else setTreeData(treeRes);
+
+        if (rankRes.error) console.error("Failed to fetch rank progress:", rankRes.error);
+        else setRankProgress(rankRes);
+
+        if (leaderboardRes.error) console.error("Failed to fetch leaderboard:", leaderboardRes.error);
+        else setLeaderboardData(leaderboardRes);
+
+        if (financialRes.error) console.error("Failed to fetch financial summary:", financialRes.error);
+        else setFinancialSummary(financialRes);
+
+      } catch (err) {
+        setError("An unexpected error occurred while fetching data.");
+        console.error(err);
       }
     };
+
     if (token) {
-      fetchDashboardData();
+      fetchData();
     }
   }, [token, isAuthenticated, loading, router]);
 
+  const formattedLegs = treeData?.tree?.children.map((leg, index) => ({
+    id: `Leg ${index + 1}`,
+    head: {
+      id: leg.userId,
+      name: leg.fullName,
+      volumeLabel: `${(leg.packageUSD / 1000).toFixed(1)}K`,
+      active: leg.activityStatus === "Active",
+    },
+    children: leg.children?.map((child) => ({
+      id: child.userId,
+      name: child.fullName,
+      volumeLabel: `${(child.packageUSD / 1000).toFixed(1)}K`,
+      active: child.activityStatus === "Active",
+    })),
+  }));
+
+  const gamifiedData = rankProgress ? {
+    progressPct: rankProgress.progress.percentage,
+    subtitle: rankProgress.progress.nextRankName
+      ? `Progress to ${rankProgress.progress.nextRankName}`
+      : "You have reached the highest rank!",
+    badges: ALL_RANKS.map((rank) => ({
+      label: rank,
+      earned: ALL_RANKS.indexOf(rank) <= ALL_RANKS.indexOf(rankProgress.currentRank.name),
+    })),
+    requirements: rankProgress.progress.requirements ? [
+      {
+        text: `Have ${rankProgress.progress.requirements.directs.required} direct referrals. (You have ${rankProgress.progress.requirements.directs.current})`,
+        met: rankProgress.progress.requirements.directs.current >= rankProgress.progress.requirements.directs.required,
+      },
+      {
+        text: `Have ${rankProgress.progress.requirements.team.required} team members. (You have ${rankProgress.progress.requirements.team.current})`,
+        met: rankProgress.progress.requirements.team.current >= rankProgress.progress.requirements.team.required,
+      },
+    ] : [],
+  } : null;
+
   if (loading || !dashboardData) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="bg-black text-white min-h-screen flex items-center justify-center">
+        Loading...
+      </div>
+    );
   }
   if (error) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
+    return (
+      <div className="bg-black text-white min-h-screen flex items-center justify-center">
+        Error: {error}
+      </div>
+    );
   }
 
-  const { profile, package: userPackage, wallet } = dashboardData;
+  const { profile, wallet, package: userPackage } = dashboardData;
+
+  if (userPackage.packageUSD < 50) {
+    return (
+      <div className="bg-black text-white min-h-screen">
+        <Navbar />
+        <main className="container mx-auto p-4 pt-24 flex items-center justify-center h-[calc(100vh-100px)]">
+          <div className="text-center bg-gray-900 border border-gray-800 p-8 rounded-lg max-w-lg">
+            <h1 className="text-3xl font-bold text-yellow-400 mb-4">Offline Deposit Required</h1>
+            <p className="text-lg text-neutral-300 mb-6">
+              Your current package value is less than the minimum requirement of $50.
+              We currently offer offline deposits. Please deposit by contacting your nearest collector to activate your dashboard.
+            </p>
+            <p className="text-lg text-neutral-300">
+              <strong>Contact:</strong> +1 (555) 123-4567 (Dummy Number)
+            </p>
+          </div>
+        </main>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-black text-white min-h-screen">
       <Navbar />
       <main className="container mx-auto p-4 pt-24">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold">Welcome back, {profile.fullName}!</h1>
-          <p className="text-muted-foreground">Here&apos;s a summary of your account.</p>
+        {/* Header */}
+        <div className="flex justify-between items-center mb-8">
+          <div>
+            <h1 className="text-3xl font-bold flex items-center">
+              <Crown className="mr-2 text-yellow-400" />
+              Sagenex Hub
+            </h1>
+            <p className="text-muted-foreground">
+              Welcome back, {profile.fullName}!
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm text-muted-foreground">Total Earnings</p>
+            <p className="text-2xl font-bold">
+              {wallet.lifetimeEarnings.toLocaleString("en-US", {
+                style: "currency",
+                currency: "USD",
+                minimumFractionDigits: 0,
+                maximumFractionDigits: 0,
+              })}
+            </p>
+          </div>
+        </div>
+
+        {/* Full-width Agent Overview */}
+        <div className="mb-6">
+          {dashboardData && rankProgress && (
+            <AgentOverview
+              name={dashboardData.profile.fullName}
+              avatarUrl={dashboardData.profile.profilePicture}
+              currentLevel={rankProgress.currentRank.name}
+              nextLevelLabel={rankProgress.progress.nextRankName || ""}
+              progressPct={rankProgress.progress.percentage}
+              joinDate={dashboardData.profile.joinDate}
+            />
+          )}
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Wallet</CardTitle>
-                <Wallet className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <p className="text-sm text-muted-foreground">Available to Withdraw</p>
-                  <p className="text-4xl font-bold">${wallet.availableToWithdraw.toFixed(2)}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Lifetime Earnings</p>
-                  <p className="text-2xl font-semibold">${wallet.lifetimeEarnings.toFixed(2)}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Active Package</CardTitle>
-                <Box className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <p className="text-4xl font-bold">${userPackage.packageUSD}</p>
-                <p className="text-sm text-muted-foreground">{userPackage.pvPoints} PV Points</p>
-              </CardContent>
-            </Card>
+            <EarningsSummary data={financialSummary} />
+            {gamifiedData && (
+              <GamifiedChallenges
+                title="Rank & Progress"
+                subtitle={gamifiedData.subtitle}
+                progressPct={gamifiedData.progressPct}
+                badges={gamifiedData.badges}
+                requirements={gamifiedData.requirements}
+              />
+            )}
+            {leaderboardData.length > 0 && (
+              <Leaderboard
+                leaderboardData={leaderboardData}
+                currentUserId={profile.userId}
+              />
+            )}
+            {referralSummary && (
+              <ReferralGrowthTools
+                referralLink={referralLink}
+                onCopy={handleCopy}
+                totalReferrals={referralSummary.totalReferrals}
+                activeAgents={
+                  referralSummary.referrals.filter(
+                    (r) => r.activityStatus === "Active"
+                  ).length
+                }
+                investedAgents={referralSummary.investedCount}
+                downlineVolumeLabel={`${(
+                  referralSummary.totalDownlineVolume / 1000
+                ).toFixed(1)}K`}
+              />
+            )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <Card>
-              <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Profile</CardTitle>
-                <User className="h-5 w-5 text-muted-foreground" />
-              </CardHeader>
-              <CardContent className="flex items-center gap-4">
-                <Avatar>
-                  <AvatarImage src={profile.profilePicture} alt={profile.fullName} />
-                  <AvatarFallback>{profile.fullName.charAt(0)}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <p className="font-semibold">{profile.fullName}</p>
-                  <p className="text-sm text-muted-foreground">{profile.email}</p>
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Your Referral Code</CardTitle>
-                <CardDescription>Share this code to grow your team.</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="flex items-center gap-2 p-2 border rounded-md bg-gray-800">
-                  <p className="font-mono text-lg flex-grow">{profile.referralCode}</p>
-                  <Button size="sm" onClick={handleCopy} variant="ghost">
-                    <Copy className="h-4 w-4 mr-2" />
-                    {copyText}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+            <SmartUpdates />
           </div>
+        </div>
+
+        {/* Full-width Binary Tree View */}
+        <div className="mt-6">
+          {formattedLegs && <SixLegTreeView legs={formattedLegs} />}
         </div>
       </main>
     </div>
