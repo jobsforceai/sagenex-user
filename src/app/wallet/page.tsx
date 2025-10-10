@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/table";
 
 interface WalletTransaction {
-  _id: string; // Assuming a unique identifier is still sent for keys
+  _id: string;
   userId: string;
   type: string;
   amount: number;
@@ -30,10 +30,21 @@ interface WalletTransaction {
   meta: Record<string, unknown>;
 }
 
+interface DashboardData {
+  package: {
+    packageUSD: number;
+  };
+  wallet: {
+    availableToWithdraw: number;
+    lifetimeEarnings: number;
+  };
+}
+
 const WalletPage = () => {
   const { token, isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -43,32 +54,39 @@ const WalletPage = () => {
       return;
     }
 
-    const fetchWalletHistory = async () => {
+    const fetchData = async () => {
       try {
         const backendUrl =
           process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-        const res = await fetch(`${backendUrl}/api/v1/user/wallet`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        
+        const [walletRes, dashboardRes] = await Promise.all([
+          fetch(`${backendUrl}/api/v1/user/wallet`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+          fetch(`${backendUrl}/api/v1/user/dashboard`, {
+            headers: { Authorization: `Bearer ${token}` },
+          }),
+        ]);
 
-        if (res.ok) {
-          const data = await res.json();
-          setTransactions(data);
-        } else {
-          const errorData = await res.json();
-          setError(errorData.message || "Failed to fetch wallet history");
+        if (!walletRes.ok || !dashboardRes.ok) {
+          throw new Error("Failed to fetch wallet data");
         }
-      } catch {
-        setError("An error occurred while fetching wallet history");
+
+        const walletData = await walletRes.json();
+        const dashboardData = await dashboardRes.json();
+
+        setTransactions(walletData);
+        setDashboardData(dashboardData);
+
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "An unknown error occurred");
       } finally {
         setDataLoading(false);
       }
     };
 
     if (token) {
-      fetchWalletHistory();
+      fetchData();
     }
   }, [token, isAuthenticated, authLoading, router]);
 
@@ -83,7 +101,44 @@ const WalletPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
       <Navbar />
-      <div className="container mx-auto p-4 pt-24">
+      <div className="container mx-auto p-4 pt-24 space-y-6">
+        <h1 className="text-3xl font-bold">My Wallet</h1>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Available to Withdraw</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">
+                ${dashboardData?.wallet.availableToWithdraw.toFixed(2)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Lifetime Earnings</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">
+                ${dashboardData?.wallet.lifetimeEarnings.toFixed(2)}
+              </p>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader>
+              <CardTitle>Active Package</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-3xl font-bold">
+                ${dashboardData?.package.packageUSD.toFixed(2)}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Transaction History */}
         <Card>
           <CardHeader>
             <CardTitle>Wallet History</CardTitle>

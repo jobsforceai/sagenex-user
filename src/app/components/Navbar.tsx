@@ -22,6 +22,7 @@ const authLinks: NavLink[] = [
   { href: "/payouts", label: "Payouts" },
   { href: "/wallet", label: "Wallet" },
   { href: "/team", label: "My Team" },
+  { href: "/profile", label: "Profile" },
 ];
 
 const navbarVariants = {
