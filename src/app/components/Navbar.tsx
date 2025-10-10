@@ -7,7 +7,7 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 import HeroButton from "./hero-button";
 import { useAuth } from "../context/AuthContext";
-import { getRankProgress } from "@/actions/user";
+
 import { Crown } from "lucide-react";
 
 type NavLink = { href: string; label: string };
@@ -44,28 +44,8 @@ export default function Navbar({ userLevel: propUserLevel }: NavbarProps) {
   const { isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
-  const [userLevel, setUserLevel] = useState<string | null>(null);
   const prefersReducedMotion = useReducedMotion();
 
-  useEffect(() => {
-    if (propUserLevel) {
-      setUserLevel(propUserLevel);
-      return;
-    }
-    if (isAuthenticated) {
-      const fetchRank = async () => {
-        try {
-          const rankData = await getRankProgress();
-          if (rankData && !rankData.error) {
-            setUserLevel(rankData.currentRank.name);
-          }
-        } catch (error) {
-          console.error("Failed to fetch user rank for navbar:", error);
-        }
-      };
-      fetchRank();
-    }
-  }, [isAuthenticated, propUserLevel]);
 
   const links = isAuthenticated ? authLinks : guestLinks;
 
@@ -153,10 +133,10 @@ export default function Navbar({ userLevel: propUserLevel }: NavbarProps) {
             <div className="hidden md:flex items-center gap-4">
               {isAuthenticated ? (
                 <>
-                  {userLevel && (
+                  {propUserLevel && (
                     <div className="flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1.5 text-sm font-semibold text-emerald-300 border border-emerald-600/50">
                       <Crown className="h-4 w-4" />
-                      <span>{userLevel}</span>
+                      <span>{propUserLevel}</span>
                     </div>
                   )}
                   <button

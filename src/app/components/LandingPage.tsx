@@ -80,7 +80,7 @@ export default function LandingPage() {
               A global ecosystem uniting AI, blockchain and real‑world assets. Learn, lead and scale with academy tracks, transparent KYC, and a simple unilevel plan designed for duplication.
             </p>
             <div className="flex flex-wrap gap-3">
-              <CTA href="#academy" label="Explore Academy"/>
+              <CTA href="/login" label="Explore Academy"/>
               <CTA href="#plan" variant="secondary" label="View Plan"/>
             </div>
             <div className="flex items-center gap-4 pt-3 text-sm text-zinc-400">
@@ -187,16 +187,7 @@ function CTA({ href, label, variant = "primary" }: { href: string; label: string
 }
 
 // ---- Academy ----
-const academyTiers = [
-  { name: "Starter", price: 50, bullets: ["Crypto & Blockchain basics", "Intro to unilevel"], tone: "emerald" },
-  { name: "Bronze", price: 100, bullets: ["Affiliate fundamentals", "Wallets & trading"], tone: "emerald" },
-  { name: "Silver", price: 300, bullets: ["Technical analysis 101", "Duplication workshops"], tone: "zinc" },
-  { name: "Gold", price: 500, bullets: ["Leadership blueprint", "Active vs passive income"], tone: "zinc" },
-  { name: "Platinum", price: 1000, bullets: ["Market analysis", "Compliance basics"], tone: "violet" },
-  { name: "Titanium", price: 2500, bullets: ["Multi‑country growth", "Mastermind access"], tone: "violet" },
-  { name: "Diamond", price: 5000, bullets: ["CEO mindset", "Diversification"], tone: "violet" },
-  { name: "Crown", price: 10000, bullets: ["Elite mentoring", "Global summits & tools"], tone: "violet" },
-] as const;
+
 
 
 
