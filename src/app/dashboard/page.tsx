@@ -236,31 +236,11 @@ const DashboardPage = () => {
     );
   }
 
-  const { profile, wallet, package: userPackage } = dashboardData;
-
-  if (userPackage.packageUSD < 50) {
-    return (
-      <div className="bg-black text-white min-h-screen">
-        <Navbar />
-        <main className="container mx-auto p-4 pt-24 flex items-center justify-center h-[calc(100vh-100px)]">
-          <div className="text-center bg-gray-900 border border-gray-800 p-8 rounded-lg max-w-lg">
-            <h1 className="text-3xl font-bold text-yellow-400 mb-4">Offline Deposit Required</h1>
-            <p className="text-lg text-neutral-300 mb-6">
-              Your current package value is less than the minimum requirement of $50.
-              We currently offer offline deposits. Please deposit by contacting your nearest collector to activate your dashboard.
-            </p>
-            <p className="text-lg text-neutral-300">
-              <strong>Contact:</strong> +1 (555) 123-4567 (Dummy Number)
-            </p>
-          </div>
-        </main>
-      </div>
-    );
-  }
+  const { profile, wallet } = dashboardData;
 
   return (
     <div className="bg-black text-white min-h-screen">
-      <Navbar />
+      <Navbar userLevel={rankProgress?.currentRank.name} />
       <main className="container mx-auto p-4 pt-24">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">

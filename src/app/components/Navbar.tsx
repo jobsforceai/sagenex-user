@@ -36,7 +36,11 @@ const navbarVariants = {
   },
 };
 
-export default function Navbar() {
+interface NavbarProps {
+  userLevel?: string;
+}
+
+export default function Navbar({ userLevel: propUserLevel }: NavbarProps) {
   const { isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -44,6 +48,10 @@ export default function Navbar() {
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
+    if (propUserLevel) {
+      setUserLevel(propUserLevel);
+      return;
+    }
     if (isAuthenticated) {
       const fetchRank = async () => {
         try {
@@ -57,7 +65,7 @@ export default function Navbar() {
       };
       fetchRank();
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, propUserLevel]);
 
   const links = isAuthenticated ? authLinks : guestLinks;
 

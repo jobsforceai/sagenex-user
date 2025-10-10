@@ -4,6 +4,9 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import SagenexAcademy from "./sagenex-academy";
+import CashCardSection from "./cash-card";
+
 
 /**
  * SAGENEX Landing Page + common static pages (non‑functional)
@@ -44,7 +47,7 @@ type BadgeTone = "emerald" | "violet" | "zinc";
 
 const Badge: React.FC<React.PropsWithChildren<{ tone?: BadgeTone }>> = ({ tone = "emerald", children }) => (
   <span
-    className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
+    className={`inline-flex h-10 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${
       tone === "emerald"
         ? "bg-emerald-400/10 text-emerald-200 ring-emerald-400/30"
         : tone === "violet"
@@ -59,7 +62,7 @@ const Badge: React.FC<React.PropsWithChildren<{ tone?: BadgeTone }>> = ({ tone =
 // ---- 1) HERO ----
 export default function LandingPage() {
   return (
-    <main className="relative min-h-screen text-white bg-gradient-to-b from-black via-zinc-900 to-black">
+    <main className="relative min-h-screen text-white  from-black via-zinc-900 to-black">
       {/* Top sheen */}
       <div className="pointer-events-none absolute inset-x-0 top-0">
         <div className="mx-auto h-px w-full max-w-7xl bg-gradient-to-r from-transparent via-white/60 to-transparent"/>
@@ -82,9 +85,22 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center gap-4 pt-3 text-sm text-zinc-400">
               <div className="flex -space-x-2">
-                {[1,2,3,4].map(i => (
-                  <span key={i} className="relative inline-block h-7 w-7 overflow-hidden rounded-full ring-2 ring-black/80">
-                    <Image src={`/avatars/a${i}.png`} alt="member" fill className="object-cover"/>
+                {[
+                  "/tenkimg/056c85d23f30445c4ad7889967e6d9a1.jpg",
+                  "/tenkimg/1c852ea928150dfcf54c5457dbca0a35.jpg",
+                  "/tenkimg/a31b2ee2bdf3a8c5e65f99d935e64055.jpg",
+                  "/tenkimg/bd3b16868f55313d5d70415d8b969a91.jpg",
+                ].map((src, i) => (
+                  <span
+                    key={i}
+                    className="relative inline-block h-7 w-7 overflow-hidden rounded-full ring-2 ring-black/80"
+                  >
+                    <Image
+                      src={src}
+                      alt="member"
+                      fill
+                      className="object-cover"
+                    />
                   </span>
                 ))}
               </div>
@@ -124,8 +140,8 @@ export default function LandingPage() {
         </div>
       </div>
 
-      {/* 3) Academy */}
-      <AcademySection />
+
+      <SagenexAcademy />
 
       {/* 4) Unilevel Plan Snapshot */}
       <PlanSection />
@@ -182,50 +198,7 @@ const academyTiers = [
   { name: "Crown", price: 10000, bullets: ["Elite mentoring", "Global summits & tools"], tone: "violet" },
 ] as const;
 
-function AcademySection() {
-  return (
-    <Section id="academy">
-      <div className="flex items-end justify-between gap-4">
-        <div className="max-w-xl">
-          <Badge tone="emerald">Sagenex Academy</Badge>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight">Learn, Earn & Lead</h2>
-          <p className="mt-2 text-zinc-300">
-            Progressive tracks that pair education with practical duplication. Each tier is mapped to growing leadership responsibilities.
-          </p>
-        </div>
-        <Link href="#packages" className="hidden md:inline text-sm text-emerald-300 hover:text-emerald-200">See packages →</Link>
-      </div>
 
-      <div className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-        {academyTiers.map((t) => (
-          <motion.div
-            key={t.name}
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.35 }}
-            className={`${glass} p-5`}
-          >
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">{t.name} Academy</h3>
-              <Badge tone={t.tone}>${t.price}</Badge>
-            </div>
-            <ul className="mt-4 space-y-2 text-sm text-zinc-300">
-              {t.bullets.map((b) => (
-                <li key={b} className="flex gap-2"><span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300"/> {b}</li>
-              ))}
-            </ul>
-            <Link href="/package" className="mt-5 inline-flex items-center text-sm text-emerald-300 hover:text-emerald-200">Choose package →</Link>
-          </motion.div>
-        ))}
-      </div>
-
-      <div className="mt-6 text-xs text-zinc-400">
-        * E‑Wallet credit equals package value. Learning‑first, risk‑aware approach.
-      </div>
-    </Section>
-  );
-}
 
 // ---- Plan Snapshot ----
 function PlanSection() {
@@ -325,8 +298,8 @@ function PassportSection() {
           </ul>
 
           <div className="mt-6 flex gap-3">
-            <CTA href="#" label="Start KYC" />
-            <CTA href="#" label="Docs" variant="secondary" />
+            <CTA href="/login" label="Start KYC" />
+            <CTA href="/login" label="Docs" variant="secondary" />
           </div>
         </div>
 
@@ -357,44 +330,44 @@ function PassportSection() {
 }
 
 // ---- Cash Card ----
-function CashCardSection() {
-  return (
-    <Section id="card">
-      <div className="grid lg:grid-cols-2 gap-10 items-center">
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.45 }}
-          className={`${glass} relative overflow-hidden`}
-        >
-          <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl bg-gradient-to-br from-emerald-400/30 via-white/20 to-violet-400/30"/>
-          <div className="relative grid place-items-center aspect-[16/10]">
-            <Image src="/card-preview.png" alt="Sagenex cash card" fill className="object-cover"/>
-          </div>
-        </motion.div>
+// function CashCardSection() {
+//   return (
+//     <Section id="card">
+//       <div className="grid lg:grid-cols-2 gap-10 items-center">
+//         <motion.div
+//           initial={{ opacity: 0, y: 24 }}
+//           whileInView={{ opacity: 1, y: 0 }}
+//           viewport={{ once: true }}
+//           transition={{ duration: 0.45 }}
+//           className={`${glass} relative overflow-hidden`}
+//         >
+//           <div className="absolute -top-24 -left-24 h-72 w-72 rounded-full blur-3xl bg-gradient-to-br from-emerald-400/30 via-white/20 to-violet-400/30"/>
+//           <div className="relative grid place-items-center aspect-[16/10]">
+//             <Image src="/card-preview.png" alt="Sagenex cash card" fill className="object-cover"/>
+//           </div>
+//         </motion.div>
 
-        <div>
-          <Badge tone="emerald">Global Cash Card</Badge>
-          <h2 className="mt-3 text-3xl font-semibold tracking-tight">Withdraw earnings anywhere</h2>
-          <p className="mt-2 text-zinc-300 max-w-prose">
-            Access commissions and incentives directly. Use online and offline where major cards are accepted. Subject to KYC, AML, and card network rules.
-          </p>
-          <ul className="mt-6 grid gap-3 text-sm text-zinc-300">
-            {[
-              "ATM withdrawals & global spend",
-              "Package‑based flexible limits",
-              "Backed by international partners",
-              "Rewards & cashback (coming soon)",
-            ].map((b) => (
-              <li key={b} className="flex gap-2"><span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300"/> {b}</li>
-            ))}
-          </ul>
-        </div>
-      </div>
-    </Section>
-  );
-}
+//         <div>
+//           <Badge tone="emerald">Global Cash Card</Badge>
+//           <h2 className="mt-3 text-3xl font-semibold tracking-tight">Withdraw earnings anywhere</h2>
+//           <p className="mt-2 text-zinc-300 max-w-prose">
+//             Access commissions and incentives directly. Use online and offline where major cards are accepted. Subject to KYC, AML, and card network rules.
+//           </p>
+//           <ul className="mt-6 grid gap-3 text-sm text-zinc-300">
+//             {[
+//               "ATM withdrawals & global spend",
+//               "Package‑based flexible limits",
+//               "Backed by international partners",
+//               "Rewards & cashback (coming soon)",
+//             ].map((b) => (
+//               <li key={b} className="flex gap-2"><span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-300"/> {b}</li>
+//             ))}
+//           </ul>
+//         </div>
+//       </div>
+//     </Section>
+//   );
+// }
 
 // ---- Timeline / Roadmap ----
 function TimelineSection() {
@@ -461,10 +434,10 @@ export function Footer() {
         <div>
           <div className="text-sm font-semibold">Company</div>
           <ul className="mt-3 space-y-2 text-sm text-zinc-300">
-            <li><Link href="/about-us" className="hover:text-white">About Us</Link></li>
-            <li><Link href="/timeline" className="hover:text-white">Timeline</Link></li>
-            <li><Link href="/levels" className="hover:text-white">Levels</Link></li>
-            <li><Link href="/package" className="hover:text-white">Packages</Link></li>
+            <li><Link href="/login" className="hover:text-white">About Us</Link></li>
+            <li><Link href="/login" className="hover:text-white">Timeline</Link></li>
+            <li><Link href="/login" className="hover:text-white">Levels</Link></li>
+            <li><Link href="/login" className="hover:text-white">Packages</Link></li>
           </ul>
         </div>
         <div>

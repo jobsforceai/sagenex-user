@@ -1,7 +1,7 @@
 "use client";
 import { motion, AnimationGeneratorType } from "framer-motion";
 import React from "react";
-import MarqueeHindi from "./level-marque";
+// import MarqueeHindi from "./level-marque";
 
 type Tier = {
   tier: string;
@@ -225,9 +225,9 @@ export default function SagenexAcademy() {
           <span>Recognition at each level with exclusive perks</span>
         </div>
       </div>
-      <div className="mt-12">
+      {/* <div className="mt-12">
         <MarqueeHindi tilt={1}/>
-      </div>
+      </div> */}
     </section>
   );
 }
