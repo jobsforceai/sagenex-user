@@ -33,7 +33,7 @@ import CashCardSection from "./cash-card";
 
 const container = "mx-auto max-w-7xl px-4 sm:px-6 lg:px-8";
 const glass =
-  "rounded-3xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_10px_50px_rgba(0,0,0,0.35)]";
+  "rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[0_10px_50px_rgba(0,0,0,0.35)]";
 
 // Small helpers
 const Section: React.FC<React.PropsWithChildren<{ id?: string; className?: string; }>> = ({ id, className, children }) => (
@@ -140,8 +140,10 @@ export default function LandingPage() {
         </div>
       </div>
 
+<Section id="academy">
 
       <SagenexAcademy />
+</Section>
 
       {/* 4) Unilevel Plan Snapshot */}
       <PlanSection />
