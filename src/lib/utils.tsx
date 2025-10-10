@@ -88,7 +88,7 @@ export const transformDataToFlow = (
         data: {
           label: isCompany ? (
             <div className="flex items-center justify-start gap-3 w-full text-white">
-              <Image src="/icon.png" alt="Sagenex Logo" width={40} height={40} className="rounded-md" />
+              <Image src="/logo5.png" alt="Sagenex Logo" width={40} height={40} className="rounded-md" />
               <div>
                 <strong className="text-base">SAGENEX</strong>
                 <br />

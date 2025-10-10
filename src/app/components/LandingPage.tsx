@@ -418,7 +418,7 @@ export function Footer() {
         <div className="md:col-span-2">
           <div className="flex items-center gap-2">
             <div className="relative h-8 w-8">
-              <Image src="/icon.png" alt="Sagenex" fill className="object-contain"/>
+              <Image src="/logo5.png" alt="Sagenex" fill className="object-contain"/>
             </div>
             <span className="font-semibold">Sagenex</span>
           </div>
