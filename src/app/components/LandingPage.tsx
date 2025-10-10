@@ -38,7 +38,7 @@ const glass =
 // Small helpers
 const Section: React.FC<React.PropsWithChildren<{ id?: string; className?: string; }>> = ({ id, className, children }) => (
   <section id={id} className={`relative py-20 ${className ?? ""}`}>
-    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_50%_0%,rgba(255,255,255,0.06),rgba(255,255,255,0)_70%)]"/>
+    <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(60%_60%_at_50%_0%,rgba(2s55,255,255,0.06),rgba(255,255,255,0)_70%)]"/>
     <div className={container}>{children}</div>
   </section>
 );
@@ -80,7 +80,7 @@ export default function LandingPage() {
               A global ecosystem uniting AI, blockchain and real‑world assets. Learn, lead and scale with academy tracks, transparent KYC, and a simple unilevel plan designed for duplication.
             </p>
             <div className="flex flex-wrap gap-3">
-              <CTA href="/login" label="Explore Academy"/>
+              <CTA href="#academy" label="Explore Academy"/>
               <CTA href="#plan" variant="secondary" label="View Plan"/>
             </div>
             <div className="flex items-center gap-4 pt-3 text-sm text-zinc-400">
@@ -117,7 +117,7 @@ export default function LandingPage() {
           >
             <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl bg-gradient-to-br from-emerald-400/30 via-white/20 to-violet-400/30"/>
             <div className="relative grid place-items-center aspect-[16/9]">
-              <Image src="/dashboard-preview.png" alt="Sagenex dashboard preview" fill className="object-cover"/>
+              <Image src="/dashboard-preview2.png" alt="Sagenex dashboard preview" fill className="object-cover"/>
             </div>
           </motion.div>
         </div>
