@@ -3,14 +3,31 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Navbar from "@/app/components/Navbar";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface WalletTransaction {
-  _id: string;
+  _id: string; // Assuming a unique identifier is still sent for keys
   userId: string;
   type: string;
   amount: number;
   status: string;
+  createdBy: string;
   createdAt: string;
+  meta: Record<string, unknown>;
 }
 
 const WalletPage = () => {
@@ -56,49 +73,48 @@ const WalletPage = () => {
   }, [token, isAuthenticated, authLoading, router]);
 
   if (authLoading || dataLoading) {
-    return <div>Loading...</div>;
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex items-center mb-4">
-        <button
-          onClick={() => router.back()}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-l"
-        >
-          &larr; Back
-        </button>
-        <h1 className="text-2xl font-bold pl-4">Wallet History</h1>
-      </div>
-      <div className="bg-white shadow rounded-lg p-6">
-        {transactions.length === 0 ? (
-          <p>No transactions found.</p>
-        ) : (
-          <table className="min-w-full">
-            <thead>
-              <tr>
-                <th className="text-left">Type</th>
-                <th className="text-left">Amount</th>
-                <th className="text-left">Status</th>
-                <th className="text-left">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {transactions.map((tx) => (
-                <tr key={tx._id}>
-                  <td>{tx.type}</td>
-                  <td>${tx.amount.toFixed(2)}</td>
-                  <td>{tx.status}</td>
-                  <td>{new Date(tx.createdAt).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+    <div className="bg-black text-white min-h-screen">
+      <Navbar />
+      <div className="container mx-auto p-4 pt-24">
+        <Card>
+          <CardHeader>
+            <CardTitle>Wallet History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {transactions.length === 0 ? (
+              <p>No transactions found.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Amount</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Date</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {transactions.map((tx) => (
+                    <TableRow key={tx._id}>
+                      <TableCell>{tx.type}</TableCell>
+                      <TableCell>${tx.amount.toFixed(2)}</TableCell>
+                      <TableCell>{tx.status}</TableCell>
+                      <TableCell>{new Date(tx.createdAt).toLocaleDateString()}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

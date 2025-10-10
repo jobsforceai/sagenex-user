@@ -3,10 +3,23 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Navbar from "@/app/components/Navbar";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 
 interface Payout {
-  _id: string;
-  userId: string;
   month: string;
   packageUSD: number;
   roiPayout: number;
@@ -14,7 +27,6 @@ interface Payout {
   unilevelBonus: number;
   salary: number;
   totalMonthlyIncome: number;
-  calculatedAt: string;
 }
 
 const PayoutsPage = () => {
@@ -60,51 +72,47 @@ const PayoutsPage = () => {
   }, [token, isAuthenticated, authLoading, router]);
 
   if (authLoading || dataLoading) {
-    return <div>Loading...</div>;
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex items-center mb-4">
-        <button
-          onClick={() => router.back()}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-l"
-        >
-          &larr; Back
-        </button>
-        <h1 className="text-2xl font-bold pl-4">Payout History</h1>
-      </div>
-      <div className="bg-white shadow rounded-lg p-6">
-        {payouts.length === 0 ? (
-          <p>No payouts found.</p>
-        ) : (
-          <table className="min-w-full">
-            <thead>
-              <tr>
-                <th className="text-left">Month</th>
-                <th className="text-left">Total Income</th>
-                <th className="text-left">Date</th>
-              </tr>
-            </thead>
-            <tbody>
-              {payouts.map((payout) => (
-                <tr key={payout._id}>
-                  <td>{payout.month}</td>
-                  <td>${payout.totalMonthlyIncome.toFixed(2)}</td>
-                  <td>{new Date(payout.calculatedAt).toLocaleDateString()}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
+    <div className="bg-black text-white min-h-screen">
+      <Navbar />
+      <div className="container mx-auto p-4 pt-24">
+        <Card>
+          <CardHeader>
+            <CardTitle>Payout History</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {payouts.length === 0 ? (
+              <p>No payouts found.</p>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Month</TableHead>
+                    <TableHead>Total Income</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {payouts.map((payout) => (
+                    <TableRow key={payout.month}>
+                      <TableCell>{payout.month}</TableCell>
+                      <TableCell>${payout.totalMonthlyIncome.toFixed(2)}</TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
 };
-
 
 export default PayoutsPage;

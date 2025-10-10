@@ -5,16 +5,23 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import HeroButton from "./HeroButton";
+import HeroButton from "./hero-button";
 import { useAuth } from "../context/AuthContext";
 
 type NavLink = { href: string; label: string };
 
-const links: NavLink[] = [
+const guestLinks: NavLink[] = [
   { href: "/about-us", label: "About" },
   { href: "/timeline", label: "Timeline" },
   { href: "/levels", label: "Levels" },
   { href: "/package", label: "Packages" },
+];
+
+const authLinks: NavLink[] = [
+  { href: "/dashboard", label: "Dashboard" },
+  { href: "/payouts", label: "Payouts" },
+  { href: "/wallet", label: "Wallet" },
+  { href: "/team", label: "My Team" },
 ];
 
 const navbarVariants = {
@@ -26,11 +33,13 @@ const navbarVariants = {
   },
 };
 
-export default function Navbar(): JSX.Element {
+export default function Navbar() {
   const { isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+
+  const links = isAuthenticated ? authLinks : guestLinks;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);

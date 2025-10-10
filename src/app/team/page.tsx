@@ -4,22 +4,25 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import TreeClient from "./TreeClient";
+import Navbar from "@/app/components/Navbar";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { UserNode, ParentNode } from "@/types";
 
-interface TeamMember {
-  userId: string;
-  fullName: string;
-  email: string;
-  packageUSD: number;
-  dateJoined: string;
-  children: TeamMember[];
+interface TreeApiResponse {
+  tree: UserNode;
+  parent: ParentNode | null;
 }
 
 const TeamPage = () => {
   const { token, isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
-  const [team, setTeam] = useState<TeamMember | null>(null);
+  const [treeData, setTreeData] = useState<TreeApiResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [depth] = useState(6);
   const [dataLoading, setDataLoading] = useState(true);
 
   useEffect(() => {
@@ -33,7 +36,7 @@ const TeamPage = () => {
         const backendUrl =
           process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
         const res = await fetch(
-          `${backendUrl}/api/v1/user/team/tree?depth=${depth}`,
+          `${backendUrl}/api/v1/user/team/tree`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -42,8 +45,8 @@ const TeamPage = () => {
         );
 
         if (res.ok) {
-          const data = await res.json();
-          setTeam(data);
+          const data: TreeApiResponse = await res.json();
+          setTreeData(data);
         } else {
           const errorData = await res.json();
           setError(errorData.message || "Failed to fetch team data");
@@ -58,33 +61,32 @@ const TeamPage = () => {
     if (token) {
       fetchTeamTree();
     }
-  }, [token, isAuthenticated, authLoading, router, depth]);
+  }, [token, isAuthenticated, authLoading, router]);
 
   if (authLoading || dataLoading) {
-    return <div>Loading...</div>;
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
 
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex items-center mb-4">
-        <button
-          onClick={() => router.back()}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-l"
-        >
-          &larr; Back
-        </button>
-        <h1 className="text-2xl font-bold pl-4">My Team</h1>
-      </div>
-      <div className="bg-white shadow rounded-lg p-6">
-        {team ? (
-          <TreeClient initialTreeData={team} />
-        ) : (
-          <p>No team members found.</p>
-        )}
+    <div className="bg-black text-white min-h-screen">
+      <Navbar />
+      <div className="container mx-auto p-4 pt-24">
+        <Card>
+          <CardHeader>
+            <CardTitle>My Team</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {treeData && treeData.tree ? (
+              <TreeClient tree={treeData.tree} parent={treeData.parent} />
+            ) : (
+              <p>No team members found.</p>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );

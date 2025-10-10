@@ -1,10 +1,16 @@
 "use client";
 
-import Image from "next/image";
-import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Navbar from "@/app/components/Navbar";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 interface UserProfile {
   userId: string;
@@ -73,87 +79,69 @@ const DashboardPage = () => {
   }, [token, isAuthenticated, loading, router]);
 
   if (loading || !dashboardData) {
-    return <div>Loading...</div>;
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (error) {
-    return <div>Error: {error}</div>;
+    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
 
   const { profile, package: userPackage, wallet } = dashboardData;
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Dashboard</h1>
+    <div className="bg-black text-white min-h-screen">
+      <Navbar />
+      <div className="container mx-auto p-4 pt-24">
+        <h1 className="text-3xl font-bold mb-6">Dashboard</h1>
 
-      {/* Profile Card */}
-      <div className="bg-white shadow rounded-lg p-6 mb-4">
-        <h2 className="text-xl font-semibold mb-2">Profile</h2>
-        <Image
-          src={profile.profilePicture}
-          alt={profile.fullName}
-          width={96}
-          height={96}
-          className="w-24 h-24 rounded-full mx-auto mb-4"
-        />
-        <p>
-          <strong>Name:</strong> {profile.fullName}
-        </p>
-        <p>
-          <strong>Email:</strong> {profile.email}
-        </p>
-        <p>
-          <strong>Referral Code:</strong> {profile.referralCode}
-        </p>
-        <p>
-          <strong>Date Joined:</strong>{" "}
-          {new Date(profile.dateJoined).toLocaleDateString()}
-        </p>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Profile Card */}
+          <Card className="md:col-span-1">
+            <CardHeader className="text-center">
+              <Avatar className="w-24 h-24 mx-auto mb-4">
+                <AvatarImage src={profile.profilePicture} alt={profile.fullName} />
+                <AvatarFallback>{profile.fullName.charAt(0)}</AvatarFallback>
+              </Avatar>
+              <CardTitle className="text-2xl">{profile.fullName}</CardTitle>
+            </CardHeader>
+            <CardContent className="text-sm space-y-2">
+              <p>
+                <strong>Email:</strong> {profile.email}
+              </p>
+              <p>
+                <strong>Referral Code:</strong> {profile.referralCode}
+              </p>
+              <p>
+                <strong>Date Joined:</strong>{" "}
+                {new Date(profile.dateJoined).toLocaleDateString()}
+              </p>
+            </CardContent>
+          </Card>
 
-      {/* Navigation Section */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
-        <Link href="/wallet">
-          <p className="bg-blue-500 text-white text-center font-bold py-4 px-4 rounded-lg hover:bg-blue-600 transition-colors duration-300">
-            View Wallet
-          </p>
-        </Link>
-        <Link href="/team">
-          <p className="bg-green-500 text-white text-center font-bold py-4 px-4 rounded-lg hover:bg-green-600 transition-colors duration-300">
-            My Team
-          </p>
-        </Link>
-        <Link href="/payouts">
-          <p className="bg-indigo-500 text-white text-center font-bold py-4 px-4 rounded-lg hover:bg-indigo-600 transition-colors duration-300">
-            Payout History
-          </p>
-        </Link>
-      </div>
+          {/* Package and Wallet Info */}
+          <div className="md:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Package</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">${userPackage.packageUSD}</p>
+                <p className="text-sm text-muted-foreground">{userPackage.pvPoints} PV Points</p>
+              </CardContent>
+            </Card>
 
-      {/* Package and Wallet Info */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {/* Package Card */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-2">Package</h2>
-          <p>
-            <strong>Package USD:</strong> ${userPackage.packageUSD}
-          </p>
-          <p>
-            <strong>PV Points:</strong> {userPackage.pvPoints}
-          </p>
-        </div>
-
-        {/* Wallet Card */}
-        <div className="bg-white shadow rounded-lg p-6">
-          <h2 className="text-xl font-semibold mb-2">Wallet</h2>
-          <p>
-            <strong>Available to Withdraw:</strong> $
-            {wallet.availableToWithdraw.toFixed(2)}
-          </p>
-          <p>
-            <strong>Lifetime Earnings:</strong> $
-            {wallet.lifetimeEarnings.toFixed(2)}
-          </p>
+            <Card>
+              <CardHeader>
+                <CardTitle>Wallet</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-3xl font-bold">${wallet.availableToWithdraw.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">Available to Withdraw</p>
+                <p className="mt-4 text-lg">${wallet.lifetimeEarnings.toFixed(2)}</p>
+                <p className="text-sm text-muted-foreground">Lifetime Earnings</p>
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </div>
     </div>
