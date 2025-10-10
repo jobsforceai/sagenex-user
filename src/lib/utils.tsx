@@ -87,29 +87,29 @@ export const transformDataToFlow = (
         },
         data: {
           label: isCompany ? (
-            <div className="flex items-center justify-start gap-3 w-full">
-              <Image src="/icon.png" alt="Sagenex Logo" width={50} height={50} className="rounded-md" />
+            <div className="flex items-center justify-start gap-3 w-full text-white">
+              <Image src="/icon.png" alt="Sagenex Logo" width={40} height={40} className="rounded-md" />
               <div>
                 <strong className="text-base">SAGENEX</strong>
                 <br />
-                <small className="text-gray-500">(Parent)</small>
+                <small className="text-gray-400">(Parent)</small>
               </div>
             </div>
           ) : (
-            <div className="text-left">
+            <div className="text-left text-white">
               <strong>{parent.fullName}</strong>
               <br />
-              <small>ID: {parent.userId}</small>
+              <small className="text-gray-400">ID: {parent.userId}</small>
               <br />
-              <small className="text-gray-500">(Parent)</small>
+              <small className="text-gray-400">(Parent)</small>
             </div>
           ),
         },
         style: {
-          border: isCompany ? '2px solid #ca8a04' : '1px dashed #ccc',
+          border: isCompany ? '1px solid #ca8a04' : '1px dashed #4a5568',
           padding: 10,
           borderRadius: 8,
-          background: isCompany ? '#fefce8' : '#fafafa',
+          background: isCompany ? '#3a301c' : '#2d3748', // Dark gold vs. standard dark gray
           width: nodeWidth,
         },
       });
@@ -131,16 +131,16 @@ export const transformDataToFlow = (
       position: { x: graphNode.x - nodeWidth / 2, y: graphNode.y - nodeHeight / 2 },
       data: {
         label: (
-          <div className="p-2 text-left">
+          <div className="p-2 text-left text-white">
             <strong>{user.fullName}</strong>
             <br />
-            <small>ID: {user.userId}</small>
+            <small className="text-gray-400">ID: {user.userId}</small>
             <br />
-            <small>Package: ${Number(user.packageUSD || 0).toLocaleString()}</small>
+            <small className="text-gray-400">Package: ${Number(user.packageUSD || 0).toLocaleString()}</small>
             {user.isSplitSponsor && (
               <>
                 <br />
-                <small className="text-blue-600 font-semibold">
+                <small className="text-amber-400 font-semibold">
                   Sponsor: {user.originalSponsorId}
                 </small>
               </>
@@ -149,10 +149,10 @@ export const transformDataToFlow = (
         ),
       },
       style: {
-        border: '1px solid #777',
+        border: '1px solid #4a5568', // gray-600
         padding: 10,
         borderRadius: 5,
-        background: '#fff',
+        background: '#2d3748', // gray-800
         width: nodeWidth,
       },
     });
@@ -166,7 +166,8 @@ export const transformDataToFlow = (
       source: edge.v,
       target: edge.w,
       type: 'smoothstep',
-      markerEnd: { type: MarkerType.ArrowClosed },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' }, // gray-400
+      style: { stroke: '#9ca3af' },
     });
   });
 
