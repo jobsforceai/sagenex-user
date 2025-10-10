@@ -200,26 +200,41 @@ const DashboardPage = () => {
     })),
   }));
 
-  const gamifiedData = rankProgress ? {
-    progressPct: rankProgress.progress.percentage,
-    subtitle: rankProgress.progress.nextRankName
-      ? `Progress to ${rankProgress.progress.nextRankName}`
-      : "You have reached the highest rank!",
-    badges: ALL_RANKS.map((rank) => ({
-      label: rank,
-      earned: ALL_RANKS.indexOf(rank) <= ALL_RANKS.indexOf(rankProgress.currentRank.name),
-    })),
-    requirements: rankProgress.progress.requirements ? [
-      {
+  const gamifiedRequirements = [];
+  if (rankProgress?.progress.requirements) {
+    if (rankProgress.progress.requirements.directs.required > 0) {
+      gamifiedRequirements.push({
         text: `Have ${rankProgress.progress.requirements.directs.required} direct referrals. (You have ${rankProgress.progress.requirements.directs.current})`,
-        met: rankProgress.progress.requirements.directs.current >= rankProgress.progress.requirements.directs.required,
-      },
-      {
+        met:
+          rankProgress.progress.requirements.directs.current >=
+          rankProgress.progress.requirements.directs.required,
+      });
+    }
+    if (rankProgress.progress.requirements.team.required > 0) {
+      gamifiedRequirements.push({
         text: `Have ${rankProgress.progress.requirements.team.required} team members. (You have ${rankProgress.progress.requirements.team.current})`,
-        met: rankProgress.progress.requirements.team.current >= rankProgress.progress.requirements.team.required,
-      },
-    ] : [],
-  } : null;
+        met:
+          rankProgress.progress.requirements.team.current >=
+          rankProgress.progress.requirements.team.required,
+      });
+    }
+  }
+
+  const gamifiedData = rankProgress
+    ? {
+        progressPct: rankProgress.progress.percentage,
+        subtitle: rankProgress.progress.nextRankName
+          ? `Progress to ${rankProgress.progress.nextRankName}`
+          : "You have reached the highest rank!",
+        badges: ALL_RANKS.map((rank) => ({
+          label: rank,
+          earned:
+            ALL_RANKS.indexOf(rank) <=
+            ALL_RANKS.indexOf(rankProgress.currentRank.name),
+        })),
+        requirements: gamifiedRequirements,
+      }
+    : null;
 
   if (loading || !dashboardData) {
     return (

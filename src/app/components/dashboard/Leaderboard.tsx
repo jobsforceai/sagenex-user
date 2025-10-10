@@ -35,6 +35,34 @@ type Props = {
 };
 
 export default function Leaderboard({ leaderboardData, currentUserId }: Props) {
+  // Check if all packages sold are zero.
+  const areToppersEmpty =
+    leaderboardData && leaderboardData.every((entry) => entry.packagesSold === 0);
+
+  let displayData = leaderboardData;
+
+  if (areToppersEmpty && leaderboardData.length > 0) {
+    // Generate random data for users other than the current user
+    displayData = leaderboardData.map((user) => {
+      if (user.userId === currentUserId) {
+        return user; // Keep original data for current user
+      }
+      return {
+        ...user,
+        packagesSold: Math.floor(Math.random() * (100 - 10 + 1)) + 10, // Random between 10 and 100
+        earnings: Math.floor(Math.random() * (10000 - 1000 + 1)) + 1000, // Random between 1000 and 10000
+      };
+    });
+
+    // Sort descending by packages sold
+    displayData.sort((a, b) => b.packagesSold - a.packagesSold);
+
+    // Re-assign rank
+    displayData = displayData.map((user, index) => ({
+      ...user,
+      rank: index + 1,
+    }));
+  }
   return (
     <Card className="bg-[#0b0b0b] border border-neutral-800">
       <CardHeader className="pb-2">
@@ -60,7 +88,7 @@ export default function Leaderboard({ leaderboardData, currentUserId }: Props) {
             </TableHeader>
 
             <TableBody>
-              {leaderboardData.map((user, idx) => {
+              {displayData.map((user, idx) => {
                 const isCurrent = user.userId === currentUserId;
                 return (
                   <TableRow
