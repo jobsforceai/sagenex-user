@@ -341,7 +341,7 @@ export default function AboutUs() {
         <div className="mt-10 text-center">
           <div className="text-lg tracking-wide text-white/80">
             based in{" "}
-            <span className="font-semibold text-emerald-300">INDIA</span>
+            <span className="font-semibold text-emerald-300">USA</span>
           </div>
           <div className="mx-auto mt-3 h-8 w-px bg-white" />
         </div>
