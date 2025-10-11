@@ -233,7 +233,7 @@ export default function RanksSection() {
             Additional Safeguards
           </h4>
           <div className="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-            {SAFEGUARDS.map((s, i) => (
+            {SAFEGUARDS.map((s) => (
               <div
                 key={s.title}
                 className="rounded-xl border border-white/10 bg-white/5 p-5 backdrop-blur shadow-[0_12px_40px_rgba(0,0,0,.35)]"

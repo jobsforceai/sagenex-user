@@ -114,7 +114,7 @@ export default function AboutUs() {
     });
 
     const toOverlayXY = (L: number) => {
-      const svgPoint = (svg as any).createSVGPoint() as DOMPoint;
+      const svgPoint = svg?.createSVGPoint() as DOMPoint;
       const p = path.getPointAtLength(L);
       svgPoint.x = p.x;
       svgPoint.y = p.y;

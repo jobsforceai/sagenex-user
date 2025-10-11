@@ -127,7 +127,7 @@ const SagenexKYC: React.FC = () => {
             </h2>
           </div>
           <p className="text-gray-300 text-lg mb-8">
-            Sagenex's regulatory-first approach ensures:
+            Sagenex&apos;s regulatory-first approach ensures:
           </p>
           <div className="grid md:grid-cols-2 gap-6">
             {benefits.map((benefit, index) => (
