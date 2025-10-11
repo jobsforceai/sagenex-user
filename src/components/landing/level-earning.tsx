@@ -2,6 +2,7 @@
 import { motion, Variants } from "framer-motion";
 import React, { useMemo } from "react";
 import { FiUser } from "react-icons/fi";
+import InvestorVsLeader from "./investor-leader";
 
 type LevelRow = {
   level: string;
@@ -78,8 +79,33 @@ export default function LevelsEarnings() {
           initial={{ opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-60px" }}
-          className="mx-auto max-w-3xl text-center"
+          className="mx-auto text-center"
         >
+          <h1
+            className="text-[clamp(48px,6vw,96px)] font-extrabold tracking-tight text-left
+                       text-transparent bg-clip-text bg-gradient-to-b from-emerald-300 to-white"
+          >
+            Earning Model
+          </h1>
+
+          {/* <p className="mt-4 max-w-4xl text-right text-[17px] text-[#bfcfc3]">
+            Sagenex offers two earning paths: <strong className="text-white">Investor</strong> (passive) gains ROI from investment
+            pools, capped at <strong className="text-white">2.5×</strong> capital—reinvest to continue. <strong className="text-white">Business Leader</strong>
+            (active) earns ROI <em>plus</em> Direct Bonus and Unilevel incentives, with potential up to <strong className="text-white">4×</strong>
+            capital, sustained by team activity. Choose packages from <strong className="text-white">$50–$10,000</strong> with monthly ROI, daily
+            caps, and reinvest options. Duplicate smartly to scale multi-level bonuses.
+          </p> */}
+          <p className="mt-8 max-w-4xl text-center md:text-right md:ml-auto text-[17px]  text-white/85">
+            <span className="font-semibold text-emerald-300">SAGENEX</span> offers two earning paths: <strong className="text-white">Investor</strong> (passive) gains ROI from investment
+            pools, capped at <strong className="text-white">2.5×</strong> capital—reinvest to continue. <strong className="text-white">Business Leader</strong>
+            (active) earns ROI <em>plus</em> Direct Bonus and Unilevel incentives, with potential up to <strong className="text-white">4×</strong>
+            capital, sustained by team activity. Choose packages from <strong className="text-white">$50–$10,000</strong> with monthly ROI, daily
+            caps, and reinvest options. Duplicate smartly to scale multi-level bonuses.
+          </p>
+
+          <div>
+            <InvestorVsLeader />
+          </div>
           <h2
             id="levels-heading"
             className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
@@ -96,14 +122,24 @@ export default function LevelsEarnings() {
         {/* Layout: Left Pyramid + Right Table */}
         <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[320px,1fr]">
           {/* Pyramid visual (hidden on small screens) */}
-          <div className="hidden lg:flex flex-col items-center justify-start gap-6">
-            <PyramidIcon label="YOU (TOP NODE)" count={1} />
-            <Arrow />
-            <PyramidIcon label="L2" count={2} />
-            <Arrow />
-            <PyramidIcon label="L3" count={3} />
-            <Arrow />
-            <PyramidIcon label="L4" count={4} />
+          <div className="hidden lg:flex flex-col items-center justify-start gap-2">
+            {/* Compact pyramid: configurable small icon counts per row so 6 rows fit */}
+            {/* icons: YOU, L1, L2, L3, L4, L5 */}
+            {/* Using requested pattern where L2 has 2 icons, L3 has 3 icons; adjusted array below */}
+            {/** iconCounts length controls how many rows are shown here (we keep 6) */}
+            {(() => {
+              const ICON_COUNTS = [1, 1, 2, 3, 5, 7];
+              return ICON_COUNTS.map((icons, i) => {
+                const label = i === 0 ? "YOU (TOP NODE)" : `L${i}`;
+                const members = i === 0 ? 1 : LEVELS[i - 1]?.members ?? 0;
+                return (
+                  <React.Fragment key={i}>
+                    <PyramidIcon label={label} icons={icons} members={members} />
+                    {i < ICON_COUNTS.length - 1 && <Arrow />}
+                  </React.Fragment>
+                );
+              });
+            })()}
           </div>
 
           {/* Table */}
@@ -165,24 +201,27 @@ export default function LevelsEarnings() {
 
 function PyramidIcon({
   label,
-  count,
+  members,
+  icons = 1,
 }: {
   label: string;
-  count: number;
+  members: number;
+  icons?: number;
 }) {
   return (
     <div className="flex flex-col items-center text-center">
-      <div className="flex items-center justify-center gap-3">
-        {Array.from({ length: count }).map((_, i) => (
+      <div className="flex items-center justify-center gap-1">
+        {Array.from({ length: icons }).map((_, i) => (
           <FiUser
             key={i}
-            className="h-10 w-10 text-[#f0d493] drop-shadow-lg"
+            className="h-6 w-6 text-[#f0d493] drop-shadow-sm"
           />
         ))}
       </div>
-      <div className="mt-2 text-xs font-bold tracking-wide text-white/80">
+      <div className="mt-1 text-[11px] font-semibold tracking-wide text-white/80">
         {label}
       </div>
+      <div className="mt-0.5 text-[11px] text-[#d4b36a] font-semibold">{members.toLocaleString()} members</div>
     </div>
   );
 }

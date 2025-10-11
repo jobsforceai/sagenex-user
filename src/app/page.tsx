@@ -6,6 +6,7 @@ import SagenexAcademy from "@/components/landing/sagenex-academy";
 import CashCardSection from "./components/cash-card";
 import { Footer } from "./components/LandingPage";
 import Navbar from "./components/Navbar";
+import SgCoinPage from "@/components/landing/sagenex-coin";
 
 
 export default function Home() {
@@ -19,6 +20,7 @@ export default function Home() {
       <LevelsEarnings/>
       <RanksSection />
       <CashCardSection/>
+      <SgCoinPage />
       <Footer />
     </>
   );

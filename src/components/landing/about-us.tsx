@@ -37,7 +37,7 @@ const MILESTONES: Milestone[] = [
     t: 0.99,
     align: "left",
     pos: {
-      desktop: { labelOffsetX: -0, contentOffset: -120 },
+      desktop: { labelOffsetX: 10, contentOffset: 50 },
       tablet: { labelOffsetX: -30, contentOffset: -100 },
       mobile: { labelOffsetX: -24, contentOffset: -60 },
     },
@@ -49,7 +49,7 @@ const MILESTONES: Milestone[] = [
     t: 0.78,
     align: "right",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: -78, contentOffset: 90 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
       mobile: { labelOffsetX: 8, contentOffset: 60 },
     },
@@ -65,7 +65,7 @@ const MILESTONES: Milestone[] = [
     t: 0.66,
     align: "left",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: 14, contentOffset: 60 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
       mobile: { labelOffsetX: 8, contentOffset: 60 },
     },
@@ -77,7 +77,7 @@ const MILESTONES: Milestone[] = [
     t: 0.54,
     align: "right",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: 54, contentOffset: 150 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
       mobile: { labelOffsetX: 8, contentOffset: 60 },
     },
@@ -93,7 +93,7 @@ const MILESTONES: Milestone[] = [
     t: 0.18,
     align: "right",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: 44, contentOffset: 170 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
       mobile: { labelOffsetX: 8, contentOffset: 60 },
     },
@@ -105,7 +105,7 @@ const MILESTONES: Milestone[] = [
     t: 0.01,
     align: "left",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: 14, contentOffset: 60 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
       mobile: { labelOffsetX: 8, contentOffset: 60 },
     },

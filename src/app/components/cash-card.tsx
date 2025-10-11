@@ -5,6 +5,7 @@ import {
   FaWallet,
   FaShieldAlt,
   FaCrown,
+  FaChartLine,
 } from "react-icons/fa";
 import { RiExchangeDollarFill } from "react-icons/ri";
 import React from "react";
@@ -61,6 +62,16 @@ const features = [
         Backed by international banking partners (Dubai & U.S.). Fully{" "}
         <span className="text-[#d4b36a] font-semibold">KYC/AML-compliant</span>{" "}
         for secure transactions.
+      </>
+    ),
+  },
+  {
+    icon: <FaChartLine className="h-8 w-8 text-[#d4b36a]" />,
+    title: "Detailed Reports",
+    desc: (
+      <>
+        Transparent statements and downloadable transaction history. Track
+        earnings, withdrawals, and bonuses with easy CSV/ PDF exports.
       </>
     ),
   },

@@ -9,7 +9,7 @@ type Props = {
   className?: string; // extra tailwind
 };
 
-const PHRASE = "level सबके निकालेंगे";
+const PHRASE = "level sabke nikalenge";
 
 export default function MarqueeHindi({ speed = 20, tilt = 4, className = "" }: Props) {
   return (

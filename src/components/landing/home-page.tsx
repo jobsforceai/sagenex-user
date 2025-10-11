@@ -158,7 +158,15 @@ export default function HomePage() {
       {/* Dashboard content here */}
       <div className="absolute dashboard flex items-center justify-center top-[45%] left-1/2 -translate-x-1/2">
         <div className="absolute -top-[6px] bg-gradient-to-r from-transparent via-white to-transparent h-[6px] w-270"></div>
-        <div className="box-gradient-border w-270 h-150 bg-black"></div>
+        <div className="box-gradient-border w-270 h-150 bg-black">
+          <Image
+            src="/dashboard-preview1.png"
+            alt="Dashboard"
+            width={1080}
+            height={1080}
+            className="w-full h-full rounded-2xl"
+          />
+        </div>
       </div>
     </div>
   );

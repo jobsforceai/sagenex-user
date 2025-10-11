@@ -137,7 +137,7 @@ const tierImages: Record<string, string> = {
 
 export default function SagenexAcademy() {
   return (
-    <section className="relative overflow-x-hidden w-full bg-[#0b0f0c] py-16">
+    <section className="relative overflow-x-hidden w-full bg-black py-16">
       {/* decorative background glows */}
       <div className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]">
         <div className="absolute -top-24 left-1/4 h-80 w-80 rounded-full bg-[#1f5a45]/20 blur-3xl" />
@@ -146,12 +146,32 @@ export default function SagenexAcademy() {
 
       <div className="relative mx-auto max-w-7xl px-4">
         <header className="text-center">
-          <h2 className="text-2xl font-extrabold tracking-tight text-white sm:text-3xl md:text-4xl">
-            SAGENEX ACADEMY – LEARN, EARN &amp; LEAD
-          </h2>
-          <p className="mt-2 text-sm font-medium text-[#b6c8bf] sm:text-base">
-            Master Crypto, Master Growth
+          <h1
+            className="text-[clamp(48px,6vw,96px)] leading-[0.95] font-extrabold tracking-tight text-left
+                       text-transparent bg-clip-text bg-gradient-to-b from-emerald-300 to-white"
+          >
+            ACADEMY
+          </h1>
+
+
+          <p className="mt-6 max-w-4xl text-center md:text-right md:ml-auto text-[17px]  text-white/85">
+            <span className="font-semibold text-emerald-300">SAGENEX</span> Academy is our structured “learn–earn–lead” program that
+            turns beginners into confident leaders through eight progressive
+            tracks—Starter, Bronze, Silver, Gold, Platinum, Titanium, Diamond,
+            and Crown. Each tier unlocks focused, real-world training: from
+            crypto and blockchain fundamentals, affiliate marketing, wallets
+            and trading, and technical analysis with duplication workshops, to
+            leadership blueprints, market analysis, compliance & taxation
+            basics, multi-country network growth, mastermind access, CEO-level
+            mindset and investment diversification.
           </p>
+
+          <h2 className="mt-4 text-2xl font-extrabold tracking-tight text-white sm:text-3xl md:text-4xl">
+            LEARN, EARN &amp; LEAD
+          </h2>
+          {/* <p className="mt-2 text-sm font-medium text-[#b6c8bf] sm:text-base">
+            Master Crypto, Master Growth
+          </p> */}
         </header>
 
         <motion.div
@@ -159,7 +179,7 @@ export default function SagenexAcademy() {
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-80px" }}
-          className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4"
+          className="mt-12 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
           {DATA.map((c) => {
             const { ribbon, price } = getTierTheme(c.tier);
