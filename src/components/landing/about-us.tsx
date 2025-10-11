@@ -37,9 +37,9 @@ const MILESTONES: Milestone[] = [
     t: 0.99,
     align: "left",
     pos: {
-      desktop: { labelOffsetX: -0, contentOffset: -120 },
+      desktop: { labelOffsetX: 10, contentOffset: 50 },
       tablet: { labelOffsetX: -30, contentOffset: -100 },
-      mobile: { labelOffsetX: -24, contentOffset: -60 },
+      mobile: { labelOffsetX: 24, contentOffset: 20 },
     },
   },
   {
@@ -49,7 +49,7 @@ const MILESTONES: Milestone[] = [
     t: 0.78,
     align: "right",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: -78, contentOffset: 90 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
       mobile: { labelOffsetX: 8, contentOffset: 60 },
     },
@@ -65,9 +65,9 @@ const MILESTONES: Milestone[] = [
     t: 0.66,
     align: "left",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: 14, contentOffset: 60 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
-      mobile: { labelOffsetX: 8, contentOffset: 60 },
+      mobile: { labelOffsetX: 8, contentOffset: -240 },
     },
   },
   {
@@ -77,7 +77,7 @@ const MILESTONES: Milestone[] = [
     t: 0.54,
     align: "right",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: 54, contentOffset: 150 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
       mobile: { labelOffsetX: 8, contentOffset: 60 },
     },
@@ -93,9 +93,9 @@ const MILESTONES: Milestone[] = [
     t: 0.18,
     align: "right",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: 44, contentOffset: 170 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
-      mobile: { labelOffsetX: 8, contentOffset: 60 },
+      mobile: { labelOffsetX: 8, contentOffset: -250 },
     },
   },
   {
@@ -105,9 +105,9 @@ const MILESTONES: Milestone[] = [
     t: 0.01,
     align: "left",
     pos: {
-      desktop: { labelOffsetX: 14, contentOffset: 120 },
+      desktop: { labelOffsetX: 14, contentOffset: 60 },
       tablet: { labelOffsetX: 12, contentOffset: 90 },
-      mobile: { labelOffsetX: 8, contentOffset: 60 },
+      mobile: { labelOffsetX: 8, contentOffset: -220 },
     },
   },
 ];
@@ -280,7 +280,7 @@ export default function AboutUs() {
         stagger: 0.12,
         ease: 'power2.out'
       }, '-=0.55');
-  }, rootRef.current ?? undefined);
+    }, rootRef.current ?? undefined);
 
     return () => {
       window.removeEventListener("resize", place);
@@ -289,7 +289,7 @@ export default function AboutUs() {
   }, []);
 
   return (
-  <section ref={rootRef} className="relative overflow-hidden bg-black text-white">
+    <section ref={rootRef} className="relative overflow-hidden bg-black text-white">
       {/* golden glow blobs (decorative) */}
       {/* <div
         aria-hidden
@@ -313,7 +313,7 @@ export default function AboutUs() {
         }}
       /> */}
       {/* ---------- TOP HERO (added) ---------- */}
-  <div className="mx-auto max-w-6xl px-6 pt-20 md:pt-28 relative z-10">
+      <div id="about-us" className="mx-auto max-w-6xl px-6 pt-20 md:pt-28 relative z-10">
         <h1
           className="about-hero-title text-[clamp(56px,7vw,128px)] leading-[0.9] font-extrabold tracking-tight
                      text-transparent bg-clip-text bg-gradient-to-b from-emerald-200 to-white"
@@ -367,7 +367,7 @@ export default function AboutUs() {
       {/* ---------- /TOP HERO ---------- */}
 
       {/* ---------- TIMELINE (unchanged positioning/alignment) ---------- */}
-      <div className="relative w-full mt-36" style={{ height: HEIGHT }}>
+      <div className="relative w-full md:mt-36" style={{ height: HEIGHT }}>
         <svg
           ref={svgRef}
           className="absolute inset-0 w-full h-full"
@@ -459,8 +459,8 @@ export default function AboutUs() {
                   m.align === "right" ? "origin-left text-left" : "origin-right text-right",
                 ].join(" ")}
               >
-                <div className="font-medium text-white/90">{m.title}</div>
-                <div className="mt-1 text-[13px]">
+                <div className="scale-75 sm:scale-100 font-medium text-white/90">{m.title}</div>
+                <div className="mt-1 scale-75 sm:scale-100 text-[13px]">
                   {m.points.join(" — ")}
                 </div>
               </div>

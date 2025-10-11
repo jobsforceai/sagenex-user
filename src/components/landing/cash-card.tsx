@@ -5,6 +5,7 @@ import {
   FaWallet,
   FaShieldAlt,
   FaCrown,
+  FaChartLine,
 } from "react-icons/fa";
 import { RiExchangeDollarFill } from "react-icons/ri";
 import React from "react";
@@ -64,6 +65,16 @@ const features = [
       </>
     ),
   },
+  {
+    icon: <FaChartLine className="h-8 w-8 text-[#d4b36a]" />,
+    title: "Detailed Reports",
+    desc: (
+      <>
+        Transparent statements and downloadable transaction history. Track
+        earnings, withdrawals, and bonuses with easy CSV/ PDF exports.
+      </>
+    ),
+  },
 ];
 
 const container: Variants = {
@@ -82,6 +93,7 @@ const item: Variants = {
 export default function CashCardSection() {
   return (
     <section
+    id="card"
       className="relative overflow-hidden"
       aria-labelledby="cashcard-heading"
     >

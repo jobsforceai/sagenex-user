@@ -1,7 +1,7 @@
 // components/Footer.tsx
 "use client";
 
-import { Mail, Send, Twitter, Youtube, Linkedin, Github, ArrowRight } from "lucide-react";
+import {  Twitter, Youtube, Linkedin, Github } from "lucide-react";
 import Link from "next/link";
 
 const GOLD = "from-[#FCE79A] via-[#F5C04E] to-[#B67E20]";
@@ -27,7 +27,7 @@ export default function Footer() {
 
       <div className="relative mx-auto max-w-7xl px-6 py-14 md:py-20">
         {/* CTA band */}
-        <div className="rounded-2xl border border-emerald-400/15 bg-gradient-to-b from-[#0F241B] to-[#0A1813] p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,.45)]">
+        {/* <div className="rounded-2xl border border-emerald-400/15 bg-gradient-to-b from-[#0F241B] to-[#0A1813] p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,.45)]">
           <div className="flex flex-col items-start gap-6 md:flex-row md:items-center md:justify-between">
             <div>
               <h3 className="text-2xl md:text-3xl font-extrabold leading-tight">
@@ -41,7 +41,6 @@ export default function Footer() {
               </p>
             </div>
 
-            {/* newsletter */}
             <form
               onSubmit={(e) => e.preventDefault()}
               className="w-full max-w-lg md:w-auto"
@@ -76,7 +75,7 @@ export default function Footer() {
               </p>
             </form>
           </div>
-        </div>
+        </div> */}
 
         {/* link columns */}
         <div className="mt-12 grid grid-cols-2 gap-8 sm:grid-cols-3 lg:grid-cols-5">
@@ -84,7 +83,7 @@ export default function Footer() {
           <div className="col-span-2 sm:col-span-3 lg:col-span-2">
             <Link href="/" className="inline-flex items-center gap-3">
               {/* replace with your logo */}
-              <div className="h-8 w-8 rounded-full bg-emerald-400/20 ring-1 ring-emerald-400/30" />
+              {/* <div className="h-8 w-8 rounded-full bg-emerald-400/20 ring-1 ring-emerald-400/30" /> */}
               <span className="text-xl font-semibold tracking-wide">Sagenex</span>
             </Link>
             <p className="mt-3 text-sm text-white/75 max-w-sm">
@@ -112,10 +111,11 @@ export default function Footer() {
           <FooterCol
             title="Company"
             links={[
-              { label: "About Us", href: "#about" },
-              { label: "Timeline", href: "#timeline" },
-              { label: "Levels", href: "#levels" },
-              { label: "Package", href: "#package" },
+              { href: "#about-us", label: "About" },
+              { href: "#academy", label: "Academy" },
+              { href: "#earning", label: "Earning" },
+              { href: "#card", label: "Credit Card" },
+              { href: "#coin", label: "SGCoin" },
             ]}
           />
           <FooterCol
@@ -140,7 +140,7 @@ export default function Footer() {
 
         {/* bottom ribbon */}
         <div className="mt-12 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 backdrop-blur">
-          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-center">
             <p className="text-xs text-white/65">
               © {year} Sagenex. All rights reserved. |
               {" "}
@@ -151,12 +151,7 @@ export default function Footer() {
               <Link href="/cookies" className="underline decoration-white/30 hover:decoration-white">Cookies</Link>
             </p>
 
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-white/65">Built on</span>
-              <span className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold text-black bg-gradient-to-r ${GOLD}`}>
-                SGX Ecosystem <ArrowRight className="h-3.5 w-3.5" aria-hidden />
-              </span>
-            </div>
+           
           </div>
         </div>
       </div>

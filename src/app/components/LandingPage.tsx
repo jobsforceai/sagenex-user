@@ -4,7 +4,7 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import CashCardSection from "./cash-card";
+import CashCardSection from "../../components/landing/cash-card";
 import SagenexAcademy from "@/components/landing/sagenex-academy";
 
 

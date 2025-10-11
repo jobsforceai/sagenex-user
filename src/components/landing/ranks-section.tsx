@@ -127,15 +127,8 @@ function RankIcon({ name, className }: { name: Rank["icon"]; className?: string 
 
 export default function RanksSection() {
   return (
-    <section className="relative overflow-hidden bg-[#07140E] text-white">
-      {/* mood layers */}
-      <div
-        className="pointer-events-none absolute inset-0"
-        style={{
-          background:
-            "radial-gradient(65% 70% at 15% 5%, rgba(16,185,129,.08), transparent 60%), radial-gradient(60% 60% at 85% 35%, rgba(0,120,80,.07), transparent 60%)",
-        }}
-      />
+    <section className="relative bg-black text-white">
+
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,transparent_0,rgba(255,255,255,.04)_1px,transparent_2px)] bg-[length:42px_100%] opacity-15" />
 
       <div className="relative mx-auto max-w-7xl px-6 py-20 md:py-28">
@@ -147,8 +140,7 @@ export default function RanksSection() {
           transition={{ duration: 0.45 }}
           className="mb-10 md:mb-14"
         >
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight">
-            <span className="text-white">SAGENEX Ranks & Salary Structure</span>{" "}
+          <h2 className="text-3xl text-center font-extrabold tracking-tight text-white sm:text-4xl"><span className="text-white">SAGENEX Ranks & Salary Structure</span>{" "}
             <span className="text-white/60 text-lg align-middle block md:inline">
               (With Active Conditions)
             </span>
