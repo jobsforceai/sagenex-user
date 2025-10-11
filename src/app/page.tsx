@@ -1,16 +1,25 @@
+import AboutUs from "@/components/landing/about-us";
+import HomePage from "@/components/landing/home-page";
+import LevelsEarnings from "@/components/landing/level-earning";
+import RanksSection from "@/components/landing/ranks-section";
+import SagenexAcademy from "@/components/landing/sagenex-academy";
+import CashCardSection from "./components/cash-card";
+import { Footer } from "./components/LandingPage";
 import Navbar from "./components/Navbar";
-// prajyot branch
-import LandingPage from "./components/LandingPage";
 
 
 export default function Home() {
   return (
     <>
       <Navbar />
-      {/* From prajyot */}
-      <LandingPage />
-
-
+      <HomePage />
+      <AboutUs />
+      <SagenexAcademy/>
+      {/* <KYCSection /> */}
+      <LevelsEarnings/>
+      <RanksSection />
+      <CashCardSection/>
+      <Footer />
     </>
   );
 }

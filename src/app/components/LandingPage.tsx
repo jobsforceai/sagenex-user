@@ -4,8 +4,8 @@ import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import SagenexAcademy from "./sagenex-academy";
 import CashCardSection from "./cash-card";
+import SagenexAcademy from "@/components/landing/sagenex-academy";
 
 
 /**
