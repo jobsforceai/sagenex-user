@@ -5,16 +5,19 @@ import { redirect } from "next/navigation";
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
-async function getAuthHeaders() {
+async function getAuthHeaders(isJson = true) {
     const cookieStore = await cookies();
     const token = cookieStore.get("authToken")?.value;
     if (!token) {
       redirect("/login");
     }
-    return {
-      "Content-Type": "application/json",
+    const headers: HeadersInit = {
       Authorization: `Bearer ${token}`,
     };
+    if (isJson) {
+      headers["Content-Type"] = "application/json";
+    }
+    return headers;
   }
 
   async function handleApiResponse(response: Response) {
@@ -115,4 +118,44 @@ export async function getFinancialSummary() {
     headers: await getAuthHeaders(),
   });
   return handleApiResponse(res);
+}
+
+export async function uploadKycDocument(formData: FormData) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/kyc/document`, {
+        method: "POST",
+        headers: await getAuthHeaders(false),
+        body: formData,
+      });
+      return handleApiResponse(res);
+}
+
+export async function submitKycForReview() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/kyc/submit-for-review`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function getKycStatus() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/kyc/status`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function getPlacementQueue() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/team/placement-queue`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function placeUser(newUserId: string, placementParentId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/team/place-user`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ newUserId, placementParentId }),
+      });
+      return handleApiResponse(res);
 }

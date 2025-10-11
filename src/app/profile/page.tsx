@@ -12,8 +12,9 @@ import {
 } from "@/components/ui/card";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
-import { Copy, BadgeCheck, XCircle } from "lucide-react";
-import { getProfileData } from "@/actions/user";
+import { Copy, BadgeCheck, XCircle, ShieldCheck, ShieldAlert, ShieldClose } from "lucide-react";
+import { getProfileData, getKycStatus } from "@/actions/user";
+import { KycStatus } from "@/types";
 
 interface UserProfile {
   userId: string;
@@ -32,10 +33,44 @@ interface UserProfile {
   isPackageActive: boolean;
 }
 
+const KycStatusBadge = ({ status }: { status: KycStatus['status'] }) => {
+    const kycStatusInfo = {
+        VERIFIED: {
+            icon: <ShieldCheck className="h-4 w-4" />,
+            text: "KYC Verified",
+            className: "bg-green-500/20 text-green-400",
+        },
+        PENDING: {
+            icon: <ShieldAlert className="h-4 w-4" />,
+            text: "KYC Pending",
+            className: "bg-yellow-500/20 text-yellow-400",
+        },
+        REJECTED: {
+            icon: <ShieldClose className="h-4 w-4" />,
+            text: "KYC Rejected",
+            className: "bg-red-500/20 text-red-400",
+        },
+        NOT_SUBMITTED: {
+            icon: <ShieldClose className="h-4 w-4" />,
+            text: "KYC Not Verified",
+            className: "bg-gray-500/20 text-gray-400",
+        }
+    };
+
+    const { icon, text, className } = kycStatusInfo[status];
+
+    return (
+        <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${className}`}>
+            {icon} {text}
+        </span>
+    );
+};
+
 const ProfilePage = () => {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
+  const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copyText, setCopyText] = useState("Copy");
 
@@ -53,13 +88,23 @@ const ProfilePage = () => {
       return;
     }
 
-    const fetchProfileData = async () => {
+    const fetchPageData = async () => {
         try {
-            const data = await getProfileData();
-            if (data.error) {
-                setError(data.error);
+            const [profileData, kycData] = await Promise.all([
+                getProfileData(),
+                getKycStatus()
+            ]);
+
+            if (profileData.error) {
+                setError(profileData.error);
             } else {
-                setProfile(data);
+                setProfile(profileData);
+            }
+
+            if (kycData.error) {
+                console.error("Could not fetch KYC status:", kycData.error);
+            } else {
+                setKycStatus(kycData);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -67,7 +112,7 @@ const ProfilePage = () => {
     };
 
     if (isAuthenticated) {
-      fetchProfileData();
+      fetchPageData();
     }
   }, [isAuthenticated, loading, router]);
 
@@ -92,7 +137,7 @@ const ProfilePage = () => {
           <div className="text-center md:text-left">
             <h1 className="text-3xl font-bold">{profile.fullName}</h1>
             <p className="text-muted-foreground">{profile.email}</p>
-            <div className="flex items-center justify-center md:justify-start gap-2 mt-2">
+            <div className="flex items-center justify-center md:justify-start flex-wrap gap-2 mt-2">
               <span className={`capitalize text-xs font-semibold px-2.5 py-1 rounded-full ${profile.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                 {profile.status}
               </span>
@@ -105,6 +150,7 @@ const ProfilePage = () => {
                   <XCircle className="h-4 w-4" /> Package Inactive
                 </span>
               )}
+              {kycStatus && <KycStatusBadge status={kycStatus.status} />}
             </div>
           </div>
         </div>
