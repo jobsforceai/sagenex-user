@@ -5,7 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
-import HeroButton from "./hero-button";
+import HeroButton from "../../components/ui/hero-button";
 import { useAuth } from "../context/AuthContext";
 import { getRankProgress } from "@/actions/user";
 import { Crown } from "lucide-react";
@@ -22,6 +22,7 @@ const guestLinks: NavLink[] = [
 const authLinks: NavLink[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/payouts", label: "Payouts" },
+  { href: "/kyc", label: "KYC" },
   { href: "/wallet", label: "Wallet" },
   { href: "/team", label: "My Team" },
   { href: "/profile", label: "Profile" },

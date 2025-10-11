@@ -1,12 +1,12 @@
-import Navbar from './components/Navbar';
-import HomePage from './components/home-page';
-import AboutUs from './components/about-us';
-import SagenexAcademy from './components/sagenex-academy';
-import LevelsEarnings from './components/level-earning';
-import CashCardSection from './components/cash-card';
-import KYCSection from './components/kyc-section';
-import RanksSection from './components/ranks-section';
-import Footer from './components/footer';
+import AboutUs from "@/components/landing/about-us";
+import HomePage from "@/components/landing/home-page";
+import LevelsEarnings from "@/components/landing/level-earning";
+import RanksSection from "@/components/landing/ranks-section";
+import SagenexAcademy from "@/components/landing/sagenex-academy";
+import CashCardSection from "./components/cash-card";
+import { Footer } from "./components/LandingPage";
+import Navbar from "./components/Navbar";
+
 
 export default function Home() {
   return (
@@ -14,8 +14,8 @@ export default function Home() {
       <Navbar />
       <HomePage />
       <AboutUs />
-      {/* <KYCSection /> */}
       <SagenexAcademy/>
+      {/* <KYCSection /> */}
       <LevelsEarnings/>
       <RanksSection />
       <CashCardSection/>

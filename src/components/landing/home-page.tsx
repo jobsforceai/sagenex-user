@@ -6,7 +6,7 @@ import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { SplitText } from "gsap/SplitText";
-import HeroButton from "./hero-button";
+import HeroButton from "../ui/hero-button";
 gsap.registerPlugin(useGSAP, ScrollTrigger, SplitText);
 
 const fireflyCount = 10; // Number of fireflies
