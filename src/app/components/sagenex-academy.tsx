@@ -1,7 +1,8 @@
 "use client";
 import { motion, AnimationGeneratorType } from "framer-motion";
+import Image from "next/image";
 import React from "react";
-import MarqueeHindi from "./level-marque";
+// import MarqueeHindi from "./level-marque";
 
 type Tier = {
   tier: string;
@@ -96,6 +97,12 @@ const item = {
 
 /** tier-specific accents (ribbon gradient + price color + ring color) */
 function getTierTheme(tier: string) {
+  if (tier.includes("Platinum"))
+    return {
+      ribbon: "from-[#a78bfa] to-[#7c3aed]",
+      price: "text-[#d8b4fe]",
+      ring: "rgba(139, 92, 246, .45)",
+    };
   if (tier.includes("Gold"))
     return {
       ribbon: "from-[#b58a2b] to-[#f1d27a]",
@@ -121,6 +128,12 @@ function getTierTheme(tier: string) {
     ring: "rgba(31,90,69,.45)",
   };
 }
+
+const tierImages: Record<string, string> = {
+  "Titanium Academy": "/academy/3.png",
+  "Diamond Academy": "/academy/4.png",
+  "Crown Academy": "/academy/5.png",
+};
 
 export default function SagenexAcademy() {
   return (
@@ -149,8 +162,9 @@ export default function SagenexAcademy() {
           className="mt-8 grid grid-cols-1 items-stretch gap-4 sm:grid-cols-2 lg:grid-cols-4"
         >
           {DATA.map((c) => {
-            const { ribbon, price, ring } = getTierTheme(c.tier);
+            const { ribbon, price } = getTierTheme(c.tier);
             const wallet = `$${fmt(c.price)}`; // wallet mirrors price
+            const tierImage = tierImages[c.tier];
 
             return (
               <motion.article
@@ -164,9 +178,18 @@ export default function SagenexAcademy() {
               >
                 {/* Ribbon */}
                 <div
-                  className={`inline-block rounded-lg bg-gradient-to-r ${ribbon} px-3 py-2 text-sm font-bold tracking-tight text-[#0b0f0c] ring-1 ring-white/10`}
+                  className={`flex items-center justify-between rounded-lg bg-gradient-to-r ${ribbon} px-3 py-2 text-sm font-bold tracking-tight text-white ring-1 ring-white/10`}
                 >
-                  {c.tier}
+                  <span>{c.tier}</span>
+                  {tierImage && (
+                    <Image
+                      src={tierImage}
+                      alt={`${c.tier} badge`}
+                      width={32}
+                      height={32}
+                      className="h-8 w-8"
+                    />
+                  )}
                 </div>
 
                 {/* Content grows to keep consistent card heights */}
@@ -206,7 +229,7 @@ export default function SagenexAcademy() {
                   className="pointer-events-none absolute inset-0 -z-10 rounded-2xl opacity-0 blur-2xl transition-opacity duration-200 group-hover:opacity-100"
                   style={{
                     background:
-                      "radial-gradient(60% 50% at 50% 0%, rgba(31,90,69,.35), transparent 70%)",
+                      `radial-gradient(60% 50% at 50% 0%, ${getTierTheme(c.tier).ring}, transparent 70%)`,
                   }}
                 />
               </motion.article>
@@ -225,9 +248,9 @@ export default function SagenexAcademy() {
           <span>Recognition at each level with exclusive perks</span>
         </div>
       </div>
-      <div className="mt-12">
+      {/* <div className="mt-12">
         <MarqueeHindi tilt={1}/>
-      </div>
+      </div> */}
     </section>
   );
 }

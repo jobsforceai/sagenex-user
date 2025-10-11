@@ -10,7 +10,7 @@ import Footer from './components/footer';
 
 export default function Home() {
   return (
-    <div>
+    <>
       <Navbar />
       <HomePage />
       <AboutUs />
@@ -20,6 +20,6 @@ export default function Home() {
       <RanksSection />
       <CashCardSection/>
       <Footer />
-    </div>
+    </>
   );
 }
