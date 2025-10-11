@@ -93,6 +93,7 @@ const item: Variants = {
 export default function CashCardSection() {
   return (
     <section
+    id="card"
       className="relative overflow-hidden"
       aria-labelledby="cashcard-heading"
     >

@@ -13,10 +13,11 @@ import { Crown } from "lucide-react";
 type NavLink = { href: string; label: string };
 
 const guestLinks: NavLink[] = [
-  { href: "/about-us", label: "About" },
-  { href: "/timeline", label: "Timeline" },
-  { href: "/levels", label: "Levels" },
-  { href: "/package", label: "Packages" },
+  { href: "#about-us", label: "About" },
+  { href: "#academy", label: "Academy" },
+  { href: "#earning", label: "Earning" },
+  { href: "#card", label: "Credit Card" },
+  { href: "#coin", label: "SGCoin" },
 ];
 
 const authLinks: NavLink[] = [

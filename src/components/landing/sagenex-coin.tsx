@@ -3,7 +3,7 @@
 
 import Image from "next/image";
 import { motion, useMotionValue, useTransform } from "framer-motion";
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 
 const GOLD = "from-[#FCE79A] via-[#F5C04E] to-[#B67E20]";
 
@@ -12,7 +12,7 @@ type Props = {
   src?: string; // coin image (transparent PNG)
 };
 
-export default function SgCoinSection({ id = "sgcoin", src = "/logo5.png" }: Props) {
+export default function SgCoinSection({ id = "coin", src = "/logo5.png" }: Props) {
   return (
     <section id={id} className="relative overflow-hidden bg-[#060B09] text-white">
       <Aurora />
@@ -232,18 +232,32 @@ function GodRays() {
 }
 
 function Particles() {
+  const [dots, setDots] = useState<
+    { top: number; left: number; duration: number; delay: number }[] | null
+  >(null);
+
+  useEffect(() => {
+    const arr = Array.from({ length: 36 }).map(() => ({
+      top: Math.random() * 90 + 2,
+      left: Math.random() * 90 + 5,
+      duration: 6 + Math.random() * 6,
+      delay: Math.random() * 2,
+    }));
+    setDots(arr);
+  }, []);
+
+  if (!dots) return null;
+
   return (
     <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
-      {[...Array(36)].map((_, i) => (
+      {dots.map((d, i) => (
         <span
           key={i}
           className="absolute h-[2px] w-[2px] rounded-full bg-yellow-200/80"
           style={{
-            top: `${Math.random() * 90 + 2}%`,
-            left: `${Math.random() * 90 + 5}%`,
-            animation: `sg_float ${6 + Math.random() * 6}s ease-in-out ${
-              Math.random() * 2
-            }s infinite`,
+            top: `${d.top}%`,
+            left: `${d.left}%`,
+            animation: `sg_float ${d.duration}s ease-in-out ${d.delay}s infinite`,
             opacity: 0.7,
             filter: "blur(0.3px)",
           }}

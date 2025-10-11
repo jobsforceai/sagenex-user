@@ -60,6 +60,7 @@ export default function LevelsEarnings() {
 
   return (
     <section
+    id="earning"
       className="relative overflow-hidden"
       aria-labelledby="levels-heading"
     >

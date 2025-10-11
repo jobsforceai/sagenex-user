@@ -1,9 +1,9 @@
 "use client"
 
 import React, { useEffect, useRef, useState } from 'react';
-import Image from 'next/image';
 import { FileText } from 'lucide-react';
 import Navbar from '../components/Navbar';
+import Image from 'next/image';
 
 export default function KycPage() {
   const [files, setFiles] = useState<(File | null)[]>([null, null, null, null]);
@@ -163,7 +163,7 @@ export default function KycPage() {
                 <div className="w-20 h-20 rounded-md bg-gray-800 flex items-center justify-center overflow-hidden">
                   {previews[i] ? (
                     // show image preview when possible
-                    <img src={previews[i] as string} alt={`preview-${i}`} className="w-full h-full object-cover" />
+                    <Image height={500} width={500} src={previews[i] as string} alt={`preview-${i}`} className="w-full h-full object-cover" />
                   ) : files[i] && files[i]!.type === 'application/pdf' ? (
                     // show PDF icon
                     <div className="flex items-center justify-center w-full h-full">
