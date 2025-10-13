@@ -35,3 +35,8 @@ export interface QueuedUser {
     dateJoined: string;
     placementDeadline: string;
 }
+
+export interface Recipient {
+    userId: string;
+    fullName: string;
+}

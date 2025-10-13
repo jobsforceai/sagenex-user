@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
+import FundTransfer from "@/app/components/wallet/FundTransfer";
 import {
   Card,
   CardContent,
@@ -128,6 +129,9 @@ const WalletPage = () => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Fund Transfer Component */}
+        <FundTransfer currentBalance={dashboardData?.wallet.availableToWithdraw ?? 0} />
 
         {/* Transaction History */}
         <Card>

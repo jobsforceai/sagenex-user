@@ -159,3 +159,27 @@ export async function placeUser(newUserId: string, placementParentId: string) {
       });
       return handleApiResponse(res);
 }
+
+export async function getTransferRecipients() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/transfer-recipients`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function sendTransferOtp() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/send-otp`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function executeTransfer(recipientId: string, amount: number, otp: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/execute`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ recipientId, amount, otp }),
+      });
+      return handleApiResponse(res);
+}
