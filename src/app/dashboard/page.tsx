@@ -121,7 +121,7 @@ const DashboardPage = () => {
 
   const referralLink =
     dashboardData?.profile.referralCode
-      ? `${window.location.origin}/login?ref=${dashboardData.profile.referralCode}`
+      ? `${process.env.NEXT_PUBLIC_APP_URL}/login?ref=${dashboardData.profile.referralCode}`
       : "";
 
   const handleCopy = () => {
