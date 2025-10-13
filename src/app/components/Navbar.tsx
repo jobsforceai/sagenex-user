@@ -16,7 +16,7 @@ const guestLinks: NavLink[] = [
   { href: "#about-us", label: "About" },
   { href: "#academy", label: "Academy" },
   { href: "#earning", label: "Earning" },
-  { href: "#card", label: "Credit Card" },
+  { href: "#card", label: "Cash Card" },
   { href: "#coin", label: "SGCoin" },
 ];
 
