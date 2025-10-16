@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
+// import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/app/context/AuthContext";
 import {
   Card,
@@ -14,11 +14,11 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { checkUser, googleLogin, registerUser, loginOtp, verifyEmail } from "@/actions/auth";
+import { registerUser, loginOtp, verifyEmail } from "@/actions/auth";
 import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2 } from "lucide-react";
 import Image from "next/image";
 
-type View = "main" | "email-login" | "email-signup" | "otp" | "google-signup";
+type View = "main" | "email-login" | "email-signup" | "otp";
 
 function Login() {
   const { login } = useAuth();
@@ -36,7 +36,7 @@ function Login() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  const [googleToken, setGoogleToken] = useState<string | null>(null);
+  // const [googleToken, setGoogleToken] = useState<string | null>(null);
 
   useEffect(() => {
     const ref = searchParams.get("ref");
@@ -50,51 +50,51 @@ function Login() {
     setView(newView);
   }
 
-  const handleGoogleSuccess = async (
-    credentialResponse: CredentialResponse
-  ) => {
-    setError(null);
-    setIsLoading(true);
-    const idToken = credentialResponse.credential;
-    if (!idToken) {
-      setError("Google sign-in failed. Please try again.");
-      setIsLoading(false);
-      return;
-    }
+  // const handleGoogleSuccess = async (
+  //   credentialResponse: CredentialResponse
+  // ) => {
+  //   setError(null);
+  //   setIsLoading(true);
+  //   const idToken = credentialResponse.credential;
+  //   if (!idToken) {
+  //     setError("Google sign-in failed. Please try again.");
+  //     setIsLoading(false);
+  //     return;
+  //   }
 
-    try {
-      const { exists } = await checkUser(idToken);
-      if (exists) {
-        // User exists, log them in directly
-        await handleFinalGoogleLogin(idToken);
-      } else {
-        // New user, ask for sponsor code
-        setGoogleToken(idToken);
-        changeView("google-signup");
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  //   try {
+  //     const { exists } = await checkUser(idToken);
+  //     if (exists) {
+  //       // User exists, log them in directly
+  //       await handleFinalGoogleLogin(idToken);
+  //     } else {
+  //       // New user, ask for sponsor code
+  //       setGoogleToken(idToken);
+  //       changeView("google-signup");
+  //     }
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "An unknown error occurred.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
-  const handleFinalGoogleLogin = async (idToken: string, sponsor?: string) => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const data = await googleLogin(idToken, sponsor);
-      if (data.error) {
-        setError(`Login failed: ${data.error}`);
-      } else {
-        login(data.token);
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // const handleFinalGoogleLogin = async (idToken: string, sponsor?: string) => {
+  //   setIsLoading(true);
+  //   setError(null);
+  //   try {
+  //     const data = await googleLogin(idToken, sponsor);
+  //     if (data.error) {
+  //       setError(`Login failed: ${data.error}`);
+  //     } else {
+  //       login(data.token);
+  //     }
+  //   } catch (err) {
+  //     setError(err instanceof Error ? err.message : "An unknown error occurred.");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -177,53 +177,35 @@ function Login() {
 
   const renderMainView = () => (
     <>
-      <div className="flex justify-center">
-        <GoogleLogin
-          onSuccess={handleGoogleSuccess}
-          onError={() => setError("Google login failed. Please try again.")}
-          theme="filled_black"
-          shape="pill"
-          logo_alignment="center"
-          width="300px"
-        />
-      </div>
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-gray-700" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-black px-2 text-gray-400">Or</span>
-        </div>
-      </div>
       <Button onClick={() => changeView("email-login")} variant="outline" className="w-full flex items-center gap-2 bg-transparent border-gray-600 hover:bg-gray-700" disabled={isLoading}>
         <Mail className="h-4 w-4" /> Continue with Email
       </Button>
     </>
   );
 
-  const renderGoogleSignupView = () => (
-    <form onSubmit={(e) => {
-        e.preventDefault();
-        if (googleToken) {
-            handleFinalGoogleLogin(googleToken, sponsorId);
-        }
-    }} className="space-y-4">
-        <div className="relative">
-            <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input 
-                placeholder="Referral Code (Optional)" 
-                id="sponsorId-google" 
-                value={sponsorId} 
-                onChange={(e) => setSponsorId(e.target.value)} 
-                className="bg-black border-gray-800 text-white pl-10" 
-                disabled={isLoading} 
-            />
-        </div>
-        <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
-            {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Complete Sign-Up <UserPlus className="h-4 w-4" /></>}
-        </Button>
-    </form>
-  );
+  // const renderGoogleSignupView = () => (
+  //   <form onSubmit={(e) => {
+  //       e.preventDefault();
+  //       if (googleToken) {
+  //           handleFinalGoogleLogin(googleToken, sponsorId);
+  //       }
+  //   }} className="space-y-4">
+  //       <div className="relative">
+  //           <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+  //           <Input 
+  //               placeholder="Referral Code (Optional)" 
+  //               id="sponsorId-google" 
+  //               value={sponsorId} 
+  //               onChange={(e) => setSponsorId(e.target.value)} 
+  //               className="bg-black border-gray-800 text-white pl-10" 
+  //               disabled={isLoading} 
+  //           />
+  //       </div>
+  //       <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+  //           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Complete Sign-Up <UserPlus className="h-4 w-4" /></>}
+  //       </Button>
+  //   </form>
+  // );
 
   const renderEmailLoginView = () => (
     <form onSubmit={handleEmailLoginSubmit} className="space-y-4">
@@ -285,11 +267,6 @@ function Login() {
   const renderView = () => {
     let title, description, form;
     switch (view) {
-      case "google-signup":
-        title = "One Last Step";
-        description = "Enter a referral code to complete your sign-up.";
-        form = renderGoogleSignupView();
-        break;
       case "email-login":
         title = "Sign In";
         description = "Enter your email to receive a login code.";
