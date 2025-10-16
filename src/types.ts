@@ -33,7 +33,6 @@ export interface QueuedUser {
     fullName: string;
     email: string;
     dateJoined: string;
-    placementDeadline: string;
 }
 
 export interface Recipient {

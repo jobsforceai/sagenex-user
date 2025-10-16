@@ -2,47 +2,61 @@
 
 import { useState, useEffect } from 'react';
 import { QueuedUser } from '@/types';
-import { placeUser } from '@/actions/user';
-import { Clock, UserPlus } from 'lucide-react';
+import { placeUser, getReferralSummary, getProfileData } from '@/actions/user';
+import { UserPlus } from 'lucide-react';
 
-const Countdown = ({ deadline }: { deadline: string }) => {
-    const calculateTimeLeft = () => {
-        const difference = +new Date(deadline) - +new Date();
-        let timeLeft = { hours: 0, minutes: 0, seconds: 0 };
-
-        if (difference > 0) {
-            timeLeft = {
-                hours: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                minutes: Math.floor((difference / 1000 / 60) % 60),
-                seconds: Math.floor((difference / 1000) % 60),
-            };
-        }
-        return timeLeft;
-    };
-
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setTimeLeft(calculateTimeLeft());
-        }, 1000);
-        return () => clearTimeout(timer);
-    });
-
-    const timerComponents = Object.entries(timeLeft).map(([interval, value]) => (
-        <span key={interval} className="text-sm font-mono">
-            {String(value).padStart(2, '0')}{interval.charAt(0)}
-        </span>
-    ));
-
-    return <div className="flex items-center gap-2">{timerComponents}</div>;
-};
+interface PlacementOption {
+    userId: string;
+    fullName: string;
+}
 
 const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPlaced: () => void }) => {
     const [selectedUser, setSelectedUser] = useState<QueuedUser | null>(null);
     const [placementParentId, setPlacementParentId] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [placementOptions, setPlacementOptions] = useState<PlacementOption[]>([]);
+    const [isLoadingOptions, setIsLoadingOptions] = useState(false);
+
+    useEffect(() => {
+        const fetchPlacementOptions = async () => {
+            if (!selectedUser) return;
+
+            setIsLoadingOptions(true);
+            setPlacementOptions([]);
+            setPlacementParentId('');
+
+            try {
+                const [profileRes, summaryRes] = await Promise.all([
+                    getProfileData(),
+                    getReferralSummary()
+                ]);
+
+                let options: PlacementOption[] = [];
+                if (profileRes && !profileRes.error) {
+                    options.push({ userId: profileRes.userId, fullName: `${profileRes.fullName} (Myself)` });
+                }
+
+                if (summaryRes && summaryRes.referrals && !summaryRes.error) {
+                    options = [...options, ...summaryRes.referrals];
+                }
+
+                setPlacementOptions(options);
+                if (options.length > 0) {
+                    setPlacementParentId(options[0].userId);
+                }
+
+            } catch (error) {
+                setMessage({ type: 'error', text: 'Could not load placement options.' });
+                console.error(error);
+            } finally {
+                setIsLoadingOptions(false);
+            }
+        };
+
+        fetchPlacementOptions();
+    }, [selectedUser]);
+
 
     const handlePlaceUser = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -79,7 +93,7 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
                 Placement Queue
             </h2>
             <p className="text-gray-400 mb-6">
-                You have 48 hours to place new users. If not placed, they will be automatically assigned.
+                Users you have sponsored who are waiting to be placed in your team tree.
             </p>
 
             {message && (
@@ -94,12 +108,9 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
                         <div>
                             <h3 className="font-semibold text-white">{user.fullName}</h3>
                             <p className="text-sm text-gray-400">{user.email}</p>
+                            <p className="text-sm text-gray-500">ID: {user.userId}</p>
                         </div>
                         <div className="flex items-center gap-4">
-                            <div className="flex items-center gap-2 text-yellow-400">
-                                <Clock size={16} />
-                                <Countdown deadline={user.placementDeadline} />
-                            </div>
                             <button
                                 onClick={() => { setSelectedUser(user); setMessage(null); }}
                                 className="px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500"
@@ -116,22 +127,30 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
                     <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-md" onClick={e => e.stopPropagation()}>
                         <h3 className="text-xl font-bold mb-2 text-white">Place {selectedUser.fullName}</h3>
                         <p className="text-gray-400 mb-6">
-                            Enter the User ID of the parent. This can be your own ID or one of your directs.
+                            Select a parent from the list. This can be yourself or one of your direct team members.
                         </p>
                         <form onSubmit={handlePlaceUser}>
-                            <input
-                                type="text"
-                                value={placementParentId}
-                                onChange={e => setPlacementParentId(e.target.value)}
-                                placeholder="Enter Parent User ID"
-                                className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                                required
-                            />
+                            {isLoadingOptions ? (
+                                <div className="text-center text-gray-400">Loading options...</div>
+                            ) : (
+                                <select
+                                    value={placementParentId}
+                                    onChange={e => setPlacementParentId(e.target.value)}
+                                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    required
+                                >
+                                    {placementOptions.map(option => (
+                                        <option key={option.userId} value={option.userId}>
+                                            {option.fullName} ({option.userId})
+                                        </option>
+                                    ))}
+                                </select>
+                            )}
                             <div className="mt-6 flex justify-end gap-4">
                                 <button type="button" onClick={() => setSelectedUser(null)} className="px-4 py-2 rounded-md text-gray-300 hover:bg-gray-700">
                                     Cancel
                                 </button>
-                                <button type="submit" disabled={isSubmitting} className="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-500 disabled:opacity-50">
+                                <button type="submit" disabled={isSubmitting || isLoadingOptions || placementOptions.length === 0} className="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-500 disabled:opacity-50">
                                     {isSubmitting ? 'Placing...' : 'Confirm Placement'}
                                 </button>
                             </div>
