@@ -68,6 +68,15 @@ export async function getProfileData() {
       return handleApiResponse(res);
 }
 
+export async function updateUserProfile(data: { fullName?: string; phone?: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/profile`, {
+        method: "PATCH",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      return handleApiResponse(res);
+}
+
 export async function getPayouts() {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/payouts`, {
         headers: await getAuthHeaders(),
@@ -156,6 +165,15 @@ export async function placeUser(newUserId: string, placementParentId: string) {
         method: "POST",
         headers: await getAuthHeaders(),
         body: JSON.stringify({ newUserId, placementParentId }),
+      });
+      return handleApiResponse(res);
+}
+
+export async function transferUser(userIdToTransfer: string, newSponsorId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/team/transfer-user`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ userIdToTransfer, newSponsorId }),
       });
       return handleApiResponse(res);
 }
