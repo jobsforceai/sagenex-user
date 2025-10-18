@@ -32,6 +32,7 @@ interface UserProfile {
   dateJoined: string;
   status: 'active' | 'inactive';
   isPackageActive: boolean;
+  usdtTrc20Address: string | null;
 }
 
 const KycStatusBadge = ({ status }: { status: KycStatus['status'] }) => {
@@ -75,7 +76,7 @@ const ProfilePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [copyText, setCopyText] = useState("Copy");
   const [isEditing, setIsEditing] = useState(false);
-  const [formData, setFormData] = useState({ fullName: '', phone: '' });
+  const [formData, setFormData] = useState({ fullName: '', phone: '', usdtTrc20Address: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
@@ -99,6 +100,7 @@ const ProfilePage = () => {
                 setFormData({
                     fullName: profileData.fullName,
                     phone: profileData.phone || '',
+                    usdtTrc20Address: profileData.usdtTrc20Address || '',
                 });
             }
 
@@ -141,12 +143,15 @@ const ProfilePage = () => {
         return;
     }
 
-    const dataToUpdate: { fullName?: string; phone?: string } = {};
+    const dataToUpdate: { fullName?: string; phone?: string; usdtTrc20Address?: string } = {};
     if (formData.fullName !== profile?.fullName) {
         dataToUpdate.fullName = formData.fullName;
     }
     if (formData.phone !== (profile?.phone || '')) {
         dataToUpdate.phone = formData.phone;
+    }
+    if (formData.usdtTrc20Address !== (profile?.usdtTrc20Address || '')) {
+        dataToUpdate.usdtTrc20Address = formData.usdtTrc20Address;
     }
 
     if (Object.keys(dataToUpdate).length === 0) {
@@ -244,6 +249,10 @@ const ProfilePage = () => {
                     <p className="font-semibold">Date Joined</p>
                     <p className="text-muted-foreground">{new Date(profile.dateJoined).toLocaleDateString()}</p>
                   </div>
+                  <div>
+                    <p className="font-semibold">USDT (TRC20) Address</p>
+                    <p className="text-muted-foreground break-all">{profile.usdtTrc20Address || 'Not provided'}</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -318,6 +327,16 @@ const ProfilePage = () => {
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
                                 required
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="usdtTrc20Address" className="block text-sm font-medium text-gray-400 mb-2">USDT (TRC20) Address</label>
+                            <Input
+                                id="usdtTrc20Address"
+                                name="usdtTrc20Address"
+                                value={formData.usdtTrc20Address}
+                                onChange={handleInputChange}
+                                className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
                             />
                         </div>
                         <div className="mt-6 flex justify-end gap-4">

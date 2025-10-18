@@ -68,7 +68,7 @@ export async function getProfileData() {
       return handleApiResponse(res);
 }
 
-export async function updateUserProfile(data: { fullName?: string; phone?: string }) {
+export async function updateUserProfile(data: { fullName?: string; phone?: string; usdtTrc20Address?: string }) {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/profile`, {
         method: "PATCH",
         headers: await getAuthHeaders(),
@@ -198,6 +198,15 @@ export async function executeTransfer(recipientId: string, amount: number, otp: 
         method: "POST",
         headers: await getAuthHeaders(),
         body: JSON.stringify({ recipientId, amount, otp }),
+      });
+      return handleApiResponse(res);
+}
+
+export async function createCryptoDepositInvoice(amount: number) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/deposits/crypto`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ amount }),
       });
       return handleApiResponse(res);
 }

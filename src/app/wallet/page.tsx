@@ -5,6 +5,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
+import CryptoDeposit from "@/app/components/wallet/CryptoDeposit";
 import {
   Card,
   CardContent,
@@ -130,8 +131,10 @@ const WalletPage = () => {
           </Card>
         </div>
 
-        {/* Fund Transfer Component */}
-        <FundTransfer currentBalance={dashboardData?.wallet.availableToWithdraw ?? 0} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <CryptoDeposit />
+          <FundTransfer currentBalance={dashboardData?.wallet.availableToWithdraw ?? 0} />
+        </div>
 
         {/* Transaction History */}
         <Card>

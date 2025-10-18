@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { QueuedUser } from '@/types';
 import { placeUser, getReferralSummary, getProfileData, transferUser } from '@/actions/user';
-import { UserPlus, Send } from 'lucide-react';
+import { UserPlus } from 'lucide-react';
 
 interface PlacementOption {
     userId: string;
