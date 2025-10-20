@@ -211,11 +211,11 @@ export async function createCryptoDepositInvoice(amount: number) {
       return handleApiResponse(res);
 }
 
-export async function requestWithdrawal(amount: number, withdrawalAddress: string) {
+export async function requestWithdrawal(data: { amount: number; withdrawalAddress?: string; upiId?: string }) {
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/request-withdrawal`, {
         method: "POST",
         headers: await getAuthHeaders(),
-        body: JSON.stringify({ amount, withdrawalAddress }),
+        body: JSON.stringify(data),
       });
       return handleApiResponse(res);
 }

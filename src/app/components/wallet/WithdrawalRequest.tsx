@@ -12,9 +12,13 @@ interface WithdrawalRequestProps {
   kycStatus: string | undefined;
 }
 
+type WithdrawalType = "crypto" | "upi";
+
 const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps) => {
   const [amount, setAmount] = useState("");
+  const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>("crypto");
   const [withdrawalAddress, setWithdrawalAddress] = useState("");
+  const [upiId, setUpiId] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -28,6 +32,20 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
     };
     fetchProfile();
   }, []);
+
+  const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newAmount = e.target.value;
+    setAmount(newAmount);
+
+    // Clear previous submission errors when user starts typing
+    setError(null);
+    setMessage(null);
+
+    const withdrawalAmount = parseFloat(newAmount);
+    if (!isNaN(withdrawalAmount) && withdrawalAmount > currentBalance) {
+      setError("Withdrawal amount cannot exceed your available balance.");
+    }
+  };
 
   const handleWithdrawalRequest = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,15 +65,27 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
       setIsLoading(false);
       return;
     }
-    
-    if (!withdrawalAddress) {
-        setError("Please set your USDT (TRC20) withdrawal address in your profile.");
+
+    const payload: { amount: number; withdrawalAddress?: string; upiId?: string } = { amount: withdrawalAmount };
+
+    if (withdrawalType === "crypto") {
+      if (!withdrawalAddress) {
+        setError("Please set your USDT (TRC20) withdrawal address in your profile or enter it manually.");
         setIsLoading(false);
         return;
+      }
+      payload.withdrawalAddress = withdrawalAddress;
+    } else {
+      if (!upiId) {
+        setError("Please enter your UPI ID.");
+        setIsLoading(false);
+        return;
+      }
+      payload.upiId = upiId;
     }
 
     try {
-      const result = await requestWithdrawal(withdrawalAmount, withdrawalAddress);
+      const result = await requestWithdrawal(payload);
       if (result.error) {
         setError(result.error);
       } else {
@@ -97,6 +127,10 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
         </CardTitle>
       </CardHeader>
       <CardContent>
+        <div className="flex gap-2 mb-4 border-b border-gray-700">
+            <Button variant={withdrawalType === 'crypto' ? 'secondary' : 'ghost'} onClick={() => setWithdrawalType('crypto')}>Crypto</Button>
+            <Button variant={withdrawalType === 'upi' ? 'secondary' : 'ghost'} onClick={() => setWithdrawalType('upi')}>UPI</Button>
+        </div>
         <form onSubmit={handleWithdrawalRequest} className="space-y-4">
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
@@ -107,7 +141,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
               name="amount"
               type="number"
               value={amount}
-              onChange={(e) => setAmount(e.target.value)}
+              onChange={handleAmountChange}
               placeholder={`Available: $${currentBalance.toFixed(2)}`}
               className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
               required
@@ -115,22 +149,44 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
               step="0.01"
             />
           </div>
-          <div>
-            <label htmlFor="withdrawalAddress" className="block text-sm font-medium text-gray-400 mb-2">
-              USDT (TRC20) Withdrawal Address
-            </label>
-            <Input
-              id="withdrawalAddress"
-              name="withdrawalAddress"
-              type="text"
-              value={withdrawalAddress}
-              onChange={(e) => setWithdrawalAddress(e.target.value)}
-              placeholder="Enter your withdrawal address"
-              className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-              required
-            />
-             <p className="text-xs text-gray-500 mt-1">This is pre-filled from your profile settings.</p>
-          </div>
+          
+          {withdrawalType === 'crypto' && (
+            <div>
+              <label htmlFor="withdrawalAddress" className="block text-sm font-medium text-gray-400 mb-2">
+                USDT (TRC20) Withdrawal Address
+              </label>
+              <Input
+                id="withdrawalAddress"
+                name="withdrawalAddress"
+                type="text"
+                value={withdrawalAddress}
+                onChange={(e) => setWithdrawalAddress(e.target.value)}
+                placeholder="Enter your withdrawal address"
+                className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                required
+              />
+              <p className="text-xs text-gray-500 mt-1">This is pre-filled from your profile settings.</p>
+            </div>
+          )}
+
+          {withdrawalType === 'upi' && (
+            <div>
+              <label htmlFor="upiId" className="block text-sm font-medium text-gray-400 mb-2">
+                UPI ID
+              </label>
+              <Input
+                id="upiId"
+                name="upiId"
+                type="text"
+                value={upiId}
+                onChange={(e) => setUpiId(e.target.value)}
+                placeholder="yourname@oksbi"
+                className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                required
+              />
+            </div>
+          )}
+
           <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? "Submitting Request..." : "Request Withdrawal"}
           </Button>
