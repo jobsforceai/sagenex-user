@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
 import CryptoDeposit from "@/app/components/wallet/CryptoDeposit";
+import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
 import LockedBonuses from "@/app/components/dashboard/LockedBonuses";
 import {
   Card,
@@ -21,7 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getWalletTransactions, getDashboardData } from "@/actions/user";
+import { getWalletTransactions, getDashboardData, getKycStatus } from "@/actions/user";
+import { KycStatus } from "@/types";
 
 interface WalletTransaction {
   _id: string;
@@ -59,6 +61,7 @@ const WalletPage = () => {
   const router = useRouter();
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -70,17 +73,19 @@ const WalletPage = () => {
 
     const fetchData = async () => {
       try {
-        const [walletData, dashboardRes] = await Promise.all([
+        const [walletData, dashboardRes, kycData] = await Promise.all([
             getWalletTransactions(),
             getDashboardData(),
+            getKycStatus(),
         ]);
 
-        if (walletData.error || dashboardRes.error) {
-          throw new Error(walletData.error || dashboardRes.error || "Failed to fetch wallet data");
+        if (walletData.error || dashboardRes.error || kycData.error) {
+          throw new Error(walletData.error || dashboardRes.error || kycData.error || "Failed to fetch wallet data");
         }
 
         setTransactions(walletData);
         setDashboardData(dashboardRes);
+        setKycStatus(kycData);
 
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -132,9 +137,13 @@ const WalletPage = () => {
           </Card>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           <CryptoDeposit />
           <FundTransfer currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
+          <WithdrawalRequest 
+            currentBalance={dashboardData?.wallet.availableBalance ?? 0}
+            kycStatus={kycStatus?.status}
+          />
         </div>
 
         {dashboardData?.wallet.bonuses && (

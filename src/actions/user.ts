@@ -210,3 +210,12 @@ export async function createCryptoDepositInvoice(amount: number) {
       });
       return handleApiResponse(res);
 }
+
+export async function requestWithdrawal(amount: number, withdrawalAddress: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/request-withdrawal`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ amount, withdrawalAddress }),
+      });
+      return handleApiResponse(res);
+}
