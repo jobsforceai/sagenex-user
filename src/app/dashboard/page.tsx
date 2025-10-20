@@ -20,6 +20,7 @@ import Leaderboard from "../components/dashboard/Leaderboard";
 import ReferralGrowthTools from "../components/dashboard/ReferralAndGrowth";
 import SixLegTreeView from "../components/dashboard/BinaryTreeView";
 import SmartUpdates from "../components/dashboard/SmartUpdates";
+import LockedBonuses from "../components/dashboard/LockedBonuses";
 
 // --- INTERFACES ---
 interface Profile {
@@ -31,7 +32,18 @@ interface Profile {
 }
 
 interface Wallet {
-  lifetimeEarnings: number;
+  availableBalance: number;
+  bonuses: {
+    level: number;
+    name: string;
+    lockedAmount: number;
+    isUnlocked: boolean;
+    unlockRequirement: string;
+    progress: {
+      current: number;
+      required: number;
+    };
+  }[];
 }
 
 interface UserPackage {
@@ -269,9 +281,9 @@ const DashboardPage = () => {
             </p>
           </div>
           <div className="text-right">
-            <p className="text-sm text-muted-foreground">Total Earnings</p>
+            <p className="text-sm text-muted-foreground">Available Balance</p>
             <p className="text-2xl font-bold">
-              {wallet.lifetimeEarnings.toLocaleString("en-US", {
+              {wallet.availableBalance.toLocaleString("en-US", {
                 style: "currency",
                 currency: "USD",
                 minimumFractionDigits: 0,
@@ -335,6 +347,9 @@ const DashboardPage = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <SmartUpdates />
+            {dashboardData.wallet.bonuses && (
+              <LockedBonuses bonuses={dashboardData.wallet.bonuses} />
+            )}
           </div>
         </div>
 
