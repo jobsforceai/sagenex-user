@@ -305,6 +305,7 @@ const DashboardPage = () => {
             nextLevelLabel={rankProgress?.progress.nextRankName || ""}
             progressPct={rankProgress?.progress.percentage}
             joinDate={dashboardData.profile.joinDate}
+            packageUSD={dashboardData.package?.packageUSD}
           />
         </div>
 
