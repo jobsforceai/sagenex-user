@@ -21,6 +21,8 @@ import ReferralGrowthTools from "../components/dashboard/ReferralAndGrowth";
 import SixLegTreeView from "../components/dashboard/BinaryTreeView";
 import SmartUpdates from "../components/dashboard/SmartUpdates";
 import LockedBonuses from "../components/dashboard/LockedBonuses";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 // --- INTERFACES ---
 interface Profile {
@@ -127,7 +129,7 @@ const DashboardPage = () => {
   const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
   const [treeData, setTreeData] = useState<TreeData | null>(null);
   const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
-  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[] | null>(null);
   const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -149,52 +151,53 @@ const DashboardPage = () => {
       return;
     }
 
-    const fetchData = async () => {
+    const fetchInitialData = async () => {
       try {
-        const [
-          dashboardRes,
-          summaryRes,
-          treeRes,
-          rankRes,
-          leaderboardRes,
-          financialRes,
-        ] = await Promise.all([
-          getDashboardData(),
-          getReferralSummary(),
-          getTeamTree(),
-          getRankProgress(),
-          getLeaderboard(),
-          getFinancialSummary(),
-        ]);
-
-        if (dashboardRes.error) setError(dashboardRes.error);
-        else setDashboardData(dashboardRes);
-
-        if (summaryRes.error) console.error("Failed to fetch referral summary:", summaryRes.error);
-        else setReferralSummary(summaryRes);
-
-        if (treeRes.error) console.error("Failed to fetch team tree:", treeRes.error);
-        else setTreeData(treeRes);
-
-        if (rankRes.error) console.error("Failed to fetch rank progress:", rankRes.error);
-        else setRankProgress(rankRes);
-
-        if (leaderboardRes.error) console.error("Failed to fetch leaderboard:", leaderboardRes.error);
-        else setLeaderboardData(leaderboardRes);
-
-        if (financialRes.error) console.error("Failed to fetch financial summary:", financialRes.error);
-        else setFinancialSummary(financialRes);
-
+        const dashboardRes = await getDashboardData();
+        if (dashboardRes.error) {
+          setError(dashboardRes.error);
+        } else {
+          setDashboardData(dashboardRes);
+        }
       } catch (err) {
-        setError("An unexpected error occurred while fetching data.");
+        setError("An unexpected error occurred while fetching core data.");
         console.error(err);
       }
     };
 
     if (token) {
-      fetchData();
+      fetchInitialData();
     }
   }, [token, isAuthenticated, loading, router]);
+
+  useEffect(() => {
+    if (!token) return;
+
+    const fetchSecondaryData = async () => {
+      getReferralSummary().then(res => {
+        if (res.error) console.error("Failed to fetch referral summary:", res.error);
+        else setReferralSummary(res);
+      });
+      getTeamTree().then(res => {
+        if (res.error) console.error("Failed to fetch team tree:", res.error);
+        else setTreeData(res);
+      });
+      getRankProgress().then(res => {
+        if (res.error) console.error("Failed to fetch rank progress:", res.error);
+        else setRankProgress(res);
+      });
+      getLeaderboard().then(res => {
+        if (res.error) console.error("Failed to fetch leaderboard:", res.error);
+        else setLeaderboardData(res);
+      });
+      getFinancialSummary().then(res => {
+        if (res.error) console.error("Failed to fetch financial summary:", res.error);
+        else setFinancialSummary(res);
+      });
+    };
+
+    fetchSecondaryData();
+  }, [token]);
 
   const formattedLegs = treeData?.tree?.children.map((leg, index) => ({
     id: `Leg ${index + 1}`,
@@ -295,23 +298,33 @@ const DashboardPage = () => {
 
         {/* Full-width Agent Overview */}
         <div className="mb-6">
-          {dashboardData && rankProgress && (
-            <AgentOverview
-              name={dashboardData.profile.fullName}
-              avatarUrl={dashboardData.profile.profilePicture}
-              currentLevel={rankProgress.currentRank.name}
-              nextLevelLabel={rankProgress.progress.nextRankName || ""}
-              progressPct={rankProgress.progress.percentage}
-              joinDate={dashboardData.profile.joinDate}
-            />
-          )}
+          <AgentOverview
+            name={dashboardData.profile.fullName}
+            avatarUrl={dashboardData.profile.profilePicture}
+            currentLevel={rankProgress?.currentRank.name}
+            nextLevelLabel={rankProgress?.progress.nextRankName || ""}
+            progressPct={rankProgress?.progress.percentage}
+            joinDate={dashboardData.profile.joinDate}
+          />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <EarningsSummary data={financialSummary} />
-            {gamifiedData && (
+            {financialSummary ? (
+              <EarningsSummary data={financialSummary} />
+            ) : (
+              <Card>
+                <CardHeader><CardTitle>Earnings Summary</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-8 w-3/4" />
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-4 w-1/2" />
+                </CardContent>
+              </Card>
+            )}
+            
+            {gamifiedData ? (
               <GamifiedChallenges
                 title="Rank & Progress"
                 subtitle={gamifiedData.subtitle}
@@ -319,14 +332,38 @@ const DashboardPage = () => {
                 badges={gamifiedData.badges}
                 requirements={gamifiedData.requirements}
               />
+            ) : (
+              <Card>
+                <CardHeader><CardTitle>Rank & Progress</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="h-8 w-full" />
+                  <div className="flex space-x-2">
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                    <Skeleton className="h-6 w-16 rounded-full" />
+                  </div>
+                </CardContent>
+              </Card>
             )}
-            {leaderboardData.length > 0 && (
+
+            {leaderboardData ? (
               <Leaderboard
                 leaderboardData={leaderboardData}
                 currentUserId={profile.userId}
               />
+            ) : (
+              <Card>
+                <CardHeader><CardTitle>Leaderboard</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
             )}
-            {referralSummary && (
+
+            {referralSummary ? (
               <ReferralGrowthTools
                 referralLink={referralLink}
                 onCopy={handleCopy}
@@ -341,21 +378,49 @@ const DashboardPage = () => {
                   referralSummary.totalDownlineVolume / 1000
                 ).toFixed(1)}K`}
               />
+            ) : (
+              <Card>
+                <CardHeader><CardTitle>Referral & Growth Tools</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-10 w-full" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <Skeleton className="h-20 w-full" />
+                    <Skeleton className="h-20 w-full" />
+                  </div>
+                </CardContent>
+              </Card>
             )}
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
             <SmartUpdates />
-            {dashboardData.wallet.bonuses && (
+            {dashboardData.wallet.bonuses ? (
               <LockedBonuses bonuses={dashboardData.wallet.bonuses} />
+            ) : (
+              <Card>
+                <CardHeader><CardTitle>Locked Bonuses</CardTitle></CardHeader>
+                <CardContent className="space-y-4">
+                  <Skeleton className="h-12 w-full" />
+                  <Skeleton className="h-12 w-full" />
+                </CardContent>
+              </Card>
             )}
           </div>
         </div>
 
         {/* Full-width Binary Tree View */}
         <div className="mt-6">
-          {formattedLegs && <SixLegTreeView legs={formattedLegs} />}
+          {formattedLegs ? (
+            <SixLegTreeView legs={formattedLegs} />
+          ) : (
+            <Card>
+              <CardHeader><CardTitle>Team Structure</CardTitle></CardHeader>
+              <CardContent>
+                <Skeleton className="h-64 w-full" />
+              </CardContent>
+            </Card>
+          )}
         </div>
       </main>
     </div>

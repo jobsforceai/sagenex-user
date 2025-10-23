@@ -6,12 +6,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Target, Calendar } from "lucide-react";
 import Image from "next/image";
 import clsx from "clsx";
+import { Skeleton } from "@/components/ui/skeleton";
 
 type Props = {
   name?: string;
-  currentLevel: string; // e.g. "GM"
-  nextLevelLabel: string; // e.g. "Director"
-  progressPct: number; // 0..100
+  currentLevel?: string; // e.g. "GM"
+  nextLevelLabel?: string; // e.g. "Director"
+  progressPct?: number; // 0..100
   avatarUrl?: string;
   accentColorClass?: string; // optional tailwind text color for level (default green)
   joinDate: string; // ISO date string
@@ -19,9 +20,9 @@ type Props = {
 
 export default function AgentOverview({
   name = "Alex Mercer",
-  currentLevel = "GM",
-  nextLevelLabel = "Director",
-  progressPct = 60,
+  currentLevel,
+  nextLevelLabel,
+  progressPct,
   avatarUrl = "/avatar-placeholder.jpg",
   accentColorClass = "text-green-400",
   joinDate,
@@ -43,7 +44,7 @@ export default function AgentOverview({
     return () => clearInterval(timer);
   }, [endDate]);
 
-  const pct = Math.max(0, Math.min(100, progressPct));
+  const pct = Math.max(0, Math.min(100, progressPct || 0));
 
   return (
     <Card className="bg-[#0b0b0b] border border-emerald-900/40  rounded-2xl">
@@ -55,14 +56,18 @@ export default function AgentOverview({
             <div>
               <h2 className="text-2xl md:text-3xl font-semibold">{name}</h2>
               <p className="text-neutral-400 mt-2">Current Level</p>
-              <div
-                className={clsx(
-                  "text-4xl md:text-5xl font-extrabold leading-tight",
-                  accentColorClass
-                )}
-              >
-                {currentLevel}
-              </div>
+              {currentLevel ? (
+                <div
+                  className={clsx(
+                    "text-4xl md:text-5xl font-extrabold leading-tight",
+                    accentColorClass
+                  )}
+                >
+                  {currentLevel}
+                </div>
+              ) : (
+                <Skeleton className="h-12 w-24 mt-1" />
+              )}
 
               <div className="mt-8">
                 <div className="flex items-center gap-2 text-neutral-400">
@@ -94,22 +99,31 @@ export default function AgentOverview({
               </div>
             </div>
             <div className="w-full">
-              <div className="flex items-center gap-2 text-neutral-300">
-                <Target className="h-4 w-4 text-neutral-400" />
-                <span className="text-neutral-300">
-                  Progress to Next Level: {nextLevelLabel}
-                </span>
-                <span className="ml-auto text-green-400 font-semibold tabular-nums">
-                  {pct}%
-                </span>
-              </div>
-              <div className="mt-3 relative">
-                <div className="h-3 w-full rounded-full bg-neutral-800" />
-                <div
-                  className="absolute left-0 top-0 h-3 rounded-full bg-green-500"
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
+              {progressPct !== undefined && nextLevelLabel !== undefined ? (
+                <>
+                  <div className="flex items-center gap-2 text-neutral-300">
+                    <Target className="h-4 w-4 text-neutral-400" />
+                    <span className="text-neutral-300">
+                      Progress to Next Level: {nextLevelLabel}
+                    </span>
+                    <span className="ml-auto text-green-400 font-semibold tabular-nums">
+                      {pct}%
+                    </span>
+                  </div>
+                  <div className="mt-3 relative">
+                    <div className="h-3 w-full rounded-full bg-neutral-800" />
+                    <div
+                      className="absolute left-0 top-0 h-3 rounded-full bg-green-500"
+                      style={{ width: `${pct}%` }}
+                    />
+                  </div>
+                </>
+              ) : (
+                <div className="mt-2">
+                  <Skeleton className="h-4 w-3/4 mb-3" />
+                  <Skeleton className="h-3 w-full" />
+                </div>
+              )}
             </div>
           </div>
         </div>
