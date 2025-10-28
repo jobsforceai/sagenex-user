@@ -92,8 +92,13 @@ export default function AgentOverview({
     <Card className="bg-[#0b0b0b] border border-emerald-900/40 rounded-2xl">
       <CardContent className="p-4 md:p-6">
         <div className="flex flex-col">
-          <div className="flex flex-row w-full justify-between">
-            <div className="grid grid-cols-1 w-1/3 md:grid-cols-[1fr,auto] items-start">
+          <div className="flex flex-col md:flex-row items-center w-full justify-between">
+            <div className="md:hidden justify-self-center md:justify-self-end">
+                <div className="h-20 w-20 rounded-full overflow-hidden border border-neutral-700">
+                  <Image src={avatarUrl} alt={`${name} avatar`} width={80} height={80} unoptimized className="object-cover h-20 w-20" />
+                </div>
+              </div>
+            <div className="grid grid-cols-1 lg:w-1/3 md:grid-cols-[1fr,auto] items-start">
               <div>
                 <h2 className="text-2xl md:text-3xl font-semibold">{name}</h2>
                 <p className="text-neutral-400 mt-2">Current Level</p>
@@ -113,8 +118,8 @@ export default function AgentOverview({
                 </div>
               </div>
             </div>
-            <div className="flex flex-col w-2/3 items-end">
-              <div className="justify-self-center md:justify-self-end">
+            <div className="flex flex-col lg:w-2/3 items-end">
+              <div className="hidden md:block justify-self-center md:justify-self-end">
                 <div className="h-20 w-20 rounded-full overflow-hidden border border-neutral-700">
                   <Image src={avatarUrl} alt={`${name} avatar`} width={80} height={80} unoptimized className="object-cover h-20 w-20" />
                 </div>
