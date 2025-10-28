@@ -74,7 +74,7 @@ export default function LevelsEarnings() {
         }}
       />
 
-      <div className="mx-auto max-w-7xl px-4 py-16">
+      <div className="mx-auto max-w-7xl px-4 py-12 sm:py-16">
         {/* Heading */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
@@ -83,7 +83,7 @@ export default function LevelsEarnings() {
           className="mx-auto text-center"
         >
           <h1
-            className="text-[clamp(48px,6vw,96px)] font-extrabold tracking-tight text-left
+            className="text-[clamp(40px,8vw,96px)] font-extrabold tracking-tight text-left
                        text-transparent bg-clip-text bg-gradient-to-b from-emerald-300 to-white"
           >
             Earning Model
@@ -96,7 +96,7 @@ export default function LevelsEarnings() {
             capital, sustained by team activity. Choose packages from <strong className="text-white">$50–$10,000</strong> with monthly ROI, daily
             caps, and reinvest options. Duplicate smartly to scale multi-level bonuses.
           </p> */}
-          <p className="mt-8 max-w-4xl text-center md:text-right md:ml-auto text-[17px]  text-white/85">
+          <p className="mt-6 sm:mt-8 max-w-4xl text-center md:text-right md:ml-auto text-[15px] sm:text-[17px] text-white/85">
             <span className="font-semibold text-emerald-300">SAGENEX</span> offers two earning paths: <strong className="text-white">Investor</strong> (passive) gains ROI from investment
             pools, capped at <strong className="text-white">2.5×</strong> capital—reinvest to continue. <strong className="text-white">Business Leader</strong>
             (active) earns ROI <em>plus</em> Direct Bonus and Unilevel incentives, with potential up to <strong className="text-white">4×</strong>
@@ -109,12 +109,12 @@ export default function LevelsEarnings() {
           </div>
           <h2
             id="levels-heading"
-            className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
+            className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white sm:text-4xl"
           >
             Duplication Levels —{" "}
             <span className="text-[#d4b36a]">How Earnings Grow Exponentially</span>
           </h2>
-          <p className="mt-3 text-[#b6c8bf]">
+          <p className="mt-3 text-sm sm:text-base text-[#b6c8bf]">
             You (Top Node) bring <span className="font-semibold text-white">6 directs</span>.
             Each of them brings 6 — creating <span className="text-[#d4b36a] font-semibold">exponential duplication</span> down to Level 6.
           </p>
@@ -122,7 +122,7 @@ export default function LevelsEarnings() {
 
         {/* Layout: Left Pyramid + Right Table */}
         <div className="mt-10 grid grid-cols-1 gap-6 lg:grid-cols-[320px,1fr]">
-          {/* Pyramid visual (hidden on small screens) */}
+          {/* Pyramid visual (hidden on mobile, shown on larger screens) */}
           <div className="hidden lg:flex flex-col items-center justify-start gap-2">
             {/* Compact pyramid: configurable small icon counts per row so 6 rows fit */}
             {/* icons: YOU, L1, L2, L3, L4, L5 */}
@@ -152,11 +152,13 @@ export default function LevelsEarnings() {
             className="overflow-hidden rounded-xl border border-white/10 bg-[#0f1411]/70 backdrop-blur"
           >
             {/* Header */}
-            <div className="grid grid-cols-4 items-center bg-gradient-to-b from-[#d4b36a] to-[#b58a2b] px-4 py-3 text-sm font-extrabold tracking-wide text-black sm:text-base">
+            <div className="grid grid-cols-4 items-center bg-gradient-to-b from-[#d4b36a] to-[#b58a2b] px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-extrabold tracking-wide text-black sm:text-base">
               <div>Level</div>
               <div className="text-right">Members</div>
-              <div className="text-right">Package Value ($)</div>
-              <div className="text-right">% / Your Bonus ($)</div>
+              <div className="text-right hidden sm:block">Package Value ($)</div>
+              <div className="text-right sm:hidden">Package ($)</div>
+              <div className="text-right hidden sm:block">% / Your Bonus ($)</div>
+              <div className="text-right sm:hidden">Bonus ($)</div>
             </div>
 
             {/* Body */}
@@ -165,16 +167,16 @@ export default function LevelsEarnings() {
                 <motion.div
                   key={r.level}
                   variants={rowAnim}
-                  className="grid grid-cols-4 items-center px-4 py-3 text-sm text-[#d8e8e0] sm:text-base"
+                  className="grid grid-cols-4 items-center px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm text-[#d8e8e0] sm:text-base"
                 >
                   <div className="font-semibold text-white">{r.level}</div>
-                  <div className="text-right">{nf(r.members)}</div>
-                  <div className="text-right">${nf(r.packageValue)}</div>
+                  <div className="text-right text-xs sm:text-base">{nf(r.members)}</div>
+                  <div className="text-right text-xs sm:text-base">${nf(r.packageValue)}</div>
                   <div className="text-right">
-                    <span className="text-white/80">
+                    <span className="text-white/80 hidden sm:inline">
                       {(r.rate * 100).toFixed(0)}%
                     </span>{" "}
-                    <span className="ml-2 font-bold text-emerald-300">
+                    <span className="ml-0 sm:ml-2 font-bold text-emerald-300 text-xs sm:text-base">
                       ${nf(r.bonus)}
                     </span>
                   </div>
@@ -183,11 +185,11 @@ export default function LevelsEarnings() {
             </div>
 
             {/* Totals row */}
-            <div className="grid grid-cols-4 items-center bg-[#0b1220]/80 px-4 py-4 text-sm font-extrabold text-white sm:text-base">
+            <div className="grid grid-cols-4 items-center bg-[#0b1220]/80 px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm font-extrabold text-white sm:text-base">
               <div>TOTAL</div>
-              <div className="text-right">{nf(totals.members)}</div>
-              <div className="text-right">${nf(totals.packageValue)}</div>
-              <div className="text-right text-2xl text-[#f0d493]">
+              <div className="text-right text-xs sm:text-base">{nf(totals.members)}</div>
+              <div className="text-right text-xs sm:text-base">${nf(totals.packageValue)}</div>
+              <div className="text-right text-lg sm:text-2xl text-[#f0d493]">
                 ${nf(totals.bonus)}
               </div>
             </div>
@@ -215,14 +217,14 @@ function PyramidIcon({
         {Array.from({ length: icons }).map((_, i) => (
           <FiUser
             key={i}
-            className="h-6 w-6 text-[#f0d493] drop-shadow-sm"
+            className="h-5 w-5 sm:h-6 sm:w-6 text-[#f0d493] drop-shadow-sm"
           />
         ))}
       </div>
-      <div className="mt-1 text-[11px] font-semibold tracking-wide text-white/80">
+      <div className="mt-1 text-[10px] sm:text-[11px] font-semibold tracking-wide text-white/80">
         {label}
       </div>
-      <div className="mt-0.5 text-[11px] text-[#d4b36a] font-semibold">{members.toLocaleString()} members</div>
+      <div className="mt-0.5 text-[10px] sm:text-[11px] text-[#d4b36a] font-semibold">{members.toLocaleString()} members</div>
     </div>
   );
 }
