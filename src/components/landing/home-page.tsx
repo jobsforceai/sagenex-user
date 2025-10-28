@@ -194,25 +194,25 @@ export default function HomePage() {
     <div className="min-h-screen sm:h-[150vh] text-white overflow-hidden relative bg-black hero-scene">
       <div className="relative min-h-screen">
         {/* Text at the top */}
-        <div className="mt-14 sm:mt-0 absolute top-[30%] sm:top-[35%] -translate-y-1/2 left-0 w-full z-20 flex flex-col items-center justify-center gap-4 sm:gap-8 h-1/3 px-4">
+        <div className="absolute top-[35%] -translate-y-1/2 left-0 w-full z-20 flex flex-col items-center justify-center gap-8 h-1/3 px-4">
           {" "}
           {/* Added z-20 */}
-          <div className="text-[28px] sm:text-[40px] md:text-[60px] font-semibold flex items-center flex-col">
-            <h1 className="hero-heading bg-clip-text text-center leading-tight sm:leading-17 text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5] px-2">
+          <div className="text-[32px] md:text-[60px] font-semibold flex items-center flex-col text-center">
+            <h1 className="hero-heading bg-clip-text leading-tight text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
               Innovation. Trust. Growth.
             </h1>
-            <h1 className="hero-heading bg-clip-text text-center leading-tight sm:leading-17 text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5] px-2">
+            <h1 className="hero-heading bg-clip-text leading-tight text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
               Powering the Future of crypto
             </h1>
           </div>
-          <div className="sec-text px-4">
-            <p className="bg-clip-text text-sm sm:text-base md:text-lg text-center text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
+          <div className="sec-text text-center">
+            <p className="bg-clip-text text-lg text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
               Where Artificial Intelligence Meets Financial Precision.
             </p>
           </div>
-          <div className="sec-text flex flex-col sm:flex-row items-center gap-4 sm:gap-8 w-full max-w-md px-4">
+          <div className="sec-text flex flex-col sm:flex-row gap-4 items-center">
             <HeroButton href="/login">Join the revolution</HeroButton>
-            <HeroButton intent="secondary" className="w-full" href="#academy">
+            <HeroButton intent="secondary" href="#academy">
               Explore packages
             </HeroButton>
           </div>
