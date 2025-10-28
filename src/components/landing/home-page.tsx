@@ -191,43 +191,43 @@ export default function HomePage() {
   });
 
   return (
-    <div className="h-screen sm:h-[150vh] text-white overflow-hidden relative bg-black hero-scene">
-      <div className="relative h-screen">
+    <div className="min-h-screen sm:h-[150vh] text-white overflow-hidden relative bg-black hero-scene">
+      <div className="relative min-h-screen">
         {/* Text at the top */}
-        <div className="absolute top-[35%] -translate-y-1/2 left-0 w-full z-20 flex flex-col items-center justify-center gap-8 h-1/3">
+        <div className="absolute top-[35%] -translate-y-1/2 left-0 w-full z-20 flex flex-col items-center justify-center gap-8 h-1/3 px-4">
           {" "}
           {/* Added z-20 */}
-          <div className="text-[40px] md:text-[60px] font-semibold flex items-center flex-col">
-            <h1 className="hero-heading bg-clip-text text-center leading-17 text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
+          <div className="text-[32px] md:text-[60px] font-semibold flex items-center flex-col text-center">
+            <h1 className="hero-heading bg-clip-text leading-tight text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
               Innovation. Trust. Growth.
             </h1>
-            <h1 className="hero-heading bg-clip-text text-center leading-17 text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
+            <h1 className="hero-heading bg-clip-text leading-tight text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
               Powering the Future of crypto
             </h1>
           </div>
-          <div className="sec-text">
+          <div className="sec-text text-center">
             <p className="bg-clip-text text-lg text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
               Where Artificial Intelligence Meets Financial Precision.
             </p>
           </div>
-          <div className="sec-text flex gap-8">
+          <div className="sec-text flex flex-col sm:flex-row gap-4 items-center">
             <HeroButton href="/login">Join the revolution</HeroButton>
-            <HeroButton intent="secondary" className="w-full" href="#academy">
+            <HeroButton intent="secondary" href="#academy">
               Explore packages
             </HeroButton>
           </div>
         </div>
 
         {/* circular glow effect  */}
-        <div className="blob absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-60 aspect-square backdrop-blur-[250px] bg-radial from-[#00ffa284] to-black"></div>
+        <div className="blob absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 opacity-40 sm:opacity-60 aspect-square backdrop-blur-[150px] sm:backdrop-blur-[250px] bg-radial from-[#00ffa284] to-black"></div>
 
         {/* Spotlight Icon */}
-        <div className="spotlight opacity-0 absolute top-0 right-1/12 -rotate-10 z-10">
+        <div className="spotlight opacity-0 absolute top-0 right-1/12 -rotate-10 z-10 hidden sm:block">
           <Image src="/light.svg" alt="Light Icon" width={550} height={550} />
         </div>
 
         {/* Fireflies */}
-        <div className="fireflies opacity-0 absolute -top-20 right-1/6 w-80 h-80 flex justify-center pointer-events-none z-[5]">
+        <div className="fireflies opacity-0 absolute -top-20 right-1/6 w-80 h-80 flex justify-center pointer-events-none z-[5] hidden sm:flex">
           {" "}
           {/* Increased container height and removed justify-around*/}
           {fireflies?.map((firefly) => (
@@ -245,20 +245,20 @@ export default function HomePage() {
         </div>
       </div>
 
-      <div className="absolute block sm:hidden dashboard top-[70%] left-1/2 p-7 -translate-x-1/2 w-[1100px] max-w-[95%] bg-black/90 border-3 rounded-3xl">
-        <div className="absolute -top-[3px] bg-gradient-to-r from-transparent via-white to-transparent h-[6px] w-[1100px] max-w-[95%]"></div>
+      <div className="absolute block sm:hidden dashboard top-[70%] left-1/2 p-4 sm:p-7 -translate-x-1/2 w-[1100px] max-w-[95%] bg-black/90 border-2 sm:border-3 rounded-2xl sm:rounded-3xl">
+        <div className="absolute -top-[2px] sm:-top-[3px] bg-gradient-to-r from-transparent via-white to-transparent h-[4px] sm:h-[6px] w-[1100px] max-w-[95%]"></div>
         <Image
             src="/dasboard.png"
             alt="Dashboard"
             width={1080}
             height={1080}
-            className="w-full h-full rounded-2xl"
+            className="w-full h-full rounded-xl sm:rounded-2xl"
           />
       </div>
 
       {/* Dashboard content here */}
-      <div className="absolute hidden sm:block dashboard top-[45%] left-1/2 p-7 -translate-x-1/2 w-[1100px] max-w-[95%] h-160 bg-black/90 border-6 rounded-3xl">
-        <div className="absolute -top-[6px] bg-gradient-to-r from-transparent via-white to-transparent h-[6px] w-[1100px] max-w-[95%]"></div>
+      <div className="absolute hidden sm:block dashboard top-[45%] left-1/2 p-4 sm:p-7 -translate-x-1/2 w-[1100px] max-w-[95%] h-160 bg-black/90 border-4 sm:border-6 rounded-2xl sm:rounded-3xl">
+        <div className="absolute -top-[4px] sm:-top-[6px] bg-gradient-to-r from-transparent via-white to-transparent h-[4px] sm:h-[6px] w-[1100px] max-w-[95%]"></div>
 
         <div className="flex w-full h-full items-center gap-6">
           {/* Sidebar (separate) */}

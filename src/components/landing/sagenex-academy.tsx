@@ -137,7 +137,7 @@ const tierImages: Record<string, string> = {
 
 export default function SagenexAcademy() {
   return (
-    <section id="academy" className="relative overflow-x-hidden w-full bg-black py-16">
+    <section id="academy" className="relative overflow-x-hidden w-full bg-black">
       {/* decorative background glows */}
       <div className="pointer-events-none absolute inset-0 [mask-image:radial-gradient(circle_at_center,black,transparent_70%)]">
         <div className="absolute -top-24 left-1/4 h-80 w-80 rounded-full bg-[#1f5a45]/20 blur-3xl" />

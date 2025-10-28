@@ -313,15 +313,15 @@ export default function AboutUs() {
         }}
       /> */}
       {/* ---------- TOP HERO (added) ---------- */}
-      <div id="about-us" className="mx-auto max-w-6xl px-6 pt-20 md:pt-28 relative z-10">
+      <div id="about-us" className="mx-auto max-w-6xl px-4 sm:px-6 pt-16 sm:pt-20 md:pt-28 relative z-10">
         <h1
-          className="about-hero-title text-[clamp(56px,7vw,128px)] leading-[0.9] font-extrabold tracking-tight
+          className="about-hero-title text-[clamp(40px,10vw,128px)] leading-[0.9] font-extrabold tracking-tight
                      text-transparent bg-clip-text bg-gradient-to-b from-emerald-200 to-white"
         >
           about us
         </h1>
 
-        <p className="mt-6 max-w-4xl text-center md:text-right md:ml-auto text-[17px]  text-white/85">
+        <p className="mt-6 max-w-4xl text-center md:text-right md:ml-auto text-[15px] sm:text-[17px] text-white/85">
           <span className="about-hero-copy">
             We are{" "}
             <span className="font-semibold text-emerald-300">SAGENEX</span>, a
@@ -339,23 +339,23 @@ export default function AboutUs() {
         </p>
 
         <div className="mt-10 text-center">
-          <div className="text-lg tracking-wide text-white/80">
+          <div className="text-base sm:text-lg tracking-wide text-white/80">
             based in{" "}
             <span className="font-semibold text-emerald-300">USA</span>
           </div>
-          <div className="mx-auto mt-3 h-8 w-px bg-white" />
+          <div className="mx-auto mt-3 h-6 sm:h-8 w-px bg-white" />
         </div>
 
         {/* Centered pledge + right microcopy block */}
-        <div className="mt-8 flex flex-col items-end gap-6">
-          <p className="about-pledge px-4 text-center md:text-center uppercase tracking-[0.18em] text-[16px] leading-relaxed text-white/90">
+        <div className="mt-8 flex flex-col items-center md:items-end gap-6">
+          <p className="about-pledge px-4 text-center md:text-center uppercase tracking-[0.12em] sm:tracking-[0.18em] text-[13px] sm:text-[16px] leading-relaxed text-white/90">
             AT SAGENEX, WE ARE MORE THAN A TEAM — WE ARE A FAMILY. EVERY
             CAMPAIGN WE CREATE, EVERY MESSAGE WE SHARE, AND EVERY MILESTONE WE
             ACHIEVE IS BUILT ON TRUST, UNITY, AND THE BELIEF THAT TOGETHER WE
             ARE UNSTOPPABLE.
           </p>
 
-          <p className="about-hero-copy text-[14px] w-[40%] leading-4 text-white/70 md:text-right text-center">
+          <p className="about-hero-copy text-[13px] sm:text-[14px] w-full sm:w-[70%] md:w-[40%] leading-relaxed text-white/70 md:text-right text-center px-4 sm:px-0">
             At <span className="font-semibold text-emerald-300">SAGENEX</span>,
             we are more than a team — we are a family. every campaign we create,
             every message we share, and every milestone we achieve is built on
@@ -367,7 +367,7 @@ export default function AboutUs() {
       {/* ---------- /TOP HERO ---------- */}
 
       {/* ---------- TIMELINE (unchanged positioning/alignment) ---------- */}
-      <div className="relative w-full md:mt-36" style={{ height: HEIGHT }}>
+      <div className="relative w-full md:mt-36 h-[700px] lg:h-[1100px]">
         <svg
           ref={svgRef}
           className="absolute inset-0 w-full h-full"
@@ -455,12 +455,12 @@ export default function AboutUs() {
                   }
                 }}
                 className={[
-                  "absolute text-sm text-white/80 leading-6 max-w-xs",
+                  "absolute text-xs sm:text-sm text-white/80 leading-5 sm:leading-6 max-w-[280px] sm:max-w-xs",
                   m.align === "right" ? "origin-left text-left" : "origin-right text-right",
                 ].join(" ")}
               >
-                <div className="scale-75 sm:scale-100 font-medium text-white/90">{m.title}</div>
-                <div className="mt-1 scale-75 sm:scale-100 text-[13px]">
+                <div className="scale-[0.85] sm:scale-75 md:scale-100 font-medium text-white/90">{m.title}</div>
+                <div className="mt-1 scale-[0.85] sm:scale-75 md:scale-100 text-[12px] sm:text-[13px]">
                   {m.points.join(" — ")}
                 </div>
               </div>
