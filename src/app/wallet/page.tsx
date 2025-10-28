@@ -4,6 +4,10 @@ import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
+import FundTransfer from "@/app/components/wallet/FundTransfer";
+import CryptoDeposit from "@/app/components/wallet/CryptoDeposit";
+import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
+import LockedBonuses from "@/app/components/dashboard/LockedBonuses";
 import {
   Card,
   CardContent,
@@ -18,7 +22,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getWalletTransactions, getDashboardData } from "@/actions/user";
+import { getWalletTransactions, getDashboardData, getKycStatus } from "@/actions/user";
+import { KycStatus } from "@/types";
 
 interface WalletTransaction {
   _id: string;
@@ -36,8 +41,18 @@ interface DashboardData {
     packageUSD: number;
   };
   wallet: {
-    availableToWithdraw: number;
-    lifetimeEarnings: number;
+    availableBalance: number;
+    bonuses: {
+      level: number;
+      name: string;
+      lockedAmount: number;
+      isUnlocked: boolean;
+      unlockRequirement: string;
+      progress: {
+        current: number;
+        required: number;
+      };
+    }[];
   };
 }
 
@@ -46,6 +61,7 @@ const WalletPage = () => {
   const router = useRouter();
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -57,17 +73,19 @@ const WalletPage = () => {
 
     const fetchData = async () => {
       try {
-        const [walletData, dashboardData] = await Promise.all([
+        const [walletData, dashboardRes, kycData] = await Promise.all([
             getWalletTransactions(),
             getDashboardData(),
+            getKycStatus(),
         ]);
 
-        if (walletData.error || dashboardData.error) {
-          throw new Error(walletData.error || dashboardData.error || "Failed to fetch wallet data");
+        if (walletData.error || dashboardRes.error || kycData.error) {
+          throw new Error(walletData.error || dashboardRes.error || kycData.error || "Failed to fetch wallet data");
         }
 
         setTransactions(walletData);
-        setDashboardData(dashboardData);
+        setDashboardData(dashboardRes);
+        setKycStatus(kycData);
 
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -96,24 +114,14 @@ const WalletPage = () => {
         <h1 className="text-3xl font-bold">My Wallet</h1>
 
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <Card>
             <CardHeader>
-              <CardTitle>Available to Withdraw</CardTitle>
+              <CardTitle>Available Balance</CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                ${dashboardData?.wallet.availableToWithdraw.toFixed(2)}
-              </p>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader>
-              <CardTitle>Lifetime Earnings</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-3xl font-bold">
-                ${dashboardData?.wallet.lifetimeEarnings.toFixed(2)}
+                ${dashboardData?.wallet.availableBalance.toFixed(2)}
               </p>
             </CardContent>
           </Card>
@@ -128,6 +136,19 @@ const WalletPage = () => {
             </CardContent>
           </Card>
         </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <CryptoDeposit />
+          <FundTransfer currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
+          <WithdrawalRequest 
+            currentBalance={dashboardData?.wallet.availableBalance ?? 0}
+            kycStatus={kycStatus?.status}
+          />
+        </div>
+
+        {dashboardData?.wallet.bonuses && (
+          <LockedBonuses bonuses={dashboardData.wallet.bonuses} />
+        )}
 
         {/* Transaction History */}
         <Card>

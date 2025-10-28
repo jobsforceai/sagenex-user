@@ -68,6 +68,15 @@ export async function getProfileData() {
       return handleApiResponse(res);
 }
 
+export async function updateUserProfile(data: { fullName?: string; phone?: string; usdtTrc20Address?: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/profile`, {
+        method: "PATCH",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      return handleApiResponse(res);
+}
+
 export async function getPayouts() {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/payouts`, {
         headers: await getAuthHeaders(),
@@ -156,6 +165,57 @@ export async function placeUser(newUserId: string, placementParentId: string) {
         method: "POST",
         headers: await getAuthHeaders(),
         body: JSON.stringify({ newUserId, placementParentId }),
+      });
+      return handleApiResponse(res);
+}
+
+export async function transferUser(userIdToTransfer: string, newSponsorId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/team/transfer-user`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ userIdToTransfer, newSponsorId }),
+      });
+      return handleApiResponse(res);
+}
+
+export async function getTransferRecipients() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/transfer-recipients`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function sendTransferOtp() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/send-otp`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function executeTransfer(recipientId: string, amount: number, otp: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/execute`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ recipientId, amount, otp }),
+      });
+      return handleApiResponse(res);
+}
+
+export async function createCryptoDepositInvoice(amount: number) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/deposits/crypto`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ amount }),
+      });
+      return handleApiResponse(res);
+}
+
+export async function requestWithdrawal(data: { amount: number; withdrawalAddress?: string; upiId?: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/request-withdrawal`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
       });
       return handleApiResponse(res);
 }

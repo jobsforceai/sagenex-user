@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { FileText, CheckCircle, Clock, AlertTriangle, UploadCloud, Check } from 'lucide-react';
+import Image from 'next/image';
 import Navbar from '../components/Navbar';
 import { getKycStatus, uploadKycDocument, submitKycForReview } from '@/actions/user';
 import { KycStatus } from '@/types';
@@ -199,9 +200,9 @@ export default function KycPage() {
 
                             return (
                                 <div key={i} className="flex items-center gap-4">
-                                    <div className="w-20 h-20 rounded-md bg-gray-800 flex items-center justify-center overflow-hidden">
+                                    <div className="w-20 h-20 rounded-md bg-gray-800 flex items-center justify-center overflow-hidden relative">
                                         {previews[i] ? (
-                                            <img src={previews[i] as string} alt="preview" className="w-full h-full object-cover" />
+                                            <Image src={previews[i] as string} alt="preview" layout="fill" objectFit="cover" />
                                         ) : fileStaged && fileStaged.type === 'application/pdf' ? (
                                             <FileText className="text-emerald-300 w-8 h-8" />
                                         ) : isUploaded ? (
