@@ -12,13 +12,19 @@ interface WithdrawalRequestProps {
   kycStatus: string | undefined;
 }
 
-type WithdrawalType = "crypto" | "upi";
+type WithdrawalType = "crypto" | "upi" | "bank";
 
 const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps) => {
   const [amount, setAmount] = useState("");
   const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>("crypto");
   const [withdrawalAddress, setWithdrawalAddress] = useState("");
   const [upiId, setUpiId] = useState("");
+  const [bankDetails, setBankDetails] = useState({
+    bankName: "",
+    accountNumber: "",
+    ifscCode: "",
+    holderName: "",
+  });
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
@@ -47,6 +53,11 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
     }
   };
 
+  const handleBankDetailsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setBankDetails((prev) => ({ ...prev, [name]: value }));
+  };
+
   const handleWithdrawalRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -66,7 +77,17 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
       return;
     }
 
-    const payload: { amount: number; withdrawalAddress?: string; upiId?: string } = { amount: withdrawalAmount };
+    const payload: { 
+        amount: number; 
+        withdrawalAddress?: string; 
+        upiId?: string;
+        bankDetails?: {
+            bankName: string;
+            accountNumber: string;
+            ifscCode: string;
+            holderName: string;
+        }
+    } = { amount: withdrawalAmount };
 
     if (withdrawalType === "crypto") {
       if (!withdrawalAddress) {
@@ -75,13 +96,20 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
         return;
       }
       payload.withdrawalAddress = withdrawalAddress;
-    } else {
+    } else if (withdrawalType === "upi") {
       if (!upiId) {
         setError("Please enter your UPI ID.");
         setIsLoading(false);
         return;
       }
       payload.upiId = upiId;
+    } else if (withdrawalType === "bank") {
+        if (!bankDetails.bankName || !bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.holderName) {
+            setError("Please fill in all bank details.");
+            setIsLoading(false);
+            return;
+        }
+        payload.bankDetails = bankDetails;
     }
 
     try {
@@ -91,6 +119,8 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
       } else {
         setMessage(result.message);
         setAmount(""); // Clear amount on success
+        setUpiId("");
+        setBankDetails({ bankName: "", accountNumber: "", ifscCode: "", holderName: "" });
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -130,6 +160,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
         <div className="flex gap-2 mb-4 border-b border-gray-700">
             <Button variant={withdrawalType === 'crypto' ? 'secondary' : 'ghost'} onClick={() => setWithdrawalType('crypto')}>Crypto</Button>
             <Button variant={withdrawalType === 'upi' ? 'secondary' : 'ghost'} onClick={() => setWithdrawalType('upi')}>UPI</Button>
+            <Button variant={withdrawalType === 'bank' ? 'secondary' : 'ghost'} onClick={() => setWithdrawalType('bank')}>Bank</Button>
         </div>
         <form onSubmit={handleWithdrawalRequest} className="space-y-4">
           <div>
@@ -184,6 +215,43 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
                 className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
                 required
               />
+            </div>
+          )}
+
+          {withdrawalType === 'bank' && (
+            <div className="space-y-4">
+                <div>
+                    <label htmlFor="holderName" className="block text-sm font-medium text-gray-400 mb-2">
+                        Account Holder Name
+                    </label>
+                    <Input id="holderName" name="holderName" type="text" value={bankDetails.holderName} onChange={handleBankDetailsChange} placeholder="John Doe" required 
+                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-400 mb-2">
+                        Account Number
+                    </label>
+                    <Input id="accountNumber" name="accountNumber" type="text" value={bankDetails.accountNumber} onChange={handleBankDetailsChange} placeholder="1234567890" required 
+                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="ifscCode" className="block text-sm font-medium text-gray-400 mb-2">
+                        IFSC Code
+                    </label>
+                    <Input id="ifscCode" name="ifscCode" type="text" value={bankDetails.ifscCode} onChange={handleBankDetailsChange} placeholder="SBIN0001234" required 
+                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    />
+                </div>
+                <div>
+                    <label htmlFor="bankName" className="block text-sm font-medium text-gray-400 mb-2">
+                        Bank Name
+                    </label>
+                    <Input id="bankName" name="bankName" type="text" value={bankDetails.bankName} onChange={handleBankDetailsChange} placeholder="State Bank of India" required 
+                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    />
+                </div>
             </div>
           )}
 

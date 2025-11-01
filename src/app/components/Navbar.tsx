@@ -23,6 +23,7 @@ const guestLinks: NavLink[] = [
 const authLinks: NavLink[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/payouts", label: "Payouts" },
+  { href: "/rewards", label: "Rewards" },
   { href: "/kyc", label: "KYC" },
   { href: "/wallet", label: "Wallet" },
   { href: "/team", label: "My Team" },
