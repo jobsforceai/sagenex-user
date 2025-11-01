@@ -1,9 +1,8 @@
 // components/AgentOverview.tsx
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Target, Calendar, Lock, CheckCircle2, Star } from "lucide-react";
+import { Target, Lock, CheckCircle2, Star } from "lucide-react";
 import Image from "next/image";
 import clsx from "clsx";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,7 +15,6 @@ type Props = {
   progressPct?: number;
   avatarUrl?: string;
   accentColorClass?: string;
-  joinDate: string;
   packageUSD?: number;
 };
 
@@ -43,24 +41,8 @@ export default function AgentOverview({
   progressPct,
   avatarUrl = "/avatar-placeholder.jpg",
   accentColorClass = "text-green-400",
-  joinDate,
   packageUSD,
 }: Props) {
-  const endDate = useMemo(() => {
-    const start = new Date(joinDate);
-    const end = new Date(start);
-    end.setDate(start.getDate() + 40);
-    return end;
-  }, [joinDate]);
-
-  const [timeLeft, setTimeLeft] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 });
-
-  useEffect(() => {
-    const timer = setInterval(() => setTimeLeft(getTimeLeft(endDate)), 1000);
-    setTimeLeft(getTimeLeft(endDate));
-    return () => clearInterval(timer);
-  }, [endDate]);
-
   const pct = Math.max(0, Math.min(100, progressPct || 0));
   const currentRankIndex = currentLevel ? ranks.indexOf(currentLevel) : -1;
 
@@ -179,23 +161,4 @@ export default function AgentOverview({
       </CardContent>
     </Card>
   );
-}
-
-function TimeBox({ value, unit }: { value: number; unit: string }) {
-  return (
-    <div className="flex items-baseline gap-2">
-      <span className="text-4xl md:text-5xl font-bold tabular-nums">{value.toString().padStart(2, "0")}</span>
-      <span className="text-neutral-400 text-lg md:text-xl">{unit}</span>
-    </div>
-  );
-}
-
-function getTimeLeft(target: Date) {
-  const now = new Date();
-  const diff = Math.max(0, target.getTime() - now.getTime());
-  const days = Math.floor(diff / (1000 * 60 * 60 * 24));
-  const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-  const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-  return { days, hours, minutes, seconds };
 }
