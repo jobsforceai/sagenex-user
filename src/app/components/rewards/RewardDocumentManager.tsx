@@ -8,17 +8,9 @@ import { uploadRewardDocument, submitRewardDocuments } from '@/actions/user';
 
 interface RewardDocumentManagerProps {
   reward: Reward;
-  onRewardUpdate: (updatedReward: Reward) => void; // Callback to update the reward state
-  onClose: () => void; // Callback to close the modal
+  onRewardUpdate: (updatedReward: Reward) => void;
+  onClose: () => void;
 }
-
-// Based on backend docs
-const docSlotsConfig = {
-    PASSPORT: { label: 'Passport', accept: 'image/*,.pdf' },
-    VISA: { label: 'Visa', accept: 'image/*,.pdf' },
-    FLIGHT_PREFERENCE: { label: 'Flight Preference', accept: 'image/*,.pdf' },
-    OTHER: { label: 'Other Document', accept: 'image/*,.pdf' },
-};
 
 export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: RewardDocumentManagerProps) => {
   const requiredDocs = reward.requiredDocuments || [];
@@ -71,9 +63,8 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
         setError(`Upload failed: ${result.error}`);
       } else {
         setMessage(result.message);
-        onRewardUpdate(result.reward); // Pass the updated reward object back
+        onRewardUpdate(result.reward);
 
-        // Clear the local file state for the uploaded slot
         const newFiles = [...files];
         const newPreviews = [...previews];
         if (newPreviews[index]) {
@@ -103,11 +94,12 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
       } else {
         setMessage(result.message);
         onRewardUpdate(result.reward);
-        onClose(); // Close the modal on successful submission
+        onClose();
       }
     } catch {
       setError('An unexpected error occurred during submission.');
-    } finally {
+    }
+    finally {
       setSubmitting(false);
     }
   };
@@ -116,7 +108,7 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
     return reward.uploadedDocuments?.some(d => d.docType === docType);
   };
 
-  const canSubmitForReview = reward.uploadedDocuments?.some(d => d.docType === 'PASSPORT');
+  const canSubmitForReview = reward.uploadedDocuments?.some(d => d.docType === 'PASSPORT_FRONT');
 
   return (
     <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-6 mt-4">
@@ -139,7 +131,6 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
       <div className="grid gap-4">
         {requiredDocs.map((docInfo, i) => {
           const docType = docInfo.docType;
-          const slot = docSlotsConfig[docType as keyof typeof docSlotsConfig] || { label: docInfo.description, accept: '*' };
           const isUploaded = isDocUploaded(docType);
           const isUploading = uploading === i;
           const fileStaged = files[i];
@@ -160,7 +151,7 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
 
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <div className="text-sm text-gray-200">{slot.label}</div>
+                  <div className="text-sm text-gray-200">{docInfo.description}</div>
                   <div className="flex items-center gap-2">
                     {fileStaged ? (
                       <>
@@ -188,7 +179,7 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
                           {isUploaded ? 'Re-upload' : 'Select File'}
                           <input
                             type="file"
-                            accept={slot.accept}
+                            accept="image/*,.pdf"
                             onChange={(e) => handleFileChange(i, e.target.files)}
                             className="hidden"
                           />
@@ -213,7 +204,7 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
           {submitting ? 'Submitting...' : 'Submit for Review'}
         </button>
         <div className="text-xs text-gray-400 text-right">
-          {canSubmitForReview ? "Ready for final submission." : "Passport must be uploaded to submit."}
+          {canSubmitForReview ? "Ready for final submission." : "Passport (Front) must be uploaded to submit."}
         </div>
       </div>
 
