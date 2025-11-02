@@ -253,3 +253,20 @@ export async function transferReward(rewardId: string, recipientId: string) {
       });
       return handleApiResponse(res);
 }
+
+export async function uploadRewardDocument(rewardId: string, formData: FormData) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/documents/upload`, {
+        method: "POST",
+        headers: await getAuthHeaders(false),
+        body: formData,
+      });
+      return handleApiResponse(res);
+}
+
+export async function submitRewardDocuments(rewardId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/documents/submit`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}

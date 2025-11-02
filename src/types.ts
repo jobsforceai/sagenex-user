@@ -47,7 +47,7 @@ export interface Reward {
   currentValueUSD: number;
   isEligible: boolean;
   isClaimed: boolean;
-  claimStatus: 'NONE' | 'PENDING' | 'COMPLETED';
+  claimStatus: 'NONE' | 'PENDING' | 'DOCUMENTS_REQUIRED' | 'DOCUMENTS_PENDING' | 'COMPLETED';
   isTransferred: boolean;
   transferredFrom: string | null;
   transferredTo: string | null;
@@ -61,4 +61,13 @@ export interface Reward {
   createdAt: string;
   updatedAt: string;
   claimedAt?: string;
+  requiredDocuments?: {
+    docType: string;
+    description: string;
+  }[];
+  uploadedDocuments?: {
+    docType: string;
+    url: string;
+  }[];
+  rejectionReason?: string;
 }
