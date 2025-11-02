@@ -74,8 +74,8 @@ const RewardCard = ({ reward, onClaim, onTransfer, recipients, currentUserId }: 
                         </div>
                     ) : reward.claimStatus === 'PENDING' ? (
                         <div className="flex items-center justify-center gap-2 text-yellow-400 font-semibold p-3 rounded-lg bg-yellow-900/50">
-                            <Loader2 className="w-5 h-5 animate-spin" />
-                            Claim in Progress
+                            {/* <Loader2 className="w-5 h-5 animate-spin" /> */}
+                            Claim in Progress (takes up to 24 hours)
                         </div>
                     ) : showTransferredStatus ? (
                         <div className="flex items-center justify-center gap-2 text-gray-400 font-semibold p-3 rounded-lg bg-gray-800/50">

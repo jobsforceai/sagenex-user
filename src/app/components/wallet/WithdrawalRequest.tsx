@@ -50,6 +50,8 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
     const withdrawalAmount = parseFloat(newAmount);
     if (!isNaN(withdrawalAmount) && withdrawalAmount > currentBalance) {
       setError("Withdrawal amount cannot exceed your available balance.");
+    } else if (withdrawalType === "upi" && !isNaN(withdrawalAmount) && withdrawalAmount > 50) {
+      setError("UPI withdrawal amount cannot exceed $50.");
     }
   };
 
@@ -75,6 +77,12 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
       setError("Withdrawal amount cannot exceed your available balance.");
       setIsLoading(false);
       return;
+    }
+
+    if (withdrawalType === "upi" && withdrawalAmount > 50) {
+        setError("UPI withdrawal amount cannot exceed $50.");
+        setIsLoading(false);
+        return;
     }
 
     const payload: { 
@@ -179,6 +187,9 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
               min="0.01"
               step="0.01"
             />
+            {withdrawalType === 'upi' && parseFloat(amount) > 50 && (
+                <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed $50.</p>
+            )}
           </div>
           
           {withdrawalType === 'crypto' && (
@@ -258,7 +269,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
           <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? "Submitting Request..." : "Request Withdrawal"}
           </Button>
-          {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
+          {error && !(withdrawalType === 'upi' && parseFloat(amount) > 50) && <p className="text-red-400 text-sm mt-2">{error}</p>}
           {message && <p className="text-green-400 text-sm mt-2">{message}</p>}
         </form>
       </CardContent>
