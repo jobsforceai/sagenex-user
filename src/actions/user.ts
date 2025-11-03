@@ -27,10 +27,12 @@ async function getAuthHeaders(isJson = true) {
     }
   
     const responseText = await response.text();
+    console.log("Raw API Response:", responseText);
     let responseData;
   
     try {
       responseData = JSON.parse(responseText);
+      console.log("Parsed API Response Data:", responseData);
     } catch {
       console.error(
         `API Error: Failed to parse response as JSON. Status: ${
@@ -265,6 +267,52 @@ export async function uploadRewardDocument(rewardId: string, formData: FormData)
 
 export async function submitRewardDocuments(rewardId: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/documents/submit`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function getAllCourses() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/courses`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function getCourseById(courseId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function enrollInCourse(courseId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/enroll`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function getCourseProgress(courseId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/progress`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function updateVideoProgress(courseId: string, lessonId: string, watchedSeconds: number) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/lessons/${lessonId}/progress`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ watchedSeconds }),
+      });
+      return handleApiResponse(res);
+}
+
+export async function markLessonAsComplete(courseId: string, lessonId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/lessons/${lessonId}/complete`, {
         method: "POST",
         headers: await getAuthHeaders(),
       });
