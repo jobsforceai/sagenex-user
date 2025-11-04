@@ -31,6 +31,9 @@ export interface CourseSummary {
   _id: string;
   title: string;
   description: string;
+  price: number;
+  whatYoullLearn: string[];
+  goal: string;
   instructor: string;
   rating: number;
   studentsEnrolled: number;
@@ -40,6 +43,9 @@ export interface CourseSummary {
   lecturesCount: number;
   totalVideoDuration: string;
   isLocked: boolean;
+  isPublished: boolean;
+  accessStatus: 'unlocked' | 'next_locked' | 'locked';
+  modules: Module[];
   createdAt: string;
   updatedAt: string;
 }
