@@ -5,11 +5,11 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { getCourseById, enrollInCourse, getCourseProgress, updateVideoProgress, markLessonAsComplete } from "@/actions/user";
+import { getCourseById, getCourseProgress, updateVideoProgress, markLessonAsComplete } from "@/actions/user";
 import { CourseDetails, Lesson, LessonProgress } from "@/types";
-import { Lock, PlayCircle, CheckCircle, List, Info, Users, BarChart, Clock, Languages, Star } from "lucide-react";
+import { Lock, PlayCircle, CheckCircle, List, Info, Users, BarChart, Clock, Languages, Star, ArrowLeft } from "lucide-react";
 import VideoPlayer from "@/app/components/courses/VideoPlayer";
+import { Button } from "@/components/ui/button";
 
 const CoursePage = ({ params }: { params: { courseId: string } }) => {
   const { courseId } = params;
@@ -19,7 +19,6 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
   const [progress, setProgress] = useState<LessonProgress[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
-  const [isEnrolling, setIsEnrolling] = useState(false);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
   const getLessonProgress = useCallback((lessonId: string) => {
@@ -39,7 +38,7 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
       } else {
         const courseDetails = courseData.data || courseData.course || courseData;
         setCourse(courseDetails);
-        if (courseDetails.modules && courseDetails.modules[0] && courseDetails.modules[0].lessons && courseDetails.modules[0].lessons[0]) {
+        if (courseDetails.modules?.[0]?.lessons?.[0]) {
           setSelectedLesson(courseDetails.modules[0].lessons[0]);
         }
       }
@@ -67,23 +66,6 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
     }
   }, [isAuthenticated, authLoading, router, fetchCourseData]);
 
-  const handleEnroll = async () => {
-    setIsEnrolling(true);
-    setError(null);
-    try {
-      const data = await enrollInCourse(courseId);
-      if (data.error) {
-        setError(data.error);
-      } else {
-        await fetchCourseData();
-      }
-    } catch {
-      setError("An error occurred while enrolling in the course");
-    } finally {
-      setIsEnrolling(false);
-    }
-  };
-
   const handleProgressUpdate = async (watchedSeconds: number) => {
     if (!selectedLesson) return;
     await updateVideoProgress(courseId, selectedLesson._id, watchedSeconds);
@@ -104,8 +86,7 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
   const firstUncompletedLessonIndex = useMemo(() => {
     if (!course) return -1;
     const allLessons = course.modules.flatMap(m => m.lessons);
-    const firstUncompletedIndex = allLessons.findIndex(lesson => !getLessonProgress(lesson._id)?.completed);
-    return firstUncompletedIndex === -1 ? allLessons.length : firstUncompletedIndex;
+    return allLessons.findIndex(lesson => !getLessonProgress(lesson._id)?.completed);
   }, [course, getLessonProgress]);
 
   if (authLoading || dataLoading) {
@@ -119,12 +100,6 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
         <main className="container mx-auto p-4 pt-24 text-center">
           <h2 className="text-2xl font-bold text-red-500 mb-4">Could not load course</h2>
           <p className="text-gray-400 mb-6">{error}</p>
-          {error.includes("not enrolled") && (
-            <Button onClick={handleEnroll} disabled={isEnrolling}>
-              {isEnrolling ? "Enrolling..." : "Enroll in Course"}
-              <Lock className="w-4 h-4 ml-2" />
-            </Button>
-          )}
         </main>
       </div>
     );
@@ -140,6 +115,14 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
     <div className="bg-black text-white min-h-screen">
       <Navbar />
       <main className="container mx-auto p-4 pt-24">
+        <Button
+          variant="ghost"
+          onClick={() => router.back()}
+          className="mb-6 text-gray-400 hover:text-white"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" />
+          Back to Courses
+        </Button>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2">
             {selectedLesson ? (
@@ -195,7 +178,7 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
                                     lessonCounter++;
                                     const lessonIndex = lessonCounter;
                                     const isCompleted = getLessonProgress(lesson._id)?.completed;
-                                    const isLocked = lessonIndex > firstUncompletedLessonIndex;
+                                    const isLocked = firstUncompletedLessonIndex !== -1 && lessonIndex > firstUncompletedLessonIndex;
 
                                     let icon = <PlayCircle className="w-4 h-4 flex-shrink-0" />;
                                     if (isCompleted) icon = <CheckCircle className="w-4 h-4 text-green-400 flex-shrink-0" />;
