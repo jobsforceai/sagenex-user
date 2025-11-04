@@ -236,11 +236,11 @@ const UpgradeModal = ({ course, onClose }: { course: CourseSummary, onClose: () 
         <Button onClick={onClose} variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white">
           Close
         </Button>
-          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
         <Link href="/wallet" passHref>
+          <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
             Invest Now
-        </Link>
           </Button>
+        </Link>
       </div>
     </div>
   </div>
