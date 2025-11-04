@@ -1,22 +1,35 @@
 "use client";
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { Recipient } from '@/types';
 import { getTransferRecipients, sendTransferOtp, executeTransfer } from '@/actions/user';
 import { ArrowRight, Send, CheckCircle, AlertTriangle, Wallet } from 'lucide-react';
 
 const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
-    const [recipients, setRecipients] = useState<Recipient[]>([]);
-    const [selectedRecipient, setSelectedRecipient] = useState('');
+    const [allRecipients, setAllRecipients] = useState<Recipient[]>([]);
+    const [searchTerm, setSearchTerm] = useState('');
+    const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
+    const [isDropdownVisible, setIsDropdownVisible] = useState(false);
+    
     const [amount, setAmount] = useState('');
     const [otp, setOtp] = useState('');
     const [step, setStep] = useState(1); // 1: Form, 2: OTP
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    
+    const dropdownRef = useRef<HTMLDivElement>(null);
 
     const numericAmount = useMemo(() => parseFloat(amount) || 0, [amount]);
     const isAmountInvalid = useMemo(() => numericAmount > currentBalance, [numericAmount, currentBalance]);
     const remainingBalance = useMemo(() => currentBalance - numericAmount, [currentBalance, numericAmount]);
+
+    const filteredRecipients = useMemo(() => {
+        if (!searchTerm) return [];
+        return allRecipients.filter(r =>
+            r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            r.userId.toLowerCase().includes(searchTerm.toLowerCase())
+        );
+    }, [searchTerm, allRecipients]);
 
     useEffect(() => {
         const fetchRecipients = async () => {
@@ -25,7 +38,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                 if (data.error) {
                     setMessage({ type: 'error', text: `Could not load recipients: ${data.error}` });
                 } else {
-                    setRecipients(data);
+                    setAllRecipients(data);
                 }
             } catch (error) {
                 setMessage({ type: 'error', text: 'An unexpected error occurred while fetching recipients.' });
@@ -34,6 +47,28 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
         };
         fetchRecipients();
     }, []);
+    
+    useEffect(() => {
+        const handleClickOutside = (event: MouseEvent) => {
+            if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+                setIsDropdownVisible(false);
+            }
+        };
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => document.removeEventListener('mousedown', handleClickOutside);
+    }, []);
+
+    const handleRecipientSelect = (recipient: Recipient) => {
+        setSelectedRecipient(recipient);
+        setSearchTerm(`${recipient.fullName} (${recipient.userId})`);
+        setIsDropdownVisible(false);
+    };
+
+    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setSearchTerm(e.target.value);
+        setSelectedRecipient(null);
+        setIsDropdownVisible(true);
+    };
 
     const handleInitiateTransfer = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -42,7 +77,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
             return;
         }
         if (!selectedRecipient) {
-            setMessage({ type: 'error', text: 'Please select a recipient.' });
+            setMessage({ type: 'error', text: 'Please select a valid recipient from the list.' });
             return;
         }
         setIsLoading(true);
@@ -69,16 +104,21 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
             setMessage({ type: 'error', text: 'Please enter the 6-digit OTP.' });
             return;
         }
+        if (!selectedRecipient) {
+            setMessage({ type: 'error', text: 'Recipient not selected. Please go back.' });
+            return;
+        }
         setIsLoading(true);
         setMessage(null);
         try {
-            const result = await executeTransfer(selectedRecipient, numericAmount, otp);
+            const result = await executeTransfer(selectedRecipient.userId, numericAmount, otp);
             if (result.error) {
                 setMessage({ type: 'error', text: result.error });
             } else {
                 setMessage({ type: 'success', text: `${result.message} Transaction ID: ${result.transactionId}` });
                 setStep(1);
-                setSelectedRecipient('');
+                setSelectedRecipient(null);
+                setSearchTerm('');
                 setAmount('');
                 setOtp('');
             }
@@ -117,21 +157,33 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                         <span className="font-semibold text-white">${currentBalance.toFixed(2)}</span>
                     </div>
 
-                    <div>
-                        <label htmlFor="recipient" className="block text-sm font-medium text-gray-300 mb-1">Recipient</label>
-                        <select
-                            id="recipient"
-                            value={selectedRecipient}
-                            onChange={(e) => setSelectedRecipient(e.target.value)}
+                    <div className="relative" ref={dropdownRef}>
+                        <label htmlFor="recipient-search" className="block text-sm font-medium text-gray-300 mb-1">Recipient</label>
+                        <input
+                            id="recipient-search"
+                            type="text"
+                            value={searchTerm}
+                            onChange={handleSearchChange}
+                            onFocus={() => setIsDropdownVisible(true)}
+                            placeholder="Search by name or user ID"
                             className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            required
-                        >
-                            <option value="" disabled>Select a user</option>
-                            {recipients.map(r => (
-                                <option key={r.userId} value={r.userId}>{r.fullName} ({r.userId})</option>
-                            ))}
-                        </select>
+                            autoComplete="off"
+                        />
+                        {isDropdownVisible && filteredRecipients.length > 0 && (
+                            <ul className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                {filteredRecipients.map(r => (
+                                    <li
+                                        key={r.userId}
+                                        onClick={() => handleRecipientSelect(r)}
+                                        className="px-4 py-2 text-white hover:bg-emerald-600 cursor-pointer"
+                                    >
+                                        {r.fullName} ({r.userId})
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
                     </div>
+
                     <div>
                         <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-1">Amount (USD)</label>
                         <input
@@ -152,7 +204,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                     </div>
                     <button
                         type="submit"
-                        disabled={isLoading || isAmountInvalid || numericAmount <= 0}
+                        disabled={isLoading || isAmountInvalid || numericAmount <= 0 || !selectedRecipient}
                         className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? 'Sending...' : 'Send OTP'}
