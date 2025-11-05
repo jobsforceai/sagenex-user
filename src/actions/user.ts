@@ -94,7 +94,7 @@ export async function getTeamTree() {
       return handleApiResponse(res);
 }
 
-export async function getWalletTransactions() {
+export async function getWalletData() {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/wallet`, {
         headers: await getAuthHeaders(),
       });
@@ -193,13 +193,23 @@ export async function sendTransferOtp() {
       return handleApiResponse(res);
 }
 
-export async function executeTransfer(recipientId: string, amount: number, otp: string) {
+export async function executeTransfer(recipientId: string, amount: number, otp: string, transferType?: 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE') {
+    const body: { recipientId: string; amount: number; otp: string; transferType?: string } = {
+        recipientId,
+        amount,
+        otp,
+    };
+
+    if (transferType) {
+        body.transferType = transferType;
+    }
+
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/execute`, {
         method: "POST",
         headers: await getAuthHeaders(),
-        body: JSON.stringify({ recipientId, amount, otp }),
-      });
-      return handleApiResponse(res);
+        body: JSON.stringify(body),
+    });
+    return handleApiResponse(res);
 }
 
 export async function createCryptoDepositInvoice(amount: number) {

@@ -9,12 +9,12 @@ import CryptoDeposit from "@/app/components/wallet/CryptoDeposit";
 import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getWalletTransactions, getDashboardData, getKycStatus, getAllCourses } from "@/actions/user";
+import { getWalletData, getDashboardData, getKycStatus, getAllCourses } from "@/actions/user";
 import { KycStatus, CourseSummary } from "@/types";
 import { Button } from "@/components/ui/button";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Lock } from "lucide-react";
 
-// Interfaces from the original file
+// Interfaces for wallet page data
 interface WalletTransaction {
   _id: string;
   userId: string;
@@ -26,57 +26,66 @@ interface WalletTransaction {
   meta: Record<string, unknown>;
 }
 
+interface LockedBonus {
+    level: number;
+    name: string;
+    lockedAmount: number;
+    isUnlocked: boolean;
+    unlockRequirement: string;
+    progress: {
+        current: number;
+        required: number;
+    };
+}
+
 interface DashboardData {
   package: {
     packageUSD: number;
   };
   wallet: {
     availableBalance: number;
+    bonuses: LockedBonus[];
   };
 }
 
-const getTierColor = (price: number) => {
-  if (price <= 50) return "from-green-500 to-emerald-600";
-  if (price <= 100) return "from-orange-500 to-amber-600";
-  if (price <= 300) return "from-gray-500 to-slate-600";
-  if (price <= 500) return "from-yellow-500 to-amber-600";
-  if (price <= 1000) return "from-purple-500 to-indigo-600";
-  if (price <= 2500) return "from-teal-500 to-cyan-600";
-  if (price <= 5000) return "from-blue-500 to-sky-600";
-  if (price <= 10000) return "from-red-500 to-rose-600";
-  return "from-gray-700 to-gray-800";
-};
-
-const UpgradeCard = ({ currentPackage, nextPackage }: { currentPackage: number, nextPackage: CourseSummary | null }) => {
+const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) => {
     return (
-        <Card className="bg-gray-900/40 border-gray-800">
+        <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
             <CardHeader>
-                <CardTitle>Your Plan</CardTitle>
+                <CardTitle className="text-white">Locked Bonuses</CardTitle>
             </CardHeader>
-            <CardContent className="flex flex-col md:flex-row items-center justify-between space-y-4 md:space-y-0">
-                <div className={`p-4 rounded-lg text-white bg-gradient-to-br ${getTierColor(currentPackage)}`}>
-                    <p className="text-sm">Current Package</p>
-                    <p className="text-2xl font-bold">${currentPackage.toFixed(2)}</p>
-                </div>
-
-                <ArrowRight className="text-gray-400 hidden md:block" />
-
-                {nextPackage ? (
-                    <div className={`p-4 rounded-lg text-white bg-gradient-to-br ${getTierColor(nextPackage.price)}`}>
-                        <p className="text-sm">Next Upgrade</p>
-                        <p className="text-2xl font-bold">${nextPackage.price.toFixed(2)}</p>
+            <CardContent>
+                {bonuses && bonuses.length > 0 ? (
+                    <div className="space-y-4">
+                        {bonuses.map(bonus => {
+                            const progressPercentage = (bonus.progress.current / bonus.progress.required) * 100;
+                            return (
+                                <div key={bonus.level} className="p-4 rounded-lg bg-gray-800/60 border border-gray-700/50 shadow-md">
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex items-center space-x-3">
+                                            <Lock className="text-amber-400 h-5 w-5" />
+                                            <p className="text-gray-200 font-semibold">{bonus.name}</p>
+                                        </div>
+                                        <span className="font-bold text-xl text-amber-400">${bonus.lockedAmount.toFixed(2)}</span>
+                                    </div>
+                                    <div className="mt-3">
+                                        <div className="w-full bg-gray-700 rounded-full h-2.5">
+                                            <div 
+                                                className="bg-emerald-500 h-2.5 rounded-full" 
+                                                style={{ width: `${progressPercentage}%` }}
+                                            ></div>
+                                        </div>
+                                        <div className="text-xs text-gray-400 mt-1.5 flex justify-between">
+                                            <span>{bonus.unlockRequirement}</span>
+                                            <span className="font-medium">{bonus.progress.current} / {bonus.progress.required}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            );
+                        })}
                     </div>
                 ) : (
-                    <div className="p-4 rounded-lg text-white bg-gray-700">
-                        <p className="text-sm">No further upgrades</p>
-                        <p className="text-2xl font-bold">Max Level</p>
-                    </div>
-                )}
-                
-                {nextPackage && (
-                    <Button className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold">
-                        Upgrade Now
-                    </Button>
+                    <p className="text-gray-500 text-center py-4">No locked bonuses at the moment.</p>
                 )}
             </CardContent>
         </Card>
@@ -102,18 +111,18 @@ const WalletPage = () => {
 
     const fetchData = async () => {
       try {
-        const [walletData, dashboardRes, kycData, coursesData] = await Promise.all([
-            getWalletTransactions(),
+        const [walletRes, dashboardRes, kycData, coursesData] = await Promise.all([
+            getWalletData(),
             getDashboardData(),
             getKycStatus(),
             getAllCourses(),
         ]);
 
-        if (walletData.error || dashboardRes.error || kycData.error || coursesData.error) {
-          throw new Error(walletData.error || dashboardRes.error || kycData.error || coursesData.error || "Failed to fetch data");
+        if (walletRes.error || dashboardRes.error || kycData.error || coursesData.error) {
+          throw new Error(walletRes.error || dashboardRes.error || kycData.error || coursesData.error || "Failed to fetch data");
         }
 
-        setTransactions(walletData);
+        setTransactions(walletRes.ledger || walletRes || []);
         setDashboardData(dashboardRes);
         setKycStatus(kycData);
         setCourses(coursesData.data || []);
@@ -153,20 +162,17 @@ const WalletPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
                 <Card className="bg-gray-900/40 border-gray-800">
                     <CardHeader><CardTitle>Available Balance</CardTitle></CardHeader>
                     <CardContent>
                         <p className="text-4xl font-bold text-emerald-400">
-                            ${dashboardData?.wallet.availableBalance.toFixed(2)}
+                            ${dashboardData?.wallet.availableBalance.toFixed(2) ?? '0.00'}
                         </p>
                     </CardContent>
                 </Card>
-                <UpgradeCard 
-                    currentPackage={dashboardData?.package.packageUSD ?? 0}
-                    nextPackage={nextPackage}
-                />
             </div>
+            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FundTransfer currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
                 <WithdrawalRequest 
@@ -175,8 +181,9 @@ const WalletPage = () => {
                 />
             </div>
           </div>
-          <div className="lg:col-span-1">
+          <div className="lg:col-span-1 space-y-8">
             <CryptoDeposit />
+            <LockedBonusesCard bonuses={dashboardData?.wallet.bonuses} />
           </div>
         </div>
 

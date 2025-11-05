@@ -3,7 +3,9 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Recipient } from '@/types';
 import { getTransferRecipients, sendTransferOtp, executeTransfer } from '@/actions/user';
-import { ArrowRight, Send, CheckCircle, AlertTriangle, Wallet } from 'lucide-react';
+import { ArrowRight, Send, CheckCircle, AlertTriangle, Wallet, Briefcase } from 'lucide-react';
+
+type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
 
 const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     const [allRecipients, setAllRecipients] = useState<Recipient[]>([]);
@@ -13,6 +15,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     
     const [amount, setAmount] = useState('');
     const [otp, setOtp] = useState('');
+    const [transferType, setTransferType] = useState<TransferType>('TO_AVAILABLE_BALANCE');
     const [step, setStep] = useState(1); // 1: Form, 2: OTP
     const [isLoading, setIsLoading] = useState(false);
     const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
@@ -111,7 +114,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
         setIsLoading(true);
         setMessage(null);
         try {
-            const result = await executeTransfer(selectedRecipient.userId, numericAmount, otp);
+            const result = await executeTransfer(selectedRecipient.userId, numericAmount, otp, transferType);
             if (result.error) {
                 setMessage({ type: 'error', text: result.error });
             } else {
@@ -121,6 +124,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                 setSearchTerm('');
                 setAmount('');
                 setOtp('');
+                setTransferType('TO_AVAILABLE_BALANCE');
             }
         } catch (error) {
             setMessage({ type: 'error', text: 'An unexpected error occurred.' });
@@ -198,10 +202,42 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                             step="0.01"
                         />
                         <div className="text-xs text-gray-400 mt-1 h-4">
-                            {numericAmount > 0 && !isAmountInvalid && `Remaining Balance: $${remainingBalance.toFixed(2)}`}
+                            {numericAmount > 0 && !isAmountInvalid && `Remaining Balance: ${remainingBalance.toFixed(2)}`}
                             {isAmountInvalid && <span className="text-red-400">Amount exceeds available balance.</span>}
                         </div>
                     </div>
+
+                    <div>
+                        <label className="block text-sm font-medium text-gray-300 mb-2">Transfer Destination</label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div
+                                onClick={() => setTransferType('TO_AVAILABLE_BALANCE')}
+                                className={`flex flex-col items-center justify-center p-1 rounded-lg cursor-pointer transition-all duration-200 text-white
+                                    ${transferType === 'TO_AVAILABLE_BALANCE'
+                                        ? 'bg-gray-700 border-gray-500'
+                                        : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 hover:border-gray-600'}
+                                    border-2`}
+                            >
+
+                                <Wallet className="mb-2 h-6 w-6" />
+                                <span className="font-semibold text-base">To Balance</span>
+                                <span className="text-xs text-center mt-1 text-gray-400">For withdrawals & spending</span>
+                            </div>
+                            <div
+                                onClick={() => setTransferType('TO_PACKAGE')}
+                                className={`flex flex-col items-center justify-center p-1 rounded-lg cursor-pointer transition-all duration-200 text-white
+                                    ${transferType === 'TO_PACKAGE'
+                                        ? 'bg-gray-700 border-gray-500'
+                                        : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 hover:border-gray-600'}
+                                    border-2`}
+                            >
+                                <Briefcase className="mb-2 h-6 w-6" />
+                                <span className="font-semibold text-base">To Package</span>
+                                <span className="text-xs text-center mt-1 text-gray-400">For package upgrades</span>
+                            </div>
+                        </div>
+                    </div>
+
                     <button
                         type="submit"
                         disabled={isLoading || isAmountInvalid || numericAmount <= 0 || !selectedRecipient}
