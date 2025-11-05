@@ -419,7 +419,7 @@ const RewardsPage = () => {
       <Navbar />
       <main className="container mx-auto p-4 pt-24">
         <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 pb-2 bg-gradient-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
             Rewards & Recognition
           </h1>
           <p className="text-lg text-gray-400 max-w-3xl mx-auto">

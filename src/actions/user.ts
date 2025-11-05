@@ -27,12 +27,10 @@ async function getAuthHeaders(isJson = true) {
     }
   
     const responseText = await response.text();
-    console.log("Raw API Response:", responseText);
     let responseData;
   
     try {
       responseData = JSON.parse(responseText);
-      console.log("Parsed API Response Data:", responseData);
     } catch {
       console.error(
         `API Error: Failed to parse response as JSON. Status: ${

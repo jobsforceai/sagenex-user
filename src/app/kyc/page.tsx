@@ -175,7 +175,7 @@ export default function KycPage() {
         ) : (
             <div className="max-w-4xl mt-16 mx-auto">
                 <header className="text-center mb-8">
-                <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-gradient-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
+                <h1 className="text-4xl md:text-5xl pb-2 font-bold mb-4 bg-gradient-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
                     KYC — Verify your identity
                 </h1>
                 <p className="text-lg text-gray-400 max-w-3xl mx-auto">
