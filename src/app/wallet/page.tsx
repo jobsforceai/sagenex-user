@@ -57,7 +57,7 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
             <CardContent>
                 {bonuses && bonuses.length > 0 ? (
                     <div className="space-y-4">
-                        {bonuses.map(bonus => {
+                        {bonuses.filter(bonus => bonus.lockedAmount > 0).map(bonus => {
                             const progressPercentage = (bonus.progress.current / bonus.progress.required) * 100;
                             return (
                                 <div key={bonus.level} className="p-4 rounded-lg bg-gray-800/60 border border-gray-700/50 shadow-md">
