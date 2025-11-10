@@ -39,13 +39,15 @@ const RewardCard = ({
   onUploadDocuments,
   recipients,
   currentUserId,
+  isBestClaimable,
 }: {
   reward: Reward;
-  onClaim: (rewardId: string) => Promise<void>;
+  onClaim: (reward: Reward) => void;
   onTransfer: (reward: Reward) => void;
   onUploadDocuments: (reward: Reward) => void;
   recipients: Recipient[];
   currentUserId: string | null;
+  isBestClaimable: boolean;
 }) => {
   const [isClaiming, setIsClaiming] = useState(false);
 
@@ -61,10 +63,8 @@ const RewardCard = ({
     ? recipients.find((r) => r.userId === reward.transferredFrom)
     : null;
 
-  const handleClaim = async () => {
-    setIsClaiming(true);
-    await onClaim(reward._id);
-    setIsClaiming(false);
+  const handleClaim = () => {
+    onClaim(reward);
   };
 
   const canTakeAction =
@@ -125,7 +125,11 @@ const RewardCard = ({
                 <Send className="w-4 h-4 mr-2" />
                 Transfer
               </Button>
-              <Button onClick={handleClaim} disabled={isClaiming} className="w-full font-semibold">
+              <Button
+                onClick={handleClaim}
+                disabled={isClaiming || !isBestClaimable}
+                className="w-full font-semibold"
+              >
                 {isClaiming ? <Loader2 className="w-4 h-4 animate-spin" /> : "Claim"}
               </Button>
             </div>
@@ -285,6 +289,48 @@ const TransferModal = ({
   );
 };
 
+const ClaimConfirmationModal = ({
+  reward,
+  onClose,
+  onConfirm,
+}: {
+  reward: Reward;
+  onClose: () => void;
+  onConfirm: (rewardId: string) => Promise<void>;
+}) => {
+  const [isClaiming, setIsClaiming] = useState(false);
+
+  const handleConfirm = async () => {
+    setIsClaiming(true);
+    await onConfirm(reward._id);
+    setIsClaiming(false);
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
+      <div
+        className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-md"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-xl font-bold mb-2 text-white">Confirm Your Claim</h3>
+        <p className="text-yellow-300 mb-6">
+          You can only claim one reward for a lifetime. Please confirm that you want to claim the{" "}
+          <span className="font-semibold text-emerald-300">{reward.offerSnapshot.name}</span>{" "}
+          reward. This action is irreversible.
+        </p>
+        <div className="mt-6 flex justify-end gap-4">
+          <Button type="button" onClick={onClose} variant="outline">
+            Cancel
+          </Button>
+          <Button onClick={handleConfirm} disabled={isClaiming}>
+            {isClaiming ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm & Claim"}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const RewardsPage = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -298,6 +344,9 @@ const RewardsPage = () => {
   const [transferModalReward, setTransferModalReward] = useState<Reward | null>(null);
   const [uploadModalReward, setUploadModalReward] = useState<Reward | null>(null);
   const [currentUserId, setCurrentUserId] = useState<string | null>(null);
+  const [hasClaimedReward, setHasClaimedReward] = useState(false);
+  const [bestClaimableRewardId, setBestClaimableRewardId] = useState<string | null>(null);
+  const [claimConfirmationReward, setClaimConfirmationReward] = useState<Reward | null>(null);
 
   const fetchInitialData = async () => {
     setDataLoading(true);
@@ -311,9 +360,28 @@ const RewardsPage = () => {
       if (rewardsData && 'error' in rewardsData) {
         setError(rewardsData.error as string);
       } else {
+        const allRewards = rewardsData as Reward[];
+        const hasClaimed = allRewards.some((r) => r.claimStatus !== "NONE");
+        setHasClaimedReward(hasClaimed);
+
+        if (!hasClaimed) {
+          const bestReward = allRewards
+            .filter((r) => r.isEligible && r.claimStatus === "NONE")
+            .reduce(
+              (best, current) =>
+                !best || (current.offerSnapshot?.valueUSD ?? 0) > (best.offerSnapshot?.valueUSD ?? 0)
+                  ? current
+                  : best,
+              null as Reward | null
+            );
+          if (bestReward) {
+            setBestClaimableRewardId(bestReward._id);
+          }
+        }
+
         const progress: Reward[] = [];
         const received: Reward[] = [];
-        for (const reward of rewardsData as Reward[]) {
+        for (const reward of allRewards) {
           if (reward.transferredFrom) {
             received.push(reward);
           } else {
@@ -361,6 +429,7 @@ const RewardsPage = () => {
         setError(result.error as string);
       } else {
         setMessage((result as { message: string }).message ?? "Reward claimed.");
+        setClaimConfirmationReward(null);
         fetchInitialData();
       }
     } catch (err) {
@@ -443,11 +512,12 @@ const RewardsPage = () => {
                   <RewardCard
                     key={reward._id}
                     reward={reward}
-                    onClaim={handleClaimReward}
+                    onClaim={setClaimConfirmationReward}
                     onTransfer={setTransferModalReward}
                     onUploadDocuments={handleOpenUploadModal}
                     recipients={recipients}
                     currentUserId={currentUserId}
+                    isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
                   />
                 ))}
               </div>
@@ -469,11 +539,12 @@ const RewardsPage = () => {
                   <RewardCard
                     key={reward._id}
                     reward={reward}
-                    onClaim={handleClaimReward}
+                    onClaim={setClaimConfirmationReward}
                     onTransfer={setTransferModalReward}
                     onUploadDocuments={handleOpenUploadModal}
                     recipients={recipients}
                     currentUserId={currentUserId}
+                    isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
                   />
                 ))}
               </div>
@@ -492,6 +563,14 @@ const RewardsPage = () => {
           recipients={recipients}
           onClose={() => setTransferModalReward(null)}
           onConfirm={handleTransferReward}
+        />
+      )}
+
+      {claimConfirmationReward && (
+        <ClaimConfirmationModal
+          reward={claimConfirmationReward}
+          onClose={() => setClaimConfirmationReward(null)}
+          onConfirm={handleClaimReward}
         />
       )}
 
