@@ -77,8 +77,8 @@ export async function updateUserProfile(data: { fullName?: string; phone?: strin
       return handleApiResponse(res);
 }
 
-export async function getPayouts() {
-    const res = await fetch(`${API_BASE_URL}/api/v1/user/payouts`, {
+export async function getPayouts(page: number = 1, limit: number = 20) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/payouts?page=${page}&limit=${limit}`, {
         headers: await getAuthHeaders(),
       });
       return handleApiResponse(res);
@@ -322,6 +322,13 @@ export async function updateVideoProgress(courseId: string, lessonId: string, wa
 export async function markLessonAsComplete(courseId: string, lessonId: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/courses/${courseId}/lessons/${lessonId}/complete`, {
         method: "POST",
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function getCurrentPayoutProgress() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/payouts/current`, {
         headers: await getAuthHeaders(),
       });
       return handleApiResponse(res);
