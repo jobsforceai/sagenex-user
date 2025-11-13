@@ -118,22 +118,13 @@ export default function Footer() {
               { href: "#coin", label: "SGCoin" },
             ]}
           />
-          <FooterCol
-            title="Products"
-            links={[
-              { label: "SGX Coin", href: "#" },
-              { label: "PMS", href: "#" },
-              { label: "E-Wallet", href: "#" },
-              { label: "Trading Bots", href: "#" },
-            ]}
-          />
+
+
           <FooterCol
             title="Resources"
             links={[
-              { label: "Whitepaper", href: "#" },
+              { label: "Whitepaper", href: "/Sagenex-USA-SGCOIN", download: true },
               { label: "Compliance (KYC/AML)", href: "#kyc" },
-              { label: "Support", href: "/support" },
-              { label: "Status", href: "/status" },
             ]}
           />
         </div>
@@ -147,8 +138,6 @@ export default function Footer() {
               <Link href="/privacy" className="underline decoration-white/30 hover:decoration-white">Privacy</Link>
               {" · "}
               <Link href="/terms" className="underline decoration-white/30 hover:decoration-white">Terms</Link>
-              {" · "}
-              <Link href="/cookies" className="underline decoration-white/30 hover:decoration-white">Cookies</Link>
             </p>
 
            
@@ -168,7 +157,7 @@ function FooterCol({
   links,
 }: {
   title: string;
-  links: { label: string; href: string }[];
+  links: { label: string; href: string; download?: boolean }[];
 }) {
   return (
     <div>
