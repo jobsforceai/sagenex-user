@@ -16,6 +16,7 @@ type Props = {
   avatarUrl?: string;
   accentColorClass?: string;
   packageUSD?: number;
+  earningsMultiplier?: number; // Add this line
 };
 
 const ranks = ["Member", "Starter", "Builder", "Leader", "Manager", "Director", "Crown"];
@@ -42,16 +43,10 @@ export default function AgentOverview({
   avatarUrl = "/avatar-placeholder.jpg",
   accentColorClass = "text-green-400",
   packageUSD,
+  earningsMultiplier, // Destructure the new prop
 }: Props) {
   const pct = Math.max(0, Math.min(100, progressPct || 0));
   const currentRankIndex = currentLevel ? ranks.indexOf(currentLevel) : -1;
-
-  const rankMultiplier =
-    currentRankIndex !== -1
-      ? currentRankIndex <= 1
-        ? "2.5x"
-        : "4x"
-      : null;
 
   const roiPercentage = packageUSD ? getTieredROIRate(packageUSD) * 100 : 0;
 
@@ -86,9 +81,9 @@ export default function AgentOverview({
                 ) : (
                   <Skeleton className="h-12 w-24 mt-1" />
                 )}
-                {rankMultiplier && (
+                {earningsMultiplier && (
                   <span className="text-lg font-bold text-yellow-400 bg-yellow-400/10 px-2 py-1 rounded-md">
-                    {rankMultiplier}
+                    {earningsMultiplier}x
                   </span>
                 )}
               </div>

@@ -56,6 +56,7 @@ interface DashboardData {
   profile: Profile;
   wallet: Wallet;
   package: UserPackage;
+  earningsMultiplier?: number;
 }
 
 interface Referral {
@@ -305,6 +306,7 @@ const DashboardPage = () => {
             nextLevelLabel={rankProgress?.progress.nextRankName || ""}
             progressPct={rankProgress?.progress.percentage}
             packageUSD={dashboardData.package?.packageUSD}
+            earningsMultiplier={dashboardData.earningsMultiplier}
           />
         </div>
 
