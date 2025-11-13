@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
@@ -21,6 +22,23 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
   const [dataLoading, setDataLoading] = useState(true);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
+  const searchParams = useSearchParams();
+  const selectedModuleTitle = searchParams.get('module');
+
+  const modulesToDisplay = useMemo(() => {
+    if (!course) return [];
+    if (selectedModuleTitle) {
+      return course.modules.filter(m => m.title === selectedModuleTitle);
+    }
+    return course.modules;
+  }, [course, selectedModuleTitle]);
+
+  useEffect(() => {
+    if (modulesToDisplay.length > 0 && modulesToDisplay[0].lessons.length > 0) {
+      setSelectedLesson(modulesToDisplay[0].lessons[0]);
+    }
+  }, [modulesToDisplay]);
+
   const getLessonProgress = useCallback((lessonId: string) => {
     return progress.find(p => p.lessonId === lessonId);
   }, [progress]);
@@ -38,9 +56,6 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
       } else {
         const courseDetails = courseData.data || courseData.course || courseData;
         setCourse(courseDetails);
-        if (courseDetails.modules?.[0]?.lessons?.[0]) {
-          setSelectedLesson(courseDetails.modules[0].lessons[0]);
-        }
       }
 
       if (progressData.error) {
@@ -170,7 +185,7 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
             <Card className="bg-gray-900/40 border-gray-800">
                 <CardHeader><CardTitle>Course Content</CardTitle></CardHeader>
                 <CardContent>
-                    {course.modules.map(module => (
+                    {modulesToDisplay.map(module => (
                         <div key={module._id} className="mb-4 last:mb-0">
                             <h3 className="font-semibold text-emerald-400 mb-2">{module.title}</h3>
                             <ul className="space-y-1">

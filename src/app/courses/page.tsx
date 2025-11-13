@@ -146,7 +146,7 @@ const AcademyCard = ({ course, onUpgradeClick }: { course: CourseSummary, onUpgr
                 <li key={index} className="flex items-center justify-between">
                   <span className="text-gray-300">{learnPoint}</span>
                   {canStart ? (
-                    <Link href={`/courses/${_id}`} passHref>
+                    <Link href={`/courses/${_id}?module=${encodeURIComponent(learnPoint)}`} passHref>
                       <Button size="sm" variant="ghost" className="bg-green-500/20 text-green-300 hover:bg-green-500/40 h-auto px-2 py-1 text-xs">
                         Start <BookOpen className="w-3 h-3 ml-1" />
                       </Button>
