@@ -160,6 +160,13 @@ export async function getPlacementQueue() {
       return handleApiResponse(res);
 }
 
+export async function getPlacementOptions() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/team/placement-options`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
 export async function placeUser(newUserId: string, placementParentId: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/team/place-user`, {
         method: "POST",
