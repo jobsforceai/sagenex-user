@@ -340,3 +340,12 @@ export async function getCurrentPayoutProgress() {
       });
       return handleApiResponse(res);
 }
+
+export async function initiateTransferToSGChain(amount: number) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer-to-sgchain/initiate`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ amount }),
+    });
+    return handleApiResponse(res);
+}
