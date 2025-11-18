@@ -40,6 +40,7 @@ const KycStatusDisplay = ({ status }: { status: KycStatus }) => {
 }
 
 const docSlots = [
+    { label: 'Signed Legal Agreement', docType: 'LEGAL_AGREEMENT', accept: 'image/*,.pdf' },
     { label: 'Aadhaar Card (Front)', docType: 'AADHAAR_FRONT', accept: 'image/*,.pdf' },
     { label: 'Aadhaar Card (Back)', docType: 'AADHAAR_BACK', accept: 'image/*,.pdf' },
     { label: 'PAN Card', docType: 'PAN', accept: 'image/*,.pdf' },
@@ -49,8 +50,8 @@ const docSlots = [
 export default function KycPage() {
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
   const [loading, setLoading] = useState(true);
-  const [files, setFiles] = useState<(File | null)[]>(Array(4).fill(null));
-  const [previews, setPreviews] = useState<(string | null)[]>(Array(4).fill(null));
+  const [files, setFiles] = useState<(File | null)[]>(Array(5).fill(null));
+  const [previews, setPreviews] = useState<(string | null)[]>(Array(5).fill(null));
   const [uploading, setUploading] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -165,7 +166,10 @@ export default function KycPage() {
     )
   }
 
-  const canSubmitForReview = kycStatus && kycStatus.documents.length > 0;
+  const requiredDocs = ['LEGAL_AGREEMENT', 'AADHAAR_FRONT', 'AADHAAR_BACK', 'PAN'];
+  const canSubmitForReview = kycStatus && requiredDocs.every(docType =>
+    kycStatus.documents.some(d => d.docType === docType)
+  );
 
   return (
     <div className="min-h-screen bg-black text-gray-100 py-12 px-4 sm:px-6 lg:px-8">
@@ -192,6 +196,21 @@ export default function KycPage() {
                 )}
 
                 <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-8">
+                    <div className="bg-emerald-900/30 border border-emerald-700/50 rounded-xl p-5 mb-6">
+                        <h3 className="font-bold text-lg text-emerald-300 mb-2">Step 1: Download and Sign the Legal Agreement</h3>
+                        <p className="text-sm text-gray-300 mb-4">
+                            Please download the legal agreement PDF, print it, sign it, and then scan or take a clear photo of the signed document. You will need to upload this in the next step.
+                        </p>
+                        <a
+                            href="/withdrawal-agreement-form.pdf"
+                            download
+                            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white font-semibold"
+                        >
+                            <FileText className="w-4 h-4" />
+                            Download Agreement Form
+                        </a>
+                    </div>
+
                     <div className="grid gap-6">
                         {docSlots.map((slot, i) => {
                             const isUploaded = kycStatus?.documents.some(d => d.docType === slot.docType);
@@ -266,7 +285,7 @@ export default function KycPage() {
                             {submitting ? 'Submitting...' : 'Submit for Review'}
                         </button>
                         <div className="text-sm text-gray-400">
-                            {canSubmitForReview ? "Ready for submission." : "Please upload at least one document."}
+                            {canSubmitForReview ? "All required documents are uploaded." : "Please upload all required documents."}
                         </div>
                     </div>
 
