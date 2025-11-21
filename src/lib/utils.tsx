@@ -1,9 +1,10 @@
+"use client";
+
 import { type ClassValue, clsx } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { Node, Edge, MarkerType } from 'reactflow';
 import dagre from 'dagre';
-import Image from 'next/image';
-import { UserNode, ParentNode } from '@/types'; // your project types
+import { UserNode } from '@/types'; // your project types
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -36,8 +37,7 @@ function findUserNode(root: UserNode, userId: string): UserNode | null {
 
 // Main transformation function.
 export const transformDataToFlow = (
-  tree: UserNode,
-  parent: ParentNode | null
+  tree: UserNode
 ): { nodes: Node<FlowData>[]; edges: Edge[] } => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
@@ -47,10 +47,10 @@ export const transformDataToFlow = (
   const edges: Edge[] = [];
 
   // 1) Add parent → root edge (if parent exists)
-  if (parent) {
-    dagreGraph.setNode(parent.userId, { width: nodeWidth, height: nodeHeight });
-    dagreGraph.setEdge(parent.userId, tree.userId);
-  }
+  // if (parent) {
+  //   dagreGraph.setNode(parent.userId, { width: nodeWidth, height: nodeHeight });
+  //   dagreGraph.setEdge(parent.userId, tree.userId);
+  // }
 
   // 2) Traverse user's downline to add nodes/edges
   function traverse(node: UserNode) {
@@ -75,50 +75,50 @@ export const transformDataToFlow = (
   // 4) Create React Flow nodes
 
   // Parent node (if any)
-  if (parent) {
-    const parentGraphNode = dagreGraph.node(parent.userId) as DagrePos | undefined;
-    if (parentGraphNode) {
-      const isCompany = parent.userId === 'SAGENEX-GOLD';
-      nodes.push({
-        id: parent.userId,
-        position: {
-          x: parentGraphNode.x - nodeWidth / 2,
-          y: parentGraphNode.y - nodeHeight / 2,
-        },
-        data: {
-          label: isCompany ? (
-            <div className="flex items-center justify-start gap-3 w-full text-white">
-              <Image src="/logo5.png" alt="Sagenex Logo" width={40} height={40} className="rounded-md" />
-              <div>
-                <strong className="text-base">SAGENEX</strong>
-                <br />
-                <small className="text-gray-400">(Parent)</small>
-              </div>
-            </div>
-          ) : (
-            <div className="text-left text-white">
-              <strong>{parent.fullName}</strong>
-              <br />
-              <small className="text-gray-400">ID: {parent.userId}</small>
-              <br />
-              <small className="text-gray-400">(Parent)</small>
-            </div>
-          ),
-        },
-        style: {
-          border: isCompany ? '1px solid #ca8a04' : '1px dashed #4a5568',
-          padding: 10,
-          borderRadius: 8,
-          background: isCompany ? '#3a301c' : '#2d3748', // Dark gold vs. standard dark gray
-          width: nodeWidth,
-        },
-      });
-    }
-  }
+  // if (parent) {
+  //   const parentGraphNode = dagreGraph.node(parent.userId) as DagrePos | undefined;
+  //   if (parentGraphNode) {
+  //     const isCompany = parent.userId === 'SAGENEX-GOLD';
+  //     nodes.push({
+  //       id: parent.userId,
+  //       position: {
+  //         x: parentGraphNode.x - nodeWidth / 2,
+  //         y: parentGraphNode.y - nodeHeight / 2,
+  //       },
+  //       data: {
+  //         label: isCompany ? (
+  //           <div className="flex items-center justify-start gap-3 w-full text-white">
+  //             <Image src="/logo5.png" alt="Sagenex Logo" width={40} height={40} className="rounded-md" />
+  //             <div>
+  //               <strong className="text-base">SAGENEX</strong>
+  //               <br />
+  //               <small className="text-gray-400">(Parent)</small>
+  //             </div>
+  //           </div>
+  //         ) : (
+  //           <div className="text-left text-white">
+  //             <strong>{parent.fullName}</strong>
+  //             <br />
+  //             <small className="text-gray-400">ID: {parent.userId}</small>
+  //             <br />
+  //             <small className="text-gray-400">(Parent)</small>
+  //           </div>
+  //         ),
+  //       },
+  //       style: {
+  //         border: isCompany ? '1px solid #ca8a04' : '1px dashed #4a5568',
+  //         padding: 10,
+  //         borderRadius: 8,
+  //         background: isCompany ? '#3a301c' : '#2d3748', // Dark gold vs. standard dark gray
+  //         width: nodeWidth,
+  //       },
+  //     });
+  //   }
+  // }
 
   // Downline nodes
   dagreGraph.nodes().forEach((nodeId: string) => {
-    if (parent && nodeId === parent.userId) return; // skip parent
+
 
     const graphNode = dagreGraph.node(nodeId) as DagrePos | undefined;
     if (!graphNode) return;

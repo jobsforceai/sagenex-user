@@ -4,17 +4,16 @@ import { useMemo } from "react";
 import ReactFlow, { Controls, Background } from "reactflow";
 import "reactflow/dist/style.css";
 import { transformDataToFlow } from "@/lib/utils";
-import { UserNode, ParentNode } from "@/types";
+import { UserNode } from "@/types";
 
 interface TreeClientProps {
   tree: UserNode;
-  parent: ParentNode | null;
 }
 
-const TreeClient = ({ tree, parent }: TreeClientProps) => {
+const TreeClient = ({ tree }: TreeClientProps) => {
   const { nodes, edges } = useMemo(
-    () => transformDataToFlow(tree, parent),
-    [tree, parent]
+    () => transformDataToFlow(tree),
+    [tree]
   );
 
   return (

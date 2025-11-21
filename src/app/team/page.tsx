@@ -85,7 +85,7 @@ const TeamPage = () => {
           </CardHeader>
           <CardContent>
             {treeData && treeData.tree ? (
-              <TreeClient tree={treeData.tree} parent={treeData.parent} />
+              <TreeClient tree={treeData.tree} />
             ) : (
               <p>No team members found.</p>
             )}
