@@ -101,7 +101,7 @@ export default function AgentOverview({
                   <div className="flex items-center gap-2 text-neutral-300">
                     <Target className="h-4 w-4 text-neutral-400" />
                     <span>Progress to {nextLevelLabel}</span>
-                    <span className="ml-auto text-green-400 font-semibold tabular-nums">{pct}%</span>
+                    <span className="ml-auto text-green-400 font-semibold tabular-nums">{Math.round(pct)}%</span>
                   </div>
                   <div className="mt-2 relative">
                     <div className="h-3 w-full rounded-full bg-neutral-800" />
