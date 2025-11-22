@@ -44,7 +44,7 @@ const docSlots = [
     { label: 'Aadhaar Card (Front)', docType: 'AADHAAR_FRONT', accept: 'image/*,.pdf' },
     { label: 'Aadhaar Card (Back)', docType: 'AADHAAR_BACK', accept: 'image/*,.pdf' },
     { label: 'PAN Card', docType: 'PAN', accept: 'image/*,.pdf' },
-    { label: 'Additional Document (optional)', docType: 'OTHER', accept: 'image/*,.pdf' },
+    { label: 'Passbook / Canceled Cheque / Bank Statement', docType: 'OTHER', accept: 'image/*,.pdf' },
 ];
 
 export default function KycPage() {
@@ -55,6 +55,7 @@ export default function KycPage() {
   const [uploading, setUploading] = useState<number | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('telugu');
 
   const fetchKycStatus = async () => {
     try {
@@ -186,6 +187,29 @@ export default function KycPage() {
                     Upload your documents one by one. Once all required documents are uploaded, submit them for review.
                 </p>
                 </header>
+
+                <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-8 mb-6">
+                    <h3 className="font-bold text-lg text-emerald-300 mb-4 text-center">How to Scan and Upload Documents</h3>
+                    <div className="flex justify-center border-b border-gray-700 mb-4">
+                        <button onClick={() => setActiveTab('telugu')} className={`px-4 py-2 font-semibold ${activeTab === 'telugu' ? 'border-b-2 border-emerald-400 text-emerald-400' : 'text-gray-400'}`}>Telugu</button>
+                        <button onClick={() => setActiveTab('hindi')} className={`px-4 py-2 font-semibold ${activeTab === 'hindi' ? 'border-b-2 border-emerald-400 text-emerald-400' : 'text-gray-400'}`}>Hindi</button>
+                        <button onClick={() => setActiveTab('english')} className={`px-4 py-2 font-semibold ${activeTab === 'english' ? 'border-b-2 border-emerald-400 text-emerald-400' : 'text-gray-400'}`}>English</button>
+                    </div>
+                    <div className="aspect-w-16 aspect-h-9">
+                        <iframe
+                            src={
+                                activeTab === 'telugu' ? "https://www.youtube.com/embed/Kx53gpB6Uto" :
+                                activeTab === 'hindi' ? "https://www.youtube.com/embed/54KEU7Osk60" :
+                                "https://www.youtube.com/embed/fo8UgBP8DEo"
+                            }
+                            title="YouTube video player"
+                            frameBorder="0"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                            className="w-full h-[400px] rounded-lg"
+                        ></iframe>
+                    </div>
+                </div>
 
                 {kycStatus?.status === 'REJECTED' && (
                     <div className="bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-xl mb-6 text-center">
