@@ -49,7 +49,7 @@ const RewardCard = ({
   currentUserId: string | null;
   isBestClaimable: boolean;
 }) => {
-  const [isClaiming, setIsClaiming] = useState(false);
+  const [isClaiming] = useState(false);
 
   const wasReceived = !!reward.transferredFrom && reward.userId === currentUserId;
 

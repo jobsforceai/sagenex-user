@@ -25,6 +25,7 @@ const authLinks: NavLink[] = [
   { href: "/courses", label: "Courses" },
   { href: "/payouts", label: "Payouts" },
   { href: "/rewards", label: "Rewards" },
+  { href: "/salary", label: "Salary" },
   { href: "/kyc", label: "KYC" },
   { href: "/wallet", label: "Wallet" },
   { href: "/team", label: "My Team" },
@@ -61,7 +62,7 @@ export default function Navbar({ userLevel: propUserLevel }: NavbarProps) {
         try {
           const rankData = await getRankProgress();
           if (rankData && !rankData.error) {
-            setUserLevel(rankData.currentRank.name);
+            setUserLevel(rankData.currentRankInDb.name);
           }
         } catch (error) {
           console.error("Failed to fetch user rank for navbar:", error);

@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Trophy, Shield } from "lucide-react";
+import { Trophy, Shield, CheckCircle } from "lucide-react";
 import clsx from "clsx";
 
 type Badge = {
@@ -18,20 +18,20 @@ type Requirement = {
 type Props = {
   title?: string;
   subtitle?: string;
-  progressPct: number; // 0..100
   badges: Badge[];
   requirements: Requirement[];
+  allRequirementsMet?: boolean;
+  nextRankName?: string | null;
 };
 
 export default function GamifiedChallenges({
   title = "Gamified Challenges",
   subtitle = "Sell 5 Packages in 40 Days",
-  progressPct,
   badges,
   requirements,
+  allRequirementsMet,
+  nextRankName,
 }: Props) {
-  const pct = Math.max(0, Math.min(100, progressPct));
-
   return (
     <Card className="bg-[#0b0b0b] border border-neutral-800">
       <CardHeader className="pb-0">
@@ -43,21 +43,8 @@ export default function GamifiedChallenges({
       </CardHeader>
 
       <CardContent className="pt-6">
-        {/* Progress */}
-        <div className="mb-2 text-neutral-300 font-medium">Progress</div>
-        <div className="relative">
-          <div className="h-3 w-full rounded-full bg-neutral-800" />
-          <div
-            className="absolute left-0 top-0 h-3 rounded-full bg-green-500"
-            style={{ width: `${pct}%` }}
-          />
-          <div className="absolute -right-1 -top-5 text-green-400 font-semibold tabular-nums">
-            {pct}%
-          </div>
-        </div>
-
         {/* Badge rewards */}
-        <div className="mt-8 text-neutral-300 font-medium">Badge Rewards</div>
+        <div className="text-neutral-300 font-medium">Badge Rewards</div>
         <div className="mt-3 flex flex-wrap gap-3">
           {badges.map((b) => (
             <BadgePill key={b.label} label={b.label} earned={!!b.earned} />
@@ -68,27 +55,37 @@ export default function GamifiedChallenges({
         {requirements.length > 0 && (
           <>
             <div className="mt-8 text-neutral-300 font-medium">Next Rank Requirements</div>
-            <ul className="mt-3 space-y-3">
-              {requirements.map((r, i) => (
-                <li
-                  key={i}
-                  className={clsx(
-                    "flex items-start gap-3",
-                    r.met ? "text-green-400" : "text-neutral-500"
-                  )}
-                >
-                  <Shield
+            {allRequirementsMet ? (
+              <div className="mt-3 p-4 bg-green-900/50 border border-green-700 rounded-lg flex items-center gap-3">
+                <CheckCircle className="h-6 w-6 text-green-400" />
+                <p className="text-green-300">
+                  Congratulations! You&apos;ve met all requirements for {nextRankName}. 
+                  Your rank will be updated shortly.
+                </p>
+              </div>
+            ) : (
+              <ul className="mt-3 space-y-3">
+                {requirements.map((r, i) => (
+                  <li
+                    key={i}
                     className={clsx(
-                      "h-5 w-5 mt-0.5",
-                      r.met ? "text-green-400" : "text-neutral-600"
+                      "flex items-start gap-3",
+                      r.met ? "text-green-400" : "text-neutral-500"
                     )}
-                  />
-                  <span className={clsx("leading-relaxed", r.met && "font-medium")}>
-                    {r.text}
-                  </span>
-                </li>
-              ))}
-            </ul>
+                  >
+                    <Shield
+                      className={clsx(
+                        "h-5 w-5 mt-0.5",
+                        r.met ? "text-green-400" : "text-neutral-600"
+                      )}
+                    />
+                    <span className={clsx("leading-relaxed", r.met && "font-medium")}>
+                      {r.text}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </>
         )}
       </CardContent>
