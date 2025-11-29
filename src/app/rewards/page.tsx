@@ -12,8 +12,9 @@ import {
   transferReward,
   getTransferRecipients,
   getProfileData,
+  getKycStatus,
 } from "@/actions/user";
-import { Reward, Recipient } from "@/types";
+import { Reward, Recipient, KycStatus } from "@/types";
 import {
   CheckCircle,
   Loader2,
@@ -40,6 +41,7 @@ const RewardCard = ({
   recipients,
   currentUserId,
   isBestClaimable,
+  kycStatus,
 }: {
   reward: Reward;
   onClaim: (reward: Reward) => void;
@@ -48,6 +50,7 @@ const RewardCard = ({
   recipients: Recipient[];
   currentUserId: string | null;
   isBestClaimable: boolean;
+  kycStatus: KycStatus | null;
 }) => {
   const [isClaiming, setIsClaiming] = useState(false);
 
@@ -114,24 +117,34 @@ const RewardCard = ({
           );
         }
         if (canTakeAction) {
+          const isKycVerified = kycStatus?.status === "VERIFIED";
           return (
-            <div className="grid grid-cols-2 gap-2">
-              <Button
-                onClick={() => onTransfer(reward)}
-                variant="outline"
-                className="w-full font-semibold"
-                disabled={wasReceived}
-              >
-                <Send className="w-4 h-4 mr-2" />
-                Transfer
-              </Button>
-              <Button
-                onClick={handleClaim}
-                disabled={isClaiming || !isBestClaimable}
-                className="w-full font-semibold"
-              >
-                {isClaiming ? <Loader2 className="w-4 h-4 animate-spin" /> : "Claim"}
-              </Button>
+            <div className="flex flex-col sm:flex-row items-center gap-2">
+              <div className="w-full sm:w-1/2">
+                <Button
+                  onClick={() => onTransfer(reward)}
+                  variant="outline"
+                  className="w-full font-semibold"
+                  disabled={wasReceived}
+                >
+                  <Send className="w-4 h-4 mr-2" />
+                  Transfer
+                </Button>
+              </div>
+              <div className="relative w-full sm:w-1/2">
+                <Button
+                  onClick={handleClaim}
+                  disabled={isClaiming || !isBestClaimable || !isKycVerified}
+                  className="w-full font-semibold"
+                >
+                  {isClaiming ? <Loader2 className="w-4 h-4 animate-spin" /> : "Claim"}
+                </Button>
+                {!isKycVerified && (
+                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-max max-w-xs bg-gray-800 text-white text-xs rounded py-1 px-2 pointer-events-none z-10 text-center">
+                    KYC verification required to claim.
+                  </div>
+                )}
+              </div>
             </div>
           );
         }
@@ -347,16 +360,24 @@ const RewardsPage = () => {
   const [hasClaimedReward, setHasClaimedReward] = useState(false);
   const [bestClaimableRewardId, setBestClaimableRewardId] = useState<string | null>(null);
   const [claimConfirmationReward, setClaimConfirmationReward] = useState<Reward | null>(null);
+  const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
 
   const fetchInitialData = async () => {
     setDataLoading(true);
     try {
-      const [rewardsData, recipientsData, profileData] = await Promise.all([
+      const [rewardsData, recipientsData, profileData, kycData] = await Promise.all([
         getRewards(),
         getTransferRecipients(),
         getProfileData(),
+        getKycStatus(),
       ]);
 
+      if (kycData && 'error' in kycData) {
+        setError(kycData.error as string);
+      } else {
+        setKycStatus(kycData as KycStatus);
+      }
+      
       if (rewardsData && 'error' in rewardsData) {
         setError(rewardsData.error as string);
       } else {
@@ -486,9 +507,9 @@ const RewardsPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
       <Navbar />
-      <main className="container mx-auto p-4 pt-24">
+      <main className="container mx-auto p-4 sm:p-6 pt-24">
         <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 pb-2 bg-gradient-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 pb-2 bg-gradient-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
             Rewards & Recognition
           </h1>
           <p className="text-lg text-gray-400 max-w-3xl mx-auto">
@@ -518,6 +539,7 @@ const RewardsPage = () => {
                     recipients={recipients}
                     currentUserId={currentUserId}
                     isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
+                    kycStatus={kycStatus}
                   />
                 ))}
               </div>
@@ -545,6 +567,7 @@ const RewardsPage = () => {
                     recipients={recipients}
                     currentUserId={currentUserId}
                     isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
+                    kycStatus={kycStatus}
                   />
                 ))}
               </div>
