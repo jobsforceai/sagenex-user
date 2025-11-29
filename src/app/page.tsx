@@ -4,6 +4,7 @@ import LevelsEarnings from "@/components/landing/level-earning";
 import RanksSection from "@/components/landing/ranks-section";
 import SagenexAcademy from "@/components/landing/sagenex-academy";
 import CashCardSection from "../components/landing/cash-card";
+import AppDownloadSection from "../components/landing/app-download";
 import Navbar from "./components/Navbar";
 import SgCoinPage from "@/components/landing/sagenex-coin";
 import ProfitCalculator from "@/components/landing/profit-calculator";
@@ -22,6 +23,7 @@ export default function Home() {
       <LevelsEarnings/>
       <RanksSection />
       <CashCardSection/>
+      <AppDownloadSection />
       <SgCoinPage />
       <Footer />
     </>
