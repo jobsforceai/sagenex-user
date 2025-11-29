@@ -18,6 +18,7 @@ const guestLinks: NavLink[] = [
   { href: "#earning", label: "Earning" },
   { href: "#card", label: "Cash Card" },
   { href: "#coin", label: "SGCoin" },
+  { href: "https://sagenex-academy-videos.s3.ap-south-1.amazonaws.com/androidapp/application-31eaf486-48ca-4b74-b0e6-9c7fdecd98a3.apk", label: "Download App" },
 ];
 
 const authLinks: NavLink[] = [
@@ -29,6 +30,7 @@ const authLinks: NavLink[] = [
   { href: "/wallet", label: "Wallet" },
   { href: "/team", label: "My Team" },
   { href: "/profile", label: "Profile" },
+  { href: "https://sagenex-academy-videos.s3.ap-south-1.amazonaws.com/androidapp/application-31eaf486-48ca-4b74-b0e6-9c7fdecd98a3.apk", label: "Download App" },
 ];
 
 const navbarVariants = {

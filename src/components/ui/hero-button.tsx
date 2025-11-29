@@ -14,6 +14,10 @@ const button = cva(
     "transition-all",
     "duration-300",
     "shadow-white",
+    "flex",
+    "items-center",
+    "justify-center",
+    "gap-2",
   ],
   {
     variants: {
@@ -44,7 +48,7 @@ interface ButtonProps
 }
 export default function HeroButton({ children, href, intent, size }: ButtonProps) {
   return (
-    <Link href={href}>
+    <Link  href={href}>
       <button className={button({ intent, size })}>{children}</button>
     </Link>
   );
