@@ -147,31 +147,29 @@ const WalletPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
       <Navbar />
-      <div className="container mx-auto p-4 pt-24 space-y-8">
+      <div className="container mx-auto p-4 sm:p-6 pt-20 sm:pt-24 space-y-8">
         <header>
-          <h1 className="text-4xl font-bold text-white">My Wallet</h1>
+          <h1 className="text-3xl sm:text-4xl font-bold text-white">My Wallet</h1>
           <p className="text-gray-400 mt-2">Manage your funds, view transactions, and upgrade your plan.</p>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          <div className="lg:col-span-2 space-y-8">
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
-                <Card className="bg-gray-900/40 border-gray-800">
-                    <CardHeader><CardTitle>Available Balance</CardTitle></CardHeader>
-                    <CardContent>
-                        <p className="text-4xl font-bold text-emerald-400">
-                            ${dashboardData?.wallet.availableBalance.toFixed(2) ?? '0.00'}
-                        </p>
-                    </CardContent>
-                </Card>
-            </div>
+        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
+          <div className="xl:col-span-2 space-y-6 sm:space-y-8">
+            <Card className="bg-gray-900/40 border-gray-800">
+                <CardHeader><CardTitle>Available Balance</CardTitle></CardHeader>
+                <CardContent>
+                    <p className="text-4xl font-bold text-emerald-400">
+                        ${dashboardData?.wallet.availableBalance.toFixed(2) ?? '0.00'}
+                    </p>
+                </CardContent>
+            </Card>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 <FundTransfer currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
                 <TransferToSGChain currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
             </div>
           </div>
-          <div className="lg:col-span-1 space-y-8">
+          <div className="xl:col-span-1 space-y-6 sm:space-y-8">
             <CryptoDeposit />
             <WithdrawalRequest 
                 currentBalance={dashboardData?.wallet.availableBalance ?? 0}

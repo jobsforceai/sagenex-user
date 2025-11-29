@@ -158,7 +158,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-800 relative overflow-hidden">
+    <Card className="bg-gray-900 border-gray-800 relative overflow-hidden p-6 sm:p-8">
       {showConfetti && <Confetti />}
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -167,7 +167,19 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-2 mb-4 border-b border-gray-700">
+        {/* Responsive Tabs/Dropdown */}
+        <div className="sm:hidden mb-4">
+          <select
+            value={withdrawalType}
+            onChange={(e) => setWithdrawalType(e.target.value as WithdrawalType)}
+            className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+          >
+            <option value="crypto">Crypto</option>
+            <option value="upi">UPI</option>
+            <option value="bank">Bank</option>
+          </select>
+        </div>
+        <div className="hidden sm:flex gap-2 mb-4 border-b border-gray-700">
           <Button variant={withdrawalType === "crypto" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("crypto")}>
             Crypto
           </Button>

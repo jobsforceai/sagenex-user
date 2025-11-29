@@ -137,7 +137,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     };
 
     return (
-        <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-8 relative overflow-hidden">
+        <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
             {showConfetti && <Confetti width={500} height={500} />}
             <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
                 <Send className="text-emerald-400" />
