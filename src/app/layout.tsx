@@ -3,6 +3,9 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
+import { Toaster } from "sonner";
+import { ThemeProvider as NextThemesProvider } from "next-themes"
+
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -22,7 +25,17 @@ export default function RootLayout({
         <GoogleOAuthProvider
           clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
         >
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <NextThemesProvider
+              attribute="class"
+              defaultTheme="dark"
+              enableSystem
+              disableTransitionOnChange
+            >
+              {children}
+              <Toaster />
+            </NextThemesProvider>
+          </AuthProvider>
         </GoogleOAuthProvider>
       </body>
     </html>

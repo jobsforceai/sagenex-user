@@ -4,6 +4,8 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { Recipient } from '@/types';
 import { getTransferRecipients, sendTransferOtp, executeTransfer } from '@/actions/user';
 import { ArrowRight, Send, CheckCircle, AlertTriangle, Wallet, Briefcase } from 'lucide-react';
+import { toast } from 'sonner';
+import Confetti from 'react-confetti';
 
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
 
@@ -18,7 +20,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     const [transferType, setTransferType] = useState<TransferType>('TO_AVAILABLE_BALANCE');
     const [step, setStep] = useState(1); // 1: Form, 2: OTP
     const [isLoading, setIsLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+    const [showConfetti, setShowConfetti] = useState(false);
     
     const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -39,12 +41,12 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
             try {
                 const data = await getTransferRecipients();
                 if (data.error) {
-                    setMessage({ type: 'error', text: `Could not load recipients: ${data.error}` });
+                    toast.error(`Could not load recipients: ${data.error}`);
                 } else {
                     setAllRecipients(data);
                 }
             } catch (error) {
-                setMessage({ type: 'error', text: 'An unexpected error occurred while fetching recipients.' });
+                toast.error('An unexpected error occurred while fetching recipients.');
                 console.error(error);
             }
         };
@@ -76,25 +78,24 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     const handleInitiateTransfer = async (e: React.FormEvent) => {
         e.preventDefault();
         if (isAmountInvalid || numericAmount <= 0) {
-            setMessage({ type: 'error', text: 'Please enter a valid amount.' });
+            toast.error('Please enter a valid amount.');
             return;
         }
         if (!selectedRecipient) {
-            setMessage({ type: 'error', text: 'Please select a valid recipient from the list.' });
+            toast.error('Please select a valid recipient from the list.');
             return;
         }
         setIsLoading(true);
-        setMessage(null);
         try {
             const result = await sendTransferOtp();
             if (result.error) {
-                setMessage({ type: 'error', text: result.error });
+                toast.error(result.error);
             } else {
-                setMessage({ type: 'success', text: result.message });
+                toast.success(result.message);
                 setStep(2);
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'An unexpected error occurred.' });
+            toast.error('An unexpected error occurred.');
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -104,21 +105,22 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     const handleExecuteTransfer = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!otp || otp.length !== 6) {
-            setMessage({ type: 'error', text: 'Please enter the 6-digit OTP.' });
+            toast.error('Please enter the 6-digit OTP.');
             return;
         }
         if (!selectedRecipient) {
-            setMessage({ type: 'error', text: 'Recipient not selected. Please go back.' });
+            toast.error('Recipient not selected. Please go back.');
             return;
         }
         setIsLoading(true);
-        setMessage(null);
         try {
             const result = await executeTransfer(selectedRecipient.userId, numericAmount, otp, transferType);
             if (result.error) {
-                setMessage({ type: 'error', text: result.error });
+                toast.error(result.error);
             } else {
-                setMessage({ type: 'success', text: `${result.message} Transaction ID: ${result.transactionId}` });
+                toast.success(result.message);
+                setShowConfetti(true);
+                setTimeout(() => setShowConfetti(false), 5000); // Confetti for 5 seconds
                 setStep(1);
                 setSelectedRecipient(null);
                 setSearchTerm('');
@@ -127,7 +129,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                 setTransferType('TO_AVAILABLE_BALANCE');
             }
         } catch (error) {
-            setMessage({ type: 'error', text: 'An unexpected error occurred.' });
+            toast.error('An unexpected error occurred.');
             console.error(error);
         } finally {
             setIsLoading(false);
@@ -135,7 +137,8 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     };
 
     return (
-        <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-8">
+        <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-8 relative overflow-hidden">
+            {showConfetti && <Confetti width={500} height={500} />}
             <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
                 <Send className="text-emerald-400" />
                 Transfer Funds
@@ -143,13 +146,6 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
             <p className="text-gray-400 mb-6">
                 Securely send funds to another user. An OTP will be sent to your email to confirm the transaction.
             </p>
-
-            {message && (
-                <div className={`p-4 rounded-md mb-6 text-sm flex items-center gap-2 ${message.type === 'error' ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}`}>
-                    {message.type === 'error' ? <AlertTriangle size={16} /> : <CheckCircle size={16} />}
-                    {message.text}
-                </div>
-            )}
 
             {step === 1 && (
                 <form onSubmit={handleInitiateTransfer} className="space-y-4">
@@ -267,7 +263,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                     <div className="flex gap-4">
                         <button
                             type="button"
-                            onClick={() => { setStep(1); setMessage(null); }}
+                            onClick={() => { setStep(1); }}
                             className="w-full px-5 py-3 rounded-xl bg-gray-600 hover:bg-gray-500 text-white font-semibold"
                         >
                             Back

@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, AlertCircle } from "lucide-react";
+import { toast } from "sonner";
+import Confetti from "react-confetti";
 
 interface WithdrawalRequestProps {
   currentBalance: number;
@@ -26,8 +28,8 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
     holderName: "",
   });
   const [error, setError] = useState<string | null>(null);
-  const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -43,9 +45,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
     const newAmount = e.target.value;
     setAmount(newAmount);
 
-    // Clear previous submission errors when user starts typing
     setError(null);
-    setMessage(null);
 
     const withdrawalAmount = parseFloat(newAmount);
     if (!isNaN(withdrawalAmount) && withdrawalAmount > currentBalance) {
@@ -64,111 +64,119 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
     e.preventDefault();
     setIsLoading(true);
     setError(null);
-    setMessage(null);
 
     const withdrawalAmount = parseFloat(amount);
     if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
-      setError("Please enter a valid amount.");
+      toast.error("Please enter a valid amount.");
       setIsLoading(false);
       return;
     }
 
     if (withdrawalAmount > currentBalance) {
-      setError("Withdrawal amount cannot exceed your available balance.");
+      toast.error("Withdrawal amount cannot exceed your available balance.");
       setIsLoading(false);
       return;
     }
 
     if (withdrawalType === "upi" && withdrawalAmount > 50) {
-        setError("UPI withdrawal amount cannot exceed $50.");
-        setIsLoading(false);
-        return;
+      toast.error("UPI withdrawal amount cannot exceed $50.");
+      setIsLoading(false);
+      return;
     }
 
-    const payload: { 
-        amount: number; 
-        withdrawalAddress?: string; 
-        upiId?: string;
-        bankDetails?: {
-            bankName: string;
-            accountNumber: string;
-            ifscCode: string;
-            holderName: string;
-        }
+    const payload: {
+      amount: number;
+      withdrawalAddress?: string;
+      upiId?: string;
+      bankDetails?: {
+        bankName: string;
+        accountNumber: string;
+        ifscCode: string;
+        holderName: string;
+      };
     } = { amount: withdrawalAmount };
 
     if (withdrawalType === "crypto") {
       if (!withdrawalAddress) {
-        setError("Please set your USDT (TRC20) withdrawal address in your profile or enter it manually.");
+        toast.error("Please set your USDT (TRC20) withdrawal address in your profile or enter it manually.");
         setIsLoading(false);
         return;
       }
       payload.withdrawalAddress = withdrawalAddress;
     } else if (withdrawalType === "upi") {
       if (!upiId) {
-        setError("Please enter your UPI ID.");
+        toast.error("Please enter your UPI ID.");
         setIsLoading(false);
         return;
       }
       payload.upiId = upiId;
     } else if (withdrawalType === "bank") {
-        if (!bankDetails.bankName || !bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.holderName) {
-            setError("Please fill in all bank details.");
-            setIsLoading(false);
-            return;
-        }
-        payload.bankDetails = bankDetails;
+      if (!bankDetails.bankName || !bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.holderName) {
+        toast.error("Please fill in all bank details.");
+        setIsLoading(false);
+        return;
+      }
+      payload.bankDetails = bankDetails;
     }
 
     try {
       const result = await requestWithdrawal(payload);
       if (result.error) {
-        setError(result.error);
+        toast.error(result.error);
       } else {
-        setMessage(result.message);
-        setAmount(""); // Clear amount on success
+        toast.success(result.message);
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
+        setAmount("");
         setUpiId("");
         setBankDetails({ bankName: "", accountNumber: "", ifscCode: "", holderName: "" });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      toast.error(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
     }
   };
 
-  if (kycStatus !== 'VERIFIED') {
+  if (kycStatus !== "VERIFIED") {
     return (
-        <Card className="bg-gray-900 border-gray-800">
-            <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                    <DollarSign className="w-5 h-5" />
-                    Request Withdrawal
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div className="flex items-center gap-3 bg-yellow-900/50 text-yellow-300 p-4 rounded-md">
-                    <AlertCircle className="w-5 h-5" />
-                    <p className="text-sm font-medium">Your KYC must be verified before you can make a withdrawal.</p>
-                </div>
-            </CardContent>
-        </Card>
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5" />
+            Request Withdrawal
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-3 bg-yellow-900/50 text-yellow-300 p-4 rounded-md">
+            <AlertCircle className="w-5 h-5" />
+            <p className="text-sm font-medium">Your KYC must be verified before you can make a withdrawal.</p>
+          </div>
+        </CardContent>
+      </Card>
     );
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className="bg-gray-900 border-gray-800 relative overflow-hidden">
+      {showConfetti && <Confetti />}
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-            <DollarSign className="w-5 h-5" />
-            Request Withdrawal
+          <DollarSign className="w-5 h-5" />
+          Request Withdrawal
         </CardTitle>
       </CardHeader>
       <CardContent>
         <div className="flex gap-2 mb-4 border-b border-gray-700">
-            <Button variant={withdrawalType === 'crypto' ? 'secondary' : 'ghost'} onClick={() => setWithdrawalType('crypto')}>Crypto</Button>
-            <Button variant={withdrawalType === 'upi' ? 'secondary' : 'ghost'} onClick={() => setWithdrawalType('upi')}>UPI</Button>
-            <Button variant={withdrawalType === 'bank' ? 'secondary' : 'ghost'} onClick={() => setWithdrawalType('bank')}>Bank</Button>
+          <Button variant={withdrawalType === "crypto" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("crypto")}>
+            Crypto
+          </Button>
+          <Button variant={withdrawalType === "upi" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("upi")}>
+            UPI
+          </Button>
+          <Button variant={withdrawalType === "bank" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("bank")}>
+            Bank
+          </Button>
         </div>
         <form onSubmit={handleWithdrawalRequest} className="space-y-4">
           <div>
@@ -187,12 +195,13 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
               min="0.01"
               step="0.01"
             />
-            {withdrawalType === 'upi' && parseFloat(amount) > 50 && (
-                <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed $50.</p>
+            {withdrawalType === "upi" && parseFloat(amount) > 50 && (
+              <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed $50.</p>
             )}
+            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
           </div>
-          
-          {withdrawalType === 'crypto' && (
+
+          {withdrawalType === "crypto" && (
             <div>
               <label htmlFor="withdrawalAddress" className="block text-sm font-medium text-gray-400 mb-2">
                 USDT (TRC20) Withdrawal Address
@@ -211,7 +220,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
             </div>
           )}
 
-          {withdrawalType === 'upi' && (
+          {withdrawalType === "upi" && (
             <div>
               <label htmlFor="upiId" className="block text-sm font-medium text-gray-400 mb-2">
                 UPI ID
@@ -229,48 +238,74 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
             </div>
           )}
 
-          {withdrawalType === 'bank' && (
+          {withdrawalType === "bank" && (
             <div className="space-y-4">
-                <div>
-                    <label htmlFor="holderName" className="block text-sm font-medium text-gray-400 mb-2">
-                        Account Holder Name
-                    </label>
-                    <Input id="holderName" name="holderName" type="text" value={bankDetails.holderName} onChange={handleBankDetailsChange} placeholder="John Doe" required 
-                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-400 mb-2">
-                        Account Number
-                    </label>
-                    <Input id="accountNumber" name="accountNumber" type="text" value={bankDetails.accountNumber} onChange={handleBankDetailsChange} placeholder="1234567890" required 
-                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="ifscCode" className="block text-sm font-medium text-gray-400 mb-2">
-                        IFSC Code
-                    </label>
-                    <Input id="ifscCode" name="ifscCode" type="text" value={bankDetails.ifscCode} onChange={handleBankDetailsChange} placeholder="SBIN0001234" required 
-                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-                    />
-                </div>
-                <div>
-                    <label htmlFor="bankName" className="block text-sm font-medium text-gray-400 mb-2">
-                        Bank Name
-                    </label>
-                    <Input id="bankName" name="bankName" type="text" value={bankDetails.bankName} onChange={handleBankDetailsChange} placeholder="State Bank of India" required 
-                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-                    />
-                </div>
+              <div>
+                <label htmlFor="holderName" className="block text-sm font-medium text-gray-400 mb-2">
+                  Account Holder Name
+                </label>
+                <Input
+                  id="holderName"
+                  name="holderName"
+                  type="text"
+                  value={bankDetails.holderName}
+                  onChange={handleBankDetailsChange}
+                  placeholder="John Doe"
+                  required
+                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-400 mb-2">
+                  Account Number
+                </label>
+                <Input
+                  id="accountNumber"
+                  name="accountNumber"
+                  type="text"
+                  value={bankDetails.accountNumber}
+                  onChange={handleBankDetailsChange}
+                  placeholder="1234567890"
+                  required
+                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="ifscCode" className="block text-sm font-medium text-gray-400 mb-2">
+                  IFSC Code
+                </label>
+                <Input
+                  id="ifscCode"
+                  name="ifscCode"
+                  type="text"
+                  value={bankDetails.ifscCode}
+                  onChange={handleBankDetailsChange}
+                  placeholder="SBIN0001234"
+                  required
+                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                />
+              </div>
+              <div>
+                <label htmlFor="bankName" className="block text-sm font-medium text-gray-400 mb-2">
+                  Bank Name
+                </label>
+                <Input
+                  id="bankName"
+                  name="bankName"
+                  type="text"
+                  value={bankDetails.bankName}
+                  onChange={handleBankDetailsChange}
+                  placeholder="State Bank of India"
+                  required
+                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                />
+              </div>
             </div>
           )}
 
           <Button type="submit" disabled={isLoading} className="w-full">
             {isLoading ? "Submitting Request..." : "Request Withdrawal"}
           </Button>
-          {error && !(withdrawalType === 'upi' && parseFloat(amount) > 50) && <p className="text-red-400 text-sm mt-2">{error}</p>}
-          {message && <p className="text-green-400 text-sm mt-2">{message}</p>}
         </form>
       </CardContent>
     </Card>

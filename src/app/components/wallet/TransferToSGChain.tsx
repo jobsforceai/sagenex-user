@@ -1,11 +1,13 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { initiateTransferToSGChain } from "@/actions/user";
 import { Copy } from "lucide-react";
+import { toast } from "sonner";
+import Confetti from "react-confetti";
 
 interface TransferToSGChainProps {
   currentBalance: number;
@@ -13,34 +15,50 @@ interface TransferToSGChainProps {
 
 const TransferToSGChain = ({ currentBalance }: TransferToSGChainProps) => {
   const [amount, setAmount] = useState("");
-  const [error, setError] = useState<string | null>(null);
   const [transferCode, setTransferCode] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  useEffect(() => {
+    const storedTransfer = localStorage.getItem("sgchainTransfer");
+    if (storedTransfer) {
+      const { code, expiresAt } = JSON.parse(storedTransfer);
+      if (Date.now() < expiresAt) {
+        setTransferCode(code);
+      } else {
+        localStorage.removeItem("sgchainTransfer");
+      }
+    }
+  }, []);
 
   const handleTransfer = async () => {
     const transferAmount = parseFloat(amount);
     if (isNaN(transferAmount) || transferAmount <= 0) {
-      setError("Please enter a valid amount.");
+      toast.error("Please enter a valid amount.");
       return;
     }
     if (transferAmount > currentBalance) {
-      setError("Insufficient funds.");
+      toast.error("Insufficient funds.");
       return;
     }
 
     setLoading(true);
-    setError(null);
     setTransferCode(null);
+    localStorage.removeItem("sgchainTransfer");
 
     try {
       const result = await initiateTransferToSGChain(transferAmount);
       if (result.error) {
-        setError(result.error);
+        toast.error(result.error);
       } else if (result.transferCode) {
         setTransferCode(result.transferCode);
+        const expiresAt = Date.now() + 5 * 60 * 1000; // 5 minutes from now
+        localStorage.setItem("sgchainTransfer", JSON.stringify({ code: result.transferCode, expiresAt }));
+        setShowConfetti(true);
+        setTimeout(() => setShowConfetti(false), 5000);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      toast.error(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setLoading(false);
     }
@@ -49,12 +67,19 @@ const TransferToSGChain = ({ currentBalance }: TransferToSGChainProps) => {
   const copyToClipboard = () => {
     if (transferCode) {
       navigator.clipboard.writeText(transferCode);
-      // Maybe show a toast notification here
+      toast.success("Transfer code copied to clipboard!");
     }
   };
 
+  const handleReset = () => {
+    setTransferCode(null);
+    setAmount("");
+    localStorage.removeItem("sgchainTransfer");
+  };
+
   return (
-    <Card className="bg-gray-900/40 border-gray-800">
+    <Card className="bg-gray-900/40 border-gray-800 relative overflow-hidden">
+      {showConfetti && <Confetti />}
       <CardHeader>
         <CardTitle>Transfer to SGChain</CardTitle>
       </CardHeader>
@@ -80,7 +105,6 @@ const TransferToSGChain = ({ currentBalance }: TransferToSGChainProps) => {
             <Button onClick={handleTransfer} disabled={loading} className="w-full">
               {loading ? "Generating Code..." : "Get Transfer Code"}
             </Button>
-            {error && <p className="text-red-500 text-sm">{error}</p>}
           </div>
         ) : (
           <div className="space-y-4 text-center">
@@ -94,6 +118,9 @@ const TransferToSGChain = ({ currentBalance }: TransferToSGChainProps) => {
             <p className="text-sm text-gray-400">
               Copy this code and go to the SGChain website to complete your transfer.
             </p>
+            <Button onClick={handleReset} variant="outline" className="w-full">
+              Generate New Code
+            </Button>
           </div>
         )}
       </CardContent>

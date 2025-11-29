@@ -168,17 +168,15 @@ const WalletPage = () => {
             
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <FundTransfer currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
-                <WithdrawalRequest 
-                    currentBalance={dashboardData?.wallet.availableBalance ?? 0}
-                    kycStatus={kycStatus?.status}
-                />
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
                 <TransferToSGChain currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
             </div>
           </div>
           <div className="lg:col-span-1 space-y-8">
             <CryptoDeposit />
+            <WithdrawalRequest 
+                currentBalance={dashboardData?.wallet.availableBalance ?? 0}
+                kycStatus={kycStatus?.status}
+            />
             <LockedBonusesCard bonuses={dashboardData?.wallet.bonuses} />
           </div>
         </div>

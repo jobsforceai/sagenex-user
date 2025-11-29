@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QRCode from "react-qr-code";
 import { Copy } from "lucide-react";
+import { toast } from "sonner";
 
 interface Invoice {
   id: number;
@@ -21,8 +22,6 @@ const CryptoDeposit = () => {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const [addressCopyText, setAddressCopyText] = useState("Copy");
-  const [amountCopyText, setAmountCopyText] = useState("Copy");
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,16 +55,14 @@ const CryptoDeposit = () => {
   const handleAddressCopy = () => {
     if (invoice?.pay_address) {
       navigator.clipboard.writeText(invoice.pay_address);
-      setAddressCopyText("Copied!");
-      setTimeout(() => setAddressCopyText("Copy"), 2000);
+      toast.success("Copied to clipboard!");
     }
   };
 
   const handleAmountCopy = () => {
     if (invoice?.pay_amount) {
       navigator.clipboard.writeText(invoice.pay_amount.toString());
-      setAmountCopyText("Copied!");
-      setTimeout(() => setAmountCopyText("Copy"), 2000);
+      toast.success("Copied to clipboard!");
     }
   };
 
@@ -117,7 +114,7 @@ const CryptoDeposit = () => {
                   <p className="font-mono text-sm flex-grow break-all">{invoice.pay_amount} {invoice.pay_currency.toUpperCase()}</p>
                   <Button size="sm" onClick={handleAmountCopy} variant="ghost">
                     <Copy className="h-4 w-4 mr-2" />
-                    {amountCopyText}
+                    Copy
                   </Button>
                 </div>
               </div>
@@ -128,7 +125,7 @@ const CryptoDeposit = () => {
                   <p className="font-mono text-sm flex-grow break-all">{invoice.pay_address}</p>
                   <Button size="sm" onClick={handleAddressCopy} variant="ghost">
                     <Copy className="h-4 w-4 mr-2" />
-                    {addressCopyText}
+                    Copy
                   </Button>
                 </div>
               </div>
