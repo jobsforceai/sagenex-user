@@ -7,12 +7,12 @@ import Navbar from "@/app/components/Navbar";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
 import CryptoDeposit from "@/app/components/wallet/CryptoDeposit";
 import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
+import TransferToSGChain from "@/app/components/wallet/TransferToSGChain";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getWalletData, getDashboardData, getKycStatus, getAllCourses } from "@/actions/user";
-import { KycStatus, CourseSummary } from "@/types";
-import { Button } from "@/components/ui/button";
-import { ArrowRight, Lock } from "lucide-react";
+import { getWalletData, getDashboardData, getKycStatus } from "@/actions/user";
+import { KycStatus } from "@/types";
+import { Lock } from "lucide-react";
 
 // Interfaces for wallet page data
 interface WalletTransaction {
@@ -99,7 +99,6 @@ const WalletPage = () => {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
-  const [courses, setCourses] = useState<CourseSummary[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
@@ -111,21 +110,19 @@ const WalletPage = () => {
 
     const fetchData = async () => {
       try {
-        const [walletRes, dashboardRes, kycData, coursesData] = await Promise.all([
+        const [walletRes, dashboardRes, kycData] = await Promise.all([
             getWalletData(),
             getDashboardData(),
             getKycStatus(),
-            getAllCourses(),
         ]);
 
-        if (walletRes.error || dashboardRes.error || kycData.error || coursesData.error) {
-          throw new Error(walletRes.error || dashboardRes.error || kycData.error || coursesData.error || "Failed to fetch data");
+        if (walletRes.error || dashboardRes.error || kycData.error) {
+          throw new Error(walletRes.error || dashboardRes.error || kycData.error || "Failed to fetch data");
         }
 
         setTransactions(walletRes.ledger || walletRes || []);
         setDashboardData(dashboardRes);
         setKycStatus(kycData);
-        setCourses(coursesData.data || []);
 
       } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -138,10 +135,6 @@ const WalletPage = () => {
       fetchData();
     }
   }, [isAuthenticated, authLoading, router]);
-
-  const nextPackage = courses
-    .filter(c => c.price > (dashboardData?.package.packageUSD ?? 0))
-    .sort((a, b) => a.price - b.price)[0] || null;
 
   if (authLoading || dataLoading) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
@@ -179,6 +172,9 @@ const WalletPage = () => {
                     currentBalance={dashboardData?.wallet.availableBalance ?? 0}
                     kycStatus={kycStatus?.status}
                 />
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-1 gap-8">
+                <TransferToSGChain currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
             </div>
           </div>
           <div className="lg:col-span-1 space-y-8">
