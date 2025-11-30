@@ -48,7 +48,7 @@ interface ButtonProps
 }
 export default function HeroButton({ children, href, intent, size }: ButtonProps) {
   return (
-    <Link  href={href}>
+    <Link target="_blank"  href={href}>
       <button className={button({ intent, size })}>{children}</button>
     </Link>
   );
