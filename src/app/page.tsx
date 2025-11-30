@@ -1,9 +1,10 @@
-import AboutUs from "@/components/landing/about-us";
+// import AboutUs from "@/components/landing/about-us";
 import HomePage from "@/components/landing/home-page";
 import LevelsEarnings from "@/components/landing/level-earning";
 import RanksSection from "@/components/landing/ranks-section";
 import SagenexAcademy from "@/components/landing/sagenex-academy";
-import CashCardSection from "../components/landing/cash-card";
+// import CashCardSection from "../components/landing/cash-card";
+import EcosystemSection from "@/components/landing/ecosystem-section";
 import AppDownloadSection from "../components/landing/app-download";
 import Navbar from "./components/Navbar";
 import SgCoinPage from "@/components/landing/sagenex-coin";
@@ -17,12 +18,13 @@ export default function Home() {
       <Navbar />
       <ProfitCalculator />
       <HomePage />
-      <AboutUs />
+      {/* <AboutUs /> */}
       <SagenexAcademy/>
+      <EcosystemSection />
       {/* <KYCSection /> */}
       <LevelsEarnings/>
       <RanksSection />
-      <CashCardSection/>
+      {/* <CashCardSection/> */}
       <AppDownloadSection />
       <SgCoinPage />
       <Footer />
