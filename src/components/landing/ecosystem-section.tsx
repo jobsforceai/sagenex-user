@@ -29,7 +29,7 @@ const ecosystemSites: EcosystemSite[] = [
   {
     name: "SG5Traders",
     description: "Trade with confidence on SG5Traders - your gateway to advanced crypto trading tools, real-time market insights, and secure wallet management.",
-    url: "https://sg5traders.sgxmeta.ai",
+    url: "https://sg5trader.sgxmeta.ai",
     image: "/sg5trader.png",
     gradient: "from-emerald-500/20 via-teal-500/20 to-green-500/20",
   },
@@ -90,6 +90,7 @@ export default function EcosystemSection() {
   return (
     <section
       ref={containerRef}
+      id="ecosystem"
       className="relative min-h-screen bg-black text-white py-20 md:py-32 overflow-hidden"
     >
       {/* Background decorative elements */}
