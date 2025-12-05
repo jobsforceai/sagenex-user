@@ -38,6 +38,7 @@ const item: Variants = {
 
 export default function AppDownloadSection() {
     const apkUrl = "https://sagenex-academy-videos.s3.ap-south-1.amazonaws.com/androidapp/application-31eaf486-48ca-4b74-b0e6-9c7fdecd98a3.apk";
+    const iosUrl = "https://apps.apple.com/us/app/sagenex/id6755692818"
 
   return (
     <section
@@ -119,9 +120,9 @@ export default function AppDownloadSection() {
                 <FaAndroid className="mr-2 h-5 w-5" />
                 Download for Android
              </HeroButton>
-             <HeroButton intent="secondary" href="#" disabled>
+             <HeroButton href={iosUrl}>
                 <FaApple className="mr-2 h-5 w-5" />
-                iOS Coming Soon
+                Download for IOS
              </HeroButton>
            </div>
            <p className="mt-4 text-xs text-[#9aaea2]">
