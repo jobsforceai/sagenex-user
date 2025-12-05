@@ -24,14 +24,21 @@ const LockedBonuses = ({ bonuses }: LockedBonusesProps) => {
     return null;
   }
 
+  const lockedBonuses = bonuses.filter((bonus) => !bonus.isUnlocked);
+
+  if (lockedBonuses.length === 0) {
+    return null;
+  }
+
   return (
     <Card>
       <CardHeader>
         <CardTitle>Locked Bonuses</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
-        {bonuses.map((bonus) => {
-          const progressPct = (bonus.progress.current / bonus.progress.required) * 100;
+        {lockedBonuses.map((bonus) => {
+          const progressPct =
+            (bonus.progress.current / bonus.progress.required) * 100;
           return (
             <div key={bonus.level}>
               <div className="flex justify-between items-center mb-2">
