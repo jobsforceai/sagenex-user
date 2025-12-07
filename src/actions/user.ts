@@ -349,3 +349,12 @@ export async function initiateTransferToSGChain(amount: number) {
     });
     return handleApiResponse(res);
 }
+
+export async function redeemFromSGChain(code: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/wallet/redeem-from-sgchain`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ code }),
+    });
+    return handleApiResponse(res);
+}

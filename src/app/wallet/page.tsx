@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
@@ -8,6 +8,7 @@ import FundTransfer from "@/app/components/wallet/FundTransfer";
 import CryptoDeposit from "@/app/components/wallet/CryptoDeposit";
 import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
 import TransferToSGChain from "@/app/components/wallet/TransferToSGChain";
+import RedeemFromSGChain from "@/app/components/wallet/RedeemFromSGChain";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getWalletData, getDashboardData, getKycStatus } from "@/actions/user";
@@ -102,39 +103,40 @@ const WalletPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
 
+  const fetchData = useCallback(async () => {
+    setDataLoading(true);
+    try {
+      const [walletRes, dashboardRes, kycData] = await Promise.all([
+          getWalletData(),
+          getDashboardData(),
+          getKycStatus(),
+      ]);
+
+      if (walletRes.error || dashboardRes.error || kycData.error) {
+        throw new Error(walletRes.error || dashboardRes.error || kycData.error || "Failed to fetch data");
+      }
+
+      setTransactions(walletRes.ledger || walletRes || []);
+      setDashboardData(dashboardRes);
+      setKycStatus(kycData);
+
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+    } finally {
+      setDataLoading(false);
+    }
+  }, []);
+
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/login");
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        const [walletRes, dashboardRes, kycData] = await Promise.all([
-            getWalletData(),
-            getDashboardData(),
-            getKycStatus(),
-        ]);
-
-        if (walletRes.error || dashboardRes.error || kycData.error) {
-          throw new Error(walletRes.error || dashboardRes.error || kycData.error || "Failed to fetch data");
-        }
-
-        setTransactions(walletRes.ledger || walletRes || []);
-        setDashboardData(dashboardRes);
-        setKycStatus(kycData);
-
-      } catch (err) {
-        setError(err instanceof Error ? err.message : "An unknown error occurred");
-      } finally {
-        setDataLoading(false);
-      }
-    };
-
     if (isAuthenticated) {
       fetchData();
     }
-  }, [isAuthenticated, authLoading, router]);
+  }, [isAuthenticated, authLoading, router, fetchData]);
 
   if (authLoading || dataLoading) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
@@ -166,7 +168,10 @@ const WalletPage = () => {
             
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                 <FundTransfer currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
-                <TransferToSGChain currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
+                <div className="space-y-6 sm:space-y-8">
+                  <TransferToSGChain currentBalance={dashboardData?.wallet.availableBalance ?? 0} />
+                  <RedeemFromSGChain onSuccess={fetchData} />
+                </div>
             </div>
           </div>
           <div className="xl:col-span-1 space-y-6 sm:space-y-8">
