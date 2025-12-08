@@ -92,24 +92,18 @@ export interface Recipient {
 export interface Reward {
   _id: string;
   userId: string;
-  offerId: string;
+  programId: string;
+  tierId: string;
+  type: 'self' | 'team';
   currentValueUSD: number;
   isEligible: boolean;
-  isClaimed: boolean;
   claimStatus: 'NONE' | 'PENDING' | 'DOCUMENTS_REQUIRED' | 'DOCUMENTS_PENDING' | 'COMPLETED';
   isTransferred: boolean;
   transferredFrom: string | null;
-  transferredTo: string | null;
-  offerSnapshot: {
-    id: string;
-    name: string;
+  rewardSnapshot: {
     valueUSD: number;
     reward: string;
-    type: 'personal' | 'downline';
   };
-  createdAt: string;
-  updatedAt: string;
-  claimedAt?: string;
   requiredDocuments?: {
     docType: string;
     description: string;
@@ -120,3 +114,11 @@ export interface Reward {
   }[];
   rejectionReason?: string;
 }
+export interface RewardProgram {
+  programId: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  status: 'active' | 'locked';
+}
+

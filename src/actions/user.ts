@@ -254,6 +254,13 @@ export async function getRewards() {
       return handleApiResponse(res);
 }
 
+export async function getRewardPrograms() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/rewards/programs`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
 export async function claimReward(rewardId: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/claim`, {
         method: "POST",

@@ -8,13 +8,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
   getRewards,
+  getRewardPrograms, 
   claimReward,
   transferReward,
   getTransferRecipients,
   getProfileData,
   getKycStatus,
 } from "@/actions/user";
-import { Reward, Recipient, KycStatus } from "@/types";
+import { Reward, Recipient, KycStatus, RewardProgram } from "@/types";
 import {
   CheckCircle,
   Loader2,
@@ -23,7 +24,9 @@ import {
   Info,
   FileClock,
   FileCheck,
+  Lock,
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 import { RewardDocumentModal } from "@/app/components/rewards/RewardDocumentModal";
 
 type ClaimStatus =
@@ -39,24 +42,22 @@ const RewardCard = ({
   onTransfer,
   onUploadDocuments,
   recipients,
-  currentUserId,
   isBestClaimable,
   kycStatus,
+  isProgramLocked,
 }: {
   reward: Reward;
   onClaim: (reward: Reward) => void;
   onTransfer: (reward: Reward) => void;
   onUploadDocuments: (reward: Reward) => void;
   recipients: Recipient[];
-  currentUserId: string | null;
   isBestClaimable: boolean;
   kycStatus: KycStatus | null;
+  isProgramLocked: boolean;
 }) => {
-  const [isClaiming, setIsClaiming] = useState(false);
+  const wasReceived = !!reward.transferredFrom;
 
-  const wasReceived = !!reward.transferredFrom && reward.userId === currentUserId;
-
-  const total = reward.offerSnapshot?.valueUSD ?? 0;
+  const total = reward.rewardSnapshot?.valueUSD ?? 0;
   const current = reward.currentValueUSD ?? 0;
   const progress = wasReceived
     ? 100
@@ -71,10 +72,19 @@ const RewardCard = ({
   };
 
   const canTakeAction =
-    reward.isEligible && (reward.claimStatus as ClaimStatus) === "NONE";
-  const showTransferredStatus = reward.isTransferred && reward.userId === currentUserId;
+    reward.isEligible && (reward.claimStatus as ClaimStatus) === "NONE" && !isProgramLocked;
+  const showTransferredStatus = reward.isTransferred;
 
   const renderStatus = () => {
+    if (isProgramLocked && reward.claimStatus === "NONE" && !reward.isTransferred) {
+        return (
+          <div className="flex items-center justify-center gap-2 text-gray-400 font-semibold p-3 rounded-lg bg-gray-800/50">
+            <Lock className="w-5 h-5" />
+            Program Ended
+          </div>
+        );
+      }
+
     switch (reward.claimStatus as ClaimStatus) {
       case "COMPLETED":
         return (
@@ -95,6 +105,7 @@ const RewardCard = ({
           <Button
             onClick={() => onUploadDocuments(reward)}
             className="w-full font-semibold bg-blue-600 hover:bg-blue-500"
+            disabled={isProgramLocked}
           >
             <FileClock className="w-4 h-4 mr-2" />
             Upload Documents
@@ -125,7 +136,7 @@ const RewardCard = ({
                   onClick={() => onTransfer(reward)}
                   variant="outline"
                   className="w-full font-semibold"
-                  disabled={wasReceived}
+                  disabled={wasReceived || isProgramLocked}
                 >
                   <Send className="w-4 h-4 mr-2" />
                   Transfer
@@ -134,10 +145,10 @@ const RewardCard = ({
               <div className="relative w-full sm:w-1/2">
                 <Button
                   onClick={handleClaim}
-                  disabled={isClaiming || !isBestClaimable || !isKycVerified}
+                  disabled={!isBestClaimable || !isKycVerified || isProgramLocked}
                   className="w-full font-semibold"
                 >
-                  {isClaiming ? <Loader2 className="w-4 h-4 animate-spin" /> : "Claim"}
+                  Claim
                 </Button>
                 {!isKycVerified && (
                   <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-max max-w-xs bg-gray-800 text-white text-xs rounded py-1 px-2 pointer-events-none z-10 text-center">
@@ -163,21 +174,21 @@ const RewardCard = ({
       <CardHeader className="p-6">
         <div className="flex items-center justify-between">
           <CardTitle className="text-xl font-bold text-white">
-            {reward.offerSnapshot.name}
+            {reward.rewardSnapshot.reward}
           </CardTitle>
           <span
             className={`text-xs font-semibold px-2.5 py-1 rounded-full capitalize ${
-              reward.offerSnapshot.type === "personal"
+              reward.type === "self"
                 ? "bg-blue-500/20 text-blue-300"
                 : "bg-purple-500/20 text-purple-300"
             }`}
           >
-            {reward.offerSnapshot.type}
+            {reward.type} Business
           </span>
         </div>
         <p className="text-gray-400 flex items-center gap-2 pt-1">
           <Gift className="w-4 h-4 text-emerald-400" />
-          {reward.offerSnapshot.reward}
+          Target: ${reward.rewardSnapshot.valueUSD.toLocaleString()}
         </p>
       </CardHeader>
       <CardContent className="p-6 space-y-4 flex-grow flex flex-col justify-between">
@@ -246,7 +257,7 @@ const TransferModal = ({
         <h3 className="text-xl font-bold mb-2 text-white">Transfer Reward</h3>
         <p className="text-gray-400 mb-6">
           You are about to transfer the reward:{" "}
-          <span className="font-semibold text-emerald-300">{reward.offerSnapshot.name}</span>. This
+          <span className="font-semibold text-emerald-300">{reward.rewardSnapshot.reward}</span>. This
           action is irreversible.
         </p>
         <div className="space-y-4">
@@ -328,7 +339,7 @@ const ClaimConfirmationModal = ({
         <h3 className="text-xl font-bold mb-2 text-white">Confirm Your Claim</h3>
         <p className="text-yellow-300 mb-6">
           You can only claim one reward for a lifetime. Please confirm that you want to claim the{" "}
-          <span className="font-semibold text-emerald-300">{reward.offerSnapshot.name}</span>{" "}
+          <span className="font-semibold text-emerald-300">{reward.rewardSnapshot.reward}</span>{" "}
           reward. This action is irreversible.
         </p>
         <div className="mt-6 flex justify-end gap-4">
@@ -348,40 +359,70 @@ const RewardsPage = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  const [myProgressRewards, setMyProgressRewards] = useState<Reward[]>([]);
-  const [receivedRewards, setReceivedRewards] = useState<Reward[]>([]);
+  const [rewardProgress, setRewardProgress] = useState<Record<string, Reward[]>>({});
+  const [programConfigs, setProgramConfigs] = useState<Record<string, RewardProgram>>({});
   const [recipients, setRecipients] = useState<Recipient[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [transferModalReward, setTransferModalReward] = useState<Reward | null>(null);
   const [uploadModalReward, setUploadModalReward] = useState<Reward | null>(null);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
   const [hasClaimedReward, setHasClaimedReward] = useState(false);
   const [bestClaimableRewardId, setBestClaimableRewardId] = useState<string | null>(null);
   const [claimConfirmationReward, setClaimConfirmationReward] = useState<Reward | null>(null);
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
 
+  const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
+
   const fetchInitialData = async () => {
     setDataLoading(true);
     try {
-      const [rewardsData, recipientsData, profileData, kycData] = await Promise.all([
+      const [
+        rewardsData,
+        programsData,
+        recipientsData,
+        profileData,
+        kycData,
+      ] = await Promise.all([
         getRewards(),
+        getRewardPrograms(),
         getTransferRecipients(),
         getProfileData(),
         getKycStatus(),
       ]);
 
-      if (kycData && 'error' in kycData) {
-        setError(kycData.error as string);
+      if (kycData && 'error' in kycData) setError(kycData.error as string);
+      else setKycStatus(kycData as KycStatus);
+
+      if (programsData && 'error' in programsData) {
+        setError(programsData.error as string);
       } else {
-        setKycStatus(kycData as KycStatus);
+        console.log("Fetched program configurations:", programsData);
+        const configs = (programsData as RewardProgram[]).reduce((acc, program) => {
+          acc[program.programId] = program;
+          return acc;
+        }, {} as Record<string, RewardProgram>);
+        setProgramConfigs(configs);
       }
-      
+
       if (rewardsData && 'error' in rewardsData) {
         setError(rewardsData.error as string);
       } else {
-        const allRewards = rewardsData as Reward[];
+                const allRewards = (rewardsData as any[]).map(rawReward => {
+                  if (rawReward.offerSnapshot) { 
+                    return {
+                      ...rawReward,
+                      programId: 'bk-rewards-2025',
+                      tierId: rawReward.offerId,
+                      type: rawReward.offerSnapshot.type === 'personal' ? 'self' : 'team',
+                      rewardSnapshot: {
+                        valueUSD: rawReward.offerSnapshot.valueUSD,
+                        reward: rawReward.offerSnapshot.name,
+                      }
+                    };
+                  }
+                  return rawReward; 
+                }) as Reward[];
         const hasClaimed = allRewards.some((r) => r.claimStatus !== "NONE");
         setHasClaimedReward(hasClaimed);
 
@@ -390,27 +431,25 @@ const RewardsPage = () => {
             .filter((r) => r.isEligible && r.claimStatus === "NONE")
             .reduce(
               (best, current) =>
-                !best || (current.offerSnapshot?.valueUSD ?? 0) > (best.offerSnapshot?.valueUSD ?? 0)
+                !best || (current.rewardSnapshot?.valueUSD ?? 0) > (best.rewardSnapshot?.valueUSD ?? 0)
                   ? current
                   : best,
               null as Reward | null
             );
-          if (bestReward) {
-            setBestClaimableRewardId(bestReward._id);
-          }
+          if (bestReward) setBestClaimableRewardId(bestReward._id);
         }
 
-        const progress: Reward[] = [];
-        const received: Reward[] = [];
-        for (const reward of allRewards) {
-          if (reward.transferredFrom) {
-            received.push(reward);
-          } else {
-            progress.push(reward);
-          }
+        const groupedByProgram = allRewards.reduce((acc, reward) => {
+          const { programId } = reward;
+          if (!acc[programId]) acc[programId] = [];
+          acc[programId].push(reward);
+          return acc;
+        }, {} as Record<string, Reward[]>);
+        
+        setRewardProgress(groupedByProgram);
+        if (Object.keys(groupedByProgram).length > 0) {
+          setActiveProgramId(Object.keys(groupedByProgram)[0]);
         }
-        setMyProgressRewards(progress);
-        setReceivedRewards(received);
       }
 
       if (recipientsData && 'error' in recipientsData) {
@@ -421,11 +460,10 @@ const RewardsPage = () => {
 
       if (profileData && 'error' in profileData) {
         console.error("Could not load profile:", profileData.error);
-      } else if (profileData) {
-        setCurrentUserId((profileData as { userId: string }).userId ?? null);
       }
-    } catch {
-      setError("An error occurred while fetching data.");
+    } catch (e) {
+      setError("An unexpected error occurred while fetching data.");
+      console.error(e);
     } finally {
       setDataLoading(false);
     }
@@ -480,12 +518,18 @@ const RewardsPage = () => {
   };
 
   const handleRewardUpdate = (updatedReward: Reward) => {
-      setUploadModalReward(updatedReward);
-      
-      const updateList = (list: Reward[]) => list.map(r => r._id === updatedReward._id ? updatedReward : r);
-
-      setMyProgressRewards(prevRewards => updateList(prevRewards));
-      setReceivedRewards(prevRewards => updateList(prevRewards));
+    setUploadModalReward(null);
+    setRewardProgress(prevProgress => {
+        const newProgress = { ...prevProgress };
+        const program = newProgress[updatedReward.programId];
+        if (program) {
+            const index = program.findIndex(r => r._id === updatedReward._id);
+            if (index !== -1) {
+                program[index] = updatedReward;
+            }
+        }
+        return newProgress;
+    });
   };
 
   const handleOpenUploadModal = (reward: Reward) => {
@@ -499,7 +543,7 @@ const RewardsPage = () => {
   if (authLoading || dataLoading) {
     return (
       <div className="bg-black text-white min-h-screen flex items-center justify-center">
-        Loading...
+        <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
   }
@@ -507,9 +551,9 @@ const RewardsPage = () => {
   return (
     <div className="bg-black text-white min-h-screen">
       <Navbar />
-      <main className="container mx-auto p-4 sm:p-6 pt-24">
-        <header className="text-center mb-12">
-          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 pb-2 bg-gradient-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
+      <main className="container mx-auto p-4 sm:p-6 pt-32">
+        <header className="text-center my-14">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 py-4 bg-linear-to-r from-emerald-400 to-green-600  bg-clip-text text-transparent">
             Rewards & Recognition
           </h1>
           <p className="text-lg text-gray-400 max-w-3xl mx-auto">
@@ -522,61 +566,97 @@ const RewardsPage = () => {
         {message && <p className="text-green-400 text-center mb-4">{message}</p>}
 
         <div className="space-y-12">
-          {/* My Progress Section */}
-          <section>
-            <h2 className="text-2xl font-bold mb-6 text-white border-b-2 border-emerald-500 pb-2">
-              My Progress
-            </h2>
-            {myProgressRewards.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {myProgressRewards.map((reward) => (
-                  <RewardCard
-                    key={reward._id}
-                    reward={reward}
-                    onClaim={setClaimConfirmationReward}
-                    onTransfer={setTransferModalReward}
-                    onUploadDocuments={handleOpenUploadModal}
-                    recipients={recipients}
-                    currentUserId={currentUserId}
-                    isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
-                    kycStatus={kycStatus}
-                  />
+          {Object.keys(rewardProgress).length > 0 ? (
+            <div>
+              <div className="flex border-b border-gray-700 mb-8">
+                {Object.keys(programConfigs).map(programId => (
+                  <button
+                    key={programId}
+                    onClick={() => setActiveProgramId(programId)}
+                    className={`px-4 py-2 text-lg font-semibold transition-colors duration-200 flex items-center gap-2 ${
+                      activeProgramId === programId
+                        ? 'border-b-2 border-emerald-500 text-emerald-400'
+                        : 'text-gray-400 hover:text-white'
+                    }`}
+                  >
+                    {programConfigs[programId].name}
+                    {programConfigs[programId].status === 'locked' && (
+                        <span className="text-xs font-medium bg-red-900/50 text-red-300 px-2 py-0.5 rounded-full">Ended</span>
+                    )}
+                  </button>
                 ))}
               </div>
-            ) : (
-              <p className="text-center text-gray-500">
-                You have not made progress on any rewards yet.
-              </p>
-            )}
-          </section>
 
-          {/* Received Rewards Section */}
-          <section>
-            <h2 className="text-2xl font-bold mb-6 text-white border-b-2 border-cyan-500 pb-2">
-              Received Rewards
-            </h2>
-            {receivedRewards.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {receivedRewards.map((reward) => (
-                  <RewardCard
-                    key={reward._id}
-                    reward={reward}
-                    onClaim={setClaimConfirmationReward}
-                    onTransfer={setTransferModalReward}
-                    onUploadDocuments={handleOpenUploadModal}
-                    recipients={recipients}
-                    currentUserId={currentUserId}
-                    isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
-                    kycStatus={kycStatus}
-                  />
-                ))}
-              </div>
-            ) : (
-              <p className="text-center text-gray-500">
-                You have not received any rewards from other users.
-              </p>
-            )}
-          </section>
+              <AnimatePresence mode="wait">
+                {activeProgramId && rewardProgress[activeProgramId] && (
+                  <motion.section
+                    key={activeProgramId}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {(() => {
+                      const rewards = rewardProgress[activeProgramId];
+                      const selfRewards = rewards.filter(r => r.type === 'self');
+                      const teamRewards = rewards.filter(r => r.type === 'team');
+                      const isLocked = programConfigs[activeProgramId]?.status === 'locked';
+
+                      return (
+                        <>
+                          {selfRewards.length > 0 && (
+                            <div className="mb-10">
+                              <h3 className="text-2xl font-semibold mb-6 text-blue-300">Self Business Rewards</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {selfRewards.map((reward) => (
+                                  <RewardCard
+                                    key={reward._id}
+                                    reward={reward}
+                                    onClaim={setClaimConfirmationReward}
+                                    onTransfer={setTransferModalReward}
+                                    onUploadDocuments={handleOpenUploadModal}
+                                    recipients={recipients}
+                                    isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
+                                    kycStatus={kycStatus}
+                                    isProgramLocked={isLocked}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+
+                          {teamRewards.length > 0 && (
+                            <div>
+                              <h3 className="text-2xl font-semibold mb-6 text-purple-300">Team Business Rewards</h3>
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                {teamRewards.map((reward) => (
+                                  <RewardCard
+                                    key={reward._id}
+                                    reward={reward}
+                                    onClaim={setClaimConfirmationReward}
+                                    onTransfer={setTransferModalReward}
+                                    onUploadDocuments={handleOpenUploadModal}
+                                    recipients={recipients}
+                                    isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
+                                    kycStatus={kycStatus}
+                                    isProgramLocked={isLocked}
+                                  />
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </>
+                      );
+                    })()}
+                  </motion.section>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <p className="text-center text-gray-500 text-lg">
+              There are no active reward programs at this time.
+            </p>
+          )}
         </div>
       </main>
 
