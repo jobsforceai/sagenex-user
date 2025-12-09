@@ -119,7 +119,7 @@ export default function EcosystemSection() {
 
         {/* Cards Grid */}
         <div className="ecosystem-grid grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-          {ecosystemSites.map((site, index) => (
+          {ecosystemSites.map((site) => (
             <div
               key={site.name}
               className="ecosystem-card group relative"

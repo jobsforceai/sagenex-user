@@ -408,21 +408,7 @@ const RewardsPage = () => {
       if (rewardsData && 'error' in rewardsData) {
         setError(rewardsData.error as string);
       } else {
-                const allRewards = (rewardsData as any[]).map(rawReward => {
-                  if (rawReward.offerSnapshot) { 
-                    return {
-                      ...rawReward,
-                      programId: 'bk-rewards-2025',
-                      tierId: rawReward.offerId,
-                      type: rawReward.offerSnapshot.type === 'personal' ? 'self' : 'team',
-                      rewardSnapshot: {
-                        valueUSD: rawReward.offerSnapshot.valueUSD,
-                        reward: rawReward.offerSnapshot.name,
-                      }
-                    };
-                  }
-                  return rawReward; 
-                }) as Reward[];
+        const allRewards = (rewardsData || []) as Reward[];
         const hasClaimed = allRewards.some((r) => r.claimStatus !== "NONE");
         setHasClaimedReward(hasClaimed);
 

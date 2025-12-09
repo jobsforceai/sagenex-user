@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { Recipient } from '@/types';
 import { getTransferRecipients, sendTransferOtp, executeTransfer } from '@/actions/user';
-import { ArrowRight, Send, CheckCircle, AlertTriangle, Wallet, Briefcase } from 'lucide-react';
+import { ArrowRight, Send, Wallet, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 

@@ -13,7 +13,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getWalletData, getDashboardData, getKycStatus } from "@/actions/user";
 import { KycStatus } from "@/types";
-import { Lock } from "lucide-react";
+import { Lock, Unlock } from "lucide-react";
 
 // Interfaces for wallet page data
 interface WalletTransaction {
@@ -29,7 +29,7 @@ interface WalletTransaction {
 
 interface LockedBonus {
     level: number;
-    name: string;
+    name:string;
     lockedAmount: number;
     isUnlocked: boolean;
     unlockRequirement: string;
@@ -50,6 +50,7 @@ interface DashboardData {
 }
 
 const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) => {
+  console.log("LockedBonusesCard received bonuses:", bonuses);
     return (
         <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
             <CardHeader>
@@ -58,16 +59,20 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
             <CardContent>
                 {bonuses && bonuses.length > 0 ? (
                     <div className="space-y-4">
-                        {bonuses.filter(bonus => bonus.lockedAmount > 0).map(bonus => {
-                            const progressPercentage = (bonus.progress.current / bonus.progress.required) * 100;
+                        {bonuses.map(bonus => {
+                            const progressPercentage = Math.min(100, (bonus.progress.current / bonus.progress.required) * 100);
                             return (
                                 <div key={bonus.level} className="p-4 rounded-lg bg-gray-800/60 border border-gray-700/50 shadow-md">
                                     <div className="flex justify-between items-start">
                                         <div className="flex items-center space-x-3">
-                                            <Lock className="text-amber-400 h-5 w-5" />
+                                            {bonus.isUnlocked ? (
+                                                <Unlock className="text-emerald-400 h-5 w-5" />
+                                            ) : (
+                                                <Lock className="text-amber-400 h-5 w-5" />
+                                            )}
                                             <p className="text-gray-200 font-semibold">{bonus.name}</p>
                                         </div>
-                                        <span className="font-bold text-xl text-amber-400">${bonus.lockedAmount.toFixed(2)}</span>
+                                        <span className={`font-bold text-xl ${bonus.isUnlocked ? 'text-emerald-400' : 'text-amber-400'}`}>${bonus.lockedAmount.toFixed(2)}</span>
                                     </div>
                                     <div className="mt-3">
                                         <div className="w-full bg-gray-700 rounded-full h-2.5">
