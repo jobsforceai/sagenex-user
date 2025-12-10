@@ -30,10 +30,13 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
 
     const filteredRecipients = useMemo(() => {
         if (!searchTerm) return [];
-        return allRecipients.filter(r =>
-            r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.userId.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        return allRecipients.filter(r => {
+            if (!r.fullName || !r.userId) {
+                return false;
+            }
+            return r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                   r.userId.toLowerCase().includes(searchTerm.toLowerCase());
+        });
     }, [searchTerm, allRecipients]);
 
     useEffect(() => {

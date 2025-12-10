@@ -50,7 +50,6 @@ interface DashboardData {
 }
 
 const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) => {
-  console.log("LockedBonusesCard received bonuses:", bonuses);
     return (
         <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
             <CardHeader>
