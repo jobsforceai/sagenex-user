@@ -61,6 +61,14 @@ export async function getDashboardData() {
       return handleApiResponse(res);
 }
 
+export async function setPassword(password: string, confirmPassword: string) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/profile/set-password`, {
+      method: "POST",
+      headers: await getAuthHeaders(),
+      body: JSON.stringify({ password, confirmPassword }),
+  });
+  return handleApiResponse(res);
+}
 export async function getProfileData() {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/profile`, {
         headers: await getAuthHeaders(),
@@ -200,15 +208,25 @@ export async function sendTransferOtp() {
       return handleApiResponse(res);
 }
 
-export async function executeTransfer(recipientId: string, amount: number, otp: string, transferType?: 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE') {
-    const body: { recipientId: string; amount: number; otp: string; transferType?: string } = {
+export async function executeTransfer(
+    recipientId: string, 
+    amount: number, 
+    transferType?: 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE',
+    password?: string,
+    otp?: string,
+) {
+    const body: { recipientId: string; amount: number; transferType?: string; password?: string; otp?: string; } = {
         recipientId,
         amount,
-        otp,
     };
 
     if (transferType) {
         body.transferType = transferType;
+    }
+    if (password) {
+        body.password = password;
+    } else if (otp) {
+        body.otp = otp;
     }
 
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/execute`, {

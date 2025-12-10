@@ -122,9 +122,11 @@ interface LeaderboardEntry {
 
 const ALL_RANKS = ["Member", "Starter", "Builder","Leader","Manager", "Director", "Crown"];
 
+import SetPasswordModal from "../components/dashboard/SetPasswordModal";
+
 // --- COMPONENT ---
 const DashboardPage = () => {
-  const { token, isAuthenticated, loading } = useAuth();
+  const { token, isAuthenticated, loading, showSetPasswordModal, onPasswordSet } = useAuth();
   const router = useRouter();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
@@ -271,6 +273,7 @@ const DashboardPage = () => {
 
   return (
     <div className="bg-black text-white min-h-screen">
+      {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
       <Navbar userLevel={rankProgress?.currentRank.name} />
       <main className="container mx-auto p-4 pt-24">
         {/* Header */}
