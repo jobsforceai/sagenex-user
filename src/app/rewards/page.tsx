@@ -394,11 +394,12 @@ const RewardsPage = () => {
       if (kycData && 'error' in kycData) setError(kycData.error as string);
       else setKycStatus(kycData as KycStatus);
 
+      let configs: Record<string, RewardProgram> = {};
       if (programsData && 'error' in programsData) {
         setError(programsData.error as string);
       } else {
         console.log("Fetched program configurations:", programsData);
-        const configs = (programsData as RewardProgram[]).reduce((acc, program) => {
+        configs = (programsData as RewardProgram[]).reduce((acc, program) => {
           acc[program.programId] = program;
           return acc;
         }, {} as Record<string, RewardProgram>);
@@ -409,11 +410,15 @@ const RewardsPage = () => {
         setError(rewardsData.error as string);
       } else {
         const allRewards = (rewardsData || []) as Reward[];
-        const hasClaimed = allRewards.some((r) => r.claimStatus !== "NONE");
+        
+        const activeProgramIds = Object.keys(configs);
+        const visibleRewards = allRewards.filter(reward => activeProgramIds.includes(reward.programId));
+
+        const hasClaimed = visibleRewards.some((r) => r.claimStatus !== "NONE");
         setHasClaimedReward(hasClaimed);
 
         if (!hasClaimed) {
-          const bestReward = allRewards
+          const bestReward = visibleRewards
             .filter((r) => r.isEligible && r.claimStatus === "NONE")
             .reduce(
               (best, current) =>
@@ -425,7 +430,7 @@ const RewardsPage = () => {
           if (bestReward) setBestClaimableRewardId(bestReward._id);
         }
 
-        const groupedByProgram = allRewards.reduce((acc, reward) => {
+        const groupedByProgram = visibleRewards.reduce((acc, reward) => {
           const { programId } = reward;
           if (!acc[programId]) acc[programId] = [];
           acc[programId].push(reward);

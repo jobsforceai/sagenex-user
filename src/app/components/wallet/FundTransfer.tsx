@@ -353,7 +353,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                         ) : (
                             <div className="space-y-2">
                                 <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-1">Enter OTP</label>
-                                <div className="flex gap-2">
+                                <div className="flex flex-col sm:flex-row gap-2">
                                     <input
                                         id="otp"
                                         type="text"
@@ -368,14 +368,14 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                                         type="button"
                                         onClick={handleRequestOtp}
                                         disabled={isSendingOtp || otpCooldown > 0}
-                                        className="px-4 py-2 rounded-md bg-gray-600 hover:bg-gray-500 text-white font-semibold disabled:opacity-50 w-48"
+                                        className="px-4 py-2 rounded-md bg-gray-600 hover:bg-gray-500 text-white font-semibold disabled:opacity-50 sm:w-48"
                                     >
                                         {isSendingOtp ? 'Sending...' : (otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : 'Send OTP')}
                                     </button>
                                 </div>
                             </div>
                         )}
-                        <div className="flex gap-4">
+                        <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 type="button"
                                 onClick={() => { setStep(1); }}
