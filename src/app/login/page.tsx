@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
-// import { GoogleLogin, CredentialResponse } from "@react-oauth/google";
 import { useAuth } from "@/app/context/AuthContext";
 import {
   Card,
@@ -13,14 +12,14 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { registerUser, loginOtp, verifyEmail } from "@/actions/auth";
+import { registerUser, loginOtp, verifyEmail, login } from "@/actions/auth";
 import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2 } from "lucide-react";
 import Image from "next/image";
 
-type View = "main" | "email-login" | "email-signup" | "otp";
+type View = "main" | "email-login" | "email-signup" | "otp" | "password-login";
 
 function Login() {
-  const { login } = useAuth();
+  const { login: authLogin } = useAuth();
   const searchParams = useSearchParams();
   
   const [view, setView] = useState<View>("main");
@@ -35,7 +34,8 @@ function Login() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState("");
-  // const [googleToken, setGoogleToken] = useState<string | null>(null);
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   useEffect(() => {
     const ref = searchParams.get("ref");
@@ -49,56 +49,20 @@ function Login() {
     setView(newView);
   }
 
-  // const handleGoogleSuccess = async (
-  //   credentialResponse: CredentialResponse
-  // ) => {
-  //   setError(null);
-  //   setIsLoading(true);
-  //   const idToken = credentialResponse.credential;
-  //   if (!idToken) {
-  //     setError("Google sign-in failed. Please try again.");
-  //     setIsLoading(false);
-  //     return;
-  //   }
-
-  //   try {
-  //     const { exists } = await checkUser(idToken);
-  //     if (exists) {
-  //       // User exists, log them in directly
-  //       await handleFinalGoogleLogin(idToken);
-  //     } else {
-  //       // New user, ask for sponsor code
-  //       setGoogleToken(idToken);
-  //       changeView("google-signup");
-  //     }
-  //   } catch (err) {
-  //     setError(err instanceof Error ? err.message : "An unknown error occurred.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
-  // const handleFinalGoogleLogin = async (idToken: string, sponsor?: string) => {
-  //   setIsLoading(true);
-  //   setError(null);
-  //   try {
-  //     const data = await googleLogin(idToken, sponsor);
-  //     if (data.error) {
-  //       setError(`Login failed: ${data.error}`);
-  //     } else {
-  //       login(data.token);
-  //     }
-  //   } catch (err) {
-  //     setError(err instanceof Error ? err.message : "An unknown error occurred.");
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // };
-
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
+
+    if (password !== confirmPassword) {
+      setError("Passwords do not match.");
+      return;
+    }
+    if (password.length < 8) {
+        setError("Password must be at least 8 characters long.");
+        return;
+    }
+
     setIsLoading(true);
 
     if (!fullName || !email) {
@@ -108,7 +72,7 @@ function Login() {
     }
 
     try {
-        const data = await registerUser(fullName, email, phone, sponsorId);
+        const data = await registerUser(fullName, email, phone, sponsorId, password);
         if (data.error) {
             setError(data.error);
         } else {
@@ -149,6 +113,31 @@ function Login() {
     }
   };
 
+  const handlePasswordLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setIsLoading(true);
+
+    if (!email || !password) {
+      setError("Email and password are required.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const data = await login(email, password);
+      if (data.error) {
+        setError(data.error);
+      } else {
+        authLogin(data);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -165,7 +154,7 @@ function Login() {
         if (data.error) {
             setError(data.error);
         } else {
-            login(data.token);
+            authLogin(data);
         }
     } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -175,36 +164,49 @@ function Login() {
   };
 
   const renderMainView = () => (
-    <>
-      <Button onClick={() => changeView("email-login")} variant="outline" className="w-full flex items-center gap-2 bg-transparent border-gray-600 hover:bg-gray-700" disabled={isLoading}>
-        <Mail className="h-4 w-4" /> Continue with Email
+    <div className="space-y-3">
+      <Button onClick={() => changeView("password-login")} className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+        <KeyRound className="h-4 w-4" /> Continue with Password
       </Button>
-    </>
+      <Button onClick={() => changeView("email-login")} variant="outline" className="w-full flex items-center gap-2 bg-transparent border-gray-600 hover:bg-gray-700">
+        <Mail className="h-4 w-4" /> Continue with Email (OTP)
+      </Button>
+    </div>
   );
 
-  // const renderGoogleSignupView = () => (
-  //   <form onSubmit={(e) => {
-  //       e.preventDefault();
-  //       if (googleToken) {
-  //           handleFinalGoogleLogin(googleToken, sponsorId);
-  //       }
-  //   }} className="space-y-4">
-  //       <div className="relative">
-  //           <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-  //           <Input 
-  //               placeholder="Referral Code (Optional)" 
-  //               id="sponsorId-google" 
-  //               value={sponsorId} 
-  //               onChange={(e) => setSponsorId(e.target.value)} 
-  //               className="bg-black border-gray-800 text-white pl-10" 
-  //               disabled={isLoading} 
-  //           />
-  //       </div>
-  //       <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
-  //           {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Complete Sign-Up <UserPlus className="h-4 w-4" /></>}
-  //       </Button>
-  //   </form>
-  // );
+  const renderPasswordLoginView = () => (
+    <form onSubmit={handlePasswordLoginSubmit} className="space-y-4">
+      <div className="relative">
+        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          id="email-password-login"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          className="bg-black border-gray-800 text-white pl-10"
+          disabled={isLoading}
+        />
+      </div>
+      <div className="relative">
+        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          id="password-login"
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          className="bg-black border-gray-800 text-white pl-10"
+          disabled={isLoading}
+        />
+      </div>
+      <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Login <LogIn className="h-4 w-4" /></>}
+      </Button>
+    </form>
+  )
 
   const renderEmailLoginView = () => (
     <form onSubmit={handleEmailLoginSubmit} className="space-y-4">
@@ -238,6 +240,14 @@ function Login() {
             <Input placeholder="Email" id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
         </div>
         <div className="relative">
+            <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input placeholder="Password" id="password-signup" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+        </div>
+        <div className="relative">
+            <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input placeholder="Confirm Password" id="confirmPassword-signup" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+        </div>
+        <div className="relative">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
             <Input placeholder="Phone (Optional)" id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
         </div>
@@ -266,8 +276,13 @@ function Login() {
   const renderView = () => {
     let title, description, form;
     switch (view) {
+      case "password-login":
+        title = "Sign In with Password";
+        description = "Enter your email and password to log in.";
+        form = renderPasswordLoginView();
+        break;
       case "email-login":
-        title = "Sign In";
+        title = "Sign In with OTP";
         description = "Enter your email to receive a login code.";
         form = renderEmailLoginView();
         break;

@@ -60,15 +60,26 @@ export async function googleLogin(idToken: string, sponsor?: string) {
     return handleApiResponse(res);
 }
 
-export async function registerUser(fullName: string, email: string, phone?: string, sponsorId?: string) {
-  const body: { fullName: string; email: string; phone?: string; sponsorId?: string } = { fullName, email };
+export async function registerUser(fullName: string, email: string, phone?: string, sponsorId?: string, password?: string) {
+  const body: { fullName: string; email: string; phone?: string; sponsorId?: string, password?: string } = { fullName, email };
   if (phone) body.phone = phone;
   if (sponsorId) body.sponsorId = sponsorId;
+  if (password) body.password = password;
 
   const res = await fetch(`${API_BASE_URL}/api/v1/auth/user/register`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+  });
+
+  return handleApiResponse(res);
+}
+
+export async function login(email: string, password: string) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/auth/user/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
   });
 
   return handleApiResponse(res);

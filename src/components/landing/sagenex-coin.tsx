@@ -20,17 +20,17 @@ export default function SgCoinSection({ id = "coin", src = "/logo5.png" }: Props
       <Particles />
 
       <div className="relative mx-auto max-w-7xl px-6 py-24">
-        {/* Title + Launching Soon */}
+        {/* Title + Live Badge */}
         <header className="text-center">
           <motion.div
             initial={{ opacity: 0, y: 8 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true, amount: 0.4 }}
             transition={{ duration: 0.45 }}
-            className="mb-3 inline-flex items-center gap-2 rounded-full border border-yellow-300/25 bg-yellow-400/10 px-3 py-1 text-xs font-semibold text-yellow-200"
+            className="mb-3 inline-flex items-center gap-2 rounded-full border border-emerald-300/25 bg-emerald-400/10 px-3 py-1 text-xs font-semibold text-emerald-200"
           >
-            <span className="h-2 w-2 rounded-full bg-yellow-300" />
-            Launching Soon
+            <span className="h-2 w-2 rounded-full bg-emerald-300 animate-pulse" />
+            Live Now
           </motion.div>
 
           <motion.h2
@@ -50,7 +50,7 @@ export default function SgCoinSection({ id = "coin", src = "/logo5.png" }: Props
             transition={{ duration: 0.55, delay: 0.1 }}
             className={`mx-auto mt-2 max-w-2xl text-balance text-transparent bg-clip-text bg-gradient-to-r ${GOLD}`}
           >
-            Made Decentralized • Reserved by Sagenex
+            Decentralized • Audited • Community-Driven
           </motion.p>
         </header>
 
@@ -81,32 +81,30 @@ export default function SgCoinSection({ id = "coin", src = "/logo5.png" }: Props
           ))}
         </motion.ul>
 
-        {/* Waitlist (replaces buttons) */}
-        <motion.form
-          onSubmit={(e) => e.preventDefault()}
+        {/* CTA Buttons */}
+        <motion.div
           initial={{ opacity: 0, y: 10 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, amount: 0.3 }}
           transition={{ duration: 0.5 }}
-          aria-label="Join SGCOIN waitlist"
-          className="mx-auto mt-8 flex max-w-md items-stretch gap-2"
+          className="mx-auto mt-8 flex flex-wrap justify-center gap-4"
         >
-          <input
-            type="email"
-            required
-            placeholder="your@email.com"
-            className="flex-1 rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-white placeholder-white/50 outline-none ring-yellow-300/30 focus:ring-2"
-          />
-          <button
-            type="submit"
-            className={`rounded-xl px-4 py-3 text-sm font-semibold text-black bg-gradient-to-r ${GOLD} hover:brightness-95 active:brightness-90`}
-          >
-            Join Waitlist
-          </button>
-        </motion.form>
+            <a href="https://sgchain.sgxmeta.ai/" target="_blank" rel="noopener noreferrer">
+            <button
+              className={`rounded-xl cursor-pointer px-6 py-3 text-sm font-semibold text-black bg-gradient-to-r ${GOLD} hover:brightness-95 active:brightness-90`}
+            >
+              Buy SGCOIN
+            </button>
+            </a>
+            <a href="/Sagenex-USA-SGCOIN.pdf" target="_blank" rel="noopener noreferrer">
+            <button className="rounded-xl border cursor-pointer border-white/20 px-6 py-3 text-sm font-semibold text-white hover:bg-white/5 active:bg-white/10">
+              View Whitepaper
+            </button>
+            </a>
+        </motion.div>
 
         <p className="mt-4 text-center text-xs text-white/60">
-          Be first to mint. Early supporters receive exclusive perks.
+          Join thousands of community members. Start earning rewards today.
         </p>
       </div>
     </section>

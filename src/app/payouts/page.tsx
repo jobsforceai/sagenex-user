@@ -170,7 +170,7 @@ const PayoutsPage = () => {
             setPayoutHistory(historyData.payouts);
             setPagination(historyData.pagination);
         }
-      } catch (err) {
+      } catch {
         setError("An unexpected error occurred while fetching data.");
       } finally {
         setInitialLoading(false);

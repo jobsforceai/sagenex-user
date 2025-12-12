@@ -1,15 +1,18 @@
 "use client";
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useAuth } from '@/app/context/AuthContext';
 import { Recipient } from '@/types';
 import { getTransferRecipients, sendTransferOtp, executeTransfer } from '@/actions/user';
-import { ArrowRight, Send, CheckCircle, AlertTriangle, Wallet, Briefcase } from 'lucide-react';
+import { ArrowRight, Send, Wallet, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
+type AuthMethod = 'password' | 'otp';
 
 const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
+    const { user, loading } = useAuth();
     const [allRecipients, setAllRecipients] = useState<Recipient[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
     const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(null);
@@ -17,12 +20,17 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     
     const [amount, setAmount] = useState('');
     const [otp, setOtp] = useState('');
+    const [password, setPassword] = useState('');
+    const [authMethod, setAuthMethod] = useState<AuthMethod>('password');
     const [transferType, setTransferType] = useState<TransferType>('TO_AVAILABLE_BALANCE');
-    const [step, setStep] = useState(1); // 1: Form, 2: OTP
+    const [step, setStep] = useState(1); // 1: Form, 2: Verification
     const [isLoading, setIsLoading] = useState(false);
+    const [isSendingOtp, setIsSendingOtp] = useState(false);
+    const [otpCooldown, setOtpCooldown] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
     
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const otpTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     const numericAmount = useMemo(() => parseFloat(amount) || 0, [amount]);
     const isAmountInvalid = useMemo(() => numericAmount > currentBalance, [numericAmount, currentBalance]);
@@ -30,10 +38,13 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
 
     const filteredRecipients = useMemo(() => {
         if (!searchTerm) return [];
-        return allRecipients.filter(r =>
-            r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            r.userId.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        return allRecipients.filter(r => {
+            if (!r.fullName || !r.userId) {
+                return false;
+            }
+            return r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                   r.userId.toLowerCase().includes(searchTerm.toLowerCase());
+        });
     }, [searchTerm, allRecipients]);
 
     useEffect(() => {
@@ -52,7 +63,32 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
         };
         fetchRecipients();
     }, []);
+
+    useEffect(() => {
+        const otpCooldownEnd = localStorage.getItem('otpCooldownEnd');
+        if (otpCooldownEnd) {
+            const remainingTime = Math.ceil((Number(otpCooldownEnd) - Date.now()) / 1000);
+            if (remainingTime > 0) {
+                setOtpCooldown(remainingTime);
+            }
+        }
+    }, []);
     
+    useEffect(() => {
+        if (otpCooldown > 0) {
+            otpTimerRef.current = setTimeout(() => {
+                setOtpCooldown(otpCooldown - 1);
+            }, 1000);
+        } else if (otpTimerRef.current) {
+            clearTimeout(otpTimerRef.current);
+        }
+        return () => {
+            if (otpTimerRef.current) {
+                clearTimeout(otpTimerRef.current);
+            }
+        };
+    }, [otpCooldown]);
+
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -75,7 +111,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
         setIsDropdownVisible(true);
     };
 
-    const handleInitiateTransfer = async (e: React.FormEvent) => {
+    const handleInitiateTransfer = (e: React.FormEvent) => {
         e.preventDefault();
         if (isAmountInvalid || numericAmount <= 0) {
             toast.error('Please enter a valid amount.');
@@ -85,27 +121,22 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
             toast.error('Please select a valid recipient from the list.');
             return;
         }
-        setIsLoading(true);
-        try {
-            const result = await sendTransferOtp();
-            if (result.error) {
-                toast.error(result.error);
-            } else {
-                toast.success(result.message);
-                setStep(2);
-            }
-        } catch (error) {
-            toast.error('An unexpected error occurred.');
-            console.error(error);
-        } finally {
-            setIsLoading(false);
+        if (user?.hasPasswordSet) {
+            setAuthMethod('password');
+        } else {
+            setAuthMethod('otp');
         }
+        setStep(2);
     };
 
     const handleExecuteTransfer = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!otp || otp.length !== 6) {
+        if (authMethod === 'otp' && (!otp || otp.length !== 6)) {
             toast.error('Please enter the 6-digit OTP.');
+            return;
+        }
+        if (authMethod === 'password' && !password) {
+            toast.error('Please enter your password.');
             return;
         }
         if (!selectedRecipient) {
@@ -114,27 +145,65 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
         }
         setIsLoading(true);
         try {
-            const result = await executeTransfer(selectedRecipient.userId, numericAmount, otp, transferType);
+            const result = await executeTransfer(
+                selectedRecipient.userId, 
+                numericAmount, 
+                transferType, 
+                authMethod === 'password' ? password : undefined,
+                authMethod === 'otp' ? otp : undefined
+            );
+
             if (result.error) {
                 toast.error(result.error);
             } else {
                 toast.success(result.message);
                 setShowConfetti(true);
-                setTimeout(() => setShowConfetti(false), 5000); // Confetti for 5 seconds
+                setTimeout(() => setShowConfetti(false), 5000);
+                // Reset form state completely
                 setStep(1);
                 setSelectedRecipient(null);
                 setSearchTerm('');
                 setAmount('');
                 setOtp('');
+                setPassword('');
                 setTransferType('TO_AVAILABLE_BALANCE');
+                // Reset auth method to default based on user preference
+                if (user?.hasPasswordSet) {
+                    setAuthMethod('password');
+                } else {
+                    setAuthMethod('otp');
+                }
             }
         } catch (error) {
-            toast.error('An unexpected error occurred.');
+            toast.error('An unexpected error occurred during transfer.');
             console.error(error);
         } finally {
             setIsLoading(false);
         }
     };
+
+    const handleRequestOtp = async () => {
+        setIsSendingOtp(true);
+        try {
+            const result = await sendTransferOtp();
+            if (result.error) {
+                toast.error(result.error);
+            } else {
+                toast.success(result.message);
+                const cooldownEnd = Date.now() + 30000;
+                localStorage.setItem('otpCooldownEnd', String(cooldownEnd));
+                setOtpCooldown(30);
+            }
+        } catch (error) {
+            toast.error('An unexpected error occurred while sending OTP.');
+        } finally {
+            setIsSendingOtp(false);
+        }
+    };
+
+    if (loading) {
+        return <div>Loading...</div>;
+    }
 
     return (
         <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
@@ -144,7 +213,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                 Transfer Funds
             </h2>
             <p className="text-gray-400 mb-6">
-                Securely send funds to another user. An OTP will be sent to your email to confirm the transaction.
+                Securely send funds to another user. Your transaction will be verified for security.
             </p>
 
             {step === 1 && (
@@ -214,7 +283,6 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                                         : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 hover:border-gray-600'}
                                     border-2`}
                             >
-
                                 <Wallet className="mb-2 h-6 w-6" />
                                 <span className="font-semibold text-base">To Balance</span>
                                 <span className="text-xs text-center mt-1 text-gray-400">For withdrawals & spending</span>
@@ -239,44 +307,92 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                         disabled={isLoading || isAmountInvalid || numericAmount <= 0 || !selectedRecipient}
                         className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
-                        {isLoading ? 'Sending...' : 'Send OTP'}
+                        {isLoading ? 'Proceeding...' : 'Proceed to Verification'}
                         <ArrowRight size={16} />
                     </button>
                 </form>
             )}
 
             {step === 2 && (
-                <form onSubmit={handleExecuteTransfer} className="space-y-4">
-                    <div>
-                        <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-1">Enter OTP</label>
-                        <input
-                            id="otp"
-                            type="text"
-                            value={otp}
-                            onChange={(e) => setOtp(e.target.value)}
-                            placeholder="123456"
-                            className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                            required
-                            maxLength={6}
-                        />
-                    </div>
-                    <div className="flex gap-4">
+                <div className="space-y-4">
+                    <div className="flex justify-center gap-2 p-1 rounded-lg bg-gray-800/50">
+                        {user?.hasPasswordSet && (
+                            <button
+                                onClick={() => setAuthMethod('password')}
+                                className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
+                                    authMethod === 'password' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                                }`}
+                            >
+                                Use Password
+                            </button>
+                        )}
                         <button
-                            type="button"
-                            onClick={() => { setStep(1); }}
-                            className="w-full px-5 py-3 rounded-xl bg-gray-600 hover:bg-gray-500 text-white font-semibold"
+                            onClick={() => setAuthMethod('otp')}
+                            className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
+                                authMethod === 'otp' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                            }`}
                         >
-                            Back
-                        </button>
-                        <button
-                            type="submit"
-                            disabled={isLoading}
-                            className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50"
-                        >
-                            {isLoading ? 'Transferring...' : 'Complete Transfer'}
+                            Use OTP
                         </button>
                     </div>
-                </form>
+
+                    <form onSubmit={handleExecuteTransfer} className="space-y-4">
+                        {authMethod === 'password' ? (
+                            <div>
+                                <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Enter Password</label>
+                                <input
+                                    id="password"
+                                    type="password"
+                                    value={password}
+                                    onChange={(e) => setPassword(e.target.value)}
+                                    placeholder="Your password"
+                                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    required
+                                />
+                            </div>
+                        ) : (
+                            <div className="space-y-2">
+                                <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-1">Enter OTP</label>
+                                <div className="flex flex-col sm:flex-row gap-2">
+                                    <input
+                                        id="otp"
+                                        type="text"
+                                        value={otp}
+                                        onChange={(e) => setOtp(e.target.value)}
+                                        placeholder="123456"
+                                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        required
+                                        maxLength={6}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={handleRequestOtp}
+                                        disabled={isSendingOtp || otpCooldown > 0}
+                                        className="px-4 py-2 rounded-md bg-gray-600 hover:bg-gray-500 text-white font-semibold disabled:opacity-50 sm:w-48"
+                                    >
+                                        {isSendingOtp ? 'Sending...' : (otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : 'Send OTP')}
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                        <div className="flex flex-col sm:flex-row gap-4">
+                            <button
+                                type="button"
+                                onClick={() => { setStep(1); }}
+                                className="w-full px-5 py-3 rounded-xl bg-gray-600 hover:bg-gray-500 text-white font-semibold"
+                            >
+                                Back
+                            </button>
+                            <button
+                                type="submit"
+                                disabled={isLoading}
+                                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50"
+                            >
+                                {isLoading ? 'Transferring...' : 'Complete Transfer'}
+                            </button>
+                        </div>
+                    </form>
+                </div>
             )}
         </div>
     );
