@@ -12,7 +12,7 @@ import {
   getFinancialSummary,
 } from "@/actions/user";
 import Navbar from "@/app/components/Navbar";
-import { Crown } from "lucide-react";
+import { Crown, Lock, Unlock } from "lucide-react";
 import AgentOverview from "../components/dashboard/AgentOverview";
 import EarningsSummary from "../components/dashboard/EarningsSummary";
 import GamifiedChallenges from "../components/dashboard/GamifiedChallenges";
@@ -20,7 +20,7 @@ import Leaderboard from "../components/dashboard/Leaderboard";
 import ReferralGrowthTools from "../components/dashboard/ReferralAndGrowth";
 import SixLegTreeView from "../components/dashboard/BinaryTreeView";
 import SmartUpdates from "../components/dashboard/SmartUpdates";
-import LockedBonuses from "../components/dashboard/LockedBonuses";
+
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -42,8 +42,8 @@ interface Wallet {
     isUnlocked: boolean;
     unlockRequirement: string;
     progress: {
-      current: number;
-      required: number;
+        team: { current: number; required: number };
+        directs: { current: number; required: number };
     };
   }[];
 }
@@ -122,6 +122,7 @@ interface LeaderboardEntry {
 
 const ALL_RANKS = ["Member", "Starter", "Builder","Leader","Manager", "Director", "Crown"];
 
+import LockedBonusesCard from "../components/dashboard/LockedBonusesCard";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 
 // --- COMPONENT ---
@@ -401,7 +402,7 @@ const DashboardPage = () => {
           <div className="space-y-6">
             <SmartUpdates />
             {dashboardData.wallet.bonuses ? (
-              <LockedBonuses bonuses={dashboardData.wallet.bonuses} />
+              <LockedBonusesCard bonuses={dashboardData.wallet.bonuses} />
             ) : (
               <Card>
                 <CardHeader><CardTitle>Locked Bonuses</CardTitle></CardHeader>
