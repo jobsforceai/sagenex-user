@@ -31,6 +31,7 @@ interface Profile {
   referralCode: string;
   joinDate: string;
   userId: string;
+  earningsMultiplierDeadline?: string | null;
 }
 
 interface Wallet {
@@ -163,6 +164,7 @@ const DashboardPage = () => {
         } else {
           setDashboardData(dashboardRes);
         }
+        console.log("Dashboard data fetched:", dashboardRes);
       } catch (err) {
         setError("An unexpected error occurred while fetching core data.");
         console.error(err);
@@ -311,6 +313,8 @@ const DashboardPage = () => {
             progressPct={rankProgress?.progress.percentage}
             packageUSD={dashboardData.package?.packageUSD}
             earningsMultiplier={dashboardData.earningsMultiplier}
+            earningsMultiplierDeadline={dashboardData.profile.earningsMultiplierDeadline}
+            joinDate={dashboardData.profile.joinDate}
           />
         </div>
 
