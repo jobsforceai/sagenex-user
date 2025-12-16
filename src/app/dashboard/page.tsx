@@ -36,6 +36,9 @@ interface Profile {
 
 interface Wallet {
   availableBalance: number;
+  withdrawalCap: number;
+  totalLifetimeWithdrawals: number;
+  remainingWithdrawalLimit: number;
   bonuses: {
     level: number;
     name: string;
@@ -125,6 +128,7 @@ const ALL_RANKS = ["Member", "Starter", "Builder","Leader","Manager", "Director"
 
 import LockedBonusesCard from "../components/dashboard/LockedBonusesCard";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
+import WithdrawalLimit from "../components/dashboard/WithdrawalLimit";
 
 // --- COMPONENT ---
 const DashboardPage = () => {
@@ -405,6 +409,13 @@ const DashboardPage = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <SmartUpdates />
+            {dashboardData.wallet.withdrawalCap && (
+                <WithdrawalLimit
+                    withdrawalCap={dashboardData.wallet.withdrawalCap}
+                    totalLifetimeWithdrawals={dashboardData.wallet.totalLifetimeWithdrawals}
+                    remainingWithdrawalLimit={dashboardData.wallet.remainingWithdrawalLimit}
+                />
+            )}
             {dashboardData.wallet.bonuses ? (
               <LockedBonusesCard bonuses={dashboardData.wallet.bonuses} />
             ) : (
