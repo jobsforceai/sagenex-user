@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import {
   getRewards,
   getRewardPrograms, 
-  claimReward,
   transferReward,
   getTransferRecipients,
   getProfileData,
@@ -38,20 +37,16 @@ type ClaimStatus =
 
 const RewardCard = ({
   reward,
-  onClaim,
   onTransfer,
   onUploadDocuments,
   recipients,
-  isBestClaimable,
   kycStatus,
   isProgramLocked,
 }: {
   reward: Reward;
-  onClaim: (reward: Reward) => void;
   onTransfer: (reward: Reward) => void;
   onUploadDocuments: (reward: Reward) => void;
   recipients: Recipient[];
-  isBestClaimable: boolean;
   kycStatus: KycStatus | null;
   isProgramLocked: boolean;
 }) => {
@@ -67,12 +62,6 @@ const RewardCard = ({
     ? recipients.find((r) => r.userId === reward.transferredFrom)
     : null;
 
-  const handleClaim = () => {
-    onClaim(reward);
-  };
-
-  const canTakeAction =
-    reward.isEligible && (reward.claimStatus as ClaimStatus) === "NONE" && !isProgramLocked;
   const showTransferredStatus = reward.isTransferred;
 
   const renderStatus = () => {
@@ -97,7 +86,7 @@ const RewardCard = ({
         return (
           <div className="flex items-center justify-center gap-2 text-yellow-400 font-semibold p-3 rounded-lg bg-yellow-900/50">
             <Loader2 className="w-5 h-5 animate-spin" />
-            Claim Pending Approval
+            Pending Admin Approval
           </div>
         );
       case "DOCUMENTS_REQUIRED":
@@ -127,35 +116,11 @@ const RewardCard = ({
             </div>
           );
         }
-        if (canTakeAction) {
-          const isKycVerified = kycStatus?.status === "VERIFIED";
+        if (reward.isEligible) {
           return (
-            <div className="flex flex-col sm:flex-row items-center gap-2">
-              <div className="w-full sm:w-1/2">
-                <Button
-                  onClick={() => onTransfer(reward)}
-                  variant="outline"
-                  className="w-full font-semibold"
-                  disabled={wasReceived || isProgramLocked}
-                >
-                  <Send className="w-4 h-4 mr-2" />
-                  Transfer
-                </Button>
-              </div>
-              <div className="relative w-full sm:w-1/2">
-                <Button
-                  onClick={handleClaim}
-                  disabled={!isBestClaimable || !isKycVerified || isProgramLocked}
-                  className="w-full font-semibold"
-                >
-                  Claim
-                </Button>
-                {!isKycVerified && (
-                  <div className="absolute -top-10 left-1/2 -translate-x-1/2 w-max max-w-xs bg-gray-800 text-white text-xs rounded py-1 px-2 pointer-events-none z-10 text-center">
-                    KYC verification required to claim.
-                  </div>
-                )}
-              </div>
+            <div className="flex items-center justify-center gap-2 text-yellow-400 font-semibold p-3 rounded-lg bg-yellow-900/50">
+              <Loader2 className="w-5 h-5 animate-spin" />
+              Pending Admin Approval
             </div>
           );
         }
@@ -313,48 +278,6 @@ const TransferModal = ({
   );
 };
 
-const ClaimConfirmationModal = ({
-  reward,
-  onClose,
-  onConfirm,
-}: {
-  reward: Reward;
-  onClose: () => void;
-  onConfirm: (rewardId: string) => Promise<void>;
-}) => {
-  const [isClaiming, setIsClaiming] = useState(false);
-
-  const handleConfirm = async () => {
-    setIsClaiming(true);
-    await onConfirm(reward._id);
-    setIsClaiming(false);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={onClose}>
-      <div
-        className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-md"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-xl font-bold mb-2 text-white">Confirm Your Claim</h3>
-        <p className="text-yellow-300 mb-6">
-          You can only claim one reward for a lifetime. Please confirm that you want to claim the{" "}
-          <span className="font-semibold text-emerald-300">{reward.rewardSnapshot.reward}</span>{" "}
-          reward. This action is irreversible.
-        </p>
-        <div className="mt-6 flex justify-end gap-4">
-          <Button type="button" onClick={onClose} variant="outline">
-            Cancel
-          </Button>
-          <Button onClick={handleConfirm} disabled={isClaiming}>
-            {isClaiming ? <Loader2 className="w-4 h-4 animate-spin" /> : "Confirm & Claim"}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 const RewardsPage = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -367,12 +290,10 @@ const RewardsPage = () => {
   const [dataLoading, setDataLoading] = useState(true);
   const [transferModalReward, setTransferModalReward] = useState<Reward | null>(null);
   const [uploadModalReward, setUploadModalReward] = useState<Reward | null>(null);
-  const [hasClaimedReward, setHasClaimedReward] = useState(false);
-  const [bestClaimableRewardId, setBestClaimableRewardId] = useState<string | null>(null);
-  const [claimConfirmationReward, setClaimConfirmationReward] = useState<Reward | null>(null);
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
 
   const [activeProgramId, setActiveProgramId] = useState<string | null>(null);
+  const [activeRewardType, setActiveRewardType] = useState<"self" | "team">("self");
 
   const fetchInitialData = async () => {
     setDataLoading(true);
@@ -414,22 +335,6 @@ const RewardsPage = () => {
         const activeProgramIds = Object.keys(configs);
         const visibleRewards = allRewards.filter(reward => activeProgramIds.includes(reward.programId));
 
-        const hasClaimed = visibleRewards.some((r) => r.claimStatus !== "NONE");
-        setHasClaimedReward(hasClaimed);
-
-        if (!hasClaimed) {
-          const bestReward = visibleRewards
-            .filter((r) => r.isEligible && r.claimStatus === "NONE")
-            .reduce(
-              (best, current) =>
-                !best || (current.rewardSnapshot?.valueUSD ?? 0) > (best.rewardSnapshot?.valueUSD ?? 0)
-                  ? current
-                  : best,
-              null as Reward | null
-            );
-          if (bestReward) setBestClaimableRewardId(bestReward._id);
-        }
-
         const groupedByProgram = visibleRewards.reduce((acc, reward) => {
           const { programId } = reward;
           if (!acc[programId]) acc[programId] = [];
@@ -469,25 +374,6 @@ const RewardsPage = () => {
       fetchInitialData();
     }
   }, [isAuthenticated, authLoading, router]);
-
-  const handleClaimReward = async (rewardId: string) => {
-    setMessage(null);
-    setError(null);
-    try {
-      const result = await claimReward(rewardId);
-      if (result && 'error' in result) {
-        setError(result.error as string);
-      } else {
-        setMessage((result as { message: string }).message ?? "Reward claimed.");
-        setClaimConfirmationReward(null);
-        fetchInitialData();
-      }
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "An unknown error occurred during claim."
-      );
-    }
-  };
 
   const handleTransferReward = async (rewardId: string, recipientId: string) => {
     setMessage(null);
@@ -589,53 +475,79 @@ const RewardsPage = () => {
                   >
                     {(() => {
                       const rewards = rewardProgress[activeProgramId];
-                      const selfRewards = rewards.filter(r => r.type === 'self');
-                      const teamRewards = rewards.filter(r => r.type === 'team');
-                      const isLocked = programConfigs[activeProgramId]?.status === 'locked';
+                      const selfRewards = rewards.filter((r) => r.type === "self");
+                      const teamRewards = rewards.filter((r) => r.type === "team");
+                      const isLocked = programConfigs[activeProgramId]?.status === "locked";
 
                       return (
                         <>
-                          {selfRewards.length > 0 && (
-                            <div className="mb-10">
-                              <h3 className="text-2xl font-semibold mb-6 text-blue-300">Self Business Rewards</h3>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {selfRewards.map((reward) => (
-                                  <RewardCard
-                                    key={reward._id}
-                                    reward={reward}
-                                    onClaim={setClaimConfirmationReward}
-                                    onTransfer={setTransferModalReward}
-                                    onUploadDocuments={handleOpenUploadModal}
-                                    recipients={recipients}
-                                    isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
-                                    kycStatus={kycStatus}
-                                    isProgramLocked={isLocked}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                          <div className="flex border-b border-gray-800 mb-6">
+                            {selfRewards.length > 0 && (
+                              <button
+                                onClick={() => setActiveRewardType("self")}
+                                className={`px-4 py-2 font-semibold transition-colors duration-200 ${
+                                  activeRewardType === "self"
+                                    ? "border-b-2 border-blue-400 text-blue-300"
+                                    : "text-gray-500 hover:text-white"
+                                }`}
+                              >
+                                Self Business
+                              </button>
+                            )}
+                            {teamRewards.length > 0 && (
+                              <button
+                                onClick={() => setActiveRewardType("team")}
+                                className={`px-4 py-2 font-semibold transition-colors duration-200 ${
+                                  activeRewardType === "team"
+                                    ? "border-b-2 border-purple-400 text-purple-300"
+                                    : "text-gray-500 hover:text-white"
+                                }`}
+                              >
+                                Team Business
+                              </button>
+                            )}
+                          </div>
 
-                          {teamRewards.length > 0 && (
-                            <div>
-                              <h3 className="text-2xl font-semibold mb-6 text-purple-300">Team Business Rewards</h3>
-                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                {teamRewards.map((reward) => (
-                                  <RewardCard
-                                    key={reward._id}
-                                    reward={reward}
-                                    onClaim={setClaimConfirmationReward}
-                                    onTransfer={setTransferModalReward}
-                                    onUploadDocuments={handleOpenUploadModal}
-                                    recipients={recipients}
-                                    isBestClaimable={!hasClaimedReward && bestClaimableRewardId === reward._id}
-                                    kycStatus={kycStatus}
-                                    isProgramLocked={isLocked}
-                                  />
-                                ))}
-                              </div>
-                            </div>
-                          )}
+                          <AnimatePresence mode="wait">
+                            <motion.div
+                              key={activeRewardType}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -10 }}
+                              transition={{ duration: 0.2 }}
+                            >
+                              {activeRewardType === "self" && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                  {selfRewards.map((reward) => (
+                                    <RewardCard
+                                      key={reward._id}
+                                      reward={reward}
+                                      onTransfer={setTransferModalReward}
+                                      onUploadDocuments={handleOpenUploadModal}
+                                      recipients={recipients}
+                                      kycStatus={kycStatus}
+                                      isProgramLocked={isLocked}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                              {activeRewardType === "team" && (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                  {teamRewards.map((reward) => (
+                                    <RewardCard
+                                      key={reward._id}
+                                      reward={reward}
+                                      onTransfer={setTransferModalReward}
+                                      onUploadDocuments={handleOpenUploadModal}
+                                      recipients={recipients}
+                                      kycStatus={kycStatus}
+                                      isProgramLocked={isLocked}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+                            </motion.div>
+                          </AnimatePresence>
                         </>
                       );
                     })()}
@@ -657,14 +569,6 @@ const RewardsPage = () => {
           recipients={recipients}
           onClose={() => setTransferModalReward(null)}
           onConfirm={handleTransferReward}
-        />
-      )}
-
-      {claimConfirmationReward && (
-        <ClaimConfirmationModal
-          reward={claimConfirmationReward}
-          onClose={() => setClaimConfirmationReward(null)}
-          onConfirm={handleClaimReward}
         />
       )}
 

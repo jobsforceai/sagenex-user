@@ -279,14 +279,6 @@ export async function getRewardPrograms() {
     return handleApiResponse(res);
 }
 
-export async function claimReward(rewardId: string) {
-    const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/claim`, {
-        method: "POST",
-        headers: await getAuthHeaders(),
-      });
-      return handleApiResponse(res);
-}
-
 export async function transferReward(rewardId: string, recipientId: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/transfer`, {
         method: "POST",
@@ -296,7 +288,8 @@ export async function transferReward(rewardId: string, recipientId: string) {
       return handleApiResponse(res);
 }
 
-export async function uploadRewardDocument(rewardId: string, formData: FormData) {
+export async function uploadRewardDocument(rewardId: string, formData: FormData, ticketHolderNumber: number) {
+    formData.append('ticketHolderNumber', ticketHolderNumber.toString());
     const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/documents/upload`, {
         method: "POST",
         headers: await getAuthHeaders(false),

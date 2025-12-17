@@ -103,6 +103,7 @@ export interface Reward {
   rewardSnapshot: {
     valueUSD: number;
     reward: string;
+    numberOfTickets?: number;
   };
   requiredDocuments?: {
     docType: string;
@@ -111,6 +112,7 @@ export interface Reward {
   uploadedDocuments?: {
     docType: string;
     url: string;
+    ticketHolderNumber?: number;
   }[];
   rejectionReason?: string;
 }
@@ -120,5 +122,15 @@ export interface RewardProgram {
   startDate: string;
   endDate: string;
   status: 'active' | 'locked';
+  selfBusinessTiers: {
+    valueUSD: number;
+    reward: string;
+    numberOfTickets?: number;
+  }[];
+  teamBusinessTiers: {
+    valueUSD: number;
+    reward: string;
+    numberOfTickets?: number;
+  }[];
 }
 
