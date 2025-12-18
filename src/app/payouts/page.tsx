@@ -170,8 +170,9 @@ const PayoutsPage = () => {
             setPayoutHistory(historyData.payouts);
             setPagination(historyData.pagination);
         }
-      } catch {
-        setError("An unexpected error occurred while fetching data.");
+      } catch (err) {
+        console.error("Failed to fetch initial payout data:", err);
+        setError("An unexpected error occurred while fetching payout data.");
       } finally {
         setInitialLoading(false);
       }
