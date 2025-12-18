@@ -55,10 +55,20 @@ async function getAuthHeaders(isJson = true) {
   }
 
 export async function getDashboardData() {
-    const res = await fetch(`${API_BASE_URL}/api/v1/user/dashboard`, {
-        headers: await getAuthHeaders(),
-      });
-      return handleApiResponse(res);
+    const headers = await getAuthHeaders();
+    const [dashboardRes, rankRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/v1/user/dashboard`, { headers }),
+        fetch(`${API_BASE_URL}/api/v1/user/rank-progress`, { headers })
+    ]);
+
+    const dashboardData = await handleApiResponse(dashboardRes);
+    const rankData = await handleApiResponse(rankRes);
+
+    if (dashboardData.error || rankData.error) {
+        return { error: dashboardData.error || rankData.error };
+    }
+
+    return { ...dashboardData, rank: rankData.rank };
 }
 
 export async function setPassword(password: string, confirmPassword: string) {

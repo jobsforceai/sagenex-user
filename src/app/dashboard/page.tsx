@@ -157,10 +157,10 @@ import WithdrawalLimit from "../components/dashboard/WithdrawalLimit";
 const DashboardPage = () => {
   const { token, isAuthenticated, loading, showSetPasswordModal, onPasswordSet } = useAuth();
   const router = useRouter();
-  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [dashboardData, setDashboardData] = useState<any | null>(null);
+  const [rankProgress, setRankProgress] = useState<any | null>(null);
   const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
   const [treeData, setTreeData] = useState<TreeData | null>(null);
-  const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[] | null>(null);
   const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -207,6 +207,10 @@ const DashboardPage = () => {
     if (!token) return;
 
     const fetchSecondaryData = async () => {
+        getRankProgress().then(res => {
+            if (res.error) console.error("Failed to fetch rank progress:", res.error);
+            else setRankProgress(res);
+        });
       getReferralSummary().then(res => {
         if (res.error) console.error("Failed to fetch referral summary:", res.error);
         else setReferralSummary(res);
@@ -214,10 +218,6 @@ const DashboardPage = () => {
       getTeamTree().then(res => {
         if (res.error) console.error("Failed to fetch team tree:", res.error);
         else setTreeData(res);
-      });
-      getRankProgress().then(res => {
-        if (res.error) console.error("Failed to fetch rank progress:", res.error);
-        else setRankProgress(res);
       });
       getLeaderboard().then(res => {
         if (res.error) console.error("Failed to fetch leaderboard:", res.error);
@@ -248,58 +248,23 @@ const DashboardPage = () => {
     })),
   }));
 
-  const gamifiedRequirements = [];
-  if (rankProgress?.progress?.requirements) {
-    const { directs, activeTeam } = rankProgress.progress.requirements;
-
-    if (directs.required > 0) {
-      gamifiedRequirements.push({
-        text: `Have ${directs.required} direct referrals. (You have ${directs.current})`,
-        met: directs.current >= directs.required,
-      });
-    }
-    if (activeTeam?.required > 0) {
-      gamifiedRequirements.push({
-        text: `Have ${activeTeam.required} active team members. (You have ${activeTeam.current})`,
-        met: activeTeam.current >= activeTeam.required,
-      });
-    }
-  }
-
   const progressPercentage = rankProgress?.progress?.requirements
-    ? (() => {
-        const { directs, activeTeam } = rankProgress.progress.requirements;
-        const reqs = [
-          { current: directs.current, required: directs.required },
-          { current: activeTeam?.current, required: activeTeam?.required },
-        ];
-        
-        const percentages = reqs
-          .filter(r => r.required > 0)
-          .map(r => Math.min(100, (r.current / r.required) * 100));
+  ? (() => {
+      const { directs, activeTeam } = rankProgress.progress.requirements;
+      const reqs = [
+        { current: directs.current, required: directs.required },
+        { current: activeTeam?.current, required: activeTeam?.required },
+      ];
+      
+      const percentages = reqs
+        .filter(r => r.required > 0)
+        .map(r => Math.min(100, (r.current / r.required) * 100));
 
-        if (percentages.length === 0) return 100; // All requirements are 0, so they are met.
+      if (percentages.length === 0) return 100; // All requirements are 0, so they are met.
 
-        return percentages.reduce((acc, p) => acc + p, 0) / percentages.length;
-      })()
-    : 0;
-
-
-
-  const gamifiedData = rankProgress
-    ? {
-        subtitle: rankProgress.progress?.nextRankName
-          ? `Progress to ${rankProgress.progress?.nextRankName}`
-          : "You have reached the highest rank!",
-        badges: ALL_RANKS.map((rank) => ({
-          label: rank,
-          earned:
-            ALL_RANKS.indexOf(rank) <=
-            ALL_RANKS.indexOf(rankProgress.currentRankInDb?.name),
-        })),
-        requirements: gamifiedRequirements,
-      }
-    : null;
+      return percentages.reduce((acc, p) => acc + p, 0) / percentages.length;
+    })()
+  : 0;
 
   if (loading || !dashboardData) {
     return (
@@ -316,17 +281,14 @@ const DashboardPage = () => {
     );
   }
 
-  const { profile, wallet } = dashboardData;
-  const allRequirementsMet =
-    !!rankProgress &&
-    rankProgress.currentRankInDb?.name !== rankProgress.calculatedRank?.name;
+  const { profile, wallet, rank } = dashboardData;
   
-  const consecutiveMonthsMissed = rankProgress?.currentRankInDb?.consecutiveMonthsMissed;
+  const consecutiveMonthsMissed = rank?.consecutiveMonthsMissed;
 
   return (
     <div className="bg-black text-white min-h-screen">
       {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
-      <Navbar userLevel={rankProgress?.currentRankInDb?.name} />
+      <Navbar userLevel={rank?.name} />
       <main className="container mx-auto p-4 pt-24">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -371,8 +333,8 @@ const DashboardPage = () => {
           <AgentOverview
             name={dashboardData.profile.fullName}
             avatarUrl={dashboardData.profile.profilePicture}
-            currentLevel={rankProgress?.currentRankInDb?.name}
-            nextLevelLabel={rankProgress?.progress?.nextRankName || ""}
+            currentLevel={rank?.name}
+            nextLevelLabel={rankProgress?.progress?.nextRankName}
             progressPct={progressPercentage}
             packageUSD={dashboardData.package?.packageUSD}
             earningsMultiplier={dashboardData.earningsMultiplier}
@@ -397,29 +359,7 @@ const DashboardPage = () => {
               </Card>
             )}
             
-            {gamifiedData ? (
-              <GamifiedChallenges
-                title="Rank & Progress"
-                subtitle={gamifiedData.subtitle}
-                badges={gamifiedData.badges}
-                requirements={gamifiedData.requirements}
-                allRequirementsMet={allRequirementsMet}
-                nextRankName={rankProgress?.progress?.nextRankName}
-              />
-            ) : (
-              <Card>
-                <CardHeader><CardTitle>Rank & Progress</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-8 w-full" />
-                  <div className="flex space-x-2">
-                    <Skeleton className="h-6 w-16 rounded-full" />
-                    <Skeleton className="h-6 w-16 rounded-full" />
-                    <Skeleton className="h-6 w-16 rounded-full" />
-                  </div>
-                </CardContent>
-              </Card>
-            )}
+
 
             {leaderboardData ? (
               <Leaderboard
