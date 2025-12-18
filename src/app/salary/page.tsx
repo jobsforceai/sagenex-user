@@ -11,14 +11,14 @@ import { CheckCircle, Star, Trophy } from "lucide-react";
 import CountdownTimer from '@/app/components/salary/CountdownTimer';
 
 interface RankProgress {
-  currentRankInDb: {
+  rank: {
     name: string;
     badge: string;
     salary: number;
     achievedAt: string | null;
     consecutiveMonthsMissed: number;
   };
-  calculatedRank: {
+  performanceRank: {
     name: string;
     badge: string;
     salary: number;
@@ -48,8 +48,22 @@ interface RankProgress {
         current: number;
         required: number;
       };
+      monthlyBusiness: {
+        current: number;
+        required: number;
+      };
+      legRule: {
+        current: number;
+        required: number;
+        businessPerLeg: number;
+      };
     } | null;
   };
+  legDetails: {
+    userId: string;
+    monthlyBusiness: number;
+    activeTeam: number;
+  }[];
 }
 
 const SalaryPage = () => {
@@ -70,6 +84,7 @@ const SalaryPage = () => {
         if (res.error) {
           setError(res.error);
         } else {
+          console.log("Rank Progress Data:", res);
           setRankProgress(res);
         }
       } catch (err) {
@@ -86,7 +101,7 @@ const SalaryPage = () => {
   if (loading || !rankProgress) {
     return (
       <div className="bg-black text-white min-h-screen">
-        <Navbar userLevel={rankProgress?.currentRankInDb.name} />
+        <Navbar userLevel={rankProgress?.rank.name} />
         <main className="container mx-auto p-4 pt-24">
           <h1 className="text-3xl font-bold mb-8">Salary & Rank</h1>
           <div className="space-y-6">
@@ -106,18 +121,31 @@ const SalaryPage = () => {
     );
   }
 
-    const { currentRankInDb, calculatedRank, salaryEligibility, progress } = rankProgress;
-    const hasPendingPromotion = currentRankInDb.name !== calculatedRank.name;
-    
-    const showTimer = currentRankInDb.salary > 0 && currentRankInDb.achievedAt;
-    let payoutDate: string | null = null;
-    if (showTimer) {
-      const achievedDate = new Date(currentRankInDb.achievedAt!);
-      payoutDate = new Date(achievedDate.setDate(achievedDate.getDate() + 30)).toISOString();
+    const { rank, performanceRank, salaryEligibility, progress } = rankProgress;
+
+    let displayMessage = "";
+    let displayGracePeriodStatus = "";
+
+    if (salaryEligibility.isEligible) {
+        displayMessage = `Congratulations! You have met the performance requirements for '${performanceRank.name}' and are eligible for this month's salary of ${performanceRank.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })}.`;
+        if (rank.consecutiveMonthsMissed === 1) {
+            displayGracePeriodStatus = `You are in your 1-month grace period. Your payout will be 50% of the base salary.`;
+        } else {
+            displayGracePeriodStatus = `You are meeting your rank's performance goals.`;
+        }
+    } else {
+        displayMessage = `You have not yet met the performance requirements for this month's salary. Your performance this month is at the '${performanceRank.name}' level.`;
+        if (rank.consecutiveMonthsMissed === 1) {
+            displayGracePeriodStatus = `Warning: You did not meet performance goals last month. If you miss this month, your salary will be paused.`;
+        } else if (rank.consecutiveMonthsMissed >= 2) {
+            displayGracePeriodStatus = `Salary Paused: You have missed performance goals for 2 or more consecutive months.`;
+        } else {
+            displayGracePeriodStatus = `You are meeting your rank's performance goals.`;
+        }
     }
-  
+
     const renderProgress = (current: number, required: number, label: string, isCurrency = false) => {
-      const percentage = required > 0 ? (current / required) * 100 : 100;
+      const percentage = required > 0 ? Math.min((current / required) * 100, 100) : 100;
       const formatValue = (value: number) =>
         isCurrency
           ? value.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 })
@@ -130,7 +158,7 @@ const SalaryPage = () => {
             <span className="font-semibold">{formatValue(current)} / {formatValue(required)}</span>
           </div>
           <div className="w-full bg-neutral-700 rounded-full h-2.5">
-            <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${percentage > 100 ? 100 : percentage}%` }}></div>
+            <div className="bg-green-500 h-2.5 rounded-full" style={{ width: `${percentage}%` }}></div>
           </div>
         </div>
       );
@@ -138,168 +166,83 @@ const SalaryPage = () => {
   
     return (
       <div className="bg-black text-white min-h-screen">
-        <Navbar userLevel={currentRankInDb.name} />
+        <Navbar userLevel={rank.name} />
         <main className="container mx-auto p-4 pt-24">
           <h1 className="text-3xl font-bold mb-8">Salary & Rank</h1>
           
-          {/* Rank Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-            {hasPendingPromotion ? (
-              <>
-                <Card className="bg-neutral-900 border-neutral-800">
-                  <CardHeader><CardTitle className="text-lg text-neutral-400 flex items-center gap-2"><Trophy className="text-yellow-400" />Your Official Rank</CardTitle></CardHeader>
-                  <CardContent>
-                    <p className="text-4xl font-bold">{currentRankInDb.name}</p>
-                    <p className="text-lg text-green-400 font-semibold mt-1">Salary: {currentRankInDb.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })} / month</p>
-                  </CardContent>
-                </Card>
-                <Card className="bg-green-900/50 border-green-700">
-                  <CardHeader><CardTitle className="text-lg text-neutral-400 flex items-center gap-2"><CheckCircle className="text-green-400" />Your Qualified Rank</CardTitle></CardHeader>
-                  <CardContent>
-                    <p className="text-4xl font-bold">{calculatedRank.name}</p>
-                    <p className="text-lg font-semibold mt-1 text-green-300">Salary: {calculatedRank.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })} / month</p>
-                  </CardContent>
-                </Card>
-              </>
-            ) : (
-              <Card className="bg-neutral-900 border-neutral-800 md:col-span-2">
-                <CardHeader><CardTitle className="text-lg text-neutral-400 flex items-center gap-2"><Trophy className="text-yellow-400" />Your Current Rank</CardTitle></CardHeader>
-                <CardContent>
-                  <p className="text-4xl font-bold">{currentRankInDb.name}</p>
-                  <p className="text-lg text-green-400 font-semibold mt-1">Salary: {currentRankInDb.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })} / month</p>
-                </CardContent>
-              </Card>
-            )}
-          </div>
-  
-          {hasPendingPromotion && (
-            <div className="p-4 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg mb-6 text-center">
-              <h2 className="text-2xl font-bold">Congratulations!</h2>
-              <p>You&apos;ve met all requirements for {calculatedRank.name}. Your official rank will be updated shortly.</p>
-            </div>
-          )}
-  
-                                  {/* Salary Countdown */}
-  
-                                  {showTimer && payoutDate && (
-  
-                                    <Card className="bg-neutral-900 border-blue-800/50 mb-6">
-  
-                                      <CardContent className="p-6">
-  
-                                        <CountdownTimer expiryTimestamp={payoutDate} payoutAmount={currentRankInDb.salary} />
-  
-                                      </CardContent>
-  
-                                    </Card>
-  
-                                  )}
-  
-                          
-  
-                                  {/* Salary Eligibility */}
-  
-                                  {currentRankInDb.salary > 0 && (
-  
-                                    <Card className="bg-neutral-900 border-neutral-800 mb-6">
-  
-                                      <CardHeader><CardTitle className="text-2xl flex items-center gap-3"><Star className="text-yellow-400" />Salary Eligibility for <span className="text-yellow-400 font-bold">{currentRankInDb.name}</span></CardTitle></CardHeader>
-  
-                                      <CardContent className="space-y-5">
-  
-                                        {salaryEligibility.isEligible ? (
-  
-                                          <div className="p-4 bg-green-900/50 border border-green-700 rounded-lg text-center">
-  
-                                            <p className="text-lg text-green-300">Congratulations! You&apos;ve met the performance goals for your rank. Your 30-day salary countdown will begin shortly.</p>
-  
-                                          </div>
-  
-                                        ) : (
-  
-                                          salaryEligibility.requirements ? (
-  
-                                            <>
-  
-                                              {renderProgress(salaryEligibility.requirements.monthlyBusiness.current, salaryEligibility.requirements.monthlyBusiness.required, "Monthly Business Volume", true)}
-  
-                                              {renderProgress(salaryEligibility.requirements.legRule.current, salaryEligibility.requirements.legRule.required, `Legs with ${salaryEligibility.requirements.legRule.businessPerLeg.toLocaleString("en-US", { style: "currency", currency: "USD" })} Volume`)}
-  
-                                            </>
-  
-                                          ) : (
-  
-                                            <p>No salary eligibility requirements specified.</p>
-  
-                                          )
-  
-                                        )}
-  
-                                      </CardContent>
-  
-                                    </Card>
-  
-                                  )}
-  
-                          
-  
-                                  {currentRankInDb.salary === 0 && (
-  
-                                    <Card className="bg-neutral-900 border-neutral-800 mb-6">
-  
-                                      <CardHeader><CardTitle className="text-2xl flex items-center gap-3"><Star className="text-yellow-400" />Salary Eligibility</CardTitle></CardHeader>
-  
-                                      <CardContent>
-  
-                                        <p className="text-neutral-400">No salary requirements for this rank.</p>
-  
-                                      </CardContent>
-  
-                                    </Card>
-  
-                                  )}
-  
+
+
+          {/* Section B: This Month's Performance */}
+          <Card className="bg-neutral-900 border-neutral-800 mb-6">
+            <CardHeader><CardTitle className="text-2xl flex items-center gap-3"><Star className="text-yellow-400" />This Month's Performance</CardTitle></CardHeader>
+            <CardContent>
+                {salaryEligibility.isEligible ? (
+                    <div className="text-center p-4 bg-green-900/50 border border-green-700 rounded-lg">
+                        <p className="text-lg text-green-300">Congratulations! You are eligible for this month's salary.</p>
+                        <p className="text-4xl font-bold text-white mt-2">{performanceRank.name}</p>
+                        <p className="text-2xl font-semibold text-green-400 mt-1">
+                            {performanceRank.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                        </p>
+                    </div>
+                ) : (
+                    <p className="text-yellow-400">{displayMessage}</p>
+                )}
+            </CardContent>
+          </Card>
           
-  
-                  {/* Progress to Next Rank Card */}
-  
-                  {progress && progress.nextRankName ? (
-  
-                    <Card className="bg-neutral-900 border-neutral-800">
-  
-                      <CardHeader><CardTitle className="text-2xl flex items-center gap-3"><Star className="text-purple-400" /><span>Progress to <span className="text-purple-400 font-bold">{progress.nextRankName}</span></span></CardTitle></CardHeader>
-  
-                      <CardContent className="space-y-5">
-  
-                        {progress.requirements ? (
-  
-                          <>
-  
-                            {renderProgress(progress.requirements.directs.current, progress.requirements.directs.required, "Direct Referrals")}
-  
-                            {renderProgress(progress.requirements.activeTeam.current, progress.requirements.activeTeam.required, "Active Team Members")}
-  
-                          </>
-  
-                        ) : (
-  
-                          <p>No requirements specified for the next rank.</p>
-  
-                        )}
-  
-                      </CardContent>
-  
-                    </Card>
-  
-                  ) : (
-  
-                    <Card className="bg-neutral-900 border-neutral-800">
-  
-                      <CardContent className="p-6 text-center"><p className="text-xl">You have reached the highest rank!</p></CardContent>
-  
-                    </Card>
-  
-                  )}
+
+
+          {/* Section D: Progress Towards Next Rank */}
+          {progress && progress.nextRankName ? (
+            <Card className="bg-neutral-900 border-neutral-800">
+              <CardHeader><CardTitle className="text-2xl flex items-center gap-3"><Star className="text-purple-400" /><span>Progress Towards <span className="text-purple-400 font-bold">{progress.nextRankName}</span></span></CardTitle></CardHeader>
+              <CardContent className="space-y-5">
+                {progress.requirements ? (
+                  <>
+                    {renderProgress(progress.requirements.directs.current, progress.requirements.directs.required, "Directs")}
+                    {renderProgress(progress.requirements.activeTeam.current, progress.requirements.activeTeam.required, "Active Team Members")}
+                    {progress.requirements.monthlyBusiness && renderProgress(progress.requirements.monthlyBusiness.current, progress.requirements.monthlyBusiness.required, "Monthly Business Volume", true)}
+                    {progress.requirements.legRule && renderProgress(progress.requirements.legRule.current, progress.requirements.legRule.required, `Legs with ${progress.requirements.legRule.businessPerLeg.toLocaleString("en-US", { style: "currency", currency: "USD" })} Volume`)}
+                  </>
+                ) : (
+                  <p>No requirements specified for the next rank.</p>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            <Card className="bg-neutral-900 border-neutral-800">
+              <CardContent className="p-6 text-center"><p className="text-xl">You have reached the highest rank!</p></CardContent>
+            </Card>
+          )}
+
+          {/* Leg Details Card */}
+          {rankProgress.legDetails && (
+            <Card className="bg-neutral-900 border-neutral-800">
+              <CardHeader><CardTitle className="text-2xl">Leg Details</CardTitle></CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="min-w-full divide-y divide-neutral-700">
+                    <thead className="bg-neutral-800">
+                      <tr>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">User ID</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">Monthly Business</th>
+                        <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-neutral-300 uppercase tracking-wider">Active Team</th>
+                      </tr>
+                    </thead>
+                    <tbody className="bg-neutral-900 divide-y divide-neutral-700">
+                      {rankProgress.legDetails.map((leg) => (
+                        <tr key={leg.userId}>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{leg.userId}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-300">{leg.monthlyBusiness.toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-300">{leg.activeTeam}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </main>
       </div>
     );};

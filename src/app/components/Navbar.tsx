@@ -16,8 +16,8 @@ const guestLinks: NavLink[] = [
   // { href: "#about-us", label: "About" },
   { href: "#academy", label: "Academy" },
   { href: "#earning", label: "Earning" },
-  { href: "#ecosystem", label: "SGChain" },
-  { href: "#ecosystem", label: "SG5Traders" },
+  { href: "#ecosystem-sgchain", label: "SGChain" },
+  { href: "#ecosystem-sg5traders", label: "SG5Traders" },
   // { href: "#card", label: "Cash Card" },
   { href: "https://sagenex-academy-videos.s3.ap-south-1.amazonaws.com/androidapp/application-31eaf486-48ca-4b74-b0e6-9c7fdecd98a3.apk", label: "Download App" },
 ];
@@ -66,7 +66,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
         try {
           const rankData = await getRankProgress();
           if (rankData && !rankData.error) {
-            setUserLevel(rankData.currentRankInDb.name);
+            setUserLevel(rankData.rank.name);
           }
         } catch (error) {
           console.error("Failed to fetch user rank for navbar:", error);
@@ -130,6 +130,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   src="/logo5.png"
                   alt="Sagenex"
                   fill
+                  sizes="100vw"
                   className="object-fill  rounded-full"
                   priority
                 />
