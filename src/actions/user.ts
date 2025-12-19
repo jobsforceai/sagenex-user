@@ -386,3 +386,60 @@ export async function redeemFromSGChain(code: string) {
     });
     return handleApiResponse(res);
 }
+
+// --- Expense Management ---
+
+export async function getExpenseMetadata() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/meta-data`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function requestExpenseTicket(description: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ description }),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getMyExpenseTickets(page: number = 1, limit: number = 10) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets?page=${page}&limit=${limit}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getSingleExpenseTicket(ticketId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets/${ticketId}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function addExpenseItem(ticketId: string, formData: FormData) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets/${ticketId}/items`, {
+        method: "POST",
+        headers: await getAuthHeaders(false),
+        body: formData,
+    });
+    return handleApiResponse(res);
+}
+
+export async function removeExpenseItem(ticketId: string, itemId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets/${ticketId}/items/${itemId}`, {
+        method: "DELETE",
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function submitExpenseTicket(ticketId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets/${ticketId}/submit`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}

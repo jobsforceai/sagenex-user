@@ -214,7 +214,10 @@ const ProfilePage = () => {
               {kycStatus && <KycStatusBadge status={kycStatus.status} />}
             </div>
           </div>
-          <div className="md:ml-auto">
+          <div className="md:ml-auto flex gap-2">
+            <Button onClick={() => router.push('/expenses')} variant="default" size="lg">
+                Expenses
+            </Button>
             <Button onClick={() => setIsEditing(true)} variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile
