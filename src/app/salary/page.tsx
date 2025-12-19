@@ -7,6 +7,7 @@ import { getRankProgress } from "@/actions/user";
 import Navbar from "@/app/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+
 import { CheckCircle, Star, Trophy } from "lucide-react";
 import CountdownTimer from '@/app/components/salary/CountdownTimer';
 
@@ -71,6 +72,37 @@ const SalaryPage = () => {
   const router = useRouter();
   const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [countdown, setCountdown] = useState("");
+  const [progressPercentage, setProgressPercentage] = useState(0);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+    const now = new Date();
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const diff = endOfMonth.getTime() - now.getTime();
+
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const totalTime = endOfMonth.getTime() - startOfMonth.getTime();
+    const elapsedTime = now.getTime() - startOfMonth.getTime();
+    const progress = (elapsedTime / totalTime) * 100;
+    setProgressPercentage(progress);
+
+    if (diff <= 0) {
+        setCountdown("Processing...");
+        setProgressPercentage(100);
+        clearInterval(timer);
+        return;
+    }
+
+    const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const minutes = Math.floor((diff / 1000 / 60) % 60);
+    const seconds = Math.floor((diff / 1000) % 60);
+    setCountdown(`${days}d ${hours}h ${minutes}m ${seconds}s`);
+    }, 1000);
+
+    return () => clearInterval(timer);
+}, []);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -163,26 +195,40 @@ const SalaryPage = () => {
         </div>
       );
     };
+
   
     return (
       <div className="bg-black text-white min-h-screen">
         <Navbar userLevel={rank.name} />
         <main className="container mx-auto p-4 pt-24">
           <h1 className="text-3xl font-bold mb-8">Salary & Rank</h1>
-          
-
 
           {/* Section B: This Month's Performance */}
           <Card className="bg-neutral-900 border-neutral-800 mb-6">
             <CardHeader><CardTitle className="text-2xl flex items-center gap-3"><Star className="text-yellow-400" />This Month's Performance</CardTitle></CardHeader>
             <CardContent>
                 {salaryEligibility.isEligible ? (
-                    <div className="text-center p-4 bg-green-900/50 border border-green-700 rounded-lg">
-                        <p className="text-lg text-green-300">Congratulations! You are eligible for this month's salary.</p>
-                        <p className="text-4xl font-bold text-white mt-2">{performanceRank.name}</p>
-                        <p className="text-2xl font-semibold text-green-400 mt-1">
-                            {performanceRank.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })}
-                        </p>
+                    <div>
+                        <div className="flex justify-between items-center mb-4">
+                            <div className="text-left">
+                                <p className="text-lg text-green-300">Eligible Salary</p>
+                                <p className="text-4xl font-bold text-white mt-1">{performanceRank.name}</p>
+                                <p className="text-2xl font-semibold text-green-400">
+                                    {performanceRank.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                                </p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-sm font-medium text-gray-400">Salary Credits In</p>
+                                <div className="text-2xl font-bold text-white">{countdown}</div>
+                            </div>
+                        </div>
+                        <div className="w-full bg-gray-700 rounded-full h-2.5">
+                            <div
+                                className="bg-emerald-500 h-2.5 rounded-full"
+                                style={{ width: `${progressPercentage}%` }}
+                            ></div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1 text-center">{progressPercentage.toFixed(1)}% of cycle completed</p>
                     </div>
                 ) : (
                     <p className="text-yellow-400">{displayMessage}</p>
@@ -190,7 +236,6 @@ const SalaryPage = () => {
             </CardContent>
           </Card>
           
-
 
           {/* Section D: Progress Towards Next Rank */}
           {progress && progress.nextRankName ? (
