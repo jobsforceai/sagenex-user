@@ -237,7 +237,7 @@ const PayoutsPage = () => {
       <main className="container mx-auto p-4 pt-24">
         <header className="mb-8">
           <h1 className="text-4xl font-bold text-white">Payouts</h1>
-          <p className="text-gray-400 mt-2">Track your current earnings and review your payout history.</p>
+          <p className="text-gray-400 mt-2">Track your current earnings and review your payout history, including your special bonuses.</p>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -272,7 +272,7 @@ const PayoutsPage = () => {
                     <CardContent>
                         {currentPayout ? (
                             <>
-                                <PayoutDetailRow label="ROI Payout" value={currentPayout.earningsBreakdown.roiPayout} icon={TrendingUp} />
+                                <PayoutDetailRow label="Special Bonus Payout" value={currentPayout.earningsBreakdown.roiPayout} icon={TrendingUp} /> {/* Frontend display change: 'Special Bonus Payout' is displayed, corresponding to the backend's 'roiPayout' field. */}
                             </>
                         ) : <p className="text-gray-500">No current earnings data.</p>}
                     </CardContent>
@@ -295,7 +295,7 @@ const PayoutsPage = () => {
                                 </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="bg-black/20 p-4 rounded-b-md">
-                                    <PayoutDetailRow label="ROI Payout" value={payout.roiPayout} icon={TrendingUp} />
+                                    <PayoutDetailRow label="Special Bonus Payout" value={payout.roiPayout} icon={TrendingUp} /> {/* Frontend display change: 'Special Bonus Payout' is displayed, corresponding to the backend's 'roiPayout' field. */}
                                 </AccordionContent>
                             </AccordionItem>
                             ))}

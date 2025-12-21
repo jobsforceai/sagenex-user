@@ -247,6 +247,8 @@ const WalletPage = () => {
                                         )
                                     )}
                                 </div>
+                            ) : tx.type === "ROI" ? ( /* Frontend display change: 'ROI' is renamed to 'Special Bonus'. The backend still refers to this as 'ROI'. */
+                                "SPECIAL BONUS"
                             ) : (
                                 tx.type
                             )}

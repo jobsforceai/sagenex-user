@@ -25,7 +25,7 @@ type Props = {
 const ranks = ["Member", "Starter", "Builder", "Leader", "Manager", "Director", "Crown"];
 
 const allEarningStreams = [
-  { name: "ROI", unlockedAt: "Member" },
+  { name: "Special Bonus", unlockedAt: "Member" },
   { name: "Direct Bonus (10%)", unlockedAt: "Starter" },
   { name: "Re-invest Bonus (8% → 2%)", unlockedAt: "Starter" },
   { name: "Unilevel Bonus (10% split L1-L6)", unlockedAt: "Starter" },
@@ -53,11 +53,11 @@ export default function AgentOverview({
   const pct = Math.max(0, Math.min(100, progressPct || 0));
   const currentRankIndex = currentLevel ? ranks.indexOf(currentLevel) : -1;
 
-  const roiPercentage = packageUSD ? getTieredROIRate(packageUSD) * 100 : 0;
+  const specialBonusPercentage = packageUSD ? getTieredROIRate(packageUSD) * 100 : 0;
 
   const earningStreams = allEarningStreams.map(stream => {
-    if (stream.name === "ROI" && roiPercentage) {
-      return { ...stream, name: `ROI (${roiPercentage}%)` };
+    if (stream.name === "Special Bonus" && specialBonusPercentage) {
+      return { ...stream, name: `Special Bonus (${specialBonusPercentage}%)` };
     }
     return stream;
   });
