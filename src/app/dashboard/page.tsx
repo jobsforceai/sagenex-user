@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Alert from "../components/dashboard/Alert";
 import { useAuth } from "@/app/context/AuthContext";
@@ -13,7 +14,7 @@ import {
   getFinancialSummary,
 } from "@/actions/user";
 import Navbar from "@/app/components/Navbar";
-import { Crown, Lock, Unlock } from "lucide-react";
+import { ArrowDownCircle, BadgeDollarSign, Crown, Gift } from "lucide-react";
 import AgentOverview from "../components/dashboard/AgentOverview";
 import EarningsSummary from "../components/dashboard/EarningsSummary";
 import GamifiedChallenges from "../components/dashboard/GamifiedChallenges";
@@ -284,7 +285,6 @@ const DashboardPage = () => {
   const { profile, wallet, rank } = dashboardData;
   
   const consecutiveMonthsMissed = rank?.consecutiveMonthsMissed;
-
   return (
     <div className="bg-black text-white min-h-screen">
       {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
@@ -321,12 +321,12 @@ const DashboardPage = () => {
             message="You have missed your performance target for 1 month. Your next salary will be reduced to 50%."
           />
         )}
-        {consecutiveMonthsMissed && consecutiveMonthsMissed >= 2 && (
+        {/* {consecutiveMonthsMissed && consecutiveMonthsMissed >= 2 && (
           <Alert
             type="danger"
             message="Your salary is currently paused because you have missed your performance targets for 2 or more consecutive months."
           />
-        )}
+        )} */}
 
         {/* Full-width Agent Overview */}
         <div className="mb-6">
@@ -341,6 +341,58 @@ const DashboardPage = () => {
             earningsMultiplierDeadline={dashboardData.profile.earningsMultiplierDeadline}
             joinDate={dashboardData.profile.joinDate}
           />
+        </div>
+
+        {/* Quick Actions */}
+        <div className="mb-6">
+          <h2 className="text-lg font-semibold text-white mb-3">Quick Actions</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <Link href="/salary" className="group">
+              <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-500/10 via-black/20 to-black border border-emerald-500/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:shadow-[0_18px_40px_rgba(16,185,129,0.18)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-300 via-emerald-500 to-emerald-300" />
+                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-emerald-400/15 blur-2xl" />
+                <CardHeader className="flex flex-row items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-200 flex items-center justify-center ring-1 ring-emerald-400/30">
+                    <BadgeDollarSign className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Salary</CardTitle>
+                    <p className="text-sm text-gray-400">Eligibility and monthly status</p>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+            <Link href="/rewards" className="group">
+              <Card className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-black/20 to-black border border-amber-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-amber-300/50 group-hover:shadow-[0_18px_40px_rgba(251,191,36,0.18)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-300 via-amber-500 to-amber-300" />
+                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-amber-400/15 blur-2xl" />
+                <CardHeader className="flex flex-row items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-amber-500/20 text-amber-200 flex items-center justify-center ring-1 ring-amber-400/30">
+                    <Gift className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Rewards</CardTitle>
+                    <p className="text-sm text-gray-400">Claim and manage rewards</p>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+            <Link href="/payouts" className="group">
+              <Card className="relative overflow-hidden bg-gradient-to-br from-sky-500/10 via-black/20 to-black border border-sky-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-sky-300/50 group-hover:shadow-[0_18px_40px_rgba(56,189,248,0.18)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-300 via-sky-500 to-sky-300" />
+                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-sky-400/15 blur-2xl" />
+                <CardHeader className="flex flex-row items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-sky-500/20 text-sky-200 flex items-center justify-center ring-1 ring-sky-400/30">
+                    <ArrowDownCircle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Payouts</CardTitle>
+                    <p className="text-sm text-gray-400">Withdrawals and history</p>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+          </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">

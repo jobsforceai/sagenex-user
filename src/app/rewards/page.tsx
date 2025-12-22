@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ import {
 import { Reward, Recipient, KycStatus, RewardProgram } from "@/types";
 import {
   CheckCircle,
+  ArrowLeft,
   Loader2,
   Gift,
   Send,
@@ -429,6 +431,12 @@ const RewardsPage = () => {
     <div className="bg-black text-white min-h-screen">
       <Navbar />
       <main className="container mx-auto p-4 sm:p-6 pt-32">
+        <Button asChild variant="outline" className="mb-4">
+          <Link href="/dashboard">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Dashboard
+          </Link>
+        </Button>
         <header className="text-center my-14">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 py-4 bg-linear-to-r from-emerald-400 to-green-600  bg-clip-text text-transparent">
             Rewards & Recognition

@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { getPayouts, getCurrentPayoutProgress } from "@/actions/user";
-import { DollarSign, CalendarDays, TrendingUp, Loader2 } from "lucide-react";
+import { ArrowLeft, DollarSign, CalendarDays, TrendingUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // --- INTERFACES ---
@@ -236,6 +237,12 @@ const PayoutsPage = () => {
       <Navbar />
       <main className="container mx-auto p-4 pt-24">
         <header className="mb-8">
+          <Button asChild variant="outline" className="mb-4">
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
           <h1 className="text-4xl font-bold text-white">Payouts</h1>
           <p className="text-gray-400 mt-2">Track your current earnings and review your payout history, including your special bonuses.</p>
         </header>

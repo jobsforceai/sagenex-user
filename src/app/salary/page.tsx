@@ -3,12 +3,14 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { getRankProgress } from "@/actions/user";
 import Navbar from "@/app/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Button } from "@/components/ui/button";
 
-import { CheckCircle, Star, Trophy } from "lucide-react";
+import { ArrowLeft, CheckCircle, Star, Trophy } from "lucide-react";
 import CountdownTimer from '@/app/components/salary/CountdownTimer';
 
 interface RankProgress {
@@ -135,6 +137,12 @@ const SalaryPage = () => {
       <div className="bg-black text-white min-h-screen">
         <Navbar userLevel={rankProgress?.rank.name} />
         <main className="container mx-auto p-4 pt-24">
+          <Button asChild variant="outline" className="mb-4">
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
           <h1 className="text-3xl font-bold mb-8">Salary & Rank</h1>
           <div className="space-y-6">
             <Skeleton className="h-32 w-full" />
@@ -201,6 +209,12 @@ const SalaryPage = () => {
       <div className="bg-black text-white min-h-screen">
         <Navbar userLevel={rank.name} />
         <main className="container mx-auto p-4 pt-24">
+          <Button asChild variant="outline" className="mb-4">
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
           <h1 className="text-3xl font-bold mb-8">Salary & Rank</h1>
 
           {/* Section B: This Month's Performance */}
