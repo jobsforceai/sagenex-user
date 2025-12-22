@@ -203,8 +203,9 @@ export async function transferUser(userIdToTransfer: string, newSponsorId: strin
       return handleApiResponse(res);
 }
 
-export async function getTransferRecipients() {
-    const res = await fetch(`${API_BASE_URL}/api/v1/user/transfer-recipients`, {
+export async function getTransferRecipients(includeSelf?: boolean) {
+    const query = includeSelf ? "?includeSelf=true" : "";
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/transfer-recipients${query}`, {
         headers: await getAuthHeaders(),
       });
       return handleApiResponse(res);
