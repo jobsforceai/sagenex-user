@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
-import { useSearchParams } from "next/navigation";
+import { useSearchParams, useParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
@@ -12,10 +12,13 @@ import { Lock, PlayCircle, CheckCircle, List, Info, Users, BarChart, Clock, Lang
 import VideoPlayer from "@/app/components/courses/VideoPlayer";
 import { Button } from "@/components/ui/button";
 
-const CoursePage = ({ params }: { params: { courseId: string } }) => {
-  const { courseId } = params;
+const CoursePage = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
+  const params = useParams<{ courseId?: string | string[] }>();
+  const courseIdParam = params?.courseId;
+  const courseId = Array.isArray(courseIdParam) ? courseIdParam[0] : courseIdParam;
+  const hasCourseId = typeof courseId === "string" && courseId.length > 0;
   const [course, setCourse] = useState<CourseDetails | null>(null);
   const [progress, setProgress] = useState<LessonProgress[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -43,12 +46,13 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
     return progress.find(p => p.lessonId === lessonId);
   }, [progress]);
 
-  const fetchCourseData = useCallback(async () => {
+  const fetchCourseData = useCallback(async (resolvedCourseId: string) => {
     setDataLoading(true);
+    setError(null);
     try {
       const [courseData, progressData] = await Promise.all([
-        getCourseById(courseId),
-        getCourseProgress(courseId)
+        getCourseById(resolvedCourseId),
+        getCourseProgress(resolvedCourseId)
       ]);
 
       if (courseData.error) {
@@ -69,25 +73,29 @@ const CoursePage = ({ params }: { params: { courseId: string } }) => {
     } finally {
       setDataLoading(false);
     }
-  }, [courseId]);
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !isAuthenticated) {
       router.push("/login");
       return;
     }
-    if (isAuthenticated) {
-      fetchCourseData();
+    if (isAuthenticated && hasCourseId) {
+      fetchCourseData(courseId);
     }
-  }, [isAuthenticated, authLoading, router, fetchCourseData]);
+    if (isAuthenticated && !hasCourseId) {
+      setError("Course not found.");
+      setDataLoading(false);
+    }
+  }, [isAuthenticated, authLoading, router, fetchCourseData, hasCourseId, courseId]);
 
   const handleProgressUpdate = async (watchedSeconds: number) => {
-    if (!selectedLesson) return;
+    if (!selectedLesson || !courseId) return;
     await updateVideoProgress(courseId, selectedLesson._id, watchedSeconds);
   };
 
   const handleComplete = async () => {
-    if (!selectedLesson) return;
+    if (!selectedLesson || !courseId) return;
     await markLessonAsComplete(courseId, selectedLesson._id);
     setProgress(prev => {
         const existing = prev.find(p => p.lessonId === selectedLesson._id);
