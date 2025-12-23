@@ -66,6 +66,9 @@ interface LockedBonus {
 interface WalletSummary {
   availableBalance: number;
   bonuses: LockedBonus[];
+  withdrawalCap?: number;
+  totalLifetimeWithdrawals?: number;
+  remainingWithdrawalLimit?: number;
 }
 
 const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) => {
@@ -142,6 +145,11 @@ const getTransactionTitle = (tx: WalletTransaction) => {
   return tx.type;
 };
 
+const getTransactionTypeLabel = (type: string) => {
+  if (type === "ROI") return "SPECIAL BONUS";
+  return type;
+};
+
 const getTransactionReference = (tx: WalletTransaction) => {
   return (
     tx.referenceId ||
@@ -152,6 +160,20 @@ const getTransactionReference = (tx: WalletTransaction) => {
     null
   );
 };
+
+const formatCurrency = (amount: number) =>
+  amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
+
+const StatCard = ({ title, value, accent }: { title: string; value: string; accent?: string }) => (
+  <Card className="bg-gray-900/40 border-gray-800">
+    <CardHeader className="pb-2">
+      <CardTitle className="text-sm text-gray-400">{title}</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <p className={`text-2xl font-semibold ${accent ?? "text-white"}`}>{value}</p>
+    </CardContent>
+  </Card>
+);
 
 const formatLabel = (value: string) =>
   value
@@ -280,42 +302,56 @@ const WalletPage = () => {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
 
+  const lockedBonusTotal =
+    walletSummary?.bonuses?.reduce((sum, bonus) => sum + (bonus.isUnlocked ? 0 : bonus.lockedAmount), 0) ?? 0;
+
   return (
     <div className="bg-black text-white min-h-screen">
       <Navbar />
-      <div className="container mx-auto p-4 sm:p-6 pt-20 sm:pt-24 space-y-8">
+      <div className="container mx-auto p-4 sm:p-6 pt-20 sm:pt-24 space-y-6">
         <header>
           <h1 className="text-3xl sm:text-4xl font-bold text-white">My Wallet</h1>
           <p className="text-gray-400 mt-2">Manage your funds, view transactions, and upgrade your plan.</p>
         </header>
 
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 sm:gap-8">
-          <div className="xl:col-span-2">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8 items-start">
-              <div className="space-y-6 sm:space-y-8">
-                <Card className="bg-gray-900/40 border-gray-800 w-full sm:max-w-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm text-gray-400">Available Balance</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-3xl font-bold text-emerald-400">
-                      ${walletSummary?.availableBalance.toFixed(2) ?? '0.00'}
-                    </p>
-                  </CardContent>
-                </Card>
-                <FundTransfer currentBalance={walletSummary?.availableBalance ?? 0} />
-              </div>
-              <div className="space-y-6 sm:space-y-8">
-                <TransferToSGChain currentBalance={walletSummary?.availableBalance ?? 0} />
-                <RedeemFromSGChain onSuccess={fetchData} />
-              </div>
-            </div>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+          <StatCard
+            title="Available Balance"
+            value={formatCurrency(walletSummary?.availableBalance ?? 0)}
+            accent="text-emerald-400"
+          />
+          <StatCard
+            title="Remaining Withdrawal Limit"
+            value={formatCurrency(walletSummary?.remainingWithdrawalLimit ?? 0)}
+          />
+          <StatCard
+            title="Total Withdrawn"
+            value={formatCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
+          />
+          <StatCard
+            title="Locked Bonuses"
+            value={formatCurrency(lockedBonusTotal)}
+            accent="text-amber-300"
+          />
+        </div>
+
+        <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 items-start">
+          <div className="space-y-6">
+            <FundTransfer currentBalance={walletSummary?.availableBalance ?? 0} className="h-full" />
           </div>
-          <div className="xl:col-span-1 space-y-6 sm:space-y-8">
-            <CryptoDeposit />
+          <div className="space-y-6">
+            <TransferToSGChain
+              currentBalance={walletSummary?.availableBalance ?? 0}
+              className="min-h-[220px]"
+            />
+            <RedeemFromSGChain onSuccess={fetchData} className="min-h-[220px]" />
+          </div>
+          <div className="space-y-6">
+            <CryptoDeposit className="min-h-[220px]" />
             <WithdrawalRequest 
                 currentBalance={walletSummary?.availableBalance ?? 0}
                 kycStatus={kycStatus?.status}
+                className="min-h-[220px]"
             />
           </div>
         </div>
@@ -352,7 +388,7 @@ const WalletPage = () => {
 
                       const detailItems = [
                         ["Description", tx.description],
-                        ["Type", tx.type],
+                        ["Type", getTransactionTypeLabel(tx.type)],
                         ["Source Type", tx.sourceType],
                         ["Source ID", tx.sourceId],
                         ["Reference ID", reference],
@@ -384,14 +420,12 @@ const WalletPage = () => {
                           aria-expanded={isExpanded}
                         >
                           <TableCell className="font-medium">
-                            <div className="space-y-1">
-                              <div>{getTransactionTitle(tx)}</div>
-                              {tx.sourceType && (
+                              <div className="space-y-1">
+                                <div>{getTransactionTitle(tx)}</div>
                                 <span className="text-gray-500 text-xs block">
-                                  Source: {tx.sourceType}
+                                  Type: {getTransactionTypeLabel(tx.type)}
                                 </span>
-                              )}
-                            </div>
+                              </div>
                           </TableCell>
                           <TableCell className={tx.amount > 0 ? "text-green-400" : "text-red-400"}>
                             <div className="font-semibold">

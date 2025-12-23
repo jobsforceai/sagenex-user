@@ -11,7 +11,7 @@ import Confetti from 'react-confetti';
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
 type AuthMethod = 'password' | 'otp';
 
-const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
+const FundTransfer = ({ currentBalance, className }: { currentBalance: number; className?: string }) => {
     const { user, loading } = useAuth();
     const [allRecipients, setAllRecipients] = useState<Recipient[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -222,7 +222,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     }
 
     return (
-        <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+        <div className={`bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col ${className ?? ''}`}>
             {showConfetti && <Confetti width={500} height={500} />}
             <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
                 <Send className="text-emerald-400" />

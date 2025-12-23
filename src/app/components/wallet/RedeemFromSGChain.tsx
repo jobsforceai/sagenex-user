@@ -11,9 +11,10 @@ import Confetti from "react-confetti";
 
 interface RedeemFromSGChainProps {
   onSuccess: () => void;
+  className?: string;
 }
 
-const RedeemFromSGChain = ({ onSuccess }: RedeemFromSGChainProps) => {
+const RedeemFromSGChain = ({ onSuccess, className }: RedeemFromSGChainProps) => {
   const [code, setCode] = useState("");
   const [loading, setLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
@@ -45,7 +46,7 @@ const RedeemFromSGChain = ({ onSuccess }: RedeemFromSGChainProps) => {
   };
 
   return (
-    <Card className="bg-gray-900/40 border-gray-800 relative overflow-hidden">
+    <Card className={`bg-gray-900/40 border-gray-800 relative overflow-hidden flex flex-col ${className ?? ''}`}>
       {showConfetti && <Confetti />}
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -53,11 +54,11 @@ const RedeemFromSGChain = ({ onSuccess }: RedeemFromSGChainProps) => {
             Redeem from SGChain
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col">
         <p className="text-sm text-gray-400 mb-4">
           Enter a transfer code from SGChain to instantly credit your Sagenex wallet.
         </p>
-        <form onSubmit={handleRedeem} className="space-y-4">
+        <form onSubmit={handleRedeem} className="mt-auto space-y-4">
           <div>
             <label htmlFor="sgchain-code" className="sr-only">
               Transfer Code
