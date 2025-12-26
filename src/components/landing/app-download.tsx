@@ -37,7 +37,7 @@ const item: Variants = {
 };
 
 export default function AppDownloadSection() {
-    const apkUrl = "https://sagenex-academy-videos.s3.ap-south-1.amazonaws.com/androidapp/application-31eaf486-48ca-4b74-b0e6-9c7fdecd98a3.apk";
+    const apkUrl = process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "";
     const iosUrl = "https://apps.apple.com/us/app/sagenex/id6755692818"
 
   return (
