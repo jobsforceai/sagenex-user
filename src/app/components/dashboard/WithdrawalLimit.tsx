@@ -22,8 +22,10 @@ const WithdrawalLimit = ({
   totalLifetimeWithdrawals,
   remainingWithdrawalLimit,
 }: WithdrawalLimitProps) => {
-  const progressPercentage =
-    withdrawalCap > 0 ? (totalLifetimeWithdrawals / withdrawalCap) * 100 : 0;
+  const progressPercentage = withdrawalCap > 0
+    ? Math.min(100, Math.max(0, (totalLifetimeWithdrawals / withdrawalCap) * 100))
+    : 0;
+  const safeRemaining = Math.max(0, remainingWithdrawalLimit);
 
   return (
     <Card className="bg-[#0b0b0b] border border-blue-900/40 rounded-2xl">
@@ -51,7 +53,7 @@ const WithdrawalLimit = ({
           <div className="flex justify-between">
             <span className="text-gray-400">Remaining:</span>
             <span className="font-bold text-green-400">
-              {formatCurrency(remainingWithdrawalLimit)}
+              {formatCurrency(safeRemaining)}
             </span>
           </div>
           <div className="flex justify-between border-t border-dashed border-gray-700 pt-2 mt-2">

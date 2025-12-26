@@ -339,8 +339,7 @@ const DashboardPage = () => {
             packageUSD={dashboardData.package?.packageUSD}
             earningsMultiplier={dashboardData.earningsMultiplier}
             earningsMultiplierDeadline={dashboardData.profile.earningsMultiplierDeadline}
-            joinDate={dashboardData.profile.joinDate}
-          />
+            />
         </div>
 
         {/* Quick Actions */}
@@ -457,7 +456,9 @@ const DashboardPage = () => {
               </Card>
             )}
           </div>
-
+          <>
+          {console.log("Dashboard Data Wallet:", dashboardData.wallet)}
+          </>
           {/* Sidebar */}
           <div className="space-y-6">
             <SmartUpdates />

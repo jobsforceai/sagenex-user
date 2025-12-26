@@ -304,6 +304,7 @@ const WalletPage = () => {
 
   const lockedBonusTotal =
     walletSummary?.bonuses?.reduce((sum, bonus) => sum + (bonus.isUnlocked ? 0 : bonus.lockedAmount), 0) ?? 0;
+  const remainingWithdrawalLimit = Math.max(0, walletSummary?.remainingWithdrawalLimit ?? 0);
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -322,7 +323,7 @@ const WalletPage = () => {
           />
           <StatCard
             title="Remaining Withdrawal Limit"
-            value={formatCurrency(walletSummary?.remainingWithdrawalLimit ?? 0)}
+            value={formatCurrency(remainingWithdrawalLimit)}
           />
           <StatCard
             title="Total Withdrawn"
@@ -351,6 +352,7 @@ const WalletPage = () => {
             <WithdrawalRequest 
                 currentBalance={walletSummary?.availableBalance ?? 0}
                 kycStatus={kycStatus?.status}
+                remainingWithdrawalLimit={remainingWithdrawalLimit}
                 className="min-h-[220px]"
             />
           </div>

@@ -19,7 +19,6 @@ type Props = {
   packageUSD?: number;
   earningsMultiplier?: number;
   earningsMultiplierDeadline?: string | null;
-  joinDate?: string | null;
 };
 
 const ranks = ["Member", "Starter", "Builder", "Leader", "Manager", "Director", "Crown"];
@@ -48,7 +47,6 @@ export default function AgentOverview({
   packageUSD,
   earningsMultiplier,
   earningsMultiplierDeadline,
-  joinDate,
 }: Props) {
   const pct = Math.max(0, Math.min(100, progressPct || 0));
   const currentRankIndex = currentLevel ? ranks.indexOf(currentLevel) : -1;
@@ -123,7 +121,7 @@ export default function AgentOverview({
           </div>
         </div>
 
-        <CountdownTimer deadline={earningsMultiplierDeadline} joinDate={joinDate}/>
+        <CountdownTimer deadline={earningsMultiplierDeadline} />
 
         <div className="mt-6 pt-6 border-t border-neutral-800/50">
           <h3 className="text-lg font-semibold text-white/90 mb-4">Earning Streams</h3>
