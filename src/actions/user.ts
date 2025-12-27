@@ -379,6 +379,90 @@ export async function initiateTransferToSGChain(amount: number) {
     return handleApiResponse(res);
 }
 
+// --- Tests ---
+
+export async function getTestsCatalog() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/catalog`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function sendTestOtp(payload: {
+    testId: string;
+    locationId: string;
+    userInfo: {
+        firstName: string;
+        lastName: string;
+        phone: string;
+        email: string;
+        age?: number;
+    };
+}) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/send-otp`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res);
+}
+
+export async function scheduleTestBooking(payload: {
+    testId: string;
+    locationId: string;
+    userInfo: {
+        firstName: string;
+        lastName: string;
+        phone: string;
+        email: string;
+        age?: number;
+    };
+    otp?: string;
+    password?: string;
+    idempotencyKey: string;
+}) {
+    const body: Record<string, unknown> = {
+        testId: payload.testId,
+        locationId: payload.locationId,
+        userInfo: payload.userInfo,
+        idempotencyKey: payload.idempotencyKey,
+    };
+    if (payload.otp) {
+        body.otp = payload.otp;
+    } else if (payload.password) {
+        body.password = payload.password;
+    }
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/schedule`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(body),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getTestBookings() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getTestBooking(bookingId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/${bookingId}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function cancelTestBooking(bookingId: string, reason?: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/${bookingId}/cancel`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ reason }),
+    });
+    return handleApiResponse(res);
+}
+
 export async function redeemFromSGChain(code: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/redeem-from-sgchain`, {
         method: "POST",

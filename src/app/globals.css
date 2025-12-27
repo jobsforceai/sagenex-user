@@ -178,5 +178,6 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: "Space Grotesk", "Segoe UI", "Helvetica Neue", Arial, sans-serif;
   }
 }

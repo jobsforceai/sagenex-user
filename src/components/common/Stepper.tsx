@@ -23,9 +23,9 @@ export function Stepper({
   return (
     <div className="w-full">
       {/* Horizontal Stepper */}
-      <div className="flex items-center justify-between gap-2 mb-8">
+      <div className="grid grid-cols-2 gap-4 mb-8 sm:grid-cols-3 md:flex md:items-center md:justify-between md:gap-6 lg:gap-2">
         {steps.map((step, idx) => (
-          <div key={idx} className="flex items-center flex-1">
+          <div key={idx} className="flex items-center gap-3 md:flex-1 md:min-w-0">
             {/* Step Circle */}
             <button
               onClick={() => onStepClick?.(idx)}
@@ -46,10 +46,10 @@ export function Stepper({
             </button>
 
             {/* Step Label */}
-            <div className="flex-1 ml-3">
+            <div className="min-w-0">
               <p
-                className={`text-sm font-medium ${
-                  idx <= currentStep ? 'text-white' : 'text-white/50'
+                className={`text-sm font-medium leading-snug md:text-xs md:whitespace-nowrap ${
+                  idx <= currentStep ? 'text-white' : 'text-white/60'
                 }`}
               >
                 {step}
@@ -59,7 +59,7 @@ export function Stepper({
             {/* Connector */}
             {idx < steps.length - 1 && (
               <div
-                className={`w-1/2 h-1 mx-2 transition-all ${
+                className={`hidden lg:block h-0.5 flex-1 mx-2 transition-all ${
                   idx < currentStep ? 'bg-emerald-500' : 'bg-white/10'
                 }`}
               />

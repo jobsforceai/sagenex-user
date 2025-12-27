@@ -57,13 +57,14 @@ export function Step3ExecuteTransfer({
           <span className="text-white/70">Amount:</span>
           <span className="text-white font-medium">${amount}</span>
         </div>
+        <p className="text-xs text-white/50 mt-2">Use OTP or password to authorize (one only).</p>
       </div>
 
       <div className="space-y-4">
         {/* OTP */}
         <div>
           <Label htmlFor="otp" className="text-white/90">
-            OTP (6 digits)
+            OTP (6 digits, optional)
           </Label>
           <Input
             id="otp"
@@ -85,7 +86,7 @@ export function Step3ExecuteTransfer({
         {/* Password */}
         <div>
           <Label htmlFor="password" className="text-white/90">
-            Password
+            Password (optional)
           </Label>
           <Input
             id="password"

@@ -4,7 +4,13 @@
  * All requests include Authorization: Bearer {token}
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8080/api/v1';
+const rawBaseUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  'http://localhost:8080';
+const API_BASE_URL = rawBaseUrl.endsWith('/api/v1')
+  ? rawBaseUrl
+  : `${rawBaseUrl.replace(/\/$/, '')}/api/v1`;
 
 interface FetchOptions extends RequestInit {
   headers?: Record<string, string>;
@@ -70,8 +76,11 @@ async function apiFetch(endpoint: string, options: FetchOptions = {}) {
  */
 export const api = {
   get: (endpoint: string) => apiFetch(endpoint),
-  post: (endpoint: string, body: any) =>
-    apiFetch(endpoint, { method: 'POST', body: JSON.stringify(body) }),
+  post: (endpoint: string, body?: any) =>
+    apiFetch(endpoint, {
+      method: 'POST',
+      body: body === undefined ? undefined : JSON.stringify(body),
+    }),
   put: (endpoint: string, body: any) =>
     apiFetch(endpoint, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (endpoint: string) => apiFetch(endpoint, { method: 'DELETE' }),

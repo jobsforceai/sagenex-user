@@ -14,7 +14,7 @@ import {
   getFinancialSummary,
 } from "@/actions/user";
 import Navbar from "@/app/components/Navbar";
-import { ArrowDownCircle, BadgeDollarSign, Crown, Gift } from "lucide-react";
+import { ArrowDownCircle, BadgeDollarSign, CalendarCheck, Crown, Gift } from "lucide-react";
 import AgentOverview from "../components/dashboard/AgentOverview";
 import EarningsSummary from "../components/dashboard/EarningsSummary";
 import GamifiedChallenges from "../components/dashboard/GamifiedChallenges";
@@ -346,7 +346,7 @@ const DashboardPage = () => {
         {/* Quick Actions */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-white mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <Link href="/salary" className="group">
               <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-500/10 via-black/20 to-black border border-emerald-500/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:shadow-[0_18px_40px_rgba(16,185,129,0.18)]">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-300 via-emerald-500 to-emerald-300" />
@@ -388,6 +388,21 @@ const DashboardPage = () => {
                   <div>
                     <CardTitle className="text-base">Payouts</CardTitle>
                     <p className="text-sm text-gray-400">Withdrawals and history</p>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+            <Link href="/tests/book" className="group">
+              <Card className="relative overflow-hidden bg-gradient-to-br from-rose-500/10 via-black/20 to-black border border-rose-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-rose-300/50 group-hover:shadow-[0_18px_40px_rgba(244,63,94,0.18)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-300 via-rose-500 to-rose-300" />
+                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-rose-400/15 blur-2xl" />
+                <CardHeader className="flex flex-row items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-rose-500/20 text-rose-200 flex items-center justify-center ring-1 ring-rose-400/30">
+                    <CalendarCheck className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Schedule Test</CardTitle>
+                    <p className="text-sm text-gray-400">Book your next exam slot</p>
                   </div>
                 </CardHeader>
               </Card>

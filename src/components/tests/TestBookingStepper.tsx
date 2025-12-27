@@ -8,7 +8,6 @@ import { useState, useCallback } from 'react';
 import { Stepper, StepContent } from '@/components/common/Stepper';
 import { TestStep1BasicInfo } from './TestStep1BasicInfo';
 import { TestStep2Location } from './TestStep2Location';
-import { TestStep3RequestOtp } from './TestStep3RequestOtp';
 import { TestStep4ReviewConfirm } from './TestStep4ReviewConfirm';
 import { TestStep5Confirmation } from './TestStep5Confirmation';
 import { useTestBooking } from '@/hooks/useTestBooking';
@@ -20,18 +19,14 @@ import {
 } from '@/lib/validation';
 import { toast } from 'sonner';
 
-const STEPS = ['Personal Info', 'Location', 'Request OTP', 'Verify & Confirm', 'Confirmation'];
+const STEPS = ['Personal Info', 'Test & Location', 'Verify & Confirm', 'Confirmation'];
 
-interface TestBookingStepperProps {
-  testType?: string;
-}
-
-export function TestBookingStepper({ testType = 'Medical Test' }: TestBookingStepperProps) {
+export function TestBookingStepper() {
   const [currentStep, setCurrentStep] = useState(0);
   const [userInfo, setUserInfo] = useState<TestBookingBasicInfo | null>(null);
   const [location, setLocation] = useState<TestBookingLocation | null>(null);
 
-  const { status, error, bookingId, transactionId, otpValidUntil, message, idempotencyKey, requestOtp, scheduleTest, reset } = useTestBooking();
+  const { status, error, bookingId, booking, otpValidUntil, message, idempotencyKey, requestOtp, scheduleTest, reset } = useTestBooking();
 
   // Step 1: Basic Info
   const handleBasicInfoSubmit = useCallback((data: TestBookingBasicInfo) => {
@@ -45,41 +40,45 @@ export function TestBookingStepper({ testType = 'Medical Test' }: TestBookingSte
     setCurrentStep(2);
   }, []);
 
-  // Step 3: Request OTP
-  const handleRequestOtp = useCallback(async () => {
-    if (!userInfo || !location) return;
+  // Request OTP (optional)
+  const handleRequestOtp = useCallback(async (): Promise<boolean> => {
+    if (!userInfo || !location) return false;
 
     try {
       await requestOtp({
-        testType,
-        testLocation: location,
+        testId: location.testId,
+        locationId: location.locationId,
         userInfo,
       });
-      setCurrentStep(3);
       toast.success('OTP sent successfully!');
+      return true;
     } catch (err: any) {
       const errorMsg = err.data?.message || err.message || 'Failed to send OTP';
       console.error('OTP request failed:', errorMsg);
       toast.error(errorMsg);
+      return false;
     }
-  }, [userInfo, location, testType, requestOtp]);
+  }, [userInfo, location, requestOtp]);
 
-  // Step 4: Review & Confirm with OTP + Password
+  // Step 3: Review & Confirm with OTP or password
   const handleConfirmBooking = useCallback(async (otpData: TestBookingOtp) => {
     if (!userInfo || !location) return;
 
     const bookingData: TestBooking = {
-      testType,
-      testLocation: location,
+      testId: location.testId,
+      locationId: location.locationId,
       userInfo,
-      otp: otpData.otp,
-      password: otpData.password,
       idempotencyKey,
     };
+    if (otpData.otp) {
+      bookingData.otp = otpData.otp;
+    } else if (otpData.password) {
+      bookingData.password = otpData.password;
+    }
 
     try {
       const result = await scheduleTest(bookingData);
-      setCurrentStep(4);
+      setCurrentStep(3);
       toast.success('Test booked successfully!');
     } catch (err: any) {
       // Error is already set in state by scheduleTest hook
@@ -90,9 +89,9 @@ export function TestBookingStepper({ testType = 'Medical Test' }: TestBookingSte
       toast.error(errorMsg);
       // Don't advance step - stay on review to show error
     }
-  }, [userInfo, location, testType, idempotencyKey, scheduleTest]);
+  }, [userInfo, location, idempotencyKey, scheduleTest]);
 
-  // Step 5: Finish
+  // Step 4: Finish
   const handleFinish = useCallback(() => {
     reset();
     setCurrentStep(0);
@@ -101,11 +100,11 @@ export function TestBookingStepper({ testType = 'Medical Test' }: TestBookingSte
   }, [reset]);
 
   return (
-    <div className="w-full max-w-2xl mx-auto">
+    <div className="w-full max-w-5xl mx-auto">
       <Stepper
         steps={STEPS}
         currentStep={currentStep}
-        completedSteps={currentStep > 4 ? [0, 1, 2, 3, 4] : []}
+        completedSteps={currentStep > 3 ? [0, 1, 2, 3] : []}
       />
 
       <div className="mt-12 p-6 rounded-lg bg-white/5 border border-white/10">
@@ -125,35 +124,27 @@ export function TestBookingStepper({ testType = 'Medical Test' }: TestBookingSte
         </StepContent>
 
         <StepContent isActive={currentStep === 2}>
-          <TestStep3RequestOtp
-            onRequest={handleRequestOtp}
-            onBack={() => setCurrentStep(1)}
-            otpValidUntil={otpValidUntil}
-            message={message}
-            error={error}
-            loading={status === 'loading'}
-          />
-        </StepContent>
-
-        <StepContent isActive={currentStep === 3}>
           {userInfo && location && (
             <TestStep4ReviewConfirm
               userInfo={userInfo}
-              location={location}
-              testType={testType}
+              test={location.test}
+              locationDetails={location.location}
+              onRequestOtp={handleRequestOtp}
+              otpValidUntil={otpValidUntil}
+              otpMessage={message}
               onConfirm={handleConfirmBooking}
-              onBack={() => setCurrentStep(2)}
+              onBack={() => setCurrentStep(1)}
               loading={status === 'loading'}
               error={error}
             />
           )}
         </StepContent>
 
-        <StepContent isActive={currentStep === 4}>
-          {bookingId && transactionId && (
+        <StepContent isActive={currentStep === 3}>
+          {bookingId && (
             <TestStep5Confirmation
-              bookingId={bookingId}
-              transactionId={transactionId}
+              booking={booking}
+              fallbackTest={location?.test}
               onFinish={handleFinish}
             />
           )}

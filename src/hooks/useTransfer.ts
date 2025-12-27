@@ -4,9 +4,9 @@
 
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback } from 'react';
 import { api } from '@/lib/api';
-import { TransferDetails, TransferOtp, TransferExecute } from '@/lib/validation';
+import { TransferDetails, TransferExecute } from '@/lib/validation';
 
 export interface TransferState {
   status: 'idle' | 'loading' | 'success' | 'error';
@@ -25,23 +25,15 @@ export function useTransfer() {
     transactionId: null,
   });
 
-  const idempotencyKey = useMemo(() => {
-    return `xfer-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-  }, []);
-
   /**
    * Request OTP for transfer
    */
   const requestOtp = useCallback(
-    async (details: TransferDetails) => {
+    async () => {
       setState({ status: 'loading', error: null, message: null, transactionId: null });
 
       try {
-        const res = await api.post('/wallet/transfer/send-otp', {
-          recipientId: details.recipientId,
-          amount: details.amount,
-          transferType: details.transferType,
-        });
+        const res = await api.post('/wallet/transfer/send-otp');
 
         setState({
           status: 'success',
@@ -69,7 +61,7 @@ export function useTransfer() {
   );
 
   /**
-   * Execute transfer with OTP and password
+   * Execute transfer with OTP or password
    */
   const executeTransfer = useCallback(
     async (
@@ -79,14 +71,17 @@ export function useTransfer() {
       setState({ status: 'loading', error: null, message: null, transactionId: null });
 
       try {
-        const res = await api.post('/wallet/transfer/execute', {
+        const payload: Record<string, unknown> = {
           recipientId: details.recipientId,
           amount: details.amount,
           transferType: details.transferType,
-          otp: otpPassword.otp,
-          password: otpPassword.password,
-          idempotencyKey,
-        });
+        };
+        if (otpPassword.otp) {
+          payload.otp = otpPassword.otp;
+        } else if (otpPassword.password) {
+          payload.password = otpPassword.password;
+        }
+        const res = await api.post('/wallet/transfer/execute', payload);
 
         setState({
           status: 'success',
@@ -109,7 +104,7 @@ export function useTransfer() {
         throw err;
       }
     },
-    [idempotencyKey]
+    []
   );
 
   const reset = useCallback(() => {
@@ -126,6 +121,5 @@ export function useTransfer() {
     requestOtp,
     executeTransfer,
     reset,
-    idempotencyKey,
   };
 }

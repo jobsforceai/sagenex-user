@@ -38,15 +38,13 @@ export function TransferStepper() {
 
   // Step 2: Request OTP
   const handleRequestOtp = useCallback(async () => {
-    if (!transferData) return;
-
     try {
-      await requestOtp(transferData);
+      await requestOtp();
       setCurrentStep(2);
     } catch (err: any) {
       toast.error(err.data?.message || 'Failed to request OTP');
     }
-  }, [transferData, requestOtp]);
+  }, [requestOtp]);
 
   // Step 3: Execute transfer
   const handleExecuteTransfer = useCallback(
@@ -92,6 +90,7 @@ export function TransferStepper() {
           <Step2RequestOtp
             onRequest={handleRequestOtp}
             onBack={() => setCurrentStep(0)}
+            onSkip={() => setCurrentStep(2)}
             loading={status === 'loading'}
             error={error}
             message={message}

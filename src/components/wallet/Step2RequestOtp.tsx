@@ -11,6 +11,7 @@ import { AlertCircle, Clock } from 'lucide-react';
 interface Step2Props {
   onRequest: () => Promise<void>;
   onBack: () => void;
+  onSkip?: () => void;
   loading?: boolean;
   error?: string | null;
   message?: string | null;
@@ -20,6 +21,7 @@ interface Step2Props {
 export function Step2RequestOtp({
   onRequest,
   onBack,
+  onSkip,
   loading,
   error,
   message,
@@ -105,10 +107,13 @@ export function Step2RequestOtp({
           An OTP will be sent to your registered email. You have <strong>10 minutes</strong> to verify and
           complete the transfer.
         </p>
+        {onSkip && (
+          <p className="mt-2 text-xs text-white/50">Prefer password verification? You can continue without OTP.</p>
+        )}
       </div>
 
       {/* Buttons */}
-      <div className="flex justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:justify-between">
         <Button
           onClick={onBack}
           variant="outline"
@@ -124,6 +129,17 @@ export function Step2RequestOtp({
           {loading ? 'Sending...' : resendDisabled ? `Resend in ${resendCountdown}s` : 'Send OTP'}
         </Button>
       </div>
+      {onSkip && (
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={onSkip}
+          disabled={loading}
+          className="w-full text-sm text-white/70 hover:text-white hover:bg-white/5 disabled:opacity-50"
+        >
+          Use password instead
+        </Button>
+      )}
     </div>
   );
 }

@@ -5,30 +5,45 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import { api } from '@/lib/api';
+import {
+  sendTestOtp,
+  scheduleTestBooking,
+  getTestBookings,
+  getTestBooking,
+  cancelTestBooking,
+} from '@/actions/user';
 import { TestBooking } from '@/lib/validation';
+import type { TestCatalogLocation } from '@/types/tests';
 
 export interface Booking {
   bookingId: string;
-  testType: string;
-  status: 'PENDING' | 'CONFIRMED' | 'COMPLETED' | 'CANCELLED';
+  testId?: string;
+  testType?: string;
+  status:
+    | 'PENDING'
+    | 'RECEIVED'
+    | 'ATTENDED'
+    | 'COMPLETED'
+    | 'RESULTS_PUBLISHED'
+    | 'CANCELLED'
+    | 'CONFIRMED';
   testDate?: string;
-  testLocation: {
-    latitude: number;
-    longitude: number;
-    address: string;
-    city: string;
-    state: string;
-    zipCode: string;
-  };
-  userInfo: {
+  examId?: string;
+  hallTicketQrPayload?: string;
+  hallTicketIssuedAt?: string;
+  scorePercentage?: number;
+  passPercentage?: number;
+  isPassed?: boolean;
+  priceUSD?: number;
+  testLocation?: Partial<TestCatalogLocation>;
+  userInfo?: {
     firstName: string;
     lastName: string;
     phone: string;
     email: string;
     age?: number;
   };
-  paymentTransactionId: string;
+  paymentTransactionId?: string;
   transactionDetails?: {
     debitedFrom: string;
     creditedTo: string;
@@ -42,7 +57,7 @@ export interface BookingState {
   error: string | null;
   message: string | null;
   bookingId: string | null;
-  transactionId: string | null;
+  booking: Booking | null;
   otpValidUntil: Date | null;
   remainingAttempts: number;
   idempotencyKey: string;
@@ -54,7 +69,7 @@ export function useTestBooking() {
     error: null,
     message: null,
     bookingId: null,
-    transactionId: null,
+    booking: null,
     otpValidUntil: null,
     remainingAttempts: 3,
     idempotencyKey: `book_${Date.now()}_${Math.random().toString(36).slice(2)}`,
@@ -67,17 +82,17 @@ export function useTestBooking() {
    * Request OTP for test booking
    */
   const requestOtp = useCallback(async (bookingDetails: {
-    testType: string;
-    testLocation: any;
+    testId: string;
+    locationId: string;
     userInfo: any;
   }) => {
     setState(prev => ({ ...prev, status: 'loading', error: null }));
 
     try {
-      const res = await api.post('/tests/send-otp', {
-        ...bookingDetails,
-        amount: 50, // Fixed amount
-      });
+      const res = await sendTestOtp(bookingDetails);
+      if (res.error) {
+        throw { message: res.error, data: res };
+      }
 
       setState(prev => ({
         ...prev,
@@ -102,21 +117,25 @@ export function useTestBooking() {
   }, []);
 
   /**
-   * Schedule a new test booking with OTP + password
+   * Schedule a new test booking with OTP or password
    */
   const scheduleTest = useCallback(async (bookingData: TestBooking) => {
     setState(prev => ({ ...prev, status: 'loading', error: null, message: null }));
 
     try {
-      const res = await api.post('/tests/schedule', bookingData);
+      const res = await scheduleTestBooking(bookingData);
+      if (res.error) {
+        throw { message: res.error, data: res };
+      }
+      const booking = res.booking || (res.bookingId ? { bookingId: res.bookingId, status: res.status || 'PENDING' } : null);
 
       setState(prev => ({
         ...prev,
         status: 'success',
         error: null,
         message: res.message || 'Test scheduled successfully',
-        bookingId: res.bookingId,
-        transactionId: res.transactionId,
+        bookingId: booking?.bookingId || res.bookingId || null,
+        booking,
       }));
 
       return res;
@@ -138,7 +157,10 @@ export function useTestBooking() {
    */
   const fetchBookings = useCallback(async () => {
     try {
-      const res = await api.get('/tests');
+      const res = await getTestBookings();
+      if (res.error) {
+        throw { message: res.error, data: res };
+      }
       setBookings(res.bookings || []);
       return res;
     } catch (err: any) {
@@ -152,7 +174,10 @@ export function useTestBooking() {
    */
   const fetchBooking = useCallback(async (bookingId: string) => {
     try {
-      const res = await api.get(`/tests/${bookingId}`);
+      const res = await getTestBooking(bookingId);
+      if (res.error) {
+        throw { message: res.error, data: res };
+      }
       setCurrentBooking(res.booking);
       return res.booking;
     } catch (err: any) {
@@ -167,7 +192,10 @@ export function useTestBooking() {
   const cancelBooking = useCallback(
     async (bookingId: string, reason?: string) => {
       try {
-        const res = await api.post(`/tests/${bookingId}/cancel`, { reason });
+        const res = await cancelTestBooking(bookingId, reason);
+        if (res.error) {
+          throw { message: res.error, data: res };
+        }
 
         // Update bookings list
         setBookings((prev) =>
@@ -181,7 +209,7 @@ export function useTestBooking() {
           error: null,
           message: res.message || 'Booking cancelled successfully',
           bookingId,
-          transactionId: null,
+          booking: null,
           otpValidUntil: null,
           remainingAttempts: 3,
           idempotencyKey: `book_${Date.now()}_${Math.random().toString(36).slice(2)}`,
@@ -196,7 +224,7 @@ export function useTestBooking() {
           error: errorMessage,
           message: null,
           bookingId: null,
-          transactionId: null,
+          booking: null,
           otpValidUntil: null,
           remainingAttempts: 3,
           idempotencyKey: `book_${Date.now()}_${Math.random().toString(36).slice(2)}`,
@@ -213,7 +241,7 @@ export function useTestBooking() {
       error: null,
       message: null,
       bookingId: null,
-      transactionId: null,
+      booking: null,
       otpValidUntil: null,
       remainingAttempts: 3,
       idempotencyKey: `book_${Date.now()}_${Math.random().toString(36).slice(2)}`,

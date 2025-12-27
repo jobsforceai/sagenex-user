@@ -1,5 +1,5 @@
 /**
- * Test Booking Stepper - Step 5: Confirmation
+ * Test Booking Stepper - Confirmation
  */
 
 'use client';
@@ -7,18 +7,23 @@
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
 import Link from 'next/link';
+import type { Booking } from '@/hooks/useTestBooking';
+import type { TestCatalogItem } from '@/types/tests';
 
 interface TestStep5Props {
-  bookingId: string;
-  transactionId: string;
+  booking: Booking | null;
+  fallbackTest?: TestCatalogItem;
   onFinish: () => void;
 }
 
 export function TestStep5Confirmation({
-  bookingId,
-  transactionId,
+  booking,
+  fallbackTest,
   onFinish,
 }: TestStep5Props) {
+  const testName = booking?.testType || fallbackTest?.heading || 'Test booking';
+  const testDate = booking?.testDate || fallbackTest?.scheduledAt;
+  const fee = fallbackTest?.priceUSD;
   return (
     <div className="space-y-6 text-center">
       {/* Success Icon */}
@@ -31,28 +36,38 @@ export function TestStep5Confirmation({
       {/* Success Message */}
       <div>
         <h3 className="text-2xl font-bold text-white mb-2">Test Booked Successfully!</h3>
-        <p className="text-white/70">Your test booking has been confirmed and a $50 fee has been charged.</p>
+        <p className="text-white/70">
+          Your test booking has been submitted and is awaiting confirmation.
+        </p>
       </div>
 
       {/* Summary */}
       <div className="space-y-3 p-6 rounded-lg bg-white/5 border border-white/10">
         <div className="flex justify-between items-center">
           <span className="text-white/70">Booking ID:</span>
-          <span className="text-white font-mono text-sm">{bookingId}</span>
-        </div>
-        <div className="flex justify-between items-center">
-          <span className="text-white/70">Transaction ID:</span>
-          <span className="text-white font-mono text-sm">{transactionId}</span>
+          <span className="text-white font-mono text-sm">{booking?.bookingId || '—'}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-white/70">Status:</span>
           <span className="text-white px-2 py-1 rounded-full bg-blue-500/20 text-blue-200 text-xs font-semibold">
-            PENDING
+            {booking?.status || 'PENDING'}
           </span>
         </div>
         <div className="flex justify-between items-center">
+          <span className="text-white/70">Test:</span>
+          <span className="text-white">{testName}</span>
+        </div>
+        {testDate && (
+          <div className="flex justify-between items-center">
+            <span className="text-white/70">Scheduled At:</span>
+            <span className="text-white">{new Date(testDate).toLocaleString()}</span>
+          </div>
+        )}
+        <div className="flex justify-between items-center">
           <span className="text-white/70">Fee:</span>
-          <span className="text-white font-semibold">$50.00</span>
+          <span className="text-white font-semibold">
+            {fee ? `$${fee.toFixed(2)}` : '—'}
+          </span>
         </div>
       </div>
 

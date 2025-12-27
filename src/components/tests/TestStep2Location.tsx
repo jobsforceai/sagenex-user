@@ -4,14 +4,14 @@
 
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { TestBookingLocation, testBookingLocationSchema } from '@/lib/validation';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { AlertCircle, MapPin } from 'lucide-react';
+import { getTestsCatalog } from '@/actions/user';
+import type { TestCatalogItem, TestCatalogLocation } from '@/types/tests';
 
 interface TestStep2Props {
   onNext: (data: TestBookingLocation) => void;
@@ -20,190 +20,236 @@ interface TestStep2Props {
 }
 
 export function TestStep2Location({ onNext, onBack, initialData }: TestStep2Props) {
-  const [geoLoading, setGeoLoading] = useState(false);
+  const [tests, setTests] = useState<TestCatalogItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState<string | null>(null);
+  const [selectedTest, setSelectedTest] = useState<TestCatalogItem | null>(initialData?.test || null);
+  const [selectedLocation, setSelectedLocation] = useState<TestCatalogLocation | null>(initialData?.location || null);
+  const catalogEndpoint = useMemo(() => {
+    const rawBase =
+      process.env.NEXT_PUBLIC_BACKEND_URL ||
+      process.env.NEXT_PUBLIC_API_BASE_URL ||
+      'http://localhost:8080';
+    const base = rawBase.replace(/\/$/, '');
+    if (base.endsWith('/api/v1')) {
+      return `${base}/tests/catalog`;
+    }
+    return `${base}/api/v1/tests/catalog`;
+  }, []);
 
   const {
-    register,
     handleSubmit,
     formState: { errors },
+    register,
     setValue,
-    watch,
+    setError,
   } = useForm<TestBookingLocation>({
     resolver: zodResolver(testBookingLocationSchema),
     defaultValues: initialData,
   });
 
-  const latitude = watch('latitude');
-  const longitude = watch('longitude');
+  useEffect(() => {
+    const fetchCatalog = async () => {
+      try {
+        console.log('[tests] fetching catalog from:', catalogEndpoint);
+        const res = await getTestsCatalog();
+        console.log('[tests] catalog response:', res);
+        if (res.error) {
+          setCatalogError(res.error);
+        } else {
+          const catalogTests: TestCatalogItem[] = Array.isArray(res.tests) ? res.tests : [];
+          setTests(catalogTests);
+          console.log('[tests] catalog tests count:', catalogTests.length);
+          console.log(
+            '[tests] catalog tests data:',
+            catalogTests.map((test: TestCatalogItem) => ({
+              testId: test.testId,
+              heading: test.heading,
+              locationCount: test.locations?.length || 0,
+              allowAllLocations: test.allowAllLocations,
+              allowedLocationIds: test.allowedLocationIds,
+            }))
+          );
+        }
+      } catch (err: any) {
+        setCatalogError(err?.message || 'Failed to load available tests.');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Geolocation handler
-  const handleGetLocation = () => {
-    if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser');
+    fetchCatalog();
+  }, []);
+
+  useEffect(() => {
+    if (tests.length === 0) return;
+    if (!selectedTest && initialData?.testId) {
+      const foundTest = tests.find((test) => test.testId === initialData.testId) || null;
+      if (foundTest) {
+        setSelectedTest(foundTest);
+      }
+    }
+  }, [tests, selectedTest, initialData?.testId]);
+
+  useEffect(() => {
+    if (!selectedTest || !initialData?.locationId) return;
+    if (!selectedLocation) {
+      const foundLocation = selectedTest.locations.find(
+        (location) => location.locationId === initialData.locationId
+      );
+      if (foundLocation) {
+        setSelectedLocation(foundLocation);
+      }
+    }
+  }, [selectedTest, selectedLocation, initialData?.locationId]);
+
+  const availableLocations = useMemo(() => {
+    if (!selectedTest) return [];
+    if (selectedTest.allowAllLocations || selectedTest.allowedLocationIds.length === 0) {
+      return selectedTest.locations;
+    }
+    return selectedTest.locations.filter((location) =>
+      selectedTest.allowedLocationIds.includes(location.locationId)
+    );
+  }, [selectedTest]);
+
+  const handleSelectTest = (test: TestCatalogItem) => {
+    setSelectedTest(test);
+    setSelectedLocation(null);
+    setValue('testId', test.testId, { shouldValidate: true });
+    setValue('locationId', '', { shouldValidate: true });
+    console.log('[tests] selected test:', test.testId, test.heading, test);
+    console.log('[tests] selected test locations:', test.locations);
+  };
+
+  const handleSelectLocation = (location: TestCatalogLocation) => {
+    setSelectedLocation(location);
+    setValue('locationId', location.locationId, { shouldValidate: true });
+    console.log('[tests] selected location:', location.locationId, location.name, location);
+  };
+
+  const handleNext = (data: TestBookingLocation) => {
+    if (!selectedTest) {
+      setError('testId', { message: 'Please select a test.' });
+      return;
+    }
+    if (!selectedLocation) {
+      setError('locationId', { message: 'Please select a location.' });
       return;
     }
 
-    setGeoLoading(true);
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setValue('latitude', position.coords.latitude);
-        setValue('longitude', position.coords.longitude);
-        setGeoLoading(false);
-      },
-      (error) => {
-        alert(`Geolocation error: ${error.message}`);
-        setGeoLoading(false);
-      }
-    );
+    onNext({
+      ...data,
+      test: selectedTest,
+      location: selectedLocation,
+    });
   };
 
   return (
-    <form onSubmit={handleSubmit(onNext)} className="space-y-6">
-      <div className="space-y-4">
-        {/* Latitude */}
-        <div>
-          <Label htmlFor="latitude" className="text-white/90">
-            Latitude
-          </Label>
-          <Input
-            id="latitude"
-            type="number"
-            step="0.000001"
-            placeholder="40.7128"
-            {...register('latitude', { valueAsNumber: true })}
-            className="mt-2 bg-white/5 border-white/20 text-white"
-          />
-          {errors.latitude && (
-            <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {errors.latitude.message}
-            </div>
-          )}
-        </div>
+    <form onSubmit={handleSubmit(handleNext)} className="space-y-6">
+      <input type="hidden" {...register('testId')} />
+      <input type="hidden" {...register('locationId')} />
 
-        {/* Longitude */}
-        <div>
-          <Label htmlFor="longitude" className="text-white/90">
-            Longitude
-          </Label>
-          <Input
-            id="longitude"
-            type="number"
-            step="0.000001"
-            placeholder="-74.0060"
-            {...register('longitude', { valueAsNumber: true })}
-            className="mt-2 bg-white/5 border-white/20 text-white"
-          />
-          {errors.longitude && (
-            <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {errors.longitude.message}
-            </div>
-          )}
+      {loading && <p className="text-sm text-white/70">Loading available tests...</p>}
+      {catalogError && (
+        <div className="flex items-center gap-2 text-red-400 text-sm">
+          <AlertCircle className="w-4 h-4" />
+          {catalogError}
         </div>
+      )}
 
-        {/* Geolocation Button */}
-        {latitude && longitude && (
-          <div className="p-3 rounded-lg bg-emerald-500/10 border border-emerald-400/30 text-sm text-emerald-200 flex items-start gap-2">
-            <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-            <p>
-              Current location: {latitude.toFixed(4)}, {longitude.toFixed(4)}
-            </p>
+      {!loading && tests.length === 0 && !catalogError && (
+        <p className="text-sm text-white/70">No available tests at the moment.</p>
+      )}
+
+      {tests.length > 0 && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-white/80">Choose a test</h3>
+          <div className="grid gap-4">
+            {tests.map((test) => {
+              const isActive = selectedTest?.testId === test.testId;
+              return (
+                <button
+                  type="button"
+                  key={test.testId}
+                  onClick={() => handleSelectTest(test)}
+                  className={`rounded-lg border p-4 text-left transition ${
+                    isActive
+                      ? 'border-emerald-400/70 bg-emerald-500/10'
+                      : 'border-white/10 bg-white/5 hover:border-white/30'
+                  }`}
+                >
+                  <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-base font-semibold text-white">{test.heading}</p>
+                      <p className="text-sm text-white/60">{test.subheading}</p>
+                      <p className="text-xs text-white/50 mt-2">{test.description}</p>
+                    </div>
+                    <div className="text-sm text-white/80 sm:text-right">
+                      <p className="font-semibold">${test.priceUSD.toFixed(2)}</p>
+                      <p className="text-xs text-white/50">{test.durationMinutes} min</p>
+                      <p className="text-xs text-white/50 mt-2">
+                        {new Date(test.scheduledAt).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
-        )}
-
-        <Button
-          type="button"
-          onClick={handleGetLocation}
-          disabled={geoLoading}
-          variant="outline"
-          className="w-full border-emerald-400/50 text-emerald-300 hover:bg-emerald-500/10"
-        >
-          {geoLoading ? 'Getting location...' : 'Use Current Location'}
-        </Button>
-
-        {/* Address */}
-        <div>
-          <Label htmlFor="address" className="text-white/90">
-            Address
-          </Label>
-          <Input
-            id="address"
-            type="text"
-            placeholder="123 Main Street"
-            {...register('address')}
-            className="mt-2 bg-white/5 border-white/20 text-white"
-          />
-          {errors.address && (
+          {errors.testId && (
             <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
               <AlertCircle className="w-4 h-4" />
-              {errors.address.message}
+              {errors.testId.message}
             </div>
           )}
         </div>
+      )}
 
-        {/* City */}
-        <div>
-          <Label htmlFor="city" className="text-white/90">
-            City
-          </Label>
-          <Input
-            id="city"
-            type="text"
-            placeholder="New York"
-            {...register('city')}
-            className="mt-2 bg-white/5 border-white/20 text-white"
-          />
-          {errors.city && (
+      {selectedTest && (
+        <div className="space-y-4">
+          <h3 className="text-sm font-semibold text-white/80">Choose a location</h3>
+          {availableLocations.length === 0 ? (
+            <p className="text-sm text-white/70">No available locations for this test.</p>
+          ) : (
+            <div className="grid gap-3">
+              {availableLocations.map((location) => {
+                const isActive = selectedLocation?.locationId === location.locationId;
+                return (
+                  <button
+                    type="button"
+                    key={location.locationId}
+                    onClick={() => handleSelectLocation(location)}
+                    className={`rounded-lg border p-4 text-left transition ${
+                      isActive
+                        ? 'border-emerald-400/70 bg-emerald-500/10'
+                        : 'border-white/10 bg-white/5 hover:border-white/30'
+                    }`}
+                  >
+                    <div className="flex items-start gap-3">
+                      <MapPin className="h-4 w-4 text-emerald-300 mt-0.5" />
+                      <div>
+                        <p className="text-sm font-semibold text-white">{location.name}</p>
+                        <p className="text-xs text-white/60">{location.address}</p>
+                        <p className="text-xs text-white/60">
+                          {location.city}, {location.state} {location.zipCode}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          {errors.locationId && (
             <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
               <AlertCircle className="w-4 h-4" />
-              {errors.city.message}
+              {errors.locationId.message}
             </div>
           )}
         </div>
+      )}
 
-        {/* State */}
-        <div>
-          <Label htmlFor="state" className="text-white/90">
-            State
-          </Label>
-          <Input
-            id="state"
-            type="text"
-            placeholder="NY"
-            {...register('state')}
-            className="mt-2 bg-white/5 border-white/20 text-white"
-          />
-          {errors.state && (
-            <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {errors.state.message}
-            </div>
-          )}
-        </div>
-
-        {/* Zip Code */}
-        <div>
-          <Label htmlFor="zipCode" className="text-white/90">
-            Zip Code
-          </Label>
-          <Input
-            id="zipCode"
-            type="text"
-            placeholder="10001"
-            {...register('zipCode')}
-            className="mt-2 bg-white/5 border-white/20 text-white"
-          />
-          {errors.zipCode && (
-            <div className="flex items-center gap-2 mt-2 text-red-400 text-sm">
-              <AlertCircle className="w-4 h-4" />
-              {errors.zipCode.message}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Buttons */}
       <div className="flex justify-between gap-3">
         <Button
           onClick={onBack}
@@ -216,7 +262,7 @@ export function TestStep2Location({ onNext, onBack, initialData }: TestStep2Prop
           type="submit"
           className="bg-gradient-to-r from-emerald-400 to-emerald-500 text-black hover:brightness-95"
         >
-          Next: Schedule
+          Next: Verify & Confirm
         </Button>
       </div>
     </form>
