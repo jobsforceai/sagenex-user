@@ -255,18 +255,20 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
 
                 <div className="mt-3">
                   {isAuthenticated ? (
-                    <button
-                      onClick={() => {
-                        setOpen(false);
-                        logout();
-                      }}
-                      className="w-full px-3.5 py-2 rounded-lg text-sm font-medium text-white/90 hover:text-white
+                    <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => {
+                          setOpen(false);
+                          logout();
+                        }}
+                        className="w-full px-3.5 py-2 rounded-lg text-sm font-medium text-white/90 hover:text-white
                                  bg-gradient-to-b from-red-500 to-red-600 hover:from-red-500/95 hover:to-red-600/95
                                  shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_8px_20px_rgba(239,68,68,0.35)]
                                  focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
-                    >
-                      Logout
-                    </button>
+                      >
+                        Logout
+                      </button>
+                    </div>
                   ) : (
                     <HeroButton className="w-full justify-center" href="/login">
                       Login
