@@ -13,12 +13,10 @@ import { Crown } from "lucide-react";
 type NavLink = { href: string; label: string };
 
 const guestLinks: NavLink[] = [
-  // { href: "#about-us", label: "About" },
   { href: "#academy", label: "Academy" },
   { href: "#earning", label: "Earning" },
-  { href: "#ecosystem-sgchain", label: "SGChain" },
-  { href: "#ecosystem-sg5traders", label: "SG5Traders" },
-  // { href: "#card", label: "Cash Card" },
+  { href: process.env.NEXT_PUBLIC_SGCHAIN_URL ?? "#", label: "SGChain" },
+  { href: process.env.NEXT_PUBLIC_SG5TRADERS_URL ?? "#", label: "SG5Traders" },
   { href: process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "#", label: "Download App" },
 ];
 
@@ -88,6 +86,9 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
       .filter(Boolean)
       .join(" ");
 
+  // Only treat absolute http(s) URLs as "external"
+  const isExternalHref = (href: string) => /^https?:\/\//i.test(href);
+
   // Prevent body scroll when drawer is open
   useEffect(() => {
     if (open) {
@@ -128,7 +129,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   alt="Sagenex"
                   fill
                   sizes="100vw"
-                  className="object-fill  rounded-full"
+                  className="object-fill rounded-full"
                   priority
                 />
               </span>
@@ -140,20 +141,25 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
             {/* Desktop nav */}
             {variant === "full" && (
               <nav className="hidden md:flex items-center gap-1">
-                {links.map((l) => (
-                  <Link
-                    key={l.href}
-                    href={l.href}
-                    className={navItemClass(l.href)}
-                    aria-current={isActive(l.href) ? "page" : undefined}
-                  >
-                    {l.label}
-                    {/* Active underline */}
-                    {isActive(l.href) && (
-                      <span className="absolute left-2 right-2 -bottom-1 h-px bg-gradient-to-r from-transparent via-emerald-300/70 to-transparent" />
-                    )}
-                  </Link>
-                ))}
+                {links.map((l) => {
+                  const external = isExternalHref(l.href);
+                  return (
+                    <Link
+                      key={l.href}
+                      href={l.href}
+                      target={external ? "_blank" : undefined}
+                      rel={external ? "noopener noreferrer" : undefined}
+                      className={navItemClass(l.href)}
+                      aria-current={isActive(l.href) ? "page" : undefined}
+                    >
+                      {l.label}
+                      {/* Active underline */}
+                      {isActive(l.href) && (
+                        <span className="absolute left-2 right-2 -bottom-1 h-px bg-gradient-to-r from-transparent via-emerald-300/70 to-transparent" />
+                      )}
+                    </Link>
+                  );
+                })}
               </nav>
             )}
 
@@ -213,35 +219,38 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
           {variant === "full" && (
             <motion.div
               initial={false}
-              animate={
-                open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }
-              }
+              animate={open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
               className="md:hidden overflow-hidden"
             >
               <div className="px-4 pb-4 pt-1">
                 <nav className="flex flex-col">
-                  {links.map((l) => (
-                    <Link
-                      key={l.href}
-                      href={l.href}
-                      onClick={() => setOpen(false)}
-                      className={[
-                        "flex items-center justify-between rounded-lg px-3 py-2 text-sm",
-                        "text-zinc-200 hover:text-white hover:bg-white/5",
-                        "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70",
-                        isActive(l.href) && "bg-white/5 text-white",
-                      ]
-                        .filter(Boolean)
-                        .join(" ")}
-                      aria-current={isActive(l.href) ? "page" : undefined}
-                    >
-                      {l.label}
-                      {isActive(l.href) && (
-                        <span className="ml-3 h-1.5 w-1.5 rounded-full bg-emerald-300" />
-                      )}
-                    </Link>
-                  ))}
+                  {links.map((l) => {
+                    const external = isExternalHref(l.href);
+                    return (
+                      <Link
+                        key={l.href}
+                        href={l.href}
+                        target={external ? "_blank" : undefined}
+                        rel={external ? "noopener noreferrer" : undefined}
+                        onClick={() => setOpen(false)}
+                        className={[
+                          "flex items-center justify-between rounded-lg px-3 py-2 text-sm",
+                          "text-zinc-200 hover:text-white hover:bg-white/5",
+                          "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70",
+                          isActive(l.href) && "bg-white/5 text-white",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                        aria-current={isActive(l.href) ? "page" : undefined}
+                      >
+                        {l.label}
+                        {isActive(l.href) && (
+                          <span className="ml-3 h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                        )}
+                      </Link>
+                    );
+                  })}
                 </nav>
 
                 <div className="mt-3">
