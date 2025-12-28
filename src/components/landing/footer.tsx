@@ -123,7 +123,7 @@ export default function Footer() {
           <FooterCol
             title="Resources"
             links={[
-              { label: "Whitepaper", href: "/Sagenex-USA-SGCOIN.pdf", download: true },
+              { label: "Whitepaper (Secure Viewer)", href: "/whitepaper" },
               { label: "Compliance (KYC/AML)", href: "/kyc" },
             ]}
           />
