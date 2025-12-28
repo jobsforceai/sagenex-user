@@ -13,8 +13,8 @@ import { Crown } from "lucide-react";
 type NavLink = { href: string; label: string };
 
 const guestLinks: NavLink[] = [
-  { href: "#academy", label: "Academy" },
-  { href: "#earning", label: "Earning" },
+  { href: "/sgbn", label: "SGBN" },
+  { href: "/sgse", label: "SGSE" },
   { href: process.env.NEXT_PUBLIC_SGCHAIN_URL ?? "#", label: "SGChain" },
   { href: process.env.NEXT_PUBLIC_SG5TRADERS_URL ?? "#", label: "SG5Traders" },
   { href: process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "#", label: "Download App" },
