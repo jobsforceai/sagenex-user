@@ -37,7 +37,7 @@ const item: Variants = {
 };
 
 export default function AppDownloadSection() {
-    const apkUrl = process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "";
+    const apkUrl = process.env.NEXT_PUBLIC_ANDROID_APK_URL || "https://example.com/sagenex.apk";
     const iosUrl = "https://apps.apple.com/us/app/sagenex/id6755692818"
 
   return (
