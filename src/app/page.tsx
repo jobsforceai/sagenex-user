@@ -9,6 +9,7 @@ import AppDownloadSection from "../components/landing/app-download";
 import Navbar from "./components/Navbar";
 import SgCoinPage from "@/components/landing/sagenex-coin";
 import ProfitCalculator from "@/components/landing/profit-calculator";
+import FAQSection from "@/components/landing/faq-section";
 import Footer from "@/components/landing/footer";
 
 
@@ -27,6 +28,7 @@ export default function Home() {
       {/* <CashCardSection/> */}
       <AppDownloadSection />
       <SgCoinPage />
+      <FAQSection />
       <Footer />
     </>
   );
