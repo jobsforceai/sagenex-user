@@ -92,7 +92,7 @@ const ProfilePage = () => {
                 getProfileData(),
                 getKycStatus()
             ]);
-
+            console.log("Fetched Profile Data:", profileData);
             if (profileData.error) {
                 setError(profileData.error);
             } else {

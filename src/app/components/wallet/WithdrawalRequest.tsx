@@ -13,11 +13,17 @@ interface WithdrawalRequestProps {
   currentBalance: number;
   kycStatus: string | undefined;
   className?: string;
+  remainingWithdrawalLimit?: number;
 }
 
 type WithdrawalType = "crypto" | "upi" | "bank";
 
-const WithdrawalRequest = ({ currentBalance, kycStatus, className }: WithdrawalRequestProps) => {
+const WithdrawalRequest = ({
+  currentBalance,
+  kycStatus,
+  className,
+  remainingWithdrawalLimit,
+}: WithdrawalRequestProps) => {
   const [amount, setAmount] = useState("");
   const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>("crypto");
   const [withdrawalAddress, setWithdrawalAddress] = useState("");
@@ -31,6 +37,14 @@ const WithdrawalRequest = ({ currentBalance, kycStatus, className }: WithdrawalR
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const safeRemainingLimit =
+    typeof remainingWithdrawalLimit === "number"
+      ? Math.max(0, remainingWithdrawalLimit)
+      : null;
+  const maxWithdrawable =
+    safeRemainingLimit !== null
+      ? Math.min(currentBalance, safeRemainingLimit)
+      : currentBalance;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -49,8 +63,8 @@ const WithdrawalRequest = ({ currentBalance, kycStatus, className }: WithdrawalR
     setError(null);
 
     const withdrawalAmount = parseFloat(newAmount);
-    if (!isNaN(withdrawalAmount) && withdrawalAmount > currentBalance) {
-      setError("Withdrawal amount cannot exceed your available balance.");
+    if (!isNaN(withdrawalAmount) && withdrawalAmount > maxWithdrawable) {
+      setError("Withdrawal amount cannot exceed your remaining withdrawal limit.");
     } else if (withdrawalType === "upi" && !isNaN(withdrawalAmount) && withdrawalAmount > 50) {
       setError("UPI withdrawal amount cannot exceed $50.");
     }
@@ -73,8 +87,8 @@ const WithdrawalRequest = ({ currentBalance, kycStatus, className }: WithdrawalR
       return;
     }
 
-    if (withdrawalAmount > currentBalance) {
-      toast.error("Withdrawal amount cannot exceed your available balance.");
+    if (withdrawalAmount > maxWithdrawable) {
+      toast.error("Withdrawal amount cannot exceed your remaining withdrawal limit.");
       setIsLoading(false);
       return;
     }
@@ -202,12 +216,17 @@ const WithdrawalRequest = ({ currentBalance, kycStatus, className }: WithdrawalR
               type="number"
               value={amount}
               onChange={handleAmountChange}
-              placeholder={`Available: $${currentBalance.toFixed(2)}`}
+              placeholder={`Available: $${maxWithdrawable.toFixed(2)}`}
               className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
               required
               min="0.01"
               step="0.01"
             />
+            {safeRemainingLimit !== null && (
+              <p className="text-xs text-gray-500 mt-2">
+                Remaining withdrawal limit: ${maxWithdrawable.toFixed(2)}
+              </p>
+            )}
             {withdrawalType === "upi" && parseFloat(amount) > 50 && (
               <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed $50.</p>
             )}

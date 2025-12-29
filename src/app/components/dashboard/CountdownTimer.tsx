@@ -11,10 +11,9 @@ import {
 
 interface CountdownTimerProps {
   deadline: string | null | undefined;
-  joinDate: string | null | undefined;
 }
 
-const CountdownTimer = ({ deadline, joinDate }: CountdownTimerProps) => {
+const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
   const calculateTimeLeft = () => {
     if (!deadline) return null;
 
@@ -30,10 +29,10 @@ const CountdownTimer = ({ deadline, joinDate }: CountdownTimerProps) => {
   };
 
   const calculateProgress = () => {
-    if (!deadline || !joinDate) return 0;
-    const now = new Date().getTime();
-    const start = new Date(joinDate).getTime();
+    if (!deadline) return 0;
+    const now = Date.now();
     const end = new Date(deadline).getTime();
+    const start = end - 60 * 24 * 60 * 60 * 1000;
     if (now >= end) return 100;
     if (now <= start) return 0;
 
@@ -55,7 +54,7 @@ const CountdownTimer = ({ deadline, joinDate }: CountdownTimerProps) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, [deadline, joinDate]);
+  }, [deadline]);
 
   if (!deadline) {
     return null;
@@ -68,7 +67,7 @@ const CountdownTimer = ({ deadline, joinDate }: CountdownTimerProps) => {
   return (
     <div className="mt-6 border-t border-neutral-800/50 pt-6">
        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium text-gray-400">4.0x Earnings Multiplier Countdown</h3>
+            <h3 className="text-sm font-medium text-gray-400">Earnings Multiplier Qualification Window</h3>
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger>
@@ -77,12 +76,12 @@ const CountdownTimer = ({ deadline, joinDate }: CountdownTimerProps) => {
                     <TooltipContent className="max-w-xs bg-gray-800 text-white border-gray-700 p-4 rounded-lg shadow-lg">
                         <h4 className="font-bold text-lg mb-2">How this works:</h4>
                         <p className="text-sm">
-                            To unlock the 4.0x earnings multiplier, you must sponsor at least 6 users who invest within 60 days of your registration.
+                            You have a fixed 60-day window to qualify for higher multipliers.
                         </p>
                         <ul className="list-disc list-inside mt-2 text-xs space-y-1">
-                            <li>New users have a 60-day countdown from their join date.</li>
-                            <li>Existing users with expired or nearly expired timers have been granted a 2-week extension.</li>
-                            <li>If you have any questions, please contact support.</li>
+                            <li>3.0x: 6 direct active members + $5,000 team business.</li>
+                            <li>4.0x: 12 direct active members + $10,000 team business.</li>
+                            <li>If the window ends without qualifying, your multiplier locks at 2.5x.</li>
                         </ul>
                     </TooltipContent>
                 </Tooltip>
