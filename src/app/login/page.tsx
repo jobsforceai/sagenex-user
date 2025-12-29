@@ -65,8 +65,8 @@ function Login() {
 
     setIsLoading(true);
 
-    if (!fullName || !email) {
-        setError("Full name and email are required.");
+    if (!fullName || !email || !phone) {
+        setError("Full name, email, and phone number are required.");
         setIsLoading(false);
         return;
     }
@@ -249,7 +249,7 @@ function Login() {
         </div>
         <div className="relative">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Phone (Optional)" id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+            <Input placeholder="Phone" id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
         </div>
         <div className="relative">
             <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />

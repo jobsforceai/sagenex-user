@@ -3,11 +3,12 @@
 import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { getPayouts, getCurrentPayoutProgress } from "@/actions/user";
-import { DollarSign, CalendarDays, TrendingUp, Loader2 } from "lucide-react";
+import { ArrowLeft, DollarSign, CalendarDays, TrendingUp, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // --- INTERFACES ---
@@ -170,8 +171,9 @@ const PayoutsPage = () => {
             setPayoutHistory(historyData.payouts);
             setPagination(historyData.pagination);
         }
-      } catch {
-        setError("An unexpected error occurred while fetching data.");
+      } catch (err) {
+        console.error("Failed to fetch initial payout data:", err);
+        setError("An unexpected error occurred while fetching payout data.");
       } finally {
         setInitialLoading(false);
       }
@@ -235,8 +237,14 @@ const PayoutsPage = () => {
       <Navbar />
       <main className="container mx-auto p-4 pt-24">
         <header className="mb-8">
+          <Button asChild variant="outline" className="mb-4">
+            <Link href="/dashboard">
+              <ArrowLeft className="mr-2 h-4 w-4" />
+              Back to Dashboard
+            </Link>
+          </Button>
           <h1 className="text-4xl font-bold text-white">Payouts</h1>
-          <p className="text-gray-400 mt-2">Track your current earnings and review your payout history.</p>
+          <p className="text-gray-400 mt-2">Track your current earnings and review your payout history, including your special bonuses.</p>
         </header>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
@@ -271,7 +279,7 @@ const PayoutsPage = () => {
                     <CardContent>
                         {currentPayout ? (
                             <>
-                                <PayoutDetailRow label="ROI Payout" value={currentPayout.earningsBreakdown.roiPayout} icon={TrendingUp} />
+                                <PayoutDetailRow label="Special Bonus Payout" value={currentPayout.earningsBreakdown.roiPayout} icon={TrendingUp} /> {/* Frontend display change: 'Special Bonus Payout' is displayed, corresponding to the backend's 'roiPayout' field. */}
                             </>
                         ) : <p className="text-gray-500">No current earnings data.</p>}
                     </CardContent>
@@ -294,7 +302,7 @@ const PayoutsPage = () => {
                                 </div>
                                 </AccordionTrigger>
                                 <AccordionContent className="bg-black/20 p-4 rounded-b-md">
-                                    <PayoutDetailRow label="ROI Payout" value={payout.roiPayout} icon={TrendingUp} />
+                                    <PayoutDetailRow label="Special Bonus Payout" value={payout.roiPayout} icon={TrendingUp} /> {/* Frontend display change: 'Special Bonus Payout' is displayed, corresponding to the backend's 'roiPayout' field. */}
                                 </AccordionContent>
                             </AccordionItem>
                             ))}

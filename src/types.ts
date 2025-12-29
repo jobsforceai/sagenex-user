@@ -103,6 +103,7 @@ export interface Reward {
   rewardSnapshot: {
     valueUSD: number;
     reward: string;
+    numberOfTickets?: number;
   };
   requiredDocuments?: {
     docType: string;
@@ -111,14 +112,48 @@ export interface Reward {
   uploadedDocuments?: {
     docType: string;
     url: string;
+    ticketHolderNumber?: number;
   }[];
   rejectionReason?: string;
 }
 export interface RewardProgram {
-  programId: string;
-  name: string;
-  startDate: string;
-  endDate: string;
-  status: 'active' | 'locked';
+    programId: string;
+    name: string;
+    description: string;
+    rewards: {
+        reward: string;
+        valueUSD: number;
+    }[];
+    status: 'active' | 'locked' | 'archived';
 }
+
+// --- Expense Management ---
+
+export interface ExpenseItem {
+    _id: string;
+    category: string;
+    amount: number; // Converted to USD
+    amountInLocalCurrency: number;
+    currency: string;
+    note?: string;
+    fileUrl: string;
+    addedAt: string;
+}
+
+export interface ExpenseTicket {
+    _id: string;
+    userId: string;
+    description: string;
+    status: 'PENDING_APPROVAL' | 'APPROVED' | 'REJECTED' | 'SUBMITTED' | 'COMPLETED';
+    items: ExpenseItem[];
+    totalAmount: number;
+    requestedAt: string;
+    approvedAt?: string;
+    submittedAt?: string;
+    completedAt?: string;
+    ticketId: string;
+    rejectionReason?: string;
+}
+
+
 

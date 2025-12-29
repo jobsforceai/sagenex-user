@@ -11,7 +11,7 @@ import Confetti from 'react-confetti';
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
 type AuthMethod = 'password' | 'otp';
 
-const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
+const FundTransfer = ({ currentBalance, className }: { currentBalance: number; className?: string }) => {
     const { user, loading } = useAuth();
     const [allRecipients, setAllRecipients] = useState<Recipient[]>([]);
     const [searchTerm, setSearchTerm] = useState('');
@@ -33,8 +33,11 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     const otpTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     const numericAmount = useMemo(() => parseFloat(amount) || 0, [amount]);
+    const minPackageAmount = 50;
     const isAmountInvalid = useMemo(() => numericAmount > currentBalance, [numericAmount, currentBalance]);
     const remainingBalance = useMemo(() => currentBalance - numericAmount, [currentBalance, numericAmount]);
+    const isBelowPackageMinimum =
+        transferType === 'TO_PACKAGE' && numericAmount > 0 && numericAmount < minPackageAmount;
 
     const filteredRecipients = useMemo(() => {
         if (!searchTerm) return [];
@@ -50,7 +53,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     useEffect(() => {
         const fetchRecipients = async () => {
             try {
-                const data = await getTransferRecipients();
+                const data = await getTransferRecipients(true);
                 if (data.error) {
                     toast.error(`Could not load recipients: ${data.error}`);
                 } else {
@@ -63,6 +66,8 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
         };
         fetchRecipients();
     }, []);
+
+    const isSelfRecipient = selectedRecipient?.userId && selectedRecipient.userId === user?.userId;
 
     useEffect(() => {
         const otpCooldownEnd = localStorage.getItem('otpCooldownEnd');
@@ -103,6 +108,9 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
         setSelectedRecipient(recipient);
         setSearchTerm(`${recipient.fullName} (${recipient.userId})`);
         setIsDropdownVisible(false);
+        if (recipient.userId === user?.userId) {
+            setTransferType('TO_PACKAGE');
+        }
     };
 
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,8 +125,16 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
             toast.error('Please enter a valid amount.');
             return;
         }
+        if (isBelowPackageMinimum) {
+            toast.error(`Minimum ${minPackageAmount} USD required for package top-up.`);
+            return;
+        }
         if (!selectedRecipient) {
             toast.error('Please select a valid recipient from the list.');
+            return;
+        }
+        if (selectedRecipient.userId === user?.userId && transferType !== 'TO_PACKAGE') {
+            toast.error('Self top-up is only available for To Package transfers.');
             return;
         }
         if (user?.hasPasswordSet) {
@@ -206,7 +222,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
     }
 
     return (
-        <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden">
+        <div className={`bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col ${className ?? ''}`}>
             {showConfetti && <Confetti width={500} height={500} />}
             <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
                 <Send className="text-emerald-400" />
@@ -246,7 +262,7 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                                         onClick={() => handleRecipientSelect(r)}
                                         className="px-4 py-2 text-white hover:bg-emerald-600 cursor-pointer"
                                     >
-                                        {r.fullName} ({r.userId})
+                                        {r.fullName} ({r.userId}){r.userId === user?.userId ? " • You" : ""}
                                     </li>
                                 ))}
                             </ul>
@@ -266,9 +282,17 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                             min="0.01"
                             step="0.01"
                         />
-                        <div className="text-xs text-gray-400 mt-1 h-4">
-                            {numericAmount > 0 && !isAmountInvalid && `Remaining Balance: ${remainingBalance.toFixed(2)}`}
+                        <div className="text-xs text-gray-400 mt-1 min-h-5">
+                            {transferType === 'TO_PACKAGE' && (
+                                <span className="text-gray-500">Minimum ${minPackageAmount} for package transfers.</span>
+                            )}
+                            {numericAmount > 0 && !isAmountInvalid && !isBelowPackageMinimum && (
+                                <span>Remaining Balance: ${remainingBalance.toFixed(2)}</span>
+                            )}
                             {isAmountInvalid && <span className="text-red-400">Amount exceeds available balance.</span>}
+                            {isBelowPackageMinimum && (
+                                <span className="text-red-400">Amount must be at least ${minPackageAmount}.</span>
+                            )}
                         </div>
                     </div>
 
@@ -276,7 +300,13 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                         <label className="block text-sm font-medium text-gray-300 mb-2">Transfer Destination</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div
-                                onClick={() => setTransferType('TO_AVAILABLE_BALANCE')}
+                                onClick={() => {
+                                    if (isSelfRecipient) {
+                                        toast.error('Self top-up must be sent to package.');
+                                        return;
+                                    }
+                                    setTransferType('TO_AVAILABLE_BALANCE');
+                                }}
                                 className={`flex flex-col items-center justify-center p-1 rounded-lg cursor-pointer transition-all duration-200 text-white
                                     ${transferType === 'TO_AVAILABLE_BALANCE'
                                         ? 'bg-gray-700 border-gray-500'
@@ -300,11 +330,16 @@ const FundTransfer = ({ currentBalance }: { currentBalance: number }) => {
                                 <span className="text-xs text-center mt-1 text-gray-400">For package upgrades</span>
                             </div>
                         </div>
+                        {isSelfRecipient && (
+                            <p className="text-xs text-emerald-300 mt-2">
+                                Self top-up sends your available balance to your package.
+                            </p>
+                        )}
                     </div>
 
                     <button
                         type="submit"
-                        disabled={isLoading || isAmountInvalid || numericAmount <= 0 || !selectedRecipient}
+                        disabled={isLoading || isAmountInvalid || isBelowPackageMinimum || numericAmount <= 0 || !selectedRecipient}
                         className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                     >
                         {isLoading ? 'Proceeding...' : 'Proceed to Verification'}

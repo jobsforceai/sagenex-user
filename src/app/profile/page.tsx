@@ -190,37 +190,83 @@ const ProfilePage = () => {
       <Navbar />
       <main className="container mx-auto p-4 pt-24 space-y-8">
         {/* Header */}
-        <div className="flex flex-col md:flex-row items-center gap-6">
-          <Avatar className="w-24 h-24 border-2 border-primary">
-            <AvatarImage src={profile.profilePicture} alt={profile.fullName} />
-            <AvatarFallback>{profile.fullName.charAt(0)}</AvatarFallback>
-          </Avatar>
-          <div className="text-center md:text-left">
-            <h1 className="text-3xl font-bold">{profile.fullName}</h1>
-            <p className="text-muted-foreground">{profile.email}</p>
-            <div className="flex items-center justify-center md:justify-start flex-wrap gap-2 mt-2">
-              <span className={`capitalize text-xs font-semibold px-2.5 py-1 rounded-full ${profile.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
-                {profile.status}
-              </span>
-              {profile.isPackageActive ? (
-                <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400">
-                  <BadgeCheck className="h-4 w-4" /> Package Active
-                </span>
-              ) : (
-                <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-500/20 text-gray-400">
-                  <XCircle className="h-4 w-4" /> Package Inactive
-                </span>
-              )}
-              {kycStatus && <KycStatusBadge status={kycStatus.status} />}
+        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/15 via-black to-black p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
+          <div className="pointer-events-none absolute -top-20 -right-16 h-48 w-48 rounded-full bg-emerald-400/20 blur-3xl" />
+          <div className="pointer-events-none absolute -bottom-16 -left-16 h-52 w-52 rounded-full bg-emerald-500/10 blur-3xl" />
+          <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
+            <div className="flex items-center gap-5">
+              <div className="rounded-full bg-emerald-500/20 p-1.5 ring-1 ring-emerald-400/40">
+                <Avatar className="h-20 w-20 md:h-24 md:w-24">
+                  <AvatarImage src={profile.profilePicture} alt={profile.fullName} />
+                  <AvatarFallback>{profile.fullName.charAt(0)}</AvatarFallback>
+                </Avatar>
+              </div>
+              <div>
+                <p className="text-sm text-emerald-200/80">Profile</p>
+                <h1 className="text-3xl font-bold">{profile.fullName}</h1>
+                <p className="text-sm text-gray-400">{profile.email}</p>
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <span className={`capitalize text-xs font-semibold px-2.5 py-1 rounded-full ${profile.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
+                    {profile.status}
+                  </span>
+                  {profile.isPackageActive ? (
+                    <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-400">
+                      <BadgeCheck className="h-4 w-4" /> Package Active
+                    </span>
+                  ) : (
+                    <span className="flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full bg-gray-500/20 text-gray-400">
+                      <XCircle className="h-4 w-4" /> Package Inactive
+                    </span>
+                  )}
+                  {kycStatus && <KycStatusBadge status={kycStatus.status} />}
+                </div>
+              </div>
             </div>
-          </div>
-          <div className="md:ml-auto">
-            <Button onClick={() => setIsEditing(true)} variant="outline">
+            <div className="flex flex-wrap items-center gap-2 lg:ml-auto">
+              <Button onClick={() => router.push('/expenses')} size="lg" className="bg-emerald-500 hover:bg-emerald-600">
+                Expenses
+              </Button>
+              <Button onClick={() => setIsEditing(true)} variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit Profile
-            </Button>
+              </Button>
+            </div>
           </div>
-        </div>
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <Card className="bg-black/50 border-white/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs uppercase tracking-wide text-gray-400">Package Value</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">${profile.packageUSD.toLocaleString()}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-black/50 border-white/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs uppercase tracking-wide text-gray-400">PV Points</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-2xl font-semibold">{profile.pvPoints}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-black/50 border-white/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs uppercase tracking-wide text-gray-400">Date Joined</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg font-semibold">{new Date(profile.dateJoined).toLocaleDateString()}</p>
+              </CardContent>
+            </Card>
+            <Card className="bg-black/50 border-white/10">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-xs uppercase tracking-wide text-gray-400">User ID</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-lg font-semibold">{profile.userId}</p>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
 
         {message && (
             <div className={`p-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}`}>
@@ -230,74 +276,52 @@ const ProfilePage = () => {
 
         {/* Details Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Account Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-semibold">User ID</p>
-                    <p className="text-muted-foreground">{profile.userId}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Phone Number</p>
-                    <p className="text-muted-foreground">{profile.phone || 'Not provided'}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">Date Joined</p>
-                    <p className="text-muted-foreground">{new Date(profile.dateJoined).toLocaleDateString()}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">USDT (TRC20) Address</p>
-                    <p className="text-muted-foreground break-all">{profile.usdtTrc20Address || 'Not provided'}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-            <Card>
-              <CardHeader>
-                <CardTitle>Package Details</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <p className="font-semibold">Package Value</p>
-                    <p className="text-2xl font-bold">${profile.packageUSD.toLocaleString()}</p>
-                  </div>
-                  <div>
-                    <p className="font-semibold">PV Points</p>
-                    <p className="text-2xl font-bold">{profile.pvPoints}</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-          <Card>
+          <Card className="bg-gray-900/40 border-gray-800">
             <CardHeader>
-              <CardTitle>Referral Information</CardTitle>
+              <CardTitle>Account Details</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4 text-sm">
               <div>
-                <p className="font-semibold">Your Referral Code</p>
-                <div className="flex items-center gap-2 p-2 border rounded-md bg-gray-800 mt-1">
+                <p className="text-xs uppercase tracking-wide text-gray-500">Email</p>
+                <p className="text-gray-200">{profile.email}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Phone Number</p>
+                <p className="text-gray-200">{profile.phone || 'Not provided'}</p>
+              </div>
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">USDT (TRC20) Address</p>
+                <p className="text-gray-200 break-all">{profile.usdtTrc20Address || 'Not provided'}</p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-gray-900/40 border-gray-800">
+            <CardHeader>
+              <CardTitle>Referral & Sponsor</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm">
+              <div>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Your Referral Code</p>
+                <div className="mt-2 flex items-center gap-2 rounded-xl border border-white/10 bg-black/40 px-3 py-2">
                   <p className="font-mono text-lg flex-grow">{profile.referralCode}</p>
-                  <Button size="sm" onClick={handleCopy} variant="ghost">
+                  <Button size="sm" onClick={handleCopy} variant="ghost" className="text-emerald-200 hover:text-white">
                     <Copy className="h-4 w-4 mr-2" />
                     {copyText}
                   </Button>
                 </div>
               </div>
               <div>
-                <p className="font-semibold">Original Sponsor ID</p>
-                <p className="text-muted-foreground">{profile.originalSponsorId || 'N/A'}</p>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Original Sponsor ID</p>
+                <p className="text-gray-200">{profile.originalSponsorId || 'N/A'}</p>
               </div>
               <div>
-                <p className="font-semibold">Placement Parent ID</p>
-                <p className="text-muted-foreground">{profile.parentId || 'N/A'}</p>
+                <p className="text-xs uppercase tracking-wide text-gray-500">Placement Parent ID</p>
+                <p className="text-gray-200">{profile.parentId || 'N/A'}</p>
               </div>
-              {profile.isSplitSponsor && <p className="text-amber-400 text-xs font-semibold">This is a split sponsorship.</p>}
+              {profile.isSplitSponsor && (
+                <p className="text-amber-400 text-xs font-semibold">This is a split sponsorship.</p>
+              )}
             </CardContent>
           </Card>
         </div>

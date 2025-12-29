@@ -12,11 +12,12 @@ import Confetti from "react-confetti";
 interface WithdrawalRequestProps {
   currentBalance: number;
   kycStatus: string | undefined;
+  className?: string;
 }
 
 type WithdrawalType = "crypto" | "upi" | "bank";
 
-const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps) => {
+const WithdrawalRequest = ({ currentBalance, kycStatus, className }: WithdrawalRequestProps) => {
   const [amount, setAmount] = useState("");
   const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>("crypto");
   const [withdrawalAddress, setWithdrawalAddress] = useState("");
@@ -140,14 +141,14 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
 
   if (kycStatus !== "VERIFIED") {
     return (
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className={`bg-gray-900 border-gray-800 flex flex-col ${className ?? ''}`}>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <DollarSign className="w-5 h-5" />
             Request Withdrawal
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex-1">
           <div className="flex items-center gap-3 bg-yellow-900/50 text-yellow-300 p-4 rounded-md">
             <AlertCircle className="w-5 h-5" />
             <p className="text-sm font-medium">Your KYC must be verified before you can make a withdrawal.</p>
@@ -158,7 +159,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
   }
 
   return (
-    <Card className="bg-gray-900 border-gray-800 relative overflow-hidden p-6 sm:p-8">
+    <Card className={`bg-gray-900 border-gray-800 relative overflow-hidden flex flex-col ${className ?? ''}`}>
       {showConfetti && <Confetti />}
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
@@ -166,7 +167,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
           Request Withdrawal
         </CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col">
         {/* Responsive Tabs/Dropdown */}
         <div className="sm:hidden mb-4">
           <select
@@ -190,7 +191,7 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
             Bank
           </Button>
         </div>
-        <form onSubmit={handleWithdrawalRequest} className="space-y-4">
+        <form onSubmit={handleWithdrawalRequest} className="flex flex-col gap-4 flex-1">
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
               Amount (USD)
@@ -315,9 +316,11 @@ const WithdrawalRequest = ({ currentBalance, kycStatus }: WithdrawalRequestProps
             </div>
           )}
 
-          <Button type="submit" disabled={isLoading} className="w-full">
-            {isLoading ? "Submitting Request..." : "Request Withdrawal"}
-          </Button>
+          <div className="mt-auto pt-4">
+            <Button type="submit" disabled={isLoading} className="w-full">
+              {isLoading ? "Submitting Request..." : "Request Withdrawal"}
+            </Button>
+          </div>
         </form>
       </CardContent>
     </Card>

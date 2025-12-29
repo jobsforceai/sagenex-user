@@ -7,6 +7,7 @@ import Image from "next/image";
 import clsx from "clsx";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTieredROIRate } from "@/lib/roi";
+import CountdownTimer from "./CountdownTimer";
 
 type Props = {
   name?: string;
@@ -16,13 +17,15 @@ type Props = {
   avatarUrl?: string;
   accentColorClass?: string;
   packageUSD?: number;
-  earningsMultiplier?: number; // Add this line
+  earningsMultiplier?: number;
+  earningsMultiplierDeadline?: string | null;
+  joinDate?: string | null;
 };
 
 const ranks = ["Member", "Starter", "Builder", "Leader", "Manager", "Director", "Crown"];
 
 const allEarningStreams = [
-  { name: "ROI", unlockedAt: "Member" },
+  { name: "Special Bonus", unlockedAt: "Member" },
   { name: "Direct Bonus (10%)", unlockedAt: "Starter" },
   { name: "Re-invest Bonus (8% → 2%)", unlockedAt: "Starter" },
   { name: "Unilevel Bonus (10% split L1-L6)", unlockedAt: "Starter" },
@@ -43,16 +46,18 @@ export default function AgentOverview({
   avatarUrl = "/avatar-placeholder.jpg",
   accentColorClass = "text-green-400",
   packageUSD,
-  earningsMultiplier, // Destructure the new prop
+  earningsMultiplier,
+  earningsMultiplierDeadline,
+  joinDate,
 }: Props) {
   const pct = Math.max(0, Math.min(100, progressPct || 0));
   const currentRankIndex = currentLevel ? ranks.indexOf(currentLevel) : -1;
 
-  const roiPercentage = packageUSD ? getTieredROIRate(packageUSD) * 100 : 0;
+  const specialBonusPercentage = packageUSD ? getTieredROIRate(packageUSD) * 100 : 0;
 
   const earningStreams = allEarningStreams.map(stream => {
-    if (stream.name === "ROI" && roiPercentage) {
-      return { ...stream, name: `ROI (${roiPercentage}%)` };
+    if (stream.name === "Special Bonus" && specialBonusPercentage) {
+      return { ...stream, name: `Special Bonus (${specialBonusPercentage}%)` };
     }
     return stream;
   });
@@ -117,6 +122,8 @@ export default function AgentOverview({
             </div>
           </div>
         </div>
+
+        <CountdownTimer deadline={earningsMultiplierDeadline} joinDate={joinDate}/>
 
         <div className="mt-6 pt-6 border-t border-neutral-800/50">
           <h3 className="text-lg font-semibold text-white/90 mb-4">Earning Streams</h3>

@@ -16,7 +16,7 @@ interface Invoice {
   pay_currency: string;
 }
 
-const CryptoDeposit = () => {
+const CryptoDeposit = ({ className }: { className?: string }) => {
   const [amount, setAmount] = useState("");
   const [originalAmount, setOriginalAmount] = useState(0);
   const [invoice, setInvoice] = useState<Invoice | null>(null);
@@ -67,13 +67,13 @@ const CryptoDeposit = () => {
   };
 
   return (
-    <Card className="bg-gray-900 border-gray-800">
+    <Card className={`bg-gray-900 border-gray-800 flex flex-col ${className ?? ''}`}>
       <CardHeader>
         <CardTitle>Crypto Deposit (USDT TRC20)</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-1 flex flex-col">
         {!invoice ? (
-          <form onSubmit={handleCreateInvoice} className="space-y-4">
+          <form onSubmit={handleCreateInvoice} className="flex flex-col gap-4 h-full">
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
                 Amount (USD)
@@ -91,13 +91,13 @@ const CryptoDeposit = () => {
                 step="0.01"
               />
             </div>
-            <Button type="submit" disabled={isLoading} className="w-full">
+            <Button type="submit" disabled={isLoading} className="w-full mt-auto">
               {isLoading ? "Generating Invoice..." : "Generate Deposit Address"}
             </Button>
             {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
           </form>
         ) : (
-          <div className="text-center space-y-6">
+          <div className="text-center space-y-6 flex flex-col h-full">
             <h3 className="text-lg font-semibold">Complete Your Deposit</h3>
             <p className="text-muted-foreground text-sm">
               To credit your account with ${originalAmount.toFixed(2)} USD, please send the exact crypto amount to the address below.
@@ -135,7 +135,7 @@ const CryptoDeposit = () => {
               Note: The crypto amount includes processing fees and is calculated based on the current exchange rate. Your wallet will be credited automatically after the transaction is confirmed.
             </p>
 
-            <Button onClick={() => setInvoice(null)} variant="outline">
+            <Button onClick={() => setInvoice(null)} variant="outline" className="mt-auto">
               Create New Deposit
             </Button>
           </div>

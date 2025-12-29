@@ -55,10 +55,20 @@ async function getAuthHeaders(isJson = true) {
   }
 
 export async function getDashboardData() {
-    const res = await fetch(`${API_BASE_URL}/api/v1/user/dashboard`, {
-        headers: await getAuthHeaders(),
-      });
-      return handleApiResponse(res);
+    const headers = await getAuthHeaders();
+    const [dashboardRes, rankRes] = await Promise.all([
+        fetch(`${API_BASE_URL}/api/v1/user/dashboard`, { headers }),
+        fetch(`${API_BASE_URL}/api/v1/user/rank-progress`, { headers })
+    ]);
+
+    const dashboardData = await handleApiResponse(dashboardRes);
+    const rankData = await handleApiResponse(rankRes);
+
+    if (dashboardData.error || rankData.error) {
+        return { error: dashboardData.error || rankData.error };
+    }
+
+    return { ...dashboardData, rank: rankData.rank };
 }
 
 export async function setPassword(password: string, confirmPassword: string) {
@@ -193,8 +203,9 @@ export async function transferUser(userIdToTransfer: string, newSponsorId: strin
       return handleApiResponse(res);
 }
 
-export async function getTransferRecipients() {
-    const res = await fetch(`${API_BASE_URL}/api/v1/user/transfer-recipients`, {
+export async function getTransferRecipients(includeSelf?: boolean) {
+    const query = includeSelf ? "?includeSelf=true" : "";
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/transfer-recipients${query}`, {
         headers: await getAuthHeaders(),
       });
       return handleApiResponse(res);
@@ -279,14 +290,6 @@ export async function getRewardPrograms() {
     return handleApiResponse(res);
 }
 
-export async function claimReward(rewardId: string) {
-    const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/claim`, {
-        method: "POST",
-        headers: await getAuthHeaders(),
-      });
-      return handleApiResponse(res);
-}
-
 export async function transferReward(rewardId: string, recipientId: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/transfer`, {
         method: "POST",
@@ -296,7 +299,8 @@ export async function transferReward(rewardId: string, recipientId: string) {
       return handleApiResponse(res);
 }
 
-export async function uploadRewardDocument(rewardId: string, formData: FormData) {
+export async function uploadRewardDocument(rewardId: string, formData: FormData, ticketHolderNumber: number) {
+    formData.append('ticketHolderNumber', ticketHolderNumber.toString());
     const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/documents/upload`, {
         method: "POST",
         headers: await getAuthHeaders(false),
@@ -375,11 +379,152 @@ export async function initiateTransferToSGChain(amount: number) {
     return handleApiResponse(res);
 }
 
+// --- Tests ---
+
+export async function getTestsCatalog() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/catalog`, {
+        headers: await getAuthHeaders(),
+      });
+      return handleApiResponse(res);
+}
+
+export async function sendTestOtp(payload: {
+    testId: string;
+    locationId: string;
+    userInfo: {
+        firstName: string;
+        lastName: string;
+        phone: string;
+        email: string;
+        age?: number;
+    };
+}) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/send-otp`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res);
+}
+
+export async function scheduleTestBooking(payload: {
+    testId: string;
+    locationId: string;
+    userInfo: {
+        firstName: string;
+        lastName: string;
+        phone: string;
+        email: string;
+        age?: number;
+    };
+    otp?: string;
+    password?: string;
+    idempotencyKey: string;
+}) {
+    const body: Record<string, unknown> = {
+        testId: payload.testId,
+        locationId: payload.locationId,
+        userInfo: payload.userInfo,
+        idempotencyKey: payload.idempotencyKey,
+    };
+    if (payload.otp) {
+        body.otp = payload.otp;
+    } else if (payload.password) {
+        body.password = payload.password;
+    }
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/schedule`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(body),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getTestBookings() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getTestBooking(bookingId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/${bookingId}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function cancelTestBooking(bookingId: string, reason?: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/${bookingId}/cancel`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ reason }),
+    });
+    return handleApiResponse(res);
+}
+
 export async function redeemFromSGChain(code: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/redeem-from-sgchain`, {
         method: "POST",
         headers: await getAuthHeaders(),
         body: JSON.stringify({ code }),
+    });
+    return handleApiResponse(res);
+}
+
+// --- Expense Management ---
+
+export async function getExpenseMetadata() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/meta-data`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function requestExpenseTicket(description: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ description }),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getMyExpenseTickets(page: number = 1, limit: number = 10) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets?page=${page}&limit=${limit}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getSingleExpenseTicket(ticketId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets/${ticketId}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function addExpenseItem(ticketId: string, formData: FormData) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets/${ticketId}/items`, {
+        method: "POST",
+        headers: await getAuthHeaders(false),
+        body: formData,
+    });
+    return handleApiResponse(res);
+}
+
+export async function removeExpenseItem(ticketId: string, itemId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets/${ticketId}/items/${itemId}`, {
+        method: "DELETE",
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function submitExpenseTicket(ticketId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/expenses/tickets/${ticketId}/submit`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
     });
     return handleApiResponse(res);
 }
