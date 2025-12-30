@@ -14,7 +14,7 @@ import {
   getFinancialSummary,
 } from "@/actions/user";
 import Navbar from "@/app/components/Navbar";
-import { ArrowDownCircle, BadgeDollarSign, CalendarCheck, Crown, Gift } from "lucide-react";
+import { ArrowDownCircle, BadgeDollarSign, CalendarCheck, Crown, Gift, Ticket } from "lucide-react";
 import AgentOverview from "../components/dashboard/AgentOverview";
 import EarningsSummary from "../components/dashboard/EarningsSummary";
 import GamifiedChallenges from "../components/dashboard/GamifiedChallenges";
@@ -34,6 +34,7 @@ interface Profile {
   joinDate: string;
   userId: string;
   earningsMultiplierDeadline?: string | null;
+  earningsMultiplier?: number;
 }
 
 interface Wallet {
@@ -48,8 +49,9 @@ interface Wallet {
     isUnlocked: boolean;
     unlockRequirement: string;
     progress: {
-        team: { current: number; required: number };
-        directs: { current: number; required: number };
+        activeLegs?: { current: number; required: number; depth?: number };
+        activeTeam?: { current: number; required: number };
+        testQualified?: { current: number; required: number };
     };
   }[];
 }
@@ -58,11 +60,22 @@ interface UserPackage {
   packageUSD: number;
 }
 
+interface RankSnapshot {
+  name: string;
+  badge?: string;
+  salary?: number;
+  achievedAt?: string | null;
+  consecutiveMonthsMissed?: number;
+}
+
 interface DashboardData {
   profile: Profile;
   wallet: Wallet;
   package: UserPackage;
   earningsMultiplier?: number;
+  earningsMultiplierDeadline?: string | null;
+  rank?: RankSnapshot;
+  performanceRank?: RankSnapshot;
 }
 
 interface Referral {
@@ -91,17 +104,17 @@ interface TreeData {
 }
 
 interface RankProgress {
-  currentRankInDb: {
+  rank: {
     name: string;
-    badge: string;
-    salary: number;
-    achievedAt: string | null;
-    consecutiveMonthsMissed: number;
+    badge?: string;
+    salary?: number;
+    achievedAt?: string | null;
+    consecutiveMonthsMissed?: number;
   };
-  calculatedRank: {
+  performanceRank: {
     name: string;
-    badge: string;
-    salary: number;
+    badge?: string;
+    salary?: number;
   };
   salaryEligibility: {
     isEligible: boolean;
@@ -128,6 +141,12 @@ interface RankProgress {
         current: number;
         required: number;
       };
+      legRule?: {
+        current: number;
+        required: number;
+        businessPerLeg: number;
+      };
+      requires4x?: boolean;
     } | null;
   };
 }
@@ -158,8 +177,8 @@ import WithdrawalLimit from "../components/dashboard/WithdrawalLimit";
 const DashboardPage = () => {
   const { token, isAuthenticated, loading, showSetPasswordModal, onPasswordSet } = useAuth();
   const router = useRouter();
-  const [dashboardData, setDashboardData] = useState<any | null>(null);
-  const [rankProgress, setRankProgress] = useState<any | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
+  const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
   const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
   const [treeData, setTreeData] = useState<TreeData | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[] | null>(null);
@@ -250,22 +269,31 @@ const DashboardPage = () => {
   }));
 
   const progressPercentage = rankProgress?.progress?.requirements
-  ? (() => {
-      const { directs, activeTeam } = rankProgress.progress.requirements;
-      const reqs = [
-        { current: directs.current, required: directs.required },
-        { current: activeTeam?.current, required: activeTeam?.required },
-      ];
-      
-      const percentages = reqs
-        .filter(r => r.required > 0)
-        .map(r => Math.min(100, (r.current / r.required) * 100));
+    ? (() => {
+        const { directs, activeTeam, legRule, requires4x } = rankProgress.progress.requirements;
+        const reqs: Array<{ current: number; required: number }> = [];
 
-      if (percentages.length === 0) return 100; // All requirements are 0, so they are met.
+        if (directs) reqs.push({ current: directs.current, required: directs.required });
+        if (activeTeam) reqs.push({ current: activeTeam.current, required: activeTeam.required });
+        if (legRule) reqs.push({ current: legRule.current, required: legRule.required });
 
-      return percentages.reduce((acc, p) => acc + p, 0) / percentages.length;
-    })()
-  : 0;
+        const percentages = reqs
+          .filter((r) => r.required > 0)
+          .map((r) => Math.min(100, (r.current / r.required) * 100));
+
+        if (requires4x) {
+          const multiplier =
+            dashboardData?.earningsMultiplier ??
+            dashboardData?.profile?.earningsMultiplier ??
+            0;
+          percentages.push(multiplier >= 4 ? 100 : 0);
+        }
+
+        if (percentages.length === 0) return 100;
+
+        return percentages.reduce((acc, p) => acc + p, 0) / percentages.length;
+      })()
+    : 0;
 
   if (loading || !dashboardData) {
     return (
@@ -282,13 +310,16 @@ const DashboardPage = () => {
     );
   }
 
-  const { profile, wallet, rank } = dashboardData;
-  
-  const consecutiveMonthsMissed = rank?.consecutiveMonthsMissed;
+  const { profile, wallet, rank: dashboardRank, performanceRank } = dashboardData;
+  const lifetimeRank = dashboardRank ?? rankProgress?.rank;
+  const currentRank = rankProgress?.performanceRank ?? performanceRank ?? lifetimeRank;
+  const consecutiveMonthsMissed = lifetimeRank?.consecutiveMonthsMissed;
+  const earningsMultiplierDeadline =
+    profile?.earningsMultiplierDeadline ?? dashboardData.earningsMultiplierDeadline ?? null;
   return (
     <div className="bg-black text-white min-h-screen">
       {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
-      <Navbar userLevel={rank?.name} />
+      <Navbar userLevel={currentRank?.name} />
       <main className="container mx-auto p-4 pt-24">
         {/* Header */}
         <div className="flex justify-between items-center mb-8">
@@ -333,22 +364,22 @@ const DashboardPage = () => {
           <AgentOverview
             name={dashboardData.profile.fullName}
             avatarUrl={dashboardData.profile.profilePicture}
-            currentLevel={rank?.name}
-            nextLevelLabel={rankProgress?.progress?.nextRankName}
+            currentLevel={currentRank?.name}
+            nextLevelLabel={rankProgress?.progress?.nextRankName ?? undefined}
             progressPct={progressPercentage}
             packageUSD={dashboardData.package?.packageUSD}
             earningsMultiplier={dashboardData.earningsMultiplier}
-            earningsMultiplierDeadline={dashboardData.profile.earningsMultiplierDeadline}
+            earningsMultiplierDeadline={earningsMultiplierDeadline}
             />
         </div>
 
         {/* Quick Actions */}
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-white mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <Link href="/salary" className="group">
-              <Card className="relative overflow-hidden bg-gradient-to-br from-emerald-500/10 via-black/20 to-black border border-emerald-500/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:shadow-[0_18px_40px_rgba(16,185,129,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-300 via-emerald-500 to-emerald-300" />
+              <Card className="relative overflow-hidden bg-linear-to-br from-emerald-500/10 via-black/20 to-black border border-emerald-500/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:shadow-[0_18px_40px_rgba(16,185,129,0.18)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-emerald-300 via-emerald-500 to-emerald-300" />
                 <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-emerald-400/15 blur-2xl" />
                 <CardHeader className="flex flex-row items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-200 flex items-center justify-center ring-1 ring-emerald-400/30">
@@ -363,7 +394,7 @@ const DashboardPage = () => {
             </Link>
             <Link href="/rewards" className="group">
               <Card className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-black/20 to-black border border-amber-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-amber-300/50 group-hover:shadow-[0_18px_40px_rgba(251,191,36,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-amber-300 via-amber-500 to-amber-300" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-amber-300 via-amber-500 to-amber-300" />
                 <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-amber-400/15 blur-2xl" />
                 <CardHeader className="flex flex-row items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-amber-500/20 text-amber-200 flex items-center justify-center ring-1 ring-amber-400/30">
@@ -378,7 +409,7 @@ const DashboardPage = () => {
             </Link>
             <Link href="/payouts" className="group">
               <Card className="relative overflow-hidden bg-gradient-to-br from-sky-500/10 via-black/20 to-black border border-sky-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-sky-300/50 group-hover:shadow-[0_18px_40px_rgba(56,189,248,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-300 via-sky-500 to-sky-300" />
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-sky-300 via-sky-500 to-sky-300" />
                 <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-sky-400/15 blur-2xl" />
                 <CardHeader className="flex flex-row items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-sky-500/20 text-sky-200 flex items-center justify-center ring-1 ring-sky-400/30">
@@ -392,8 +423,8 @@ const DashboardPage = () => {
               </Card>
             </Link>
             <Link href="/tests/book" className="group">
-              <Card className="relative overflow-hidden bg-gradient-to-br from-rose-500/10 via-black/20 to-black border border-rose-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-rose-300/50 group-hover:shadow-[0_18px_40px_rgba(244,63,94,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-rose-300 via-rose-500 to-rose-300" />
+              <Card className="relative overflow-hidden bg-linear-to-br from-rose-500/10 via-black/20 to-black border border-rose-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-rose-300/50 group-hover:shadow-[0_18px_40px_rgba(244,63,94,0.18)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-rose-300 via-rose-500 to-rose-300" />
                 <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-rose-400/15 blur-2xl" />
                 <CardHeader className="flex flex-row items-center gap-3">
                   <div className="h-10 w-10 rounded-full bg-rose-500/20 text-rose-200 flex items-center justify-center ring-1 ring-rose-400/30">
@@ -402,6 +433,21 @@ const DashboardPage = () => {
                   <div>
                     <CardTitle className="text-base">Schedule Test</CardTitle>
                     <p className="text-sm text-gray-400">Book your next exam slot</p>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+            <Link href="/lottery" className="group">
+              <Card className="relative overflow-hidden bg-linear-to-br from-cyan-500/10 via-black/20 to-black border border-cyan-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-cyan-300/50 group-hover:shadow-[0_18px_40px_rgba(34,211,238,0.18)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-cyan-300 via-cyan-500 to-cyan-300" />
+                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-cyan-400/15 blur-2xl" />
+                <CardHeader className="flex flex-row items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-cyan-500/20 text-cyan-200 flex items-center justify-center ring-1 ring-cyan-400/30">
+                    <Ticket className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">Lottery</CardTitle>
+                    <p className="text-sm text-gray-400">Join active prize pools</p>
                   </div>
                 </CardHeader>
               </Card>

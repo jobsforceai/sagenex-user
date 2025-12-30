@@ -61,7 +61,8 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
         try {
           const rankData = await getRankProgress();
           if (rankData && !rankData.error) {
-            setUserLevel(rankData.rank.name);
+            const levelName = rankData.performanceRank?.name || rankData.rank?.name;
+            if (levelName) setUserLevel(levelName);
           }
         } catch (error) {
           console.error("Failed to fetch user rank for navbar:", error);

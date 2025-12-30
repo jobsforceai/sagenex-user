@@ -17,7 +17,6 @@ interface RankProgress {
   rank: {
     name: string;
     badge: string;
-    salary: number;
     achievedAt: string | null;
     consecutiveMonthsMissed: number;
   };
@@ -28,12 +27,24 @@ interface RankProgress {
   };
   salaryEligibility: {
     isEligible: boolean;
-    requirements: {
-      monthlyBusiness: {
+    requirements?: {
+      directs?: {
         current: number;
         required: number;
       };
-      legRule: {
+      activeLegs?: {
+        current: number;
+        required: number;
+      };
+      activeTeam?: {
+        current: number;
+        required: number;
+      };
+      monthlyBusiness?: {
+        current: number;
+        required: number;
+      };
+      legRule?: {
         current: number;
         required: number;
         businessPerLeg: number;
@@ -41,25 +52,30 @@ interface RankProgress {
     };
   };
   progress: {
-    nextRankName: string | null;
-    requirements: {
-      directs: {
+    nextRankName?: string | null;
+    requirements?: {
+      directs?: {
         current: number;
         required: number;
       };
-      activeTeam: {
+      activeLegs?: {
         current: number;
         required: number;
       };
-      monthlyBusiness: {
+      activeTeam?: {
         current: number;
         required: number;
       };
-      legRule: {
+      monthlyBusiness?: {
+        current: number;
+        required: number;
+      };
+      legRule?: {
         current: number;
         required: number;
         businessPerLeg: number;
       };
+      requires4x?: boolean;
     } | null;
   };
   legDetails: {
@@ -135,7 +151,7 @@ const SalaryPage = () => {
   if (loading || !rankProgress) {
     return (
       <div className="bg-black text-white min-h-screen">
-        <Navbar userLevel={rankProgress?.rank.name} />
+        <Navbar userLevel={rankProgress?.performanceRank?.name ?? rankProgress?.rank?.name} />
         <main className="container mx-auto p-4 pt-24">
           <Button asChild variant="outline" className="mb-4">
             <Link href="/dashboard">
@@ -204,10 +220,16 @@ const SalaryPage = () => {
       );
     };
 
+    const renderRequirement = (
+      requirement: { current: number; required: number },
+      label: string,
+      isCurrency = false
+    ) => renderProgress(requirement.current, requirement.required, label, isCurrency);
+
   
     return (
       <div className="bg-black text-white min-h-screen">
-        <Navbar userLevel={rank.name} />
+        <Navbar userLevel={performanceRank?.name ?? rank.name} />
         <main className="container mx-auto p-4 pt-24">
           <Button asChild variant="outline" className="mb-4">
             <Link href="/dashboard">
@@ -252,16 +274,33 @@ const SalaryPage = () => {
           
 
           {/* Section D: Progress Towards Next Rank */}
-          {progress && progress.nextRankName ? (
+          {progress?.nextRankName ? (
             <Card className="bg-neutral-900 border-neutral-800">
               <CardHeader><CardTitle className="text-2xl flex items-center gap-3"><Star className="text-purple-400" /><span>Progress Towards <span className="text-purple-400 font-bold">{progress.nextRankName}</span></span></CardTitle></CardHeader>
               <CardContent className="space-y-5">
-                {progress.requirements ? (
+                {progress?.requirements ? (
                   <>
-                    {renderProgress(progress.requirements.directs.current, progress.requirements.directs.required, "Directs")}
-                    {renderProgress(progress.requirements.activeTeam.current, progress.requirements.activeTeam.required, "Active Team Members")}
-                    {progress.requirements.monthlyBusiness && renderProgress(progress.requirements.monthlyBusiness.current, progress.requirements.monthlyBusiness.required, "Monthly Business Volume", true)}
-                    {progress.requirements.legRule && renderProgress(progress.requirements.legRule.current, progress.requirements.legRule.required, `Legs with ${progress.requirements.legRule.businessPerLeg.toLocaleString("en-US", { style: "currency", currency: "USD" })} Volume`)}
+                    {progress.requirements.directs &&
+                      renderRequirement(progress.requirements.directs, "Directs")}
+                    {progress.requirements.activeLegs &&
+                      renderRequirement(progress.requirements.activeLegs, "Active Legs")}
+                    {progress.requirements.activeTeam &&
+                      renderRequirement(progress.requirements.activeTeam, "Active Team Members")}
+                    {progress.requirements.monthlyBusiness &&
+                      renderRequirement(progress.requirements.monthlyBusiness, "Monthly Business Volume", true)}
+                    {progress.requirements.legRule &&
+                      renderRequirement(
+                        progress.requirements.legRule,
+                        `Legs with ${progress.requirements.legRule.businessPerLeg.toLocaleString("en-US", {
+                          style: "currency",
+                          currency: "USD",
+                        })} Volume`
+                      )}
+                    {progress.requirements.requires4x && (
+                      <p className="text-sm text-amber-300">
+                        Requires 4x earnings multiplier (KYC verified).
+                      </p>
+                    )}
                   </>
                 ) : (
                   <p>No requirements specified for the next rank.</p>

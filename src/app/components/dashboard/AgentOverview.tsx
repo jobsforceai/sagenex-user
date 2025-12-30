@@ -6,7 +6,12 @@ import { Target, Lock, CheckCircle2, Star } from "lucide-react";
 import Image from "next/image";
 import clsx from "clsx";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getTieredROIRate } from "@/lib/roi";
+import {
+  FIRST_DEPOSIT_DIRECT_BONUS_PCT,
+  REINVESTMENT_UPLINE_PCTS,
+  UNILEVEL_PCTS,
+  getTieredROIRate,
+} from "@/lib/roi";
 import CountdownTimer from "./CountdownTimer";
 
 type Props = {
@@ -23,12 +28,27 @@ type Props = {
 
 const ranks = ["Member", "Starter", "Builder", "Leader", "Manager", "Director", "Crown"];
 
+const formatPct = (value: number) => {
+  const percent = Math.round(value * 1000) / 10;
+  return `${percent}%`;
+};
+
+const reinvestmentTotals = REINVESTMENT_UPLINE_PCTS.map((cycle) =>
+  cycle.reduce((sum, pct) => sum + pct, 0)
+);
+const reinvestmentMin = Math.min(...reinvestmentTotals);
+const reinvestmentMax = Math.max(...reinvestmentTotals);
+
+const directBonusLabel = `Direct Bonus (${formatPct(FIRST_DEPOSIT_DIRECT_BONUS_PCT)})`;
+const reinvestmentLabel = `Reinvestment Bonus (${formatPct(reinvestmentMax)} → ${formatPct(reinvestmentMin)})`;
+const unilevelLabel = `Unilevel Bonus (${UNILEVEL_PCTS.map(formatPct).join("/")})`;
+
 const allEarningStreams = [
   { name: "Special Bonus", unlockedAt: "Member" },
-  { name: "Direct Bonus (10%)", unlockedAt: "Starter" },
-  { name: "Re-invest Bonus (8% → 2%)", unlockedAt: "Starter" },
-  { name: "Unilevel Bonus (10% split L1-L6)", unlockedAt: "Starter" },
-  { name: "Performance Bonus (5-16%)", unlockedAt: "Builder" },
+  { name: directBonusLabel, unlockedAt: "Starter" },
+  { name: reinvestmentLabel, unlockedAt: "Starter" },
+  { name: unilevelLabel, unlockedAt: "Starter" },
+  { name: "Performance Bonus (4-14%)", unlockedAt: "Builder" },
   { name: "Director Bonus (15% pool)", unlockedAt: "Leader" },
   { name: "Leadership Overriding (18%)", unlockedAt: "Leader" },
   { name: "Travel Fund (3%)", unlockedAt: "Manager" },
@@ -51,11 +71,11 @@ export default function AgentOverview({
   const pct = Math.max(0, Math.min(100, progressPct || 0));
   const currentRankIndex = currentLevel ? ranks.indexOf(currentLevel) : -1;
 
-  const specialBonusPercentage = packageUSD ? getTieredROIRate(packageUSD) * 100 : 0;
+  const specialBonusRate = packageUSD ? getTieredROIRate(packageUSD) : 0;
 
   const earningStreams = allEarningStreams.map(stream => {
-    if (stream.name === "Special Bonus" && specialBonusPercentage) {
-      return { ...stream, name: `Special Bonus (${specialBonusPercentage}%)` };
+    if (stream.name === "Special Bonus" && specialBonusRate) {
+      return { ...stream, name: `Special Bonus (${formatPct(specialBonusRate)})` };
     }
     return stream;
   });
