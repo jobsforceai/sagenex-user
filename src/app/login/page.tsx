@@ -12,21 +12,35 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { registerUser, loginOtp, verifyEmail, login } from "@/actions/auth";
+import { registerUser, loginOtp, verifyEmail, login, verifyEmailOtp, passwordStatus } from "@/actions/auth";
 import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2 } from "lucide-react";
 import Image from "next/image";
 
-type View = "main" | "email-login" | "email-signup" | "otp" | "password-login";
+type View = "identify" | "main" | "email-login" | "email-signup" | "otp" | "password-login";
+
+type AuthResponse = {
+  token: string;
+  user: {
+    userId: string;
+    fullName: string;
+    email: string;
+    hasPasswordSet?: boolean;
+  };
+};
 
 function Login() {
   const { login: authLogin } = useAuth();
   const searchParams = useSearchParams();
   
-  const [view, setView] = useState<View>("main");
-  const [previousView, setPreviousView] = useState<View>("main");
+  const [view, setView] = useState<View>("identify");
+  const [previousView, setPreviousView] = useState<View>("identify");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [needsVerification, setNeedsVerification] = useState(false);
+  const [hasPasswordSet, setHasPasswordSet] = useState<boolean | null>(null);
+  const [passwordStatusEmail, setPasswordStatusEmail] = useState<string | null>(null);
+  const [isVerifyFlow, setIsVerifyFlow] = useState(false);
 
   // Form fields
   const [sponsorId, setSponsorId] = useState("");
@@ -44,15 +58,119 @@ function Login() {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    const verify = searchParams.get("verify");
+    if (verify) {
+      setIsVerifyFlow(true);
+      setError(null);
+      setNeedsVerification(false);
+      setMessage("Your email is not verified. Enter your email to receive a verification code.");
+      setView("identify");
+      return;
+    }
+    setIsVerifyFlow(false);
+  }, [searchParams]);
+
   const changeView = (newView: View) => {
     setPreviousView(view);
     setView(newView);
   }
 
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    if (passwordStatusEmail && passwordStatusEmail !== value) {
+      setHasPasswordSet(null);
+      setPasswordStatusEmail(null);
+    }
+  };
+
+  const resolvePasswordStatus = async (data: AuthResponse) => {
+    if (typeof data.user.hasPasswordSet === "boolean") {
+      return data;
+    }
+
+    if (typeof hasPasswordSet === "boolean" && passwordStatusEmail === email) {
+      return { ...data, user: { ...data.user, hasPasswordSet } };
+    }
+
+    if (!email) return data;
+
+    const status = await passwordStatus(email);
+    if (!status?.error && typeof status.hasPasswordSet === "boolean") {
+      setHasPasswordSet(status.hasPasswordSet);
+      setPasswordStatusEmail(email);
+      return { ...data, user: { ...data.user, hasPasswordSet: status.hasPasswordSet } };
+    }
+
+    return data;
+  };
+
+  const isAuthResponse = (data: unknown): data is AuthResponse => {
+    if (!data || typeof data !== "object") return false;
+    const candidate = data as AuthResponse;
+    return (
+      typeof candidate.token === "string" &&
+      !!candidate.user &&
+      typeof candidate.user.email === "string"
+    );
+  };
+
+  const handleCheckPasswordStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    setNeedsVerification(false);
+    setIsLoading(true);
+
+    if (!email) {
+      setError("Email is required.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      if (isVerifyFlow) {
+        const data = await verifyEmailOtp(email);
+        if (data.error) {
+          setError(data.error);
+        } else {
+          setMessage(data.message || "Verification OTP has been sent to your email.");
+          changeView("otp");
+        }
+        return;
+      }
+
+      const status = await passwordStatus(email);
+      if (status?.error) {
+        setError(status.error);
+        return;
+      }
+      if (typeof status?.hasPasswordSet !== "boolean") {
+        setError("Unable to determine password status.");
+        return;
+      }
+
+      setHasPasswordSet(status.hasPasswordSet);
+      setPasswordStatusEmail(email);
+
+      if (status.hasPasswordSet) {
+        changeView("main");
+      } else {
+        setMessage("No password found for this account. Continue with OTP to sign in.");
+        changeView("email-login");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
     setMessage(null);
+    setNeedsVerification(false);
 
     if (password !== confirmPassword) {
       setError("Passwords do not match.");
@@ -90,6 +208,7 @@ function Login() {
     e.preventDefault();
     setError(null);
     setMessage(null);
+    setNeedsVerification(false);
     setIsLoading(true);
 
     if (!email) {
@@ -102,6 +221,7 @@ function Login() {
         const data = await loginOtp(email);
         if (data.error) {
             setError(data.error);
+            setNeedsVerification(/not verified/i.test(data.error));
         } else {
             setMessage(data.message || "Login OTP has been sent to your email.");
             changeView("otp");
@@ -116,6 +236,7 @@ function Login() {
   const handlePasswordLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNeedsVerification(false);
     setIsLoading(true);
 
     if (!email || !password) {
@@ -128,8 +249,12 @@ function Login() {
       const data = await login(email, password);
       if (data.error) {
         setError(data.error);
+        setNeedsVerification(/not verified/i.test(data.error));
+      } else if (!isAuthResponse(data)) {
+        setError("An unexpected response was returned. Please try again.");
       } else {
-        authLogin(data);
+        const resolvedData = await resolvePasswordStatus(data);
+        authLogin(resolvedData);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -141,6 +266,7 @@ function Login() {
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
+    setNeedsVerification(false);
     setIsLoading(true);
 
     if (!otp || !email) {
@@ -153,8 +279,11 @@ function Login() {
         const data = await verifyEmail(email, otp);
         if (data.error) {
             setError(data.error);
+        } else if (!isAuthResponse(data)) {
+            setError("An unexpected response was returned. Please try again.");
         } else {
-            authLogin(data);
+            const resolvedData = await resolvePasswordStatus(data);
+            authLogin(resolvedData);
         }
     } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -163,11 +292,79 @@ function Login() {
     }
   };
 
+  const handleRequestVerificationOtp = async () => {
+    setError(null);
+    setMessage(null);
+    setIsLoading(true);
+
+    if (!email) {
+      setError("Email is required.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const data = await verifyEmailOtp(email);
+      if (data.error) {
+        setError(data.error);
+      } else {
+        setMessage(data.message || "Verification OTP has been sent to your email.");
+        changeView("otp");
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderVerificationPrompt = () => {
+    if (!needsVerification) return null;
+
+    return (
+      <div className="rounded-md border border-blue-900/60 bg-blue-950/30 p-3 text-center text-sm text-blue-100">
+        <p className="mb-2">Your email is not verified yet. Send a verification code to continue.</p>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-blue-700 text-blue-100 hover:bg-blue-900/30"
+          onClick={handleRequestVerificationOtp}
+          disabled={isLoading}
+        >
+          Send verification code
+        </Button>
+      </div>
+    );
+  };
+
+  const renderIdentifyView = () => (
+    <form onSubmit={handleCheckPasswordStatus} className="space-y-4">
+      <div className="relative">
+        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          id="email-identify"
+          type="email"
+          placeholder="you@example.com"
+          value={email}
+          onChange={(e) => handleEmailChange(e.target.value)}
+          required
+          className="bg-black border-gray-800 text-white pl-10"
+          disabled={isLoading}
+        />
+      </div>
+      <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continue <LogIn className="h-4 w-4" /></>}
+      </Button>
+    </form>
+  );
+
   const renderMainView = () => (
     <div className="space-y-3">
-      <Button onClick={() => changeView("password-login")} className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
-        <KeyRound className="h-4 w-4" /> Continue with Password
-      </Button>
+      {hasPasswordSet !== false && (
+        <Button onClick={() => changeView("password-login")} className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+          <KeyRound className="h-4 w-4" /> Continue with Password
+        </Button>
+      )}
       <Button onClick={() => changeView("email-login")} variant="outline" className="w-full flex items-center gap-2 bg-transparent border-gray-600 hover:bg-gray-700">
         <Mail className="h-4 w-4" /> Continue with Email (OTP)
       </Button>
@@ -183,7 +380,7 @@ function Login() {
           type="email"
           placeholder="you@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => handleEmailChange(e.target.value)}
           required
           className="bg-black border-gray-800 text-white pl-10"
           disabled={isLoading}
@@ -205,6 +402,7 @@ function Login() {
       <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Login <LogIn className="h-4 w-4" /></>}
       </Button>
+      {renderVerificationPrompt()}
     </form>
   )
 
@@ -217,7 +415,7 @@ function Login() {
           type="email"
           placeholder="you@example.com"
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => handleEmailChange(e.target.value)}
           required
           className="bg-black border-gray-800 text-white pl-10"
           disabled={isLoading}
@@ -226,6 +424,7 @@ function Login() {
       <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Send OTP <LogIn className="h-4 w-4" /></>}
       </Button>
+      {renderVerificationPrompt()}
     </form>
   );
 
@@ -237,7 +436,7 @@ function Login() {
         </div>
         <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Email" id="email-signup" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+            <Input placeholder="Email" id="email-signup" type="email" value={email} onChange={(e) => handleEmailChange(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
         </div>
         <div className="relative">
             <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -273,9 +472,35 @@ function Login() {
     </form>
   );
 
+  const handleBack = () => {
+    setError(null);
+    setMessage(null);
+    setNeedsVerification(false);
+    if (view === "otp") {
+      changeView(previousView);
+      return;
+    }
+    if (view === "main") {
+      changeView("identify");
+      return;
+    }
+    if (view === "email-login" || view === "password-login") {
+      changeView(hasPasswordSet === false ? "identify" : "main");
+      return;
+    }
+    changeView("identify");
+  };
+
   const renderView = () => {
     let title, description, form;
     switch (view) {
+      case "identify":
+        title = "Welcome Back";
+        description = isVerifyFlow
+          ? "Enter your email to receive a verification code."
+          : "Enter your email to continue.";
+        form = renderIdentifyView();
+        break;
       case "password-login":
         title = "Sign In with Password";
         description = "Enter your email and password to log in.";
@@ -299,7 +524,7 @@ function Login() {
       case "main":
       default:
         title = "Welcome to Sagenex";
-        description = "Sign in or create an account to continue";
+        description = "Choose how you'd like to sign in.";
         form = renderMainView();
     }
 
@@ -314,14 +539,14 @@ function Login() {
             </CardHeader>
             <CardContent className="space-y-6">
                 {form}
-                {(view !== 'main') && (
+                {(view !== 'identify') && (
                     <p className="text-center text-sm text-gray-400">
-                        <Button variant="link" className="p-0 flex items-center gap-2" onClick={() => changeView(view === 'otp' ? previousView : 'main')} disabled={isLoading}>
+                        <Button variant="link" className="p-0 flex items-center gap-2" onClick={handleBack} disabled={isLoading}>
                             <ArrowLeft className="h-4 w-4" /> Back
                         </Button>
                     </p>
                 )}
-                {view === 'main' && (
+                {(view === 'identify' || view === 'main') && (
                     <p className="text-center text-sm text-gray-400">
                         No account?{" "}
                         <Button variant="link" className="p-0" onClick={() => changeView("email-signup")} disabled={isLoading}>

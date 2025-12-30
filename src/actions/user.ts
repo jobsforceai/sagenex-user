@@ -21,14 +21,9 @@ async function getAuthHeaders(isJson = true) {
   }
 
   async function handleApiResponse(response: Response) {
-    if (response.status === 401) {
-      console.error("API request returned 401 Unauthorized.");
-      redirect("/login");
-    }
-  
     const responseText = await response.text();
     let responseData;
-  
+
     try {
       responseData = JSON.parse(responseText);
     } catch {
@@ -39,7 +34,21 @@ async function getAuthHeaders(isJson = true) {
       );
       return { error: "The server returned an invalid response." };
     }
-  
+
+    if (
+      response.status === 403 &&
+      responseData?.message === "Email not verified. Please verify your email to continue."
+    ) {
+      const cookieStore = await cookies();
+      cookieStore.delete("authToken");
+      redirect("/login?verify=1");
+    }
+
+    if (response.status === 401) {
+      console.error("API request returned 401 Unauthorized.");
+      redirect("/login");
+    }
+
     if (!response.ok) {
       console.error(
         `API Error: Status: ${response.status}. Response: ${JSON.stringify(
@@ -50,7 +59,7 @@ async function getAuthHeaders(isJson = true) {
         error: responseData.message || `Request failed with status ${response.status}`,
       };
     }
-  
+
     return responseData;
   }
 

@@ -95,6 +95,26 @@ export async function loginOtp(email: string) {
   return handleApiResponse(res);
 }
 
+export async function passwordStatus(email: string) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/auth/user/password-status`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  return handleApiResponse(res);
+}
+
+export async function verifyEmailOtp(email: string) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/auth/user/verify-email-otp`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+
+  return handleApiResponse(res);
+}
+
 export async function verifyEmail(email: string, otp: string) {
   const res = await fetch(`${API_BASE_URL}/api/v1/auth/user/verify-email`, {
     method: "POST",

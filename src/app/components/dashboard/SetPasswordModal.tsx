@@ -2,6 +2,8 @@
 
 import React, { useState } from "react";
 import { setPassword } from "@/actions/user";
+import { passwordStatus } from "@/actions/auth";
+import { useAuth } from "@/app/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -19,11 +21,13 @@ interface SetPasswordModalProps {
 }
 
 export default function SetPasswordModal({ onPasswordSet }: SetPasswordModalProps) {
+  const { user } = useAuth();
   const [password, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
@@ -58,6 +62,41 @@ export default function SetPasswordModal({ onPasswordSet }: SetPasswordModalProp
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSkip = async () => {
+    setError(null);
+    setMessage(null);
+    setIsCheckingStatus(true);
+
+    try {
+      if (user?.hasPasswordSet) {
+        onPasswordSet();
+        return;
+      }
+
+      if (!user?.email) {
+        setError("We could not verify your email. Please set a password.");
+        return;
+      }
+
+      const status = await passwordStatus(user.email);
+      if (status?.error) {
+        setError(status.error);
+        return;
+      }
+
+      if (status?.hasPasswordSet) {
+        onPasswordSet();
+        return;
+      }
+
+      setError("Your password is not set yet. Please create one to continue.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+    } finally {
+      setIsCheckingStatus(false);
     }
   };
 
@@ -119,6 +158,20 @@ export default function SetPasswordModal({ onPasswordSet }: SetPasswordModalProp
               {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Set Password <ShieldCheck className="h-4 w-4 ml-2" /></>}
             </Button>
           </form>
+          <div className="mt-6 space-y-2 text-center">
+            <p className="text-xs text-gray-400">
+              Already created a password for this account? You can skip this step.
+            </p>
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full border-gray-700 text-gray-200 hover:bg-gray-800"
+              onClick={handleSkip}
+              disabled={isLoading || isCheckingStatus}
+            >
+              {isCheckingStatus ? <Loader2 className="h-4 w-4 animate-spin" /> : "Skip password setup"}
+            </Button>
+          </div>
           {error && <p className="text-red-500 text-sm text-center mt-4">{error}</p>}
           {message && <p className="text-green-500 text-sm text-center mt-4">{message}</p>}
         </CardContent>
