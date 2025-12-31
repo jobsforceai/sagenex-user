@@ -211,7 +211,6 @@ const DashboardPage = () => {
         } else {
           setDashboardData(dashboardRes);
         }
-        console.log("Dashboard data fetched:", dashboardRes);
       } catch (err) {
         setError("An unexpected error occurred while fetching core data.");
         console.error(err);
@@ -518,7 +517,6 @@ const DashboardPage = () => {
             )}
           </div>
           <>
-          {console.log("Dashboard Data Wallet:", dashboardData.wallet)}
           </>
           {/* Sidebar */}
           <div className="space-y-6">
