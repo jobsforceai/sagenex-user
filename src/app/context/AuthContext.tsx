@@ -8,7 +8,7 @@ interface User {
   userId: string;
   fullName: string;
   email: string;
-  hasPasswordSet: boolean;
+  hasPasswordSet?: boolean;
 }
 
 interface AuthContextType {
@@ -38,6 +38,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       if (storedToken && storedUser) {
         setToken(storedToken);
         setUser(JSON.parse(storedUser));
+      } else if (!storedToken && storedUser) {
+        localStorage.removeItem("user");
       }
     } catch (error) {
       console.error("Failed to access storage", error);
@@ -53,7 +55,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setToken(token);
     setUser(user);
 
-    if (!user.hasPasswordSet) {
+    if (user.hasPasswordSet === false) {
       setShowSetPasswordModal(true);
     }
     
