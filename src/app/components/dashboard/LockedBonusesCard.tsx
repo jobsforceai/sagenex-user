@@ -10,12 +10,16 @@ interface LockedBonus {
     isUnlocked: boolean;
     unlockRequirement: string;
     progress: {
-        team: { current: number; required: number };
-        directs: { current: number; required: number };
+        activeLegs?: { current: number; required: number; depth?: number };
+        activeTeam?: { current: number; required: number };
+        testQualified?: { current: number; required: number };
     };
 }
 
 const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) => {
+    const getProgressPct = (current: number, required: number) =>
+        required > 0 ? Math.min(100, (current / required) * 100) : 100;
+
     return (
         <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
             <CardHeader>
@@ -25,8 +29,35 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
                 {bonuses && bonuses.length > 0 ? (
                     <div className="space-y-4">
                         {bonuses.map(bonus => {
-                            const teamProgress = Math.min(100, (bonus.progress.team.current / bonus.progress.team.required) * 100);
-                            const directsProgress = Math.min(100, (bonus.progress.directs.current / bonus.progress.directs.required) * 100);
+                            const progressItems = [
+                                bonus.progress?.activeLegs && {
+                                    label: bonus.progress.activeLegs.depth
+                                        ? `Active legs (depth ${bonus.progress.activeLegs.depth})`
+                                        : "Active legs",
+                                    current: bonus.progress.activeLegs.current,
+                                    required: bonus.progress.activeLegs.required,
+                                    barClass: "bg-sky-500",
+                                },
+                                bonus.progress?.activeTeam && {
+                                    label: "Active team",
+                                    current: bonus.progress.activeTeam.current,
+                                    required: bonus.progress.activeTeam.required,
+                                    barClass: "bg-emerald-500",
+                                },
+                                bonus.progress?.testQualified && {
+                                    label: "Tests qualified",
+                                    current: bonus.progress.testQualified.current,
+                                    required: bonus.progress.testQualified.required,
+                                    barClass: "bg-amber-500",
+                                },
+                            ].filter(
+                                (item): item is { label: string; current: number; required: number; barClass: string } =>
+                                    Boolean(item)
+                            );
+                            const imageLevel = bonus.level + 1;
+                            const displayName = bonus.name?.trim()
+                                ? `${bonus.name} - Level ${imageLevel}`
+                                : `Matrix Level ${imageLevel}`;
                             
                             return (
                                 <div key={bonus.level} className="p-4 rounded-lg bg-gray-800/60 border border-gray-700/50 shadow-md">
@@ -37,37 +68,33 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
                                             ) : (
                                                 <Lock className="text-amber-400 h-5 w-5" />
                                             )}
-                                            <p className="text-gray-200 font-semibold">{bonus.name}</p>
+                                            <p className="text-gray-200 font-semibold">{displayName}</p>
                                         </div>
                                         <span className={`font-bold text-xl ${bonus.isUnlocked ? 'text-emerald-400' : 'text-amber-400'}`}>
                                             ${bonus.lockedAmount.toFixed(2)}
                                         </span>
                                     </div>
                                     <div className="mt-4 space-y-3">
-                                        <div>
-                                            <div className="text-xs text-gray-400 flex justify-between mb-1.5">
-                                                <span>Team Progress</span>
-                                                <span className="font-medium">{bonus.progress.team.current} / {bonus.progress.team.required}</span>
-                                            </div>
-                                            <div className="w-full bg-gray-700 rounded-full h-2.5">
-                                                <div 
-                                                    className="bg-sky-500 h-2.5 rounded-full" 
-                                                    style={{ width: `${teamProgress}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
-                                        <div>
-                                            <div className="text-xs text-gray-400 flex justify-between mb-1.5">
-                                                <span>Directs Progress</span>
-                                                <span className="font-medium">{bonus.progress.directs.current} / {bonus.progress.directs.required}</span>
-                                            </div>
-                                            <div className="w-full bg-gray-700 rounded-full h-2.5">
-                                                <div 
-                                                    className="bg-emerald-500 h-2.5 rounded-full" 
-                                                    style={{ width: `${directsProgress}%` }}
-                                                ></div>
-                                            </div>
-                                        </div>
+                                        {progressItems.length > 0 ? (
+                                            progressItems.map((item) => (
+                                                <div key={item.label}>
+                                                    <div className="text-xs text-gray-400 flex justify-between mb-1.5">
+                                                        <span>{item.label}</span>
+                                                        <span className="font-medium">
+                                                            {item.current} / {item.required}
+                                                        </span>
+                                                    </div>
+                                                    <div className="w-full bg-gray-700 rounded-full h-2.5">
+                                                        <div 
+                                                            className={`${item.barClass} h-2.5 rounded-full`}
+                                                            style={{ width: `${getProgressPct(item.current, item.required)}%` }}
+                                                        ></div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <p className="text-xs text-gray-500">Progress data unavailable.</p>
+                                        )}
                                     </div>
                                     <p className="text-xs text-gray-500 mt-3">{bonus.unlockRequirement}</p>
                                 </div>

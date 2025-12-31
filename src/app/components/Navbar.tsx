@@ -13,8 +13,8 @@ import { Crown } from "lucide-react";
 type NavLink = { href: string; label: string };
 
 const guestLinks: NavLink[] = [
-  { href: "#academy", label: "Academy" },
-  { href: "#earning", label: "Earning" },
+  { href: "/sgbn", label: "SGBN" },
+  { href: "/sgse", label: "SGSE" },
   { href: process.env.NEXT_PUBLIC_SGCHAIN_URL ?? "#", label: "SGChain" },
   { href: process.env.NEXT_PUBLIC_SG5TRADERS_URL ?? "#", label: "SG5Traders" },
   { href: process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "#", label: "Download App" },
@@ -61,7 +61,8 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
         try {
           const rankData = await getRankProgress();
           if (rankData && !rankData.error) {
-            setUserLevel(rankData.rank.name);
+            const levelName = rankData.performanceRank?.name || rankData.rank?.name;
+            if (levelName) setUserLevel(levelName);
           }
         } catch (error) {
           console.error("Failed to fetch user rank for navbar:", error);

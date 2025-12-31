@@ -2,11 +2,14 @@
 
 import { useAuth } from '@/app/context/AuthContext';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import { TestBookingStepper } from '@/components/tests/TestBookingStepper';
 import { ExistingBookingStatus } from '@/components/tests/ExistingBookingStatus';
 import { useTestBooking } from '@/hooks/useTestBooking';
 import Navbar from '@/app/components/Navbar';
+import { Button } from '@/components/ui/button';
+import { ArrowLeft } from 'lucide-react';
 
 export default function BookTestPage() {
   const { isAuthenticated, loading } = useAuth();
@@ -28,17 +31,33 @@ export default function BookTestPage() {
     }
   }, [isAuthenticated, loading, fetchBookings]);
 
-  // Find active booking (PENDING/RECEIVED/ATTENDED/CONFIRMED)
+  const getBookingTimestamp = (booking: any) => {
+    const ts =
+      booking?.resultPublishedAt ||
+      booking?.testDate ||
+      booking?.updatedAt ||
+      booking?.createdAt;
+    return ts ? new Date(ts).getTime() : 0;
+  };
+
+  // Find active booking (PENDING/RECEIVED/ATTENDED/CONFIRMED). If none, show latest results.
   useEffect(() => {
     if (bookingsLoaded && bookings.length > 0) {
-      const active = bookings.find(
-        (b) =>
-          b.status === 'PENDING' ||
-          b.status === 'RECEIVED' ||
-          b.status === 'ATTENDED' ||
-          b.status === 'CONFIRMED'
+      const active = bookings.find((b) =>
+        ['PENDING', 'RECEIVED', 'ATTENDED', 'CONFIRMED'].includes(b.status)
       );
-      setActiveBooking(active || null);
+      if (active) {
+        setActiveBooking(active);
+        return;
+      }
+
+      const latestResults = bookings
+        .filter((b) => b.status === 'RESULTS_PUBLISHED')
+        .sort((a, b) => getBookingTimestamp(b) - getBookingTimestamp(a))[0];
+
+      setActiveBooking(latestResults || null);
+    } else if (bookingsLoaded) {
+      setActiveBooking(null);
     }
   }, [bookings, bookingsLoaded]);
 
@@ -71,6 +90,12 @@ export default function BookTestPage() {
       <main className="min-h-screen bg-linear-to-b from-black via-[#0b1310] to-[#0f1d17] text-white pt-32 pb-12">
         <div className="container mx-auto px-6">
           <div className="max-w-5xl mx-auto">
+            <Button asChild variant="outline" className="mb-6">
+              <Link href="/dashboard">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Link>
+            </Button>
             {/* Show existing booking if active */}
             {activeBooking ? (
               <>

@@ -77,7 +77,7 @@ export async function getDashboardData() {
         return { error: dashboardData.error || rankData.error };
     }
 
-    return { ...dashboardData, rank: rankData.rank };
+    return { ...dashboardData, rank: rankData.rank, performanceRank: rankData.performanceRank };
 }
 
 export async function setPassword(password: string, confirmPassword: string) {
@@ -477,6 +477,49 @@ export async function redeemFromSGChain(code: string) {
         method: "POST",
         headers: await getAuthHeaders(),
         body: JSON.stringify({ code }),
+    });
+    return handleApiResponse(res);
+}
+
+// --- Lottery ---
+
+export async function getActiveLotteryPools() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/lottery/pools/active`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function sendLotteryOtp() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/lottery/send-otp`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getLotteryPoolDetails(poolId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/lottery/pools/${poolId}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function buyLotteryTickets(
+    poolId: string,
+    quantity: number,
+    payload?: { otp?: string; password?: string }
+) {
+    const body: { quantity: number; otp?: string; password?: string } = { quantity };
+    if (payload?.otp) {
+        body.otp = payload.otp;
+    } else if (payload?.password) {
+        body.password = payload.password;
+    }
+    const res = await fetch(`${API_BASE_URL}/api/v1/lottery/pools/${poolId}/buy`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(body),
     });
     return handleApiResponse(res);
 }
