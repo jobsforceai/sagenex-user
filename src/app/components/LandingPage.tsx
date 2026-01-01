@@ -72,9 +72,9 @@ export default function LandingPage() {
       <Section className="pt-28 pb-16">
         <div className="grid items-center gap-10 lg:grid-cols-2">
           <div className="flex flex-col gap-6">
-            <Badge tone="violet">Innovation · Trust · Growth</Badge>
+            <Badge tone="violet">Innovation · Security · Growth</Badge>
             <h1 className="text-[clamp(2rem,5vw,3.75rem)] font-semibold leading-tight tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-200 via-white to-emerald-200">
-              Powering the Future of Crypto Finance
+              Redefining the Future of Digital Finance
             </h1>
             <p className="text-zinc-300 max-w-prose">
               A global ecosystem uniting AI, blockchain and real‑world assets. Learn, lead and scale with academy tracks, transparent KYC, and a simple unilevel plan designed for duplication.
