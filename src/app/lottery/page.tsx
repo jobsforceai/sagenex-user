@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -22,7 +22,7 @@ import { ArrowLeft, ShieldCheck, Ticket, Trophy, Wallet } from "lucide-react";
 type Prize = {
   rank: number;
   title: string;
-  description: string;
+  description?: string;
   imageUrl?: string;
 };
 
@@ -61,6 +61,134 @@ type Purchase = {
 const formatCurrency = (amount: number) =>
   amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
+type MarkdownOptions = {
+  allowLinks?: boolean;
+};
+
+const markdownLinkClassName =
+  "text-emerald-300 underline underline-offset-2 hover:text-emerald-200";
+
+const isSafeUrl = (url: string) => /^https?:\/\//i.test(url);
+
+const parseInlineMarkdown = (text: string, options: MarkdownOptions, keyPrefix: string) => {
+  const nodes: ReactNode[] = [];
+  let remaining = text;
+  const pattern =
+    /(\[([^\]]+)\]\(([^)]+)\))|(\*\*([^*]+)\*\*)|(__([^_]+)__)|(\*([^*]+)\*)|(_([^_]+)_)/;
+  let nodeIndex = 0;
+
+  while (remaining.length > 0) {
+    const match = remaining.match(pattern);
+    if (!match) {
+      nodes.push(remaining);
+      break;
+    }
+
+    const matchIndex = match.index ?? 0;
+    if (matchIndex > 0) {
+      nodes.push(remaining.slice(0, matchIndex));
+    }
+
+    const [fullMatch, , linkText, linkUrl] = match;
+    if (linkText && linkUrl) {
+      if (options.allowLinks && isSafeUrl(linkUrl)) {
+        nodes.push(
+          <a
+            key={`${keyPrefix}-link-${nodeIndex}`}
+            href={linkUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className={markdownLinkClassName}
+          >
+            {linkText}
+          </a>
+        );
+      } else {
+        nodes.push(linkText);
+      }
+    } else if (match[5] || match[7]) {
+      const strongText = match[5] || match[7] || "";
+      nodes.push(
+        <strong key={`${keyPrefix}-strong-${nodeIndex}`} className="font-semibold text-white">
+          {strongText}
+        </strong>
+      );
+    } else if (match[9] || match[11]) {
+      const emText = match[9] || match[11] || "";
+      nodes.push(
+        <em key={`${keyPrefix}-em-${nodeIndex}`} className="italic text-gray-300">
+          {emText}
+        </em>
+      );
+    } else {
+      nodes.push(fullMatch);
+    }
+
+    remaining = remaining.slice(matchIndex + fullMatch.length);
+    nodeIndex += 1;
+  }
+
+  return nodes;
+};
+
+const renderMarkdownBlocks = (content: string, options: MarkdownOptions) => {
+  const trimmed = content.trim();
+  if (!trimmed) return null;
+  const blocks = trimmed.split(/\n\s*\n/);
+
+  return blocks.map((block, blockIndex) => {
+    const lines = block.split("\n").filter((line) => line.trim().length > 0);
+    const isUnordered = lines.length > 0 && lines.every((line) => /^[-*+]\s+/.test(line.trim()));
+    const isOrdered = lines.length > 0 && lines.every((line) => /^\d+\.\s+/.test(line.trim()));
+
+    if (isUnordered || isOrdered) {
+      const items = lines.map((line, lineIndex) => {
+        const text = line.replace(/^[-*+]\s+/, "").replace(/^\d+\.\s+/, "");
+        return (
+          <li key={`li-${blockIndex}-${lineIndex}`} className="text-sm text-gray-400">
+            {parseInlineMarkdown(text, options, `li-${blockIndex}-${lineIndex}`)}
+          </li>
+        );
+      });
+      const ListTag = isOrdered ? "ol" : "ul";
+      return (
+        <ListTag
+          key={`list-${blockIndex}`}
+          className={`${isOrdered ? "list-decimal" : "list-disc"} ml-4 space-y-1`}
+        >
+          {items}
+        </ListTag>
+      );
+    }
+
+    const paragraphLines = lines.map((line, lineIndex) => (
+      <span key={`line-${blockIndex}-${lineIndex}`}>
+        {parseInlineMarkdown(line, options, `p-${blockIndex}-${lineIndex}`)}
+        {lineIndex < lines.length - 1 && <br />}
+      </span>
+    ));
+
+    return (
+      <p key={`p-${blockIndex}`} className="text-sm text-gray-400">
+        {paragraphLines}
+      </p>
+    );
+  });
+};
+
+const MarkdownText = ({
+  content,
+  className,
+  allowLinks = true,
+}: {
+  content?: string;
+  className?: string;
+  allowLinks?: boolean;
+}) => {
+  if (!content) return null;
+  return <div className={`space-y-2 ${className || ""}`}>{renderMarkdownBlocks(content, { allowLinks })}</div>;
+};
+
 const LotteryPage = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -77,6 +205,10 @@ const LotteryPage = () => {
   const [loading, setLoading] = useState(true);
   const [detailsLoading, setDetailsLoading] = useState(false);
   const [buyLoading, setBuyLoading] = useState(false);
+  const [brokenPrizeImages, setBrokenPrizeImages] = useState<Record<string, boolean>>({});
+  const [activePrizeImage, setActivePrizeImage] = useState<{ url: string; title: string } | null>(
+    null
+  );
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
 
@@ -238,6 +370,10 @@ const LotteryPage = () => {
     }
   };
 
+  const markPrizeImageBroken = (key: string) => {
+    setBrokenPrizeImages((prev) => (prev[key] ? prev : { ...prev, [key]: true }));
+  };
+
   if (authLoading || loading) {
     return (
       <div className="bg-black text-white min-h-screen flex items-center justify-center">
@@ -311,7 +447,11 @@ const LotteryPage = () => {
                               <p className="text-sm text-gray-400">{pool.subtitle}</p>
                             )}
                             {pool.description && (
-                              <p className="text-sm text-gray-500">{pool.description}</p>
+                              <MarkdownText
+                                content={pool.description}
+                                className="text-sm text-gray-500"
+                                allowLinks={false}
+                              />
                             )}
                           </div>
                           <div className="text-right">
@@ -345,26 +485,54 @@ const LotteryPage = () => {
                 <CardContent>
                   {selectedPool.prizes?.length ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                      {selectedPool.prizes.map((prize) => (
-                        <div
-                          key={`${selectedPool.poolId}-prize-${prize.rank}`}
-                          className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2"
-                        >
-                          {prize.imageUrl && (
-                            <img
-                              src={prize.imageUrl}
-                              alt={prize.title}
-                              className="h-24 w-full object-cover rounded-lg"
-                            />
-                          )}
-                          <div className="flex items-center gap-2 text-sm text-amber-200">
-                            <Trophy className="h-4 w-4" />
-                            <span>Rank {prize.rank}</span>
+                      {selectedPool.prizes.map((prize) => {
+                        const imageKey = `${selectedPool.poolId}-prize-${prize.rank}`;
+                        const hasImage = !!prize.imageUrl && !brokenPrizeImages[imageKey];
+                        return (
+                          <div
+                            key={imageKey}
+                            className="rounded-xl border border-white/10 bg-white/5 p-4 space-y-2"
+                          >
+                            {hasImage ? (
+                              <div
+                                className="group relative w-full overflow-hidden rounded-lg bg-neutral-900 cursor-zoom-in"
+                                style={{ aspectRatio: "16 / 9" }}
+                                onClick={() =>
+                                  setActivePrizeImage({ url: prize.imageUrl || "", title: prize.title })
+                                }
+                              >
+                                <img
+                                  src={prize.imageUrl}
+                                  alt={prize.title}
+                                  className="h-full w-full object-cover"
+                                  loading="lazy"
+                                  onError={() => markPrizeImageBroken(imageKey)}
+                                />
+                                <div className="absolute inset-0 flex items-end justify-end bg-gradient-to-t from-black/60 via-black/0 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                                  <span className="m-2 rounded-full border border-white/20 bg-black/60 px-3 py-1 text-xs text-gray-200">
+                                    View full
+                                  </span>
+                                </div>
+                              </div>
+                            ) : (
+                              <div
+                                className="flex w-full items-center justify-center rounded-lg bg-neutral-900 text-xs text-gray-500"
+                                style={{ aspectRatio: "16 / 9" }}
+                              >
+                                No image available
+                              </div>
+                            )}
+                            <div className="flex items-center gap-2 text-sm text-amber-200">
+                              <Trophy className="h-4 w-4" />
+                              <span>Rank {prize.rank}</span>
+                            </div>
+                            <p className="font-semibold">{prize.title}</p>
+                            {prize.description && (
+                              <MarkdownText content={prize.description} className="text-sm text-gray-400" />
+                            )}
                           </div>
-                          <p className="font-semibold">{prize.title}</p>
-                          <p className="text-sm text-gray-400">{prize.description}</p>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </div>
                   ) : (
                     <p className="text-gray-400">Prizes will be announced soon.</p>
@@ -417,7 +585,7 @@ const LotteryPage = () => {
                         <p className="text-sm text-gray-400">{selectedPool.subtitle}</p>
                       )}
                       {selectedPool.description && (
-                        <p className="text-sm text-gray-500">{selectedPool.description}</p>
+                        <MarkdownText content={selectedPool.description} className="text-sm text-gray-500" />
                       )}
                     </div>
                     <div className="grid grid-cols-2 gap-3 text-sm">
@@ -568,6 +736,35 @@ const LotteryPage = () => {
           </div>
         </div>
       </main>
+      {activePrizeImage && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+          onClick={() => setActivePrizeImage(null)}
+        >
+          <div
+            className="relative w-full max-w-5xl"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="absolute -top-10 right-0 rounded-full border border-white/20 bg-black/70 px-3 py-1 text-xs text-gray-200 hover:bg-black/90"
+              onClick={() => setActivePrizeImage(null)}
+            >
+              Close
+            </button>
+            <div className="rounded-2xl border border-white/10 bg-neutral-950 p-3">
+              <img
+                src={activePrizeImage.url}
+                alt={activePrizeImage.title}
+                className="max-h-[80vh] w-full rounded-xl object-contain"
+              />
+            </div>
+            <p className="mt-3 text-center text-sm text-gray-300">
+              {activePrizeImage.title}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
