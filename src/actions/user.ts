@@ -135,6 +135,19 @@ export async function getReferralSummary() {
   return handleApiResponse(res);
 }
 
+export async function createSgbnCoupon(planType: "BUSINESS" | "FREELANCER") {
+  const res = await fetch(`${API_BASE_URL}/api/v1/wallet/sgbn/coupons`, {
+    method: "POST",
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({
+      targetPlatform: "SGBN",
+      planType,
+      sourceCurrency: "USD",
+    }),
+  });
+  return handleApiResponse(res);
+}
+
 export async function getRankProgress() {
   const res = await fetch(`${API_BASE_URL}/api/v1/user/rank-progress`, {
     headers: await getAuthHeaders(),

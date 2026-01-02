@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useRef } from "react";
-import Image from "next/image";
 import { motion } from "framer-motion";
 import { gsap } from "gsap";
 import { useGSAP } from "@gsap/react";
