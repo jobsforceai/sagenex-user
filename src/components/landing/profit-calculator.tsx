@@ -57,7 +57,7 @@ export default function ProfitCalculator() {
         aria-label="Calculate your profits"
         onClick={() => setOpen(true)}
         className={[
-          "fixed bottom-5 right-5 z-[60] inline-flex items-center gap-2",
+          "fixed bottom-5 left-5 z-[60] inline-flex items-center gap-2",
           "rounded-full px-4 py-3 text-sm font-semibold text-white",
           "backdrop-blur-xl bg-white/10 border border-white/20 shadow-[0_10px_40px_rgba(0,0,0,.45)]",
           "hover:bg-white/14 active:scale-[.98] transition",

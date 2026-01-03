@@ -3,7 +3,8 @@ import "./globals.css";
 import { AuthProvider } from "./context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "sonner";
-import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { ThemeProvider as NextThemesProvider } from "next-themes";
+import ChatbotWidget from "@/app/components/ChatbotWidget";
 
 export const metadata: Metadata = {
   title: "Sagenex",
@@ -29,6 +30,7 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               {children}
+              <ChatbotWidget />
               <Toaster />
             </NextThemesProvider>
           </AuthProvider>
