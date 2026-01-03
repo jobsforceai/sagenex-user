@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 
+const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+const apiBaseUrl = backendBaseUrl.endsWith("/api")
+  ? backendBaseUrl
+  : `${backendBaseUrl.replace(/\/$/, "")}/api`;
+
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
@@ -10,7 +15,7 @@ const nextConfig: NextConfig = {
     return [
       {
         source: "/api/:path*",
-        destination: "http://localhost:8080/api/:path*",
+        destination: `${apiBaseUrl}/:path*`,
       },
     ];
   },
