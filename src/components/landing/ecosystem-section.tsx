@@ -48,7 +48,7 @@ const mainCards: EcosystemCard[] = [
     name: "SGSE",
     description: "Securities exchange platform for tokenized assets and innovative investment opportunities.",
     url: "https://sgse.sgxmeta.ai",
-    image: "/sgse.png",
+    image: "/sgse1.png",
     gradient: "from-emerald-500/20 via-teal-500/20 to-green-500/20",
     isMain: true,
   },
