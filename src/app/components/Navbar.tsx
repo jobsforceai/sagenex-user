@@ -131,7 +131,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   alt="Sagenex"
                   fill
                   sizes="100vw"
-                  className="object-fill rounded-full"
+                  className="object-fill rounded-full scale-125"
                   priority
                 />
               </span>
