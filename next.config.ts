@@ -5,11 +5,37 @@ const apiBaseUrl = backendBaseUrl.endsWith("/api")
   ? backendBaseUrl
   : `${backendBaseUrl.replace(/\/$/, "")}/api`;
 
+const autoproctorOrigin = process.env.AUTOPROCTOR_ORIGIN;
+const frameAncestors = ["'self'", autoproctorOrigin].filter(Boolean).join(" ");
+const frameAncestorsPolicy = `frame-ancestors ${frameAncestors};`;
+
 const nextConfig: NextConfig = {
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',
     },
+  },
+  async headers() {
+    return [
+      {
+        source: "/tests/online",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: frameAncestorsPolicy,
+          },
+        ],
+      },
+      {
+        source: "/login",
+        headers: [
+          {
+            key: "Content-Security-Policy",
+            value: frameAncestorsPolicy,
+          },
+        ],
+      },
+    ];
   },
   async rewrites() {
     return [
