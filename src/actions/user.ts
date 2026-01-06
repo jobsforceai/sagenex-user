@@ -485,6 +485,145 @@ export async function cancelTestBooking(bookingId: string, reason?: string) {
     return handleApiResponse(res);
 }
 
+// --- Online Tests ---
+
+export async function getOnlineTestsCatalog() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/online/catalog`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getOnlineTestState(testId: string) {
+    const params = new URLSearchParams({ testId });
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/online/state?${params.toString()}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function sendOnlineTestOtp(payload: { testId: string }) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/online/send-otp`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res);
+}
+
+export async function purchaseOnlineTest(payload: {
+    testId: string;
+    idempotencyKey: string;
+    otp?: string;
+    password?: string;
+}) {
+    const body: Record<string, unknown> = {
+        testId: payload.testId,
+        idempotencyKey: payload.idempotencyKey,
+    };
+    if (payload.otp) {
+        body.otp = payload.otp;
+    } else if (payload.password) {
+        body.password = payload.password;
+    }
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/online/purchase`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(body),
+    });
+    return handleApiResponse(res);
+}
+
+export async function startOnlineTestAttempt(payload: {
+    testId: string;
+    language: string;
+}) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/online/start`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getOnlineTestAttempt(attemptId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/online/attempts/${attemptId}`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getOnlineTestQuestion(
+    attemptId: string,
+    index: number,
+    language: string,
+    session?: string
+) {
+    const params = new URLSearchParams({
+        index: String(index),
+        language,
+    });
+    const headers = await getAuthHeaders();
+    if (session) {
+        headers["x-exam-session"] = session;
+    }
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/tests/online/attempts/${attemptId}/question?${params.toString()}`,
+        {
+            headers,
+        }
+    );
+    return handleApiResponse(res);
+}
+
+export async function saveOnlineTestAnswer(
+    attemptId: string,
+    payload: { questionId: string; optionId: string },
+    session?: string
+) {
+    const headers = await getAuthHeaders();
+    if (session) {
+        headers["x-exam-session"] = session;
+    }
+    const body = session ? { ...payload, session } : payload;
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/tests/online/attempts/${attemptId}/answer`,
+        {
+            method: "POST",
+            headers,
+            body: JSON.stringify(body),
+        }
+    );
+    return handleApiResponse(res);
+}
+
+export async function submitOnlineTestAttempt(attemptId: string, session?: string) {
+    const headers = await getAuthHeaders();
+    if (session) {
+        headers["x-exam-session"] = session;
+    }
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/tests/online/attempts/${attemptId}/submit`,
+        {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ session }),
+        }
+    );
+    return handleApiResponse(res);
+}
+
+export async function consumeOnlineTestSession(session: string) {
+    const headers = await getAuthHeaders();
+    headers["x-exam-session"] = session;
+    const res = await fetch(`${API_BASE_URL}/api/v1/tests/online/session/consume`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ session }),
+    });
+    return handleApiResponse(res);
+}
+
 export async function redeemFromSGChain(code: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/redeem-from-sgchain`, {
         method: "POST",
