@@ -502,6 +502,20 @@ export async function getOnlineTestState(testId: string) {
     return handleApiResponse(res);
 }
 
+export async function getOnlineTestAttempts(testId?: string) {
+    const params = new URLSearchParams();
+    if (testId) {
+        params.set("testId", testId);
+    }
+    const url = params.toString()
+        ? `${API_BASE_URL}/api/v1/tests/online/attempts?${params.toString()}`
+        : `${API_BASE_URL}/api/v1/tests/online/attempts`;
+    const res = await fetch(url, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
 export async function sendOnlineTestOtp(payload: { testId: string }) {
     const res = await fetch(`${API_BASE_URL}/api/v1/tests/online/send-otp`, {
         method: "POST",
