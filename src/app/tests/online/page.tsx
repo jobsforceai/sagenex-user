@@ -28,6 +28,7 @@ import {
   startOnlineTestAttempt,
   submitOnlineTestAttempt,
   getOnlineTestAttempts,
+  getOnlineTestAttempt,
 } from '@/actions/user';
 
 type OnlineTestCatalogItem = {
@@ -584,7 +585,12 @@ export default function OnlineTestsPage() {
       setSelectedOptionId(questionPayload.selectedOptionId || null);
       setTimeRemaining(questionPayload.timeRemainingSeconds ?? null);
     } catch (err: any) {
-      setQuestionError(getErrorMessage(err, 'Failed to load the question.'));
+      const message = getErrorMessage(err, 'Failed to load the question.');
+      if (message.toLowerCase().includes('session token has expired')) {
+        await handleSessionExpiration();
+        return;
+      }
+      setQuestionError(message);
     } finally {
       setQuestionLoading(false);
     }
@@ -688,6 +694,25 @@ export default function OnlineTestsPage() {
       void beginAttempt();
     }
   }, [embedded, autoStartTriggered, stage, selectedTest, sessionToken, languageReady]);
+
+  const handleSessionExpiration = async () => {
+    if (!attempt) return;
+    setSessionToken(null);
+    setQuestion(null);
+    setQuestionLoading(false);
+    setSessionError('Session token has expired. Redirecting to results...');
+    try {
+      const res = await getOnlineTestAttempt(attempt.attemptId);
+      if (res.error) {
+        throw new Error(res.error);
+      }
+      setResult(res.attempt || res);
+      setStage('result');
+    } catch (err: any) {
+      const errorMessage = getErrorMessage(err, 'Failed to retrieve attempt status.');
+      setQuestionError(errorMessage);
+    }
+  };
 
   const handleSubmitAttempt = async () => {
     if (!attempt) return;
