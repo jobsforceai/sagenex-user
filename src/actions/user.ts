@@ -613,6 +613,22 @@ export async function submitOnlineTestAttempt(attemptId: string, session?: strin
     return handleApiResponse(res);
 }
 
+export async function endOnlineTestAttempt(attemptId: string, session?: string) {
+    const headers = await getAuthHeaders();
+    if (session) {
+        headers["x-exam-session"] = session;
+    }
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/tests/online/attempts/${attemptId}/end`,
+        {
+            method: "POST",
+            headers,
+            body: JSON.stringify({ session }),
+        }
+    );
+    return handleApiResponse(res);
+}
+
 export async function consumeOnlineTestSession(session: string) {
     const headers = await getAuthHeaders();
     headers["x-exam-session"] = session;

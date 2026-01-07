@@ -21,6 +21,7 @@ import {
   getOnlineTestsCatalog,
   getOnlineTestQuestion,
   getOnlineTestState,
+  endOnlineTestAttempt,
   purchaseOnlineTest,
   sendOnlineTestOtp,
   saveOnlineTestAnswer,
@@ -193,6 +194,8 @@ export default function OnlineTestsPage() {
   const [embedded, setEmbedded] = useState(false);
   const [embeddedInit, setEmbeddedInit] = useState(false);
   const [autoStartTriggered, setAutoStartTriggered] = useState(false);
+  const [endingAttempt, setEndingAttempt] = useState(false);
+  const [endError, setEndError] = useState<string | null>(null);
 
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [result, setResult] = useState<OnlineAttemptResult | null>(null);
@@ -304,6 +307,8 @@ export default function OnlineTestsPage() {
     setSessionLoading(false);
     setSessionError(null);
     setAutoStartTriggered(false);
+    setEndingAttempt(false);
+    setEndError(null);
     setTimeRemaining(null);
     setResult(null);
     setSubmitting(false);
@@ -374,6 +379,8 @@ export default function OnlineTestsPage() {
     setSessionToken(null);
     setSessionError(null);
     setAutoStartTriggered(false);
+    setEndingAttempt(false);
+    setEndError(null);
     setStateLoading(true);
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_TEST_ID, test.testId);
@@ -632,6 +639,28 @@ export default function OnlineTestsPage() {
       setQuestionError(getErrorMessage(err, 'Failed to submit the attempt.'));
     } finally {
       setSubmitting(false);
+    }
+  };
+
+  const handleEndExam = async () => {
+    if (!attempt) return;
+    if (!sessionToken) {
+      setEndError('Session token missing. Please resume the attempt.');
+      return;
+    }
+    setEndingAttempt(true);
+    setEndError(null);
+    try {
+      const res = await endOnlineTestAttempt(attempt.attemptId, sessionToken);
+      if (res.error) {
+        throw new Error(res.error);
+      }
+      setResult(res.attempt || res);
+      setStage('result');
+    } catch (err: any) {
+      setEndError(getErrorMessage(err, 'Failed to end the attempt.'));
+    } finally {
+      setEndingAttempt(false);
     }
   };
 
@@ -1190,13 +1219,38 @@ export default function OnlineTestsPage() {
 
                 {question && (
                   <div className="rounded-2xl border border-white/10 bg-white/5 p-6 space-y-6">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/70">
-                        {question.question.sectionTitle || question.question.section || 'Section'}
-                      </p>
-                      <h3 className="mt-3 text-lg md:text-xl font-semibold leading-relaxed whitespace-pre-line">
-                        {question.question.prompt}
-                      </h3>
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/70">
+                          {question.question.sectionTitle || question.question.section || 'Section'}
+                        </p>
+                        <h3 className="mt-3 text-lg md:text-xl font-semibold leading-relaxed whitespace-pre-line">
+                          {question.question.prompt}
+                        </h3>
+                      </div>
+                      <div className="text-right">
+                        <Button
+                          variant="outline"
+                          className="border-red-500/40 text-red-200 hover:border-red-400/70 hover:text-red-100"
+                          onClick={handleEndExam}
+                          disabled={endingAttempt}
+                        >
+                          {endingAttempt ? (
+                            <span className="flex items-center gap-2">
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                              Ending...
+                            </span>
+                          ) : (
+                            'End Exam'
+                          )}
+                        </Button>
+                        <p className="mt-2 text-xs text-white/60">
+                          End the exam here before exiting.
+                        </p>
+                        {endError && (
+                          <p className="mt-2 text-xs text-red-200">{endError}</p>
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-3">
