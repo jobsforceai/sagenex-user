@@ -10,6 +10,13 @@ import Navbar from '@/app/components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
   consumeOnlineTestSession,
   getOnlineTestsCatalog,
   getOnlineTestQuestion,
@@ -169,6 +176,7 @@ export default function OnlineTestsPage() {
   const [stateError, setStateError] = useState<string | null>(null);
 
   const [language, setLanguage] = useState(LANGUAGES[0].code);
+  const [languageReady, setLanguageReady] = useState(false);
   const [startLoading, setStartLoading] = useState(false);
   const [startError, setStartError] = useState<string | null>(null);
 
@@ -214,6 +222,7 @@ export default function OnlineTestsPage() {
     if (storedLanguage && LANGUAGES.some((lang) => lang.code === storedLanguage)) {
       setLanguage(storedLanguage);
     }
+    setLanguageReady(true);
   }, []);
 
   useEffect(() => {
@@ -301,6 +310,7 @@ export default function OnlineTestsPage() {
     setStateLoading(false);
     setStateError(null);
     setStage('catalog');
+    setAutoStartTriggered(false);
     router.replace('/tests/online');
   };
 
@@ -336,7 +346,7 @@ export default function OnlineTestsPage() {
     if (typeof window !== 'undefined') {
       window.localStorage.setItem(STORAGE_TEST_ID, selectedTest.testId);
       window.localStorage.setItem(STORAGE_LANGUAGE, language);
-      window.location.href = AUTOPROCTOR_URL;
+      window.open(AUTOPROCTOR_URL, '_blank', 'noopener,noreferrer');
     }
   };
 
@@ -586,15 +596,22 @@ export default function OnlineTestsPage() {
     }
   };
 
+  const handleExamLanguageChange = async (value: string) => {
+    setLanguage(value);
+    if (!attempt || !question) return;
+    if (questionLoading) return;
+    await loadQuestion(attempt.attemptId, question.index, value);
+  };
+
   useEffect(() => {
-    if (!embedded || autoStartTriggered) return;
+    if (!embedded || autoStartTriggered || !languageReady) return;
     if (!selectedTest) return;
     if (stage !== 'language' && stage !== 'resume') return;
     if (!sessionToken) {
       setAutoStartTriggered(true);
       void beginAttempt();
     }
-  }, [embedded, autoStartTriggered, stage, selectedTest, sessionToken, language]);
+  }, [embedded, autoStartTriggered, stage, selectedTest, sessionToken, languageReady]);
 
   const handleSubmitAttempt = async () => {
     if (!attempt) return;
@@ -1101,7 +1118,7 @@ export default function OnlineTestsPage() {
                     <h2 className="text-2xl font-semibold">{getTestTitle(selectedTest)}</h2>
                     <p className="mt-1 text-sm text-white/60">Language: {languageLabel}</p>
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-4">
                     <div className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100">
                       <span className="flex items-center gap-2">
                         <Clock className="h-4 w-4" />
@@ -1110,6 +1127,21 @@ export default function OnlineTestsPage() {
                     </div>
                     <div className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-white/70">
                       Question {currentIndex} of {totalQuestions}
+                    </div>
+                    <div className="min-w-[160px]">
+                      <p className="text-[11px] uppercase tracking-[0.2em] text-white/50">Language</p>
+                      <Select value={language} onValueChange={handleExamLanguageChange}>
+                        <SelectTrigger className="mt-1 h-9 border-white/10 bg-black/30 text-white">
+                          <SelectValue placeholder="Select language" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {LANGUAGES.map((lang) => (
+                            <SelectItem key={lang.code} value={lang.code}>
+                              {lang.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
                 </div>
