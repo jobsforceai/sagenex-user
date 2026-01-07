@@ -1462,97 +1462,102 @@ export default function OnlineTestsPage() {
               </div>
             )}
 
-            <div className="mt-12 space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.3em] text-white/50">History</p>
-                  <h2 className="text-2xl font-semibold">Past attempts</h2>
+            {stage === 'catalog' && (
+              <div className="mt-12 space-y-4" data-stage="history">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-white/50">History</p>
+                    <h2 className="text-2xl font-semibold">Past attempts</h2>
+                  </div>
+                  <p className="text-sm text-white/60">
+                    Showing recent attempts (most recent first)
+                  </p>
                 </div>
-                <p className="text-sm text-white/60">
-                  Showing recent attempts (most recent first)
-                </p>
+                {historyLoading ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/60">
+                    Loading history...
+                  </div>
+                ) : historyError ? (
+                  <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-sm text-red-200">
+                    {historyError}
+                  </div>
+                ) : attemptsList.length === 0 ? (
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/60">
+                    No previous attempts yet.
+                  </div>
+                ) : (
+                  <div className="grid gap-4">
+                    {attemptsList.map((item) => {
+                      const statusLabel = (() => {
+                        switch (item.status) {
+                          case 'IN_PROGRESS':
+                            return 'In progress';
+                          case 'EXPIRED':
+                            return 'Expired';
+                          case 'SUBMITTED':
+                            return 'Submitted';
+                          default:
+                            return item.status;
+                        }
+                      })();
+                      return (
+                        <div
+                          key={item.attemptId}
+                          className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_8px_16px_rgba(0,0,0,0.25)]"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-3">
+                            <div>
+                              <p className="text-sm font-semibold text-white">
+                                {item.testId} · Attempt {item.attemptNumber}
+                              </p>
+                              <p className="text-xs uppercase tracking-[0.2em] text-white/50">
+                                {item.language.toUpperCase()}
+                              </p>
+                            </div>
+                            <span className="rounded-full border border-white/20 px-3 py-1 text-xs uppercase">
+                              {statusLabel}
+                            </span>
+                          </div>
+                          <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                            <div>
+                              <p className="text-xs text-white/60">Score</p>
+                              <p className="text-white">
+                                {item.score !== undefined && item.score !== null
+                                  ? item.score
+                                  : '—'}
+                                {item.percentage !== undefined && item.percentage !== null
+                                  ? ` · ${item.percentage}%`
+                                  : ''}
+                              </p>
+                            </div>
+                            <div>
+                              <p className="text-xs text-white/60">Status detail</p>
+                              <p className="text-white/70 text-sm">
+                                {item.passed === true
+                                  ? 'Passed'
+                                  : item.passed === false
+                                  ? 'Not passed'
+                                  : 'Pending results'}
+                              </p>
+                            </div>
+                          </div>
+                          <div className="mt-3 grid gap-3 sm:grid-cols-2 text-xs text-white/50">
+                            <p>
+                              Started:{' '}
+                              {item.startedAt ? new Date(item.startedAt).toLocaleString() : '—'}
+                            </p>
+                            <p>
+                              Submitted:{' '}
+                              {item.submittedAt ? new Date(item.submittedAt).toLocaleString() : '—'}
+                            </p>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </div>
-              {historyLoading ? (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/60">
-                  Loading history...
-                </div>
-              ) : historyError ? (
-                <div className="rounded-2xl border border-red-500/30 bg-red-500/10 p-6 text-sm text-red-200">
-                  {historyError}
-                </div>
-              ) : historyAttempts.length === 0 ? (
-                <div className="rounded-2xl border border-white/10 bg-white/5 p-6 text-sm text-white/60">
-                  No previous attempts yet.
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {attemptsList.map((item) => {
-                    const statusLabel = (() => {
-                      switch (item.status) {
-                        case 'IN_PROGRESS':
-                          return 'In progress';
-                        case 'EXPIRED':
-                          return 'Expired';
-                        case 'SUBMITTED':
-                          return 'Submitted';
-                        default:
-                          return item.status;
-                      }
-                    })();
-                    return (
-                      <div
-                        key={item.attemptId}
-                        className="rounded-2xl border border-white/10 bg-white/5 p-5 shadow-[0_8px_16px_rgba(0,0,0,0.25)]"
-                      >
-                        <div className="flex flex-wrap items-center justify-between gap-3">
-                          <div>
-                            <p className="text-sm font-semibold text-white">
-                              {item.testId} · Attempt {item.attemptNumber}
-                            </p>
-                            <p className="text-xs uppercase tracking-[0.2em] text-white/50">
-                              {item.language.toUpperCase()}
-                            </p>
-                          </div>
-                          <span className="rounded-full border border-white/20 px-3 py-1 text-xs uppercase">
-                            {statusLabel}
-                          </span>
-                        </div>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                          <div>
-                            <p className="text-xs text-white/60">Score</p>
-                            <p className="text-white">
-                              {item.score !== undefined && item.score !== null
-                                ? item.score
-                                : '—'}
-                              {item.percentage !== undefined && item.percentage !== null
-                                ? ` · ${item.percentage}%`
-                                : ''}
-                            </p>
-                          </div>
-                          <div>
-                            <p className="text-xs text-white/60">Status detail</p>
-                            <p className="text-white/70 text-sm">
-                              {item.passed === true
-                                ? 'Passed'
-                                : item.passed === false
-                                ? 'Not passed'
-                                : 'Pending results'}
-                            </p>
-                          </div>
-                        </div>
-                        <div className="mt-3 grid gap-3 sm:grid-cols-2 text-xs text-white/50">
-                          <p>Started: {item.startedAt ? new Date(item.startedAt).toLocaleString() : '—'}</p>
-                          <p>
-                            Submitted:{' '}
-                            {item.submittedAt ? new Date(item.submittedAt).toLocaleString() : '—'}
-                          </p>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-            </div>
+            )}
           </div>
         </div>
       </main>
