@@ -1592,7 +1592,7 @@ export default function OnlineTestsPage() {
                 Cancel
               </Button>
               <Button
-                className="border-red-500/40 text-red-200 hover:border-red-400/70 hover:text-red-100"
+                className="bg-red-500 text-white hover:bg-red-400 focus-visible:ring-red-400 focus-visible:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 onClick={confirmEndExam}
                 disabled={endConfirmLoading}
               >
