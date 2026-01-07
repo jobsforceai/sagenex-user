@@ -104,6 +104,12 @@ const LANGUAGES: LanguageOption[] = [
   { code: 'te', label: 'Telugu' },
 ];
 
+const AUTOPROCTOR_URL =
+  process.env.NEXT_PUBLIC_AUTOPROCTOR_URL ||
+  'https://www.autoproctor.co/tests/Tc5KmQhvUh/instructions/';
+const STORAGE_TEST_ID = 'onlineExamTestId';
+const STORAGE_LANGUAGE = 'onlineExamLanguage';
+
 const getErrorMessage = (err: any, fallback: string) =>
   err?.data?.message || err?.message || fallback;
 
@@ -176,6 +182,9 @@ export default function OnlineTestsPage() {
   const [sessionToken, setSessionToken] = useState<string | null>(null);
   const [sessionLoading, setSessionLoading] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [embedded, setEmbedded] = useState(false);
+  const [embeddedInit, setEmbeddedInit] = useState(false);
+  const [autoStartTriggered, setAutoStartTriggered] = useState(false);
 
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [result, setResult] = useState<OnlineAttemptResult | null>(null);
@@ -192,6 +201,25 @@ export default function OnlineTestsPage() {
       router.push('/login?next=/tests/online');
     }
   }, [loading, isAuthenticated, router]);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      setEmbedded(window.self !== window.top);
+    } catch {
+      setEmbedded(true);
+    }
+
+    const storedLanguage = window.localStorage.getItem(STORAGE_LANGUAGE);
+    if (storedLanguage && LANGUAGES.some((lang) => lang.code === storedLanguage)) {
+      setLanguage(storedLanguage);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.localStorage.setItem(STORAGE_LANGUAGE, language);
+  }, [language]);
 
 
   useEffect(() => {
@@ -219,6 +247,20 @@ export default function OnlineTestsPage() {
       loadCatalog();
     }
   }, [loading, isAuthenticated]);
+
+  useEffect(() => {
+    if (!embedded || embeddedInit || catalogLoading || stage !== 'catalog') return;
+    if (typeof window === 'undefined') return;
+    if (catalog.length === 0) return;
+
+    const storedTestId = window.localStorage.getItem(STORAGE_TEST_ID);
+    const test =
+      catalog.find((item) => item.testId === storedTestId) || catalog[0] || null;
+    if (test) {
+      setEmbeddedInit(true);
+      handleSelectTest(test);
+    }
+  }, [embedded, embeddedInit, catalogLoading, stage, catalog]);
 
 
   useEffect(() => {
@@ -252,6 +294,7 @@ export default function OnlineTestsPage() {
     setSessionToken(null);
     setSessionLoading(false);
     setSessionError(null);
+    setAutoStartTriggered(false);
     setTimeRemaining(null);
     setResult(null);
     setSubmitting(false);
@@ -278,6 +321,25 @@ export default function OnlineTestsPage() {
     }
   };
 
+  const handleLaunchExam = async () => {
+    if (!selectedTest) return;
+    if (embedded) {
+      await beginAttempt();
+      return;
+    }
+
+    if (!AUTOPROCTOR_URL.startsWith('https://')) {
+      setStartError('AutoProctor URL is not configured.');
+      return;
+    }
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(STORAGE_TEST_ID, selectedTest.testId);
+      window.localStorage.setItem(STORAGE_LANGUAGE, language);
+      window.location.href = AUTOPROCTOR_URL;
+    }
+  };
+
   const handleSelectTest = async (test: OnlineTestCatalogItem) => {
     setSelectedTest(test);
     setPurchaseInfo(null);
@@ -301,7 +363,11 @@ export default function OnlineTestsPage() {
     setStateError(null);
     setSessionToken(null);
     setSessionError(null);
+    setAutoStartTriggered(false);
     setStateLoading(true);
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem(STORAGE_TEST_ID, test.testId);
+    }
 
     try {
       const res = await getOnlineTestState(test.testId);
@@ -443,7 +509,7 @@ export default function OnlineTestsPage() {
     }
   };
 
-  const handleStartAttempt = async () => {
+  const beginAttempt = async () => {
     if (!selectedTest) return;
     setStartLoading(true);
     setStartError(null);
@@ -519,6 +585,16 @@ export default function OnlineTestsPage() {
       setAnswerSaving(false);
     }
   };
+
+  useEffect(() => {
+    if (!embedded || autoStartTriggered) return;
+    if (!selectedTest) return;
+    if (stage !== 'language' && stage !== 'resume') return;
+    if (!sessionToken) {
+      setAutoStartTriggered(true);
+      void beginAttempt();
+    }
+  }, [embedded, autoStartTriggered, stage, selectedTest, sessionToken, language]);
 
   const handleSubmitAttempt = async () => {
     if (!attempt) return;
@@ -923,7 +999,7 @@ export default function OnlineTestsPage() {
                   )}
 
                   <div className="flex flex-col gap-3">
-                    <Button onClick={handleStartAttempt} disabled={startLoading}>
+                    <Button onClick={handleLaunchExam} disabled={startLoading}>
                       {startLoading ? (
                         <span className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -999,7 +1075,7 @@ export default function OnlineTestsPage() {
                   )}
 
                   <div className="flex flex-col gap-3">
-                    <Button onClick={handleStartAttempt} disabled={startLoading}>
+                    <Button onClick={handleLaunchExam} disabled={startLoading}>
                       {startLoading ? (
                         <span className="flex items-center gap-2">
                           <Loader2 className="h-4 w-4 animate-spin" />
@@ -1214,6 +1290,7 @@ export default function OnlineTestsPage() {
                         setSessionToken(null);
                         setSessionLoading(false);
                         setSessionError(null);
+                        setAutoStartTriggered(false);
                         setStage('language');
                         setResult(null);
                       }}
