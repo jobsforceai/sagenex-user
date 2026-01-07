@@ -227,10 +227,19 @@ export default function OnlineTestsPage() {
   const [result, setResult] = useState<OnlineAttemptResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  const languageLabel = useMemo(
-    () => LANGUAGES.find((lang) => lang.code === language)?.label || language,
-    [language]
-  );
+const languageLabel = useMemo(
+  () => LANGUAGES.find((lang) => lang.code === language)?.label || language,
+  [language]
+);
+
+const shuffleArray = <T,>(items: T[]): T[] => {
+  const array = items.slice();
+  for (let i = array.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
 
 
   useEffect(() => {
@@ -772,6 +781,10 @@ export default function OnlineTestsPage() {
   const hasPassed =
     resultPercentage !== null ? resultPercentage >= passThreshold : result?.passed;
   const attemptsList = Array.isArray(historyAttempts) ? historyAttempts : [];
+  const shuffledOptions = useMemo(() => {
+    if (!question) return [];
+    return shuffleArray(question.question.options);
+  }, [question?.question.questionId]);
 
   return (
     <>
@@ -1343,7 +1356,7 @@ export default function OnlineTestsPage() {
                   </div>
 
                     <div className="space-y-3">
-                      {question.question.options.map((option) => {
+                      {shuffledOptions.map((option) => {
                         const isSelected = selectedOptionId === option.optionId;
                         return (
                           <button
