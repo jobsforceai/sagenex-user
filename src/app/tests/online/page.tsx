@@ -1244,23 +1244,25 @@ export default function OnlineTestsPage() {
 
             {stage === 'exam' && attempt && selectedTest && (
               <div className="space-y-6">
-                <div className="grid gap-6 rounded-2xl border border-white/10 bg-white/5 p-6 md:grid-cols-[1fr_auto]">
+                <div className="grid gap-6 rounded-2xl border border-white/10 bg-gradient-to-r from-slate-900/90 via-[#0d1710]/70 to-slate-900/60 p-6 shadow-xl shadow-black/40 md:grid-cols-[minmax(0,_1fr)_auto]">
                   <div className="space-y-1">
                     <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/70">Attempt live</p>
-                    <h2 className="text-2xl font-semibold">{getTestTitle(selectedTest)}</h2>
-                    <p className="text-sm text-white/60">Language: {languageLabel}</p>
+                    <h2 className="text-2xl font-semibold leading-tight">{getTestTitle(selectedTest)}</h2>
+                    <p className="text-sm text-white/70">Language: {languageLabel}</p>
                   </div>
-                  <div className="grid gap-3 text-sm sm:grid-cols-[auto_auto_minmax(180px,1fr)]">
-                    <div className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 text-center">
-                      <span className="flex items-center justify-center gap-2">
+                  <div className="flex flex-wrap items-center justify-end gap-4">
+                    <div className="flex flex-col gap-1 rounded-2xl border border-emerald-400/30 bg-black/50 px-4 py-2 text-center text-sm text-emerald-100 shadow-[inset_0_0_12px_rgba(0,0,0,0.25)] min-w-[160px]">
+                      <span className="text-[10px] uppercase tracking-[0.4em] text-emerald-200/70">Timer</span>
+                      <span className="flex items-center justify-center gap-2 text-base font-semibold">
                         <Clock className="h-4 w-4" />
                         {formatTimeRemaining(timeRemaining)}
                       </span>
                     </div>
-                    <div className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-white/70 text-center">
-                      Question {currentIndex} of {totalQuestions}
+                    <div className="flex flex-col gap-1 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-center text-sm text-white/80 min-w-[160px]">
+                      <span className="text-[10px] uppercase tracking-[0.4em] text-white/50">Progress</span>
+                      <span className="text-base font-semibold">Question {currentIndex} of {totalQuestions}</span>
                     </div>
-                    <div>
+                    <div className="min-w-[170px]">
                       <p className="text-[11px] uppercase tracking-[0.2em] text-white/50">Language</p>
                       <Select value={language} onValueChange={handleExamLanguageChange}>
                         <SelectTrigger className="mt-1 h-9 border-white/10 bg-black/30 text-white">
