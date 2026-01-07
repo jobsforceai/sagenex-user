@@ -1230,23 +1230,23 @@ export default function OnlineTestsPage() {
 
             {stage === 'exam' && attempt && selectedTest && (
               <div className="space-y-6">
-                <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-white/10 bg-white/5 p-6">
-                  <div>
+                <div className="grid gap-6 rounded-2xl border border-white/10 bg-white/5 p-6 md:grid-cols-[1fr_auto]">
+                  <div className="space-y-1">
                     <p className="text-xs uppercase tracking-[0.2em] text-emerald-200/70">Attempt live</p>
                     <h2 className="text-2xl font-semibold">{getTestTitle(selectedTest)}</h2>
-                    <p className="mt-1 text-sm text-white/60">Language: {languageLabel}</p>
+                    <p className="text-sm text-white/60">Language: {languageLabel}</p>
                   </div>
-                  <div className="flex flex-wrap items-center gap-4">
-                    <div className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100">
-                      <span className="flex items-center gap-2">
+                  <div className="grid gap-3 text-sm sm:grid-cols-[auto_auto_minmax(180px,1fr)]">
+                    <div className="rounded-full border border-emerald-400/30 bg-emerald-500/10 px-4 py-2 text-sm text-emerald-100 text-center">
+                      <span className="flex items-center justify-center gap-2">
                         <Clock className="h-4 w-4" />
                         {formatTimeRemaining(timeRemaining)}
                       </span>
                     </div>
-                    <div className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-white/70">
+                    <div className="rounded-full border border-white/10 bg-black/30 px-4 py-2 text-sm text-white/70 text-center">
                       Question {currentIndex} of {totalQuestions}
                     </div>
-                    <div className="min-w-[160px]">
+                    <div>
                       <p className="text-[11px] uppercase tracking-[0.2em] text-white/50">Language</p>
                       <Select value={language} onValueChange={handleExamLanguageChange}>
                         <SelectTrigger className="mt-1 h-9 border-white/10 bg-black/30 text-white">
