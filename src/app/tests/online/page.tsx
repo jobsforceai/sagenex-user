@@ -171,6 +171,15 @@ const formatTimeRemaining = (seconds?: number | null) => {
 const formatDateTime = (value?: string | null) =>
   value ? new Date(value).toLocaleString() : 'N/A';
 
+const shuffleArray = <T,>(items: T[]): T[] => {
+  const array = items.slice();
+  for (let i = array.length - 1; i > 0; i -= 1) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
+  return array;
+};
+
 export default function OnlineTestsPage() {
   const { isAuthenticated, loading } = useAuth();
   const router = useRouter();
@@ -227,19 +236,15 @@ export default function OnlineTestsPage() {
   const [result, setResult] = useState<OnlineAttemptResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-const languageLabel = useMemo(
-  () => LANGUAGES.find((lang) => lang.code === language)?.label || language,
-  [language]
-);
+  const languageLabel = useMemo(
+    () => LANGUAGES.find((lang) => lang.code === language)?.label || language,
+    [language]
+  );
 
-const shuffleArray = <T,>(items: T[]): T[] => {
-  const array = items.slice();
-  for (let i = array.length - 1; i > 0; i -= 1) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-  return array;
-};
+  const shuffledOptions = useMemo(() => {
+    if (!question) return [];
+    return shuffleArray(question.question.options);
+  }, [question?.question.questionId]);
 
 
   useEffect(() => {
@@ -781,10 +786,6 @@ const shuffleArray = <T,>(items: T[]): T[] => {
   const hasPassed =
     resultPercentage !== null ? resultPercentage >= passThreshold : result?.passed;
   const attemptsList = Array.isArray(historyAttempts) ? historyAttempts : [];
-  const shuffledOptions = useMemo(() => {
-    if (!question) return [];
-    return shuffleArray(question.question.options);
-  }, [question?.question.questionId]);
 
   return (
     <>
