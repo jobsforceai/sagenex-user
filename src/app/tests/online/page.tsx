@@ -196,6 +196,10 @@ export default function OnlineTestsPage() {
   const [autoStartTriggered, setAutoStartTriggered] = useState(false);
   const [endingAttempt, setEndingAttempt] = useState(false);
   const [endError, setEndError] = useState<string | null>(null);
+  const [showEndConfirm, setShowEndConfirm] = useState(false);
+  const [endConfirmLoading, setEndConfirmLoading] = useState(false);
+  const [showRestartConfirm, setShowRestartConfirm] = useState(false);
+  const [restartConfirmLoading, setRestartConfirmLoading] = useState(false);
 
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [result, setResult] = useState<OnlineAttemptResult | null>(null);
@@ -664,6 +668,42 @@ export default function OnlineTestsPage() {
     }
   };
 
+  const confirmEndExam = async () => {
+    setEndConfirmLoading(true);
+    try {
+      await handleEndExam();
+      setShowEndConfirm(false);
+    } finally {
+      setEndConfirmLoading(false);
+    }
+  };
+
+  const startAnotherAttempt = () => {
+    setShowRestartConfirm(false);
+    setAttempt(null);
+    setQuestion(null);
+    setQuestionError(null);
+    setSelectedOptionId(null);
+    setAnswerError(null);
+    setTimeRemaining(null);
+    setStage('language');
+    setResult(null);
+    setSessionToken(null);
+    setSessionError(null);
+    setAutoStartTriggered(false);
+    router.replace('/tests/online');
+  };
+
+  const confirmRestartAttempt = () => {
+    setRestartConfirmLoading(true);
+    try {
+      startAnotherAttempt();
+    } finally {
+      setRestartConfirmLoading(false);
+    }
+  };
+
+
   if (loading) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -680,9 +720,15 @@ export default function OnlineTestsPage() {
   const currentIndex = question?.index || 1;
   const completedCount = totalQuestions ? Math.min(currentIndex, totalQuestions) : 0;
   const remainingCount = totalQuestions ? Math.max(totalQuestions - completedCount, 0) : 0;
+  const attemptedCount = attempt?.answeredCount ?? Math.max(currentIndex - 1, 0);
+  const remainingBeforeEnd = totalQuestions ? Math.max(totalQuestions - attemptedCount, 0) : 0;
   const progressPercent = totalQuestions
     ? Math.min(Math.round((completedCount / totalQuestions) * 100), 100)
     : 0;
+  const passThreshold = selectedTest?.passPercentage ?? 70;
+  const resultPercentage = result?.percentage ?? null;
+  const hasPassed =
+    resultPercentage !== null ? resultPercentage >= passThreshold : result?.passed;
 
   return (
     <>
@@ -1229,29 +1275,29 @@ export default function OnlineTestsPage() {
                         </h3>
                       </div>
                       <div className="text-right">
-                        <Button
-                          variant="outline"
-                          className="border-red-500/40 text-red-200 hover:border-red-400/70 hover:text-red-100"
-                          onClick={handleEndExam}
-                          disabled={endingAttempt}
-                        >
-                          {endingAttempt ? (
-                            <span className="flex items-center gap-2">
-                              <Loader2 className="h-4 w-4 animate-spin" />
-                              Ending...
-                            </span>
-                          ) : (
-                            'End Exam'
-                          )}
-                        </Button>
-                        <p className="mt-2 text-xs text-white/60">
-                          End the exam here before exiting.
-                        </p>
-                        {endError && (
-                          <p className="mt-2 text-xs text-red-200">{endError}</p>
+                      <Button
+                        variant="outline"
+                        className="border-red-500/40 text-red-200 hover:border-red-400/70 hover:text-red-100"
+                        onClick={() => setShowEndConfirm(true)}
+                        disabled={endingAttempt}
+                      >
+                        {endingAttempt ? (
+                          <span className="flex items-center gap-2">
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                            Ending...
+                          </span>
+                        ) : (
+                          'End Exam'
                         )}
-                      </div>
+                      </Button>
+                      <p className="mt-2 text-xs text-white/60">
+                        End the exam here before exiting.
+                      </p>
+                      {endError && (
+                        <p className="mt-2 text-xs text-red-200">{endError}</p>
+                      )}
                     </div>
+                  </div>
 
                     <div className="space-y-3">
                       {question.question.options.map((option) => {
@@ -1351,36 +1397,21 @@ export default function OnlineTestsPage() {
                   </div>
                 </div>
 
-                <div className="rounded-xl border border-white/10 bg-black/30 p-4">
-                  <p className="text-sm font-semibold">
-                    {result.passed ? 'Passed' : 'Result pending or not passed'}
-                  </p>
-                  <p className="text-xs text-white/60">
-                    Passing unlocks bonuses. If you have remaining attempts, you can try again.
-                  </p>
-                </div>
+                  <div className="rounded-xl border border-white/10 bg-black/30 p-4 space-y-1">
+                    <p className="text-sm font-semibold">{hasPassed ? 'Passed' : 'Not passed'}</p>
+                    <p className="text-xs text-white/60">
+                      Passing unlocks bonuses. If you have remaining attempts, you can try again.
+                    </p>
+                    <p className="text-xs text-white/50">
+                      Pass mark: {passThreshold}% ·{' '}
+                      {resultPercentage !== null ? `${resultPercentage}% scored` : 'No percentage yet'}
+                    </p>
+                  </div>
 
                 <div className="flex flex-wrap gap-3">
                   <Button onClick={resetExamState}>Back to tests</Button>
                   {selectedTest && (
-                    <Button
-                      variant="outline"
-                      onClick={() => {
-                        router.replace('/tests/online');
-                        setAttempt(null);
-                        setQuestion(null);
-                        setQuestionError(null);
-                        setSelectedOptionId(null);
-                        setAnswerError(null);
-                        setTimeRemaining(null);
-                        setSessionToken(null);
-                        setSessionLoading(false);
-                        setSessionError(null);
-                        setAutoStartTriggered(false);
-                        setStage('language');
-                        setResult(null);
-                      }}
-                    >
+                    <Button variant="outline" onClick={() => setShowRestartConfirm(true)}>
                       Start another attempt
                     </Button>
                   )}
@@ -1390,6 +1421,69 @@ export default function OnlineTestsPage() {
           </div>
         </div>
       </main>
+      {showEndConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md space-y-5 rounded-2xl border border-white/10 bg-slate-900/80 p-6 text-white">
+            <h3 className="text-lg font-semibold">End exam now?</h3>
+            <p className="text-sm text-white/70">
+              You've attempted {attemptedCount} question{attemptedCount === 1 ? '' : 's'} and have{' '}
+              {remainingBeforeEnd} left. Ending will finalize this attempt immediately.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => setShowEndConfirm(false)}
+                disabled={endConfirmLoading}
+              >
+                Cancel
+              </Button>
+              <Button
+                className="border-red-500/40 text-red-200 hover:border-red-400/70 hover:text-red-100"
+                onClick={confirmEndExam}
+                disabled={endConfirmLoading}
+              >
+                {endConfirmLoading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Ending...
+                  </span>
+                ) : (
+                  'Yes, end exam'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      {showRestartConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-md space-y-5 rounded-2xl border border-white/10 bg-slate-900/80 p-6 text-white">
+            <h3 className="text-lg font-semibold">Start another attempt?</h3>
+            <p className="text-sm text-white/70">
+              This will reset the current attempt UI and let you pick language again. Make sure you’re ready.
+            </p>
+            <div className="flex items-center justify-end gap-3">
+              <Button
+                variant="ghost"
+                onClick={() => setShowRestartConfirm(false)}
+                disabled={restartConfirmLoading}
+              >
+                Cancel
+              </Button>
+              <Button onClick={confirmRestartAttempt} disabled={restartConfirmLoading}>
+                {restartConfirmLoading ? (
+                  <span className="flex items-center gap-2">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                    Preparing...
+                  </span>
+                ) : (
+                  'Start again'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
