@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, CheckCircle2, Clock, Globe, Loader2, ShieldCheck, Timer } from 'lucide-react';
@@ -235,6 +235,7 @@ export default function OnlineTestsPage() {
   const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
   const [result, setResult] = useState<OnlineAttemptResult | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const resumeQuestionIndexRef = useRef<number | null>(null);
 
   const languageLabel = useMemo(
     () => LANGUAGES.find((lang) => lang.code === language)?.label || language,
@@ -376,6 +377,7 @@ export default function OnlineTestsPage() {
     setStateError(null);
     setStage('catalog');
     setAutoStartTriggered(false);
+    resumeQuestionIndexRef.current = null;
     router.replace('/tests/online');
   };
 
@@ -477,6 +479,7 @@ export default function OnlineTestsPage() {
           setLanguage(attemptPayload.language);
         }
         setTimeRemaining(attemptPayload.timeRemainingSeconds ?? null);
+        resumeQuestionIndexRef.current = attemptPayload.nextQuestionIndex || 1;
         setStage('resume');
         return;
       }
@@ -577,6 +580,7 @@ export default function OnlineTestsPage() {
       }
       const questionPayload = res as OnlineQuestionResponse;
       setQuestion(questionPayload);
+      resumeQuestionIndexRef.current = null;
       setSelectedOptionId(questionPayload.selectedOptionId || null);
       setTimeRemaining(questionPayload.timeRemainingSeconds ?? null);
     } catch (err: any) {
@@ -616,7 +620,12 @@ export default function OnlineTestsPage() {
       setStage('exam');
       await consumeSessionToken(launchToken);
       setTimeRemaining(attemptPayload.timeRemainingSeconds ?? null);
-      const nextIndex = attemptPayload.nextQuestionIndex || 1;
+      const nextIndex =
+        attemptPayload.nextQuestionIndex ||
+        resumeQuestionIndexRef.current ||
+        (attemptPayload.lastAnsweredIndex !== undefined && attemptPayload.lastAnsweredIndex !== null
+          ? attemptPayload.lastAnsweredIndex + 1
+          : 1);
       await loadQuestion(
         attemptPayload.attemptId,
         nextIndex,
