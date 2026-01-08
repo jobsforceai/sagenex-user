@@ -73,12 +73,7 @@ export default function AgentOverview({
 
   const specialBonusRate = packageUSD ? getTieredROIRate(packageUSD) : 0;
 
-  const earningStreams = allEarningStreams.map(stream => {
-    if (stream.name === "Special Bonus" && specialBonusRate) {
-      return { ...stream, name: `Special Bonus (${formatPct(specialBonusRate)})` };
-    }
-    return stream;
-  });
+  const earningStreams = allEarningStreams;
 
   const unlockedStreams = earningStreams.filter(
     (stream) => currentRankIndex >= ranks.indexOf(stream.unlockedAt)

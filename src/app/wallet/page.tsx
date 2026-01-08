@@ -379,7 +379,7 @@ const WalletPage = () => {
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
   const [cycleHistory, setCycleHistory] = useState<CurrentCycleHistory | null>(null);
   const [selectedCycleId, setSelectedCycleId] = useState<string>("current");
-  const [cycleOpen, setCycleOpen] = useState(true);
+  const [cycleOpen, setCycleOpen] = useState(false);
   const [coupon, setCoupon] = useState<SgbnCoupon | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<"BUSINESS" | "FREELANCER" | null>(null);
   const [couponLoading, setCouponLoading] = useState<"BUSINESS" | "FREELANCER" | null>(null);

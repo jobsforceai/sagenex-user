@@ -22,6 +22,7 @@ import {
   Gift,
   MonitorPlay,
   Ticket,
+  X,
 } from "lucide-react";
 import AgentOverview from "../components/dashboard/AgentOverview";
 import EarningsSummary from "../components/dashboard/EarningsSummary";
@@ -205,6 +206,8 @@ const DashboardPage = () => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[] | null>(null);
   const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [packageModalType, setPackageModalType] = useState<"new" | "reinvest" | null>(null);
+  const [showPackageModal, setShowPackageModal] = useState(false);
 
   const referralLink =
     dashboardData?.profile.referralCode
@@ -242,6 +245,29 @@ const DashboardPage = () => {
       fetchInitialData();
     }
   }, [token, isAuthenticated, loading, router]);
+
+  useEffect(() => {
+    if (!dashboardData) return;
+    const packageUSD = dashboardData.package?.packageUSD ?? 0;
+    const remainingCap = dashboardData.wallet?.remainingEarningsCap;
+    const earningsCapTotal = dashboardData.wallet?.earningsCapTotal ?? 0;
+    const hasLockedBonuses = dashboardData.wallet?.bonuses?.some((bonus) => bonus.lockedAmount > 0);
+    const hasPriorEarnings =
+      (dashboardData.wallet?.totalLifetimeWithdrawals ?? 0) > 0 ||
+      (dashboardData.wallet?.availableBalance ?? 0) > 0 ||
+      Boolean(hasLockedBonuses);
+
+    if (remainingCap !== undefined && remainingCap <= 0 && earningsCapTotal > 0) {
+      setPackageModalType("reinvest");
+      setShowPackageModal(true);
+      return;
+    }
+
+    if (packageUSD <= 0) {
+      setPackageModalType(hasPriorEarnings ? "reinvest" : "new");
+      setShowPackageModal(true);
+    }
+  }, [dashboardData]);
 
   useEffect(() => {
     if (!token) return;
@@ -621,6 +647,54 @@ const DashboardPage = () => {
           )}
         </div>
       </main>
+      {showPackageModal && packageModalType && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_25px_80px_rgba(0,0,0,0.55)]">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">
+                  Account status
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold">
+                  {packageModalType === "new"
+                    ? "Start earning today"
+                    : "Reinvest to unlock earnings"}
+                </h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowPackageModal(false)}
+                className="rounded-full border border-white/10 p-2 text-white/70 hover:text-white"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <p className="mt-4 text-sm text-white/70 leading-relaxed">
+              {packageModalType === "new"
+                ? "Make your first investment purchase to activate your package and start earning."
+                : "Your package hit its cap. Reinvest to access the wallet fully and unlock all benefits again."}
+            </p>
+
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <Link
+                href="/wallet"
+                className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400"
+              >
+                {packageModalType === "new" ? "Purchase Package" : "Reinvest Now"}
+              </Link>
+              <button
+                type="button"
+                onClick={() => setShowPackageModal(false)}
+                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/80 hover:border-white/30 hover:text-white"
+              >
+                Maybe later
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
