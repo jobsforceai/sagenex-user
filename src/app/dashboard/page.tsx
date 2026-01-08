@@ -429,7 +429,7 @@ const DashboardPage = () => {
                 </CardHeader>
               </Card>
             </Link>
-            <Link href="/tests/book" className="group">
+            {/* <Link href="/tests/book" className="group">
               <Card className="relative overflow-hidden bg-linear-to-br from-rose-500/10 via-black/20 to-black border border-rose-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-rose-300/50 group-hover:shadow-[0_18px_40px_rgba(244,63,94,0.18)]">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-rose-300 via-rose-500 to-rose-300" />
                 <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-rose-400/15 blur-2xl" />
@@ -443,7 +443,7 @@ const DashboardPage = () => {
                   </div>
                 </CardHeader>
               </Card>
-            </Link>
+            </Link> */}
             <Link href="/tests/online" className="group">
               <Card className="relative overflow-hidden bg-linear-to-br from-indigo-500/10 via-black/20 to-black border border-indigo-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-indigo-300/50 group-hover:shadow-[0_18px_40px_rgba(99,102,241,0.18)]">
                 <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-indigo-300 via-indigo-500 to-indigo-300" />
