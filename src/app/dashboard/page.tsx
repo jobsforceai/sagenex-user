@@ -50,6 +50,9 @@ interface Wallet {
   withdrawalCap: number;
   totalLifetimeWithdrawals: number;
   remainingWithdrawalLimit: number;
+  earningsCapTotal?: number;
+  earnedSinceBaseline?: number;
+  remainingEarningsCap?: number;
   bonuses: {
     level: number;
     name: string;
@@ -158,6 +161,16 @@ interface RankProgress {
     } | null;
   };
 }
+
+const formatCurrency = (amount?: number) => {
+  if (amount === undefined || amount === null) return "N/A";
+  return amount.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
 
 interface FinancialSummary {
   investedPrincipal: number;
@@ -550,6 +563,35 @@ const DashboardPage = () => {
                     totalLifetimeWithdrawals={dashboardData.wallet.totalLifetimeWithdrawals}
                     remainingWithdrawalLimit={dashboardData.wallet.remainingWithdrawalLimit}
                 />
+            )}
+            {dashboardData.wallet.earningsCapTotal !== undefined && (
+              <Card className="bg-[#0b0b0b] border border-emerald-900/40 rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-400">
+                    Earnings Cap
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Earnings cap:</span>
+                    <span className="font-semibold text-white">
+                      {formatCurrency(dashboardData.wallet.earningsCapTotal)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Earned so far:</span>
+                    <span className="font-semibold text-white">
+                      {formatCurrency(dashboardData.wallet.earnedSinceBaseline)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between border-t border-dashed border-gray-700 pt-2">
+                    <span className="text-gray-400">Remaining:</span>
+                    <span className="font-semibold text-emerald-300">
+                      {formatCurrency(dashboardData.wallet.remainingEarningsCap)}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
             )}
             {dashboardData.wallet.bonuses ? (
               <LockedBonusesCard bonuses={dashboardData.wallet.bonuses} />

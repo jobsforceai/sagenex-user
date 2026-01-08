@@ -4,10 +4,10 @@ import { motion, useReducedMotion } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import HeroButton from "../../components/ui/hero-button";
 import { useAuth } from "../context/AuthContext";
-import { getRankProgress } from "@/actions/user";
+import { clearUserCache, getRankProgress } from "@/actions/user";
 import { Crown } from "lucide-react";
 
 type NavLink = { href: string; label: string };
@@ -48,8 +48,10 @@ interface NavbarProps {
 export default function Navbar({ userLevel: propUserLevel, variant = "full" }: NavbarProps) {
   const { isAuthenticated, logout } = useAuth();
   const pathname = usePathname();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [userLevel, setUserLevel] = useState<string | null>(null);
+  const [cacheClearing, setCacheClearing] = useState(false);
   const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
@@ -102,6 +104,24 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
       document.documentElement.classList.remove("overflow-y-hidden");
     };
   }, [open]);
+
+  const handleSyncProfile = async () => {
+    setCacheClearing(true);
+    try {
+      const res = await clearUserCache();
+      if (res?.error) {
+        throw new Error(res.error);
+      }
+      router.refresh();
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      }
+    } catch (error) {
+      console.error("Failed to clear cache:", error);
+    } finally {
+      setCacheClearing(false);
+    }
+  };
 
   return (
     <motion.header
@@ -175,6 +195,17 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                       <span>{userLevel}</span>
                     </div>
                   )}
+                  <button
+                    onClick={handleSyncProfile}
+                    disabled={cacheClearing}
+                    className="px-3.5 py-2 rounded-lg text-sm font-medium text-emerald-100/90 hover:text-emerald-50
+                             bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500/95 hover:to-emerald-600/95
+                             shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_rgba(16,185,129,0.35)]
+                             focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70
+                             disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {cacheClearing ? "Syncing..." : "Sync Profile"}
+                  </button>
                   <button
                     onClick={logout}
                     className="px-3.5 py-2 rounded-lg text-sm font-medium text-white/90 hover:text-white
@@ -258,6 +289,20 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                 <div className="mt-3">
                   {isAuthenticated ? (
                     <div className="flex flex-col gap-2">
+                      <button
+                        onClick={() => {
+                          setOpen(false);
+                          handleSyncProfile();
+                        }}
+                        disabled={cacheClearing}
+                        className="w-full px-3.5 py-2 rounded-lg text-sm font-medium text-emerald-100/90 hover:text-emerald-50
+                                 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500/95 hover:to-emerald-600/95
+                                 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_rgba(16,185,129,0.35)]
+                                 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70
+                                 disabled:opacity-60 disabled:cursor-not-allowed"
+                      >
+                        {cacheClearing ? "Syncing..." : "Sync Profile"}
+                      </button>
                       <button
                         onClick={() => {
                           setOpen(false);

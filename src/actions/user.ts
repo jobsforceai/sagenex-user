@@ -124,8 +124,41 @@ export async function getTeamTree() {
 export async function getWalletData() {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/wallet`, {
         headers: await getAuthHeaders(),
-      });
-      return handleApiResponse(res);
+    });
+    return handleApiResponse(res);
+}
+
+export async function clearUserCache() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/cache/clear`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getWalletCurrentCycleHistory(params?: {
+    includeCycles?: boolean;
+    cyclesLimit?: number;
+    cycleId?: string;
+}) {
+    const searchParams = new URLSearchParams();
+    if (params?.includeCycles) {
+        searchParams.set("includeCycles", "1");
+    }
+    if (params?.cyclesLimit) {
+        searchParams.set("cyclesLimit", String(params.cyclesLimit));
+    }
+    if (params?.cycleId) {
+        searchParams.set("cycleId", params.cycleId);
+    }
+    const query = searchParams.toString();
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/wallet/current-cycle-history${query ? `?${query}` : ""}`,
+        {
+            headers: await getAuthHeaders(),
+        }
+    );
+    return handleApiResponse(res);
 }
 
 export async function getReferralSummary() {

@@ -12,7 +12,7 @@ import RedeemFromSGChain from "@/app/components/wallet/RedeemFromSGChain";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { createSgbnCoupon, getWalletData, getDashboardData, getKycStatus } from "@/actions/user";
+import { createSgbnCoupon, getWalletData, getDashboardData, getKycStatus, getWalletCurrentCycleHistory } from "@/actions/user";
 import { KycStatus } from "@/types";
 import { ChevronDown, ChevronUp, Lock, Unlock } from "lucide-react";
 
@@ -68,10 +68,54 @@ interface LockedBonus {
 
 interface WalletSummary {
   availableBalance: number;
+  capLockedBalance?: number;
   bonuses: LockedBonus[];
   withdrawalCap?: number;
   totalLifetimeWithdrawals?: number;
   remainingWithdrawalLimit?: number;
+}
+
+interface WalletLedgerResponse {
+  summary?: WalletSummary;
+  ledger?: WalletTransaction[];
+}
+
+interface CurrentCycleSummary {
+  currentCycleEarnings: number;
+  ledgerTotal: number;
+  delta: number;
+  cycleStart?: string | null;
+  cycleEnd?: string | null;
+  cycleId?: string | null;
+}
+
+interface CurrentCycleLedgerEntry {
+  _id: string;
+  type: string;
+  amount: number;
+  status: string;
+  createdAt: string;
+  meta?: Record<string, unknown>;
+}
+
+interface CycleSnapshot {
+  id: string;
+  startedAt?: string | null;
+  endedAt?: string | null;
+  earnedInCycle?: number;
+  capTotal?: number;
+  packageUSD?: number;
+  multiplier?: number;
+  totalLifetimeEarningsAtEnd?: number;
+  withdrawalsAtEnd?: number;
+  withdrawalCarryoverAtEnd?: number;
+  reason?: string;
+}
+
+interface CurrentCycleHistory {
+  summary: CurrentCycleSummary;
+  ledger: CurrentCycleLedgerEntry[];
+  cycles?: CycleSnapshot[];
 }
 
 type SgbnCoupon = {
@@ -239,6 +283,12 @@ const getTransactionReference = (tx: WalletTransaction) => {
 const formatCurrency = (amount: number) =>
   amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
 
+const formatOptionalCurrency = (amount?: number | null) =>
+  amount === undefined || amount === null ? "N/A" : formatCurrency(amount);
+
+const formatDate = (value?: string | null) =>
+  value ? new Date(value).toLocaleDateString() : "N/A";
+
 const StatCard = ({ title, value, accent }: { title: string; value: string; accent?: string }) => (
   <Card className="bg-gray-900/40 border-gray-800">
     <CardHeader className="pb-2">
@@ -327,6 +377,9 @@ const WalletPage = () => {
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [walletSummary, setWalletSummary] = useState<WalletSummary | null>(null);
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
+  const [cycleHistory, setCycleHistory] = useState<CurrentCycleHistory | null>(null);
+  const [selectedCycleId, setSelectedCycleId] = useState<string>("current");
+  const [cycleOpen, setCycleOpen] = useState(true);
   const [coupon, setCoupon] = useState<SgbnCoupon | null>(null);
   const [selectedPlan, setSelectedPlan] = useState<"BUSINESS" | "FREELANCER" | null>(null);
   const [couponLoading, setCouponLoading] = useState<"BUSINESS" | "FREELANCER" | null>(null);
@@ -341,22 +394,37 @@ const WalletPage = () => {
   const fetchData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const [walletRes, dashboardRes, kycData] = await Promise.all([
+      const [walletRes, dashboardRes, kycData, cycleRes] = await Promise.all([
           getWalletData(),
           getDashboardData(),
           getKycStatus(),
+          getWalletCurrentCycleHistory({ includeCycles: true, cyclesLimit: 5 }),
       ]);
 
-      if (walletRes.error || dashboardRes.error || kycData.error) {
-        throw new Error(walletRes.error || dashboardRes.error || kycData.error || "Failed to fetch data");
+      if (walletRes.error || dashboardRes.error || kycData.error || cycleRes.error) {
+        throw new Error(
+          walletRes.error ||
+            dashboardRes.error ||
+            kycData.error ||
+            cycleRes.error ||
+            "Failed to fetch data"
+        );
       }
       
       console.log("Wallet API response (ledger):", walletRes);
       console.log("Dashboard API response (for summary):", dashboardRes);
 
-      setTransactions(Array.isArray(walletRes) ? walletRes : []);
-      setWalletSummary(dashboardRes.wallet || null);
+      const walletPayload = walletRes as WalletLedgerResponse | WalletTransaction[];
+      if (Array.isArray(walletPayload)) {
+        setTransactions(walletPayload);
+      } else {
+        setTransactions(walletPayload.ledger || []);
+      }
+      const resolvedSummary =
+        (!Array.isArray(walletPayload) ? walletPayload.summary : null) || dashboardRes.wallet || null;
+      setWalletSummary(resolvedSummary);
       setKycStatus(kycData);
+      setCycleHistory(cycleRes?.summary ? cycleRes : null);
 
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -452,6 +520,10 @@ const WalletPage = () => {
   const lockedBonusTotal =
     walletSummary?.bonuses?.reduce((sum, bonus) => sum + (bonus.isUnlocked ? 0 : bonus.lockedAmount), 0) ?? 0;
   const remainingWithdrawalLimit = Math.max(0, walletSummary?.remainingWithdrawalLimit ?? 0);
+  const cyclesList = cycleHistory?.cycles ?? [];
+  const cycleSummary = cycleHistory?.summary;
+  const cycleLedger = cycleHistory?.ledger ?? [];
+  const showCycleNote = (cycleSummary?.delta ?? 0) > 0.01;
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -462,11 +534,16 @@ const WalletPage = () => {
           <p className="text-gray-400 mt-2">Manage your funds, view transactions, and upgrade your plan.</p>
         </header>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-4">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
           <StatCard
             title="Available Balance"
             value={formatCurrency(walletSummary?.availableBalance ?? 0)}
             accent="text-emerald-400"
+          />
+          <StatCard
+            title="Locked Balance (pending reinvestment)"
+            value={formatCurrency(walletSummary?.capLockedBalance ?? 0)}
+            accent="text-amber-300"
           />
           <StatCard
             title="Remaining Withdrawal Limit"
@@ -476,12 +553,11 @@ const WalletPage = () => {
             title="Total Withdrawn"
             value={formatCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
           />
-          <StatCard
-            title="Locked Bonuses"
-            value={formatCurrency(lockedBonusTotal)}
-            accent="text-amber-300"
-          />
+          {/* Locked Bonuses stat hidden for now. */}
         </div>
+        <p className="text-xs text-gray-500">
+          Locked earnings are released when you reinvest and count toward your new cap.
+        </p>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 items-start">
           <div className="space-y-6">
@@ -614,6 +690,106 @@ const WalletPage = () => {
         </div>
 
         <LockedBonusesCard bonuses={walletSummary?.bonuses} />
+
+        <Card className="bg-gray-900/60 border-gray-800/80 rounded-2xl">
+          <CardHeader className="space-y-4 border-b border-gray-800/70">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="space-y-1">
+                <CardTitle>Earnings This Cycle</CardTitle>
+                <p className="text-xs text-gray-500">
+                  {formatDate(cycleSummary?.cycleStart)} - {formatDate(cycleSummary?.cycleEnd)}
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setCycleOpen((prev) => !prev)}
+                className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400/60 hover:text-emerald-100"
+              >
+                {cycleOpen ? "Hide details" : "Show details"}
+                {cycleOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </button>
+            </div>
+            <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-sm text-gray-200">
+                <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-200/70">Earned so far</p>
+                <p className="mt-2 text-2xl font-semibold text-white">
+                  {formatOptionalCurrency(cycleSummary?.currentCycleEarnings)}
+                </p>
+              </div>
+              {cyclesList.length > 0 && (
+                <div className="flex flex-col gap-2">
+                  <label htmlFor="cycleSelect" className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                    Cycle
+                  </label>
+                  <div className="relative">
+                    <select
+                      id="cycleSelect"
+                      value={selectedCycleId}
+                      onChange={(event) => {
+                        const nextId = event.target.value;
+                        setSelectedCycleId(nextId);
+                        const params = nextId === "current"
+                          ? { includeCycles: true, cyclesLimit: 5 }
+                          : { includeCycles: true, cyclesLimit: 5, cycleId: nextId };
+                        getWalletCurrentCycleHistory(params)
+                          .then((res) => {
+                            if (!res?.error) {
+                              setCycleHistory(res?.summary ? res : null);
+                            }
+                          })
+                          .catch(() => null);
+                      }}
+                      className="w-full appearance-none rounded-xl border border-gray-700 bg-black/40 px-4 py-3 text-sm text-gray-200 focus:border-emerald-400/60 focus:outline-none"
+                    >
+                      <option value="current">Current cycle</option>
+                      {cyclesList.map((cycle) => (
+                        <option key={cycle.id} value={cycle.id}>
+                          {formatDate(cycle.startedAt)} - {formatDate(cycle.endedAt)} ({cycle.reason || "Completed"})
+                        </option>
+                      ))}
+                    </select>
+                    <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  </div>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          {cycleOpen && (
+            <CardContent className="space-y-4">
+              {showCycleNote && (
+                <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
+                  Includes locked earnings released after reinvestment.
+                </div>
+              )}
+
+              {cycleLedger.length === 0 ? (
+                <p className="rounded-xl border border-gray-800 bg-black/20 px-4 py-3 text-sm text-gray-500">
+                  No earnings recorded for this cycle yet.
+                </p>
+              ) : (
+                <div className="divide-y divide-gray-800 rounded-2xl border border-gray-800 bg-black/30">
+                  {cycleLedger.map((entry) => (
+                    <div key={entry._id} className="flex flex-col gap-2 px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="font-medium text-white">{entry.type}</p>
+                        <p className="text-xs text-gray-500">
+                          {new Date(entry.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <p className={entry.amount >= 0 ? "text-emerald-300" : "text-red-300"}>
+                          {entry.amount >= 0 ? "+" : ""}
+                          {formatCurrency(entry.amount)}
+                        </p>
+                        <p className="text-xs text-gray-500">{entry.status}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          )}
+        </Card>
 
         <Card className="bg-gray-900/40 border-gray-800">
           <CardHeader>
