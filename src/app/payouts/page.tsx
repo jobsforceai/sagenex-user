@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef, useMemo } from "react";
+import { useEffect, useState, useCallback, useRef } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -43,38 +43,6 @@ interface PayoutHistoryResponse {
 }
 
 // --- HELPER COMPONENTS ---
-const FuturePayoutsModal = ({ nextPayoutDate, onClose }: { nextPayoutDate: string | null; onClose: () => void }) => {
-    const futureDates = useMemo(() => {
-        if (!nextPayoutDate) return [];
-        const dates = [];
-        const startDate = new Date(nextPayoutDate);
-        for (let i = 0; i < 12; i++) {
-            const futureDate = new Date(startDate);
-            futureDate.setDate(startDate.getDate() + (30 * i));
-            dates.push(futureDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }));
-        }
-        return dates;
-    }, [nextPayoutDate]);
-
-    return (
-        <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center" onClick={onClose}>
-            <div className="bg-gray-900 border border-gray-700 rounded-2xl p-6 max-w-sm w-full text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
-                <h3 className="text-2xl font-bold text-white mb-4">Future Payout Dates</h3>
-                <p className="text-gray-400 mb-6">Here are the estimated payout dates for the next 12 months.</p>
-                <ul className="space-y-2 text-left">
-                    {futureDates.map((date, index) => (
-                        <li key={index} className="flex items-center gap-3 p-2 bg-gray-800/50 rounded-md">
-                            <CalendarDays className="w-4 h-4 text-emerald-400" />
-                            <span className="text-white">{date}</span>
-                        </li>
-                    ))}
-                </ul>
-                <Button variant="secondary" className="mt-6 w-full" onClick={onClose}>Close</Button>
-            </div>
-        </div>
-    );
-};
-
 const StatCard = ({ title, value, icon: Icon }: { title: string; value: string; icon: React.ElementType }) => (
   <Card className="bg-gray-900/50 border-gray-800">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -117,7 +85,6 @@ const PayoutsPage = () => {
   const [countdown, setCountdown] = useState<string | null>(null);
   const [progressPercentage, setProgressPercentage] = useState(0);
   const [nextPayoutFormattedDate, setNextPayoutFormattedDate] = useState<string | null>(null);
-  const [isFuturePayoutsModalOpen, setIsFuturePayoutsModalOpen] = useState(false);
 
   const observer = useRef<IntersectionObserver | null>(null);
 
@@ -265,9 +232,6 @@ const PayoutsPage = () => {
                     </div>
                     <p className="text-xs text-gray-400 mt-1">{progressPercentage.toFixed(1)}% of current cycle completed</p>
                     <p className="text-xs text-gray-400 mt-2">You will receive your next payout once this countdown ends and the progress bar completes.</p>
-                    <Button variant="outline" size="sm" className="mt-4 w-full" onClick={() => setIsFuturePayoutsModalOpen(true)}>
-                        View Future Payouts
-                    </Button>
                 </CardContent>
             </Card>
         </div>
@@ -319,12 +283,6 @@ const PayoutsPage = () => {
             </div>
         </div>
       </main>
-      {isFuturePayoutsModalOpen && (
-        <FuturePayoutsModal 
-            nextPayoutDate={currentPayout?.nextPayoutDate ?? null}
-            onClose={() => setIsFuturePayoutsModalOpen(false)}
-        />
-      )}
     </div>
   );
 };
