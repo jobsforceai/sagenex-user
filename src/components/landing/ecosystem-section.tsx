@@ -23,7 +23,7 @@ const mainCards: EcosystemCard[] = [
   {
     name: "SG Trading",
     description: "Advanced trading platform for cryptocurrency and digital assets with professional-grade tools.",
-    url: "https://sgtrading.sgxmeta.ai",
+    url: "https://sg5trader.sgxmeta.ai",
     image: "/sg5trader.png",
     gradient: "from-orange-400/20 via-red-400/20 to-pink-400/20",
     isMain: true,
