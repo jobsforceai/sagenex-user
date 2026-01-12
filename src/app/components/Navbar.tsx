@@ -124,13 +124,21 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
   };
 
   return (
-    <motion.header
-      variants={navbarVariants}
-      initial={prefersReducedMotion ? undefined : "hidden"}
-      animate="show"
-      className="fixed inset-x-0 top-0 z-50"
-      role="banner"
-    >
+    <>
+      <div className="fixed inset-x-0 top-0 z-50 h-10 border-b border-amber-400/20 bg-amber-500/10 text-amber-100">
+        <div className="mx-auto flex h-full max-w-7xl items-center justify-center px-3 text-[11px] sm:px-4 sm:text-sm">
+          <span className="whitespace-nowrap overflow-x-auto">
+            Updates to investments or bonuses can take up to 24 hours to appear across the site. If you see old data, use the “Sync Profile” button to refresh.
+          </span>
+        </div>
+      </div>
+      <motion.header
+        variants={navbarVariants}
+        initial={prefersReducedMotion ? undefined : "hidden"}
+        animate="show"
+        className="fixed inset-x-0 top-10 z-50"
+        role="banner"
+      >
       {/* Glass shell */}
       <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
         <div
@@ -332,6 +340,8 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
       <div className="pointer-events-none absolute inset-x-0 top-0">
         <div className="mx-auto h-[1px] w-full max-w-7xl bg-gradient-to-r from-transparent via-white/60 to-transparent" />
       </div>
-    </motion.header>
+      </motion.header>
+      <div className="h-10" aria-hidden="true" />
+    </>
   );
 }
