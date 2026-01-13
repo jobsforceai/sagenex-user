@@ -50,7 +50,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = (data: { token: string; user: User }) => {
     const { token, user } = data;
-    Cookies.set("authToken", token, { secure: true, sameSite: "none" });
+    const isSecure = typeof window !== "undefined" && window.location.protocol === "https:";
+    Cookies.set("authToken", token, { secure: isSecure, sameSite: isSecure ? "none" : "lax" });
     localStorage.setItem("user", JSON.stringify(user));
     setToken(token);
     setUser(user);

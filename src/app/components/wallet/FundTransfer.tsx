@@ -7,6 +7,7 @@ import { getTransferRecipients, sendTransferOtp, executeTransfer } from '@/actio
 import { ArrowRight, Send, Wallet, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
+import FaceVerificationPanel from '@/app/components/biometrics/FaceVerificationPanel';
 
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
 type AuthMethod = 'password' | 'otp';
@@ -350,6 +351,10 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
 
             {step === 2 && (
                 <div className="space-y-4">
+                    <FaceVerificationPanel
+                        purpose="TRANSFER"
+                        enrollHref="/face-test?mode=enroll&next=/wallet"
+                    />
                     <div className="flex justify-center gap-2 p-1 rounded-lg bg-gray-800/50">
                         {user?.hasPasswordSet && (
                             <button

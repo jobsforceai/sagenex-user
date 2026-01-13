@@ -8,6 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { DollarSign, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import Confetti from "react-confetti";
+import FaceVerificationPanel from "@/app/components/biometrics/FaceVerificationPanel";
 
 interface WithdrawalRequestProps {
   currentBalance: number;
@@ -205,6 +206,10 @@ const WithdrawalRequest = ({
             Bank
           </Button>
         </div>
+        <FaceVerificationPanel
+          purpose="WITHDRAWAL"
+          enrollHref="/face-test?mode=enroll&next=/wallet"
+        />
         <form onSubmit={handleWithdrawalRequest} className="flex flex-col gap-4 flex-1">
           <div>
             <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">

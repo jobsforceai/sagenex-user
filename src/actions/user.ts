@@ -136,6 +136,40 @@ export async function clearUserCache() {
     return handleApiResponse(res);
 }
 
+export async function getBiometricsStatus() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/status`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function enrollFaceEmbedding(payload: {
+    embedding: number[];
+    source: string;
+    meta?: Record<string, unknown>;
+}) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/enroll`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res);
+}
+
+export async function verifyFaceEmbedding(payload: {
+    embedding: number[];
+    purpose: string;
+    livenessScore: number;
+    meta?: Record<string, unknown>;
+}) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/verify`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res);
+}
+
 export async function getWalletCurrentCycleHistory(params?: {
     includeCycles?: boolean;
     cyclesLimit?: number;
