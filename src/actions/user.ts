@@ -136,6 +136,30 @@ export async function clearUserCache() {
     return handleApiResponse(res);
 }
 
+export async function getNomineeStatus() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/nominee`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function setNomineePhrase(phrase: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/nominee`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ phrase }),
+    });
+    return handleApiResponse(res);
+}
+
+export async function disableNomineeAccess() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/nominee`, {
+        method: "DELETE",
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
 export async function getWalletCurrentCycleHistory(params?: {
     includeCycles?: boolean;
     cyclesLimit?: number;

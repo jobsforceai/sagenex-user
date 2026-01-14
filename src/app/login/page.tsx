@@ -12,11 +12,11 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { registerUser, loginOtp, verifyEmail, login, verifyEmailOtp, passwordStatus } from "@/actions/auth";
+import { registerUser, loginOtp, verifyEmail, login, verifyEmailOtp, passwordStatus, nomineeLogin } from "@/actions/auth";
 import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2 } from "lucide-react";
 import Image from "next/image";
 
-type View = "identify" | "main" | "email-login" | "email-signup" | "otp" | "password-login";
+type View = "identify" | "main" | "email-login" | "email-signup" | "otp" | "password-login" | "nominee-login";
 
 type AuthResponse = {
   token: string;
@@ -25,6 +25,7 @@ type AuthResponse = {
     fullName: string;
     email: string;
     hasPasswordSet?: boolean;
+    role?: "nominee";
   };
 };
 
@@ -50,6 +51,8 @@ function Login() {
   const [otp, setOtp] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [nomineeUserId, setNomineeUserId] = useState("");
+  const [nomineePhrase, setNomineePhrase] = useState("");
 
   useEffect(() => {
     const ref = searchParams.get("ref");
@@ -428,6 +431,74 @@ function Login() {
     </form>
   );
 
+  const handleNomineeLoginSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setMessage(null);
+    setIsLoading(true);
+
+    if (!nomineeUserId || !nomineePhrase) {
+      setError("User ID and nominee phrase are required.");
+      setIsLoading(false);
+      return;
+    }
+
+    try {
+      const data = await nomineeLogin(nomineeUserId, nomineePhrase);
+      if (data.error) {
+        setError(data.error);
+      } else if (!isAuthResponse(data)) {
+        setError("An unexpected response was returned. Please try again.");
+      } else {
+        authLogin({
+          ...data,
+          user: {
+            ...data.user,
+            role: "nominee",
+          },
+        });
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const renderNomineeLoginView = () => (
+    <form onSubmit={handleNomineeLoginSubmit} className="space-y-4">
+      <div className="relative">
+        <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          id="nominee-user-id"
+          type="text"
+          placeholder="User ID (e.g., U123)"
+          value={nomineeUserId}
+          onChange={(e) => setNomineeUserId(e.target.value)}
+          required
+          className="bg-black border-gray-800 text-white pl-10"
+          disabled={isLoading}
+        />
+      </div>
+      <div className="relative">
+        <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+        <Input
+          id="nominee-phrase"
+          type="password"
+          placeholder="Nominee phrase"
+          value={nomineePhrase}
+          onChange={(e) => setNomineePhrase(e.target.value)}
+          required
+          className="bg-black border-gray-800 text-white pl-10"
+          disabled={isLoading}
+        />
+      </div>
+      <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+        {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Login as Nominee <LogIn className="h-4 w-4" /></>}
+      </Button>
+    </form>
+  );
+
   const renderEmailSignUpView = () => (
     <form onSubmit={handleSignUpSubmit} className="space-y-4">
         <div className="relative">
@@ -488,6 +559,10 @@ function Login() {
       changeView(hasPasswordSet === false ? "identify" : "main");
       return;
     }
+    if (view === "nominee-login") {
+      changeView("identify");
+      return;
+    }
     changeView("identify");
   };
 
@@ -516,6 +591,11 @@ function Login() {
         description = "Get started with Sagenex today.";
         form = renderEmailSignUpView();
         break;
+      case "nominee-login":
+        title = "Nominee Access";
+        description = "Enter the user ID and nominee phrase to continue.";
+        form = renderNomineeLoginView();
+        break;
       case "otp":
         title = "Check your Email";
         description = `We sent a 6-digit code to ${email}.`;
@@ -539,6 +619,16 @@ function Login() {
             </CardHeader>
             <CardContent className="space-y-6">
                 {form}
+                {(view === "identify" || view === "main") && (
+                    <Button
+                      variant="outline"
+                      className="w-full flex items-center gap-2 border-gray-700 text-gray-200 hover:bg-gray-900"
+                      onClick={() => changeView("nominee-login")}
+                      disabled={isLoading}
+                    >
+                      <User className="h-4 w-4" /> Nominee Access
+                    </Button>
+                )}
                 {(view !== 'identify') && (
                     <p className="text-center text-sm text-gray-400">
                         <Button variant="link" className="p-0 flex items-center gap-2" onClick={handleBack} disabled={isLoading}>

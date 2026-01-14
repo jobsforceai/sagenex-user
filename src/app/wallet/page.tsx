@@ -11,6 +11,7 @@ import TransferToSGChain from "@/app/components/wallet/TransferToSGChain";
 import RedeemFromSGChain from "@/app/components/wallet/RedeemFromSGChain";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { createSgbnCoupon, getWalletData, getDashboardData, getKycStatus, getWalletCurrentCycleHistory } from "@/actions/user";
 import { KycStatus } from "@/types";
@@ -300,6 +301,17 @@ const StatCard = ({ title, value, accent }: { title: string; value: string; acce
   </Card>
 );
 
+const StatCardSkeleton = () => (
+  <Card className="bg-gray-900/40 border-gray-800">
+    <CardHeader className="pb-2">
+      <Skeleton className="h-4 w-32" />
+    </CardHeader>
+    <CardContent>
+      <Skeleton className="h-8 w-24" />
+    </CardContent>
+  </Card>
+);
+
 const formatLabel = (value: string) =>
   value
     .replace(/_/g, " ")
@@ -387,49 +399,96 @@ const WalletPage = () => {
   const [couponMessage, setCouponMessage] = useState<string | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const [isCouponExpired, setIsCouponExpired] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [dataLoading, setDataLoading] = useState(true);
   const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
+  const [walletError, setWalletError] = useState<string | null>(null);
+  const [dashboardError, setDashboardError] = useState<string | null>(null);
+  const [kycError, setKycError] = useState<string | null>(null);
+  const [cycleError, setCycleError] = useState<string | null>(null);
+  const [walletLoading, setWalletLoading] = useState(true);
+  const [dashboardLoading, setDashboardLoading] = useState(true);
+  const [cycleLoading, setCycleLoading] = useState(true);
 
   const fetchData = useCallback(async () => {
-    setDataLoading(true);
+    setWalletLoading(true);
+    setDashboardLoading(true);
+    setCycleLoading(true);
+    setWalletError(null);
+    setDashboardError(null);
+    setKycError(null);
+    setCycleError(null);
     try {
-      const [walletRes, dashboardRes, kycData, cycleRes] = await Promise.all([
+      let resolvedSummary: WalletSummary | null = null;
+      const [walletResult, dashboardResult, kycResult, cycleResult] =
+        await Promise.allSettled([
           getWalletData(),
           getDashboardData(),
           getKycStatus(),
           getWalletCurrentCycleHistory({ includeCycles: true, cyclesLimit: 5 }),
-      ]);
+        ]);
 
-      if (walletRes.error || dashboardRes.error || kycData.error || cycleRes.error) {
-        throw new Error(
-          walletRes.error ||
-            dashboardRes.error ||
-            kycData.error ||
-            cycleRes.error ||
-            "Failed to fetch data"
-        );
-      }
-      
-      console.log("Wallet API response (ledger):", walletRes);
-      console.log("Dashboard API response (for summary):", dashboardRes);
-
-      const walletPayload = walletRes as WalletLedgerResponse | WalletTransaction[];
-      if (Array.isArray(walletPayload)) {
-        setTransactions(walletPayload);
+      if (walletResult.status === "fulfilled") {
+        const walletRes = walletResult.value;
+        if (walletRes?.error) {
+          setWalletError(walletRes.error);
+          setTransactions([]);
+        } else {
+          const walletPayload = walletRes as WalletLedgerResponse | WalletTransaction[];
+          if (Array.isArray(walletPayload)) {
+            setTransactions(walletPayload);
+          } else {
+            setTransactions(walletPayload.ledger || []);
+          }
+          const summary = !Array.isArray(walletPayload) ? walletPayload.summary : null;
+          if (summary) {
+            resolvedSummary = summary;
+            setWalletSummary(summary);
+          }
+        }
       } else {
-        setTransactions(walletPayload.ledger || []);
+        setWalletError("Unable to load wallet history.");
       }
-      const resolvedSummary =
-        (!Array.isArray(walletPayload) ? walletPayload.summary : null) || dashboardRes.wallet || null;
-      setWalletSummary(resolvedSummary);
-      setKycStatus(kycData);
-      setCycleHistory(cycleRes?.summary ? cycleRes : null);
+      setWalletLoading(false);
 
+      if (dashboardResult.status === "fulfilled") {
+        const dashboardRes = dashboardResult.value;
+        if (dashboardRes?.error) {
+          setDashboardError(dashboardRes.error);
+        } else if (!resolvedSummary) {
+          resolvedSummary = dashboardRes.wallet || null;
+          setWalletSummary(resolvedSummary);
+        }
+      } else {
+        setDashboardError("Unable to load dashboard summary.");
+      }
+      setDashboardLoading(false);
+
+      if (kycResult.status === "fulfilled") {
+        const kycData = kycResult.value;
+        if (kycData?.error) {
+          setKycError(kycData.error);
+        } else {
+          setKycStatus(kycData);
+        }
+      } else {
+        setKycError("Unable to load KYC status.");
+      }
+
+      if (cycleResult.status === "fulfilled") {
+        const cycleRes = cycleResult.value;
+        if (cycleRes?.error) {
+          setCycleError(cycleRes.error);
+          setCycleHistory(null);
+        } else {
+          setCycleHistory(cycleRes?.summary ? cycleRes : null);
+        }
+      } else {
+        setCycleError("Unable to load cycle earnings.");
+      }
+      setCycleLoading(false);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred");
+      const message = err instanceof Error ? err.message : "An unknown error occurred";
+      setWalletError(message);
     } finally {
-      setDataLoading(false);
     }
   }, []);
 
@@ -509,21 +568,17 @@ const WalletPage = () => {
     }
   };
 
-  if (authLoading || dataLoading) {
+  if (authLoading) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
-  if (error) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
-  }
-
-  const lockedBonusTotal =
-    walletSummary?.bonuses?.reduce((sum, bonus) => sum + (bonus.isUnlocked ? 0 : bonus.lockedAmount), 0) ?? 0;
   const remainingWithdrawalLimit = Math.max(0, walletSummary?.remainingWithdrawalLimit ?? 0);
   const cyclesList = cycleHistory?.cycles ?? [];
   const cycleSummary = cycleHistory?.summary;
   const cycleLedger = cycleHistory?.ledger ?? [];
   const showCycleNote = (cycleSummary?.delta ?? 0) > 0.01;
+  const summaryLoading = walletLoading && dashboardLoading;
+  const canShowActions = Boolean(walletSummary) && !walletError && !dashboardError;
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -535,161 +590,239 @@ const WalletPage = () => {
         </header>
 
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 xl:grid-cols-4">
-          <StatCard
-            title="Available Balance"
-            value={formatCurrency(walletSummary?.availableBalance ?? 0)}
-            accent="text-emerald-400"
-          />
-          <StatCard
-            title="Locked Balance (pending reinvestment)"
-            value={formatCurrency(walletSummary?.capLockedBalance ?? 0)}
-            accent="text-amber-300"
-          />
-          <StatCard
-            title="Remaining Withdrawal Limit"
-            value={formatCurrency(remainingWithdrawalLimit)}
-          />
-          <StatCard
-            title="Total Withdrawn"
-            value={formatCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
-          />
-          {/* Locked Bonuses stat hidden for now. */}
+          {summaryLoading ? (
+            <>
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+              <StatCardSkeleton />
+            </>
+          ) : (
+            <>
+              <StatCard
+                title="Available Balance"
+                value={formatCurrency(walletSummary?.availableBalance ?? 0)}
+                accent="text-emerald-400"
+              />
+              <StatCard
+                title="Locked Balance (pending reinvestment)"
+                value={formatCurrency(walletSummary?.capLockedBalance ?? 0)}
+                accent="text-amber-300"
+              />
+              <StatCard
+                title="Remaining Withdrawal Limit"
+                value={formatCurrency(remainingWithdrawalLimit)}
+              />
+              <StatCard
+                title="Total Withdrawn"
+                value={formatCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
+              />
+            </>
+          )}
         </div>
+        {(walletError || dashboardError) && (
+          <Card className="bg-red-500/10 border border-red-500/30">
+            <CardContent className="py-4 text-sm text-red-200">
+              {walletError || dashboardError}
+            </CardContent>
+          </Card>
+        )}
         <p className="text-xs text-gray-500">
           Locked earnings are released when you reinvest and count toward your new cap.
         </p>
 
         <div className="grid grid-cols-1 gap-6 xl:grid-cols-3 items-start">
           <div className="space-y-6">
-            <FundTransfer currentBalance={walletSummary?.availableBalance ?? 0} className="h-full" />
+            {canShowActions ? (
+              <FundTransfer currentBalance={walletSummary?.availableBalance ?? 0} className="h-full" />
+            ) : (
+              <Card className="bg-gray-900/40 border-gray-800">
+                <CardHeader>
+                  <CardTitle>Transfer</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            )}
           </div>
           <div className="space-y-6">
-            <TransferToSGChain
-              currentBalance={walletSummary?.availableBalance ?? 0}
-              className="min-h-[220px]"
-            />
-            <RedeemFromSGChain onSuccess={fetchData} className="min-h-[220px]" />
-            <Card className="bg-gray-900/40 border-gray-800">
-              <CardHeader>
-                <CardTitle>SGBN Coupons</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <p className="text-sm text-gray-400">
-                  Create a coupon for SGBN plans. Coupons are valid for 10 minutes (USD only).
-                </p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {SGBN_PLANS.map((plan) => (
-                    <Button
-                      key={plan.planType}
-                      type="button"
-                      variant="outline"
-                      className={`border-gray-700 ${plan.buttonClass} ${
-                        selectedPlan === plan.planType ? "bg-white/5" : ""
-                      }`}
-                      onClick={() => {
-                        setSelectedPlan(plan.planType);
-                        setCouponError(null);
-                        setCouponMessage(null);
-                      }}
-                      disabled={couponLoading !== null}
-                    >
-                      {`${plan.label} ${formatCurrency(plan.amountUsd)}`}
-                    </Button>
-                  ))}
-                </div>
-                {selectedPlan && (
-                  <div className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-gray-300 space-y-3">
-                    <p>
-                      Generate a {selectedPlan} coupon? It will be valid for 10 minutes.
+            {canShowActions ? (
+              <>
+                <TransferToSGChain
+                  currentBalance={walletSummary?.availableBalance ?? 0}
+                  className="min-h-[220px]"
+                />
+                <RedeemFromSGChain onSuccess={fetchData} className="min-h-[220px]" />
+                <Card className="bg-gray-900/40 border-gray-800">
+                  <CardHeader>
+                    <CardTitle>SGBN Coupons</CardTitle>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <p className="text-sm text-gray-400">
+                      Create a coupon for SGBN plans. Coupons are valid for 10 minutes (USD only).
                     </p>
-                    <div className="flex flex-wrap gap-2">
-                      <Button
-                        type="button"
-                        className="bg-emerald-500 text-black hover:bg-emerald-400"
-                        onClick={() => handleCreateCoupon(selectedPlan)}
-                        disabled={couponLoading !== null}
-                      >
-                        {couponLoading === selectedPlan ? "Creating..." : "Generate Coupon"}
-                      </Button>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="border-gray-700 text-gray-200 hover:bg-white/5"
-                        onClick={() => setSelectedPlan(null)}
-                        disabled={couponLoading !== null}
-                      >
-                        Cancel
-                      </Button>
+                    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                      {SGBN_PLANS.map((plan) => (
+                        <Button
+                          key={plan.planType}
+                          type="button"
+                          variant="outline"
+                          className={`border-gray-700 ${plan.buttonClass} ${
+                            selectedPlan === plan.planType ? "bg-white/5" : ""
+                          }`}
+                          onClick={() => {
+                            setSelectedPlan(plan.planType);
+                            setCouponError(null);
+                            setCouponMessage(null);
+                          }}
+                          disabled={couponLoading !== null}
+                        >
+                          {`${plan.label} ${formatCurrency(plan.amountUsd)}`}
+                        </Button>
+                      ))}
                     </div>
-                  </div>
-                )}
-
-                {couponError && (
-                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
-                    {couponError}
-                  </div>
-                )}
-                {couponMessage && (
-                  <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
-                    {couponMessage}
-                  </div>
-                )}
-
-                {coupon && (
-                  <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
-                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                      <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">
-                          Coupon Code
+                    {selectedPlan && (
+                      <div className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-gray-300 space-y-3">
+                        <p>
+                          Generate a {selectedPlan} coupon? It will be valid for 10 minutes.
                         </p>
-                        <p className="mt-2 font-mono text-sm text-emerald-200 break-all">
-                          {coupon.code}
-                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            className="bg-emerald-500 text-black hover:bg-emerald-400"
+                            onClick={() => handleCreateCoupon(selectedPlan)}
+                            disabled={couponLoading !== null}
+                          >
+                            {couponLoading === selectedPlan ? "Creating..." : "Generate Coupon"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="border-gray-700 text-gray-200 hover:bg-white/5"
+                            onClick={() => setSelectedPlan(null)}
+                            disabled={couponLoading !== null}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
                       </div>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        className="border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10"
-                        onClick={handleCopyCode}
-                      >
-                        Copy
-                      </Button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3 text-sm text-gray-300">
-                      <div>
-                        <p className="text-xs text-gray-500">Plan</p>
-                        <p>{coupon.planType}</p>
+                    )}
+
+                    {couponError && (
+                      <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                        {couponError}
                       </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Amount</p>
-                        <p>{formatCurrency(coupon.amountUsd)}</p>
+                    )}
+                    {couponMessage && (
+                      <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+                        {couponMessage}
                       </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Status</p>
-                        <p>{isCouponExpired ? "EXPIRED" : coupon.status}</p>
+                    )}
+
+                    {coupon && (
+                      <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
+                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                          <div>
+                            <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">
+                              Coupon Code
+                            </p>
+                            <p className="mt-2 font-mono text-sm text-emerald-200 break-all">
+                              {coupon.code}
+                            </p>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            className="border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10"
+                            onClick={handleCopyCode}
+                          >
+                            Copy
+                          </Button>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3 text-sm text-gray-300">
+                          <div>
+                            <p className="text-xs text-gray-500">Plan</p>
+                            <p>{coupon.planType}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Amount</p>
+                            <p>{formatCurrency(coupon.amountUsd)}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Status</p>
+                            <p>{isCouponExpired ? "EXPIRED" : coupon.status}</p>
+                          </div>
+                          <div>
+                            <p className="text-xs text-gray-500">Expires In</p>
+                            <p>{timeRemaining || "—"}</p>
+                          </div>
+                        </div>
                       </div>
-                      <div>
-                        <p className="text-xs text-gray-500">Expires In</p>
-                        <p>{timeRemaining || "—"}</p>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+                    )}
+                  </CardContent>
+                </Card>
+              </>
+            ) : (
+              <Card className="bg-gray-900/40 border-gray-800">
+                <CardHeader>
+                  <CardTitle>Wallet Actions</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            )}
           </div>
           <div className="space-y-6">
-            <CryptoDeposit className="min-h-[220px]" />
-            <WithdrawalRequest 
-                currentBalance={walletSummary?.availableBalance ?? 0}
-                kycStatus={kycStatus?.status}
-                remainingWithdrawalLimit={remainingWithdrawalLimit}
-                className="min-h-[220px]"
-            />
+            {canShowActions ? (
+              <>
+                <CryptoDeposit className="min-h-[220px]" />
+                {kycError && (
+                  <Card className="bg-red-500/10 border border-red-500/30">
+                    <CardContent className="py-3 text-sm text-red-200">
+                      {kycError}
+                    </CardContent>
+                  </Card>
+                )}
+                <WithdrawalRequest 
+                    currentBalance={walletSummary?.availableBalance ?? 0}
+                    kycStatus={kycStatus?.status}
+                    remainingWithdrawalLimit={remainingWithdrawalLimit}
+                    className="min-h-[220px]"
+                />
+              </>
+            ) : (
+              <Card className="bg-gray-900/40 border-gray-800">
+                <CardHeader>
+                  <CardTitle>Withdrawals</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <Skeleton className="h-10 w-full" />
+                  <Skeleton className="h-10 w-full" />
+                </CardContent>
+              </Card>
+            )}
           </div>
         </div>
 
-        <LockedBonusesCard bonuses={walletSummary?.bonuses} />
+        {summaryLoading ? (
+          <Card className="bg-gray-900/40 border-gray-800">
+            <CardHeader>
+              <Skeleton className="h-5 w-40" />
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Skeleton className="h-24 w-full" />
+              <Skeleton className="h-24 w-full" />
+            </CardContent>
+          </Card>
+        ) : (
+          <LockedBonusesCard bonuses={walletSummary?.bonuses} />
+        )}
 
         <Card className="bg-gray-900/60 border-gray-800/80 rounded-2xl">
           <CardHeader className="space-y-4 border-b border-gray-800/70">
@@ -713,7 +846,7 @@ const WalletPage = () => {
               <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-sm text-gray-200">
                 <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-200/70">Earned so far</p>
                 <p className="mt-2 text-2xl font-semibold text-white">
-                  {formatOptionalCurrency(cycleSummary?.currentCycleEarnings)}
+                  {cycleLoading ? "—" : formatOptionalCurrency(cycleSummary?.currentCycleEarnings)}
                 </p>
               </div>
               {cyclesList.length > 0 && (
@@ -731,13 +864,19 @@ const WalletPage = () => {
                         const params = nextId === "current"
                           ? { includeCycles: true, cyclesLimit: 5 }
                           : { includeCycles: true, cyclesLimit: 5, cycleId: nextId };
+                        setCycleLoading(true);
+                        setCycleError(null);
                         getWalletCurrentCycleHistory(params)
                           .then((res) => {
-                            if (!res?.error) {
+                            if (res?.error) {
+                              setCycleError(res.error);
+                              setCycleHistory(null);
+                            } else {
                               setCycleHistory(res?.summary ? res : null);
                             }
                           })
-                          .catch(() => null);
+                          .catch(() => setCycleError("Unable to load cycle earnings."))
+                          .finally(() => setCycleLoading(false));
                       }}
                       className="w-full appearance-none rounded-xl border border-gray-700 bg-black/40 px-4 py-3 text-sm text-gray-200 focus:border-emerald-400/60 focus:outline-none"
                     >
@@ -756,13 +895,23 @@ const WalletPage = () => {
           </CardHeader>
           {cycleOpen && (
             <CardContent className="space-y-4">
+              {cycleError && (
+                <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-200">
+                  {cycleError}
+                </div>
+              )}
               {showCycleNote && (
                 <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
                   Includes locked earnings released after reinvestment.
                 </div>
               )}
 
-              {cycleLedger.length === 0 ? (
+              {cycleLoading ? (
+                <div className="space-y-3">
+                  <Skeleton className="h-16 w-full" />
+                  <Skeleton className="h-16 w-full" />
+                </div>
+              ) : cycleLedger.length === 0 ? (
                 <p className="rounded-xl border border-gray-800 bg-black/20 px-4 py-3 text-sm text-gray-500">
                   No earnings recorded for this cycle yet.
                 </p>
@@ -796,7 +945,18 @@ const WalletPage = () => {
             <CardTitle>Wallet History</CardTitle>
           </CardHeader>
           <CardContent>
-            {transactions.length === 0 ? (
+            {walletError && (
+              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+                {walletError}
+              </div>
+            )}
+            {walletLoading ? (
+              <div className="space-y-3">
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+                <Skeleton className="h-12 w-full" />
+              </div>
+            ) : transactions.length === 0 ? (
               <p className="text-gray-500 text-center py-4">No transactions found.</p>
             ) : (
               <div className="overflow-x-auto">

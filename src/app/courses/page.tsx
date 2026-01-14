@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import { getAllCourses } from "@/actions/user";
 import { CourseSummary } from "@/types";
 import { Lock, BookOpen, ArrowRight } from "lucide-react";
@@ -301,12 +302,8 @@ const CoursesPage = () => {
     return courses.filter(course => course.accessStatus === 'unlocked' || course.accessStatus === 'next_locked');
   }, [courses]);
 
-  if (authLoading || dataLoading) {
+  if (authLoading) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
-  }
-
-  if (error) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
 
   return (
@@ -322,7 +319,24 @@ const CoursesPage = () => {
           </p>
         </header>
 
-        {visibleCourses.length === 0 ? (
+        {error && (
+          <div className="mx-auto mb-6 max-w-2xl rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
+        {dataLoading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div key={index} className="rounded-2xl border border-white/10 bg-gradient-to-b from-[#101613] to-[#0c110e] p-4">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="mt-4 h-6 w-24" />
+                <Skeleton className="mt-4 h-24 w-full" />
+                <Skeleton className="mt-4 h-10 w-full" />
+                <Skeleton className="mt-4 h-6 w-3/4" />
+              </div>
+            ))}
+          </div>
+        ) : visibleCourses.length === 0 ? (
           <p className="text-center text-gray-500">No academies available at the moment.</p>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">

@@ -9,6 +9,7 @@ interface User {
   fullName: string;
   email: string;
   hasPasswordSet?: boolean;
+  role?: "nominee";
 }
 
 interface AuthContextType {

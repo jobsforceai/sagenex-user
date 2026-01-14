@@ -85,6 +85,16 @@ export async function login(email: string, password: string) {
   return handleApiResponse(res);
 }
 
+export async function nomineeLogin(userId: string, phrase: string) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/auth/user/nominee-login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, phrase }),
+  });
+
+  return handleApiResponse(res);
+}
+
 export async function loginOtp(email: string) {
   const res = await fetch(`${API_BASE_URL}/api/v1/auth/user/login-otp`, {
     method: "POST",

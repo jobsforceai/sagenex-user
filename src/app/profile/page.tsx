@@ -14,7 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, BadgeCheck, XCircle, ShieldCheck, ShieldAlert, ShieldClose, Edit } from "lucide-react";
-import { getProfileData, getKycStatus, updateUserProfile } from "@/actions/user";
+import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess } from "@/actions/user";
 import { KycStatus } from "@/types";
 
 interface UserProfile {
@@ -33,6 +33,15 @@ interface UserProfile {
   status: 'active' | 'inactive';
   isPackageActive: boolean;
   usdtTrc20Address: string | null;
+}
+
+interface NomineeStatus {
+  enabled: boolean;
+  phraseHint: string | null;
+  createdAt: string;
+  updatedAt: string;
+  lastResetAt: string | null;
+  disabledAt: string | null;
 }
 
 const KycStatusBadge = ({ status }: { status: KycStatus['status'] }) => {
@@ -69,7 +78,7 @@ const KycStatusBadge = ({ status }: { status: KycStatus['status'] }) => {
 };
 
 const ProfilePage = () => {
-  const { isAuthenticated, loading } = useAuth();
+  const { isAuthenticated, loading, user } = useAuth();
   const router = useRouter();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
@@ -79,6 +88,10 @@ const ProfilePage = () => {
   const [formData, setFormData] = useState({ fullName: '', phone: '', usdtTrc20Address: '' });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [nomineeStatus, setNomineeStatus] = useState<NomineeStatus | null>(null);
+  const [nomineePhrase, setNomineePhraseInput] = useState("");
+  const [nomineeSubmitting, setNomineeSubmitting] = useState(false);
+  const [nomineeMessage, setNomineeMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -88,9 +101,10 @@ const ProfilePage = () => {
 
     const fetchPageData = async () => {
         try {
-            const [profileData, kycData] = await Promise.all([
+            const [profileData, kycData, nomineeData] = await Promise.all([
                 getProfileData(),
-                getKycStatus()
+                getKycStatus(),
+                getNomineeStatus()
             ]);
             console.log("Fetched Profile Data:", profileData);
             if (profileData.error) {
@@ -108,6 +122,10 @@ const ProfilePage = () => {
                 console.error("Could not fetch KYC status:", kycData.error);
             } else {
                 setKycStatus(kycData);
+            }
+
+            if (!nomineeData?.error) {
+                setNomineeStatus(nomineeData);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -177,6 +195,50 @@ const ProfilePage = () => {
     }
   };
 
+  const handleNomineeUpdate = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNomineeMessage(null);
+
+    if (nomineePhrase.trim().length < 6) {
+      setNomineeMessage({ type: 'error', text: 'Nominee phrase must be at least 6 characters.' });
+      return;
+    }
+
+    setNomineeSubmitting(true);
+    try {
+      const result = await setNomineePhrase(nomineePhrase.trim());
+      if (result.error) {
+        setNomineeMessage({ type: 'error', text: result.error });
+      } else {
+        setNomineeStatus(result.nominee);
+        setNomineeMessage({ type: 'success', text: result.message || 'Nominee access updated.' });
+        setNomineePhraseInput("");
+      }
+    } catch (err) {
+      setNomineeMessage({ type: 'error', text: err instanceof Error ? err.message : 'An unknown error occurred.' });
+    } finally {
+      setNomineeSubmitting(false);
+    }
+  };
+
+  const handleNomineeDisable = async () => {
+    setNomineeMessage(null);
+    setNomineeSubmitting(true);
+    try {
+      const result = await disableNomineeAccess();
+      if (result.error) {
+        setNomineeMessage({ type: 'error', text: result.error });
+      } else {
+        setNomineeStatus(result.nominee);
+        setNomineeMessage({ type: 'success', text: result.message || 'Nominee access disabled.' });
+      }
+    } catch (err) {
+      setNomineeMessage({ type: 'error', text: err instanceof Error ? err.message : 'An unknown error occurred.' });
+    } finally {
+      setNomineeSubmitting(false);
+    }
+  };
+
   if (loading || !profile) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
   }
@@ -184,6 +246,9 @@ const ProfilePage = () => {
   if (error) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
+
+  const isNominee = user?.role === "nominee";
+  const formatNomineeDate = (value?: string | null) => (value ? new Date(value).toLocaleString() : "—");
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -205,6 +270,11 @@ const ProfilePage = () => {
                 <p className="text-sm text-emerald-200/80">Profile</p>
                 <h1 className="text-3xl font-bold">{profile.fullName}</h1>
                 <p className="text-sm text-gray-400">{profile.email}</p>
+                {isNominee && (
+                  <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">
+                    Viewing as nominee
+                  </div>
+                )}
                 <div className="mt-3 flex flex-wrap items-center gap-2">
                   <span className={`capitalize text-xs font-semibold px-2.5 py-1 rounded-full ${profile.status === 'active' ? 'bg-green-500/20 text-green-400' : 'bg-red-500/20 text-red-400'}`}>
                     {profile.status}
@@ -267,6 +337,65 @@ const ProfilePage = () => {
             </Card>
           </div>
         </section>
+
+        {!isNominee && (
+          <section>
+            <Card className="bg-black/60 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-base">Nominee Access</CardTitle>
+                <p className="text-sm text-gray-400">
+                  Allow a trusted nominee to view your account data with a read-only login.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${nomineeStatus?.enabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-gray-800 text-gray-300'}`}>
+                    {nomineeStatus?.enabled ? "Enabled" : "Disabled"}
+                  </span>
+                  <span>Phrase hint: <span className="text-gray-100">{nomineeStatus?.phraseHint || "—"}</span></span>
+                  <span>Last reset: <span className="text-gray-100">{formatNomineeDate(nomineeStatus?.lastResetAt)}</span></span>
+                </div>
+
+                <form onSubmit={handleNomineeUpdate} className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
+                  <div>
+                    <label className="text-xs uppercase tracking-wide text-gray-500">Nominee phrase</label>
+                    <Input
+                      type="password"
+                      placeholder="Enter a phrase (min 6 characters)"
+                      value={nomineePhrase}
+                      onChange={(e) => setNomineePhraseInput(e.target.value)}
+                      className="mt-2 bg-black border-gray-800 text-white"
+                      disabled={nomineeSubmitting}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    className="bg-emerald-500 hover:bg-emerald-600"
+                    disabled={nomineeSubmitting}
+                  >
+                    {nomineeStatus?.enabled ? "Reset Phrase" : "Enable Access"}
+                  </Button>
+                </form>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleNomineeDisable}
+                    disabled={nomineeSubmitting || !nomineeStatus?.enabled}
+                  >
+                    Disable Nominee Access
+                  </Button>
+                  {nomineeMessage && (
+                    <span className={`text-sm ${nomineeMessage.type === 'success' ? 'text-emerald-300' : 'text-red-400'}`}>
+                      {nomineeMessage.text}
+                    </span>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
 
         {message && (
             <div className={`p-4 rounded-md text-sm ${message.type === 'error' ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}`}>
