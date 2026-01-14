@@ -3,14 +3,14 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { Recipient } from '@/types';
-import { getTransferRecipients, sendTransferOtp, executeTransfer } from '@/actions/user';
+import { getTransferRecipients, sendTransferOtp, executeTransfer, getBiometricsStatus } from '@/actions/user';
 import { ArrowRight, Send, Wallet, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 import FaceVerificationPanel from '@/app/components/biometrics/FaceVerificationPanel';
 
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
-type AuthMethod = 'password' | 'otp';
+type VerificationMethod = 'face' | 'password' | 'otp';
 
 const FundTransfer = ({ currentBalance, className }: { currentBalance: number; className?: string }) => {
     const { user, loading } = useAuth();
@@ -22,13 +22,17 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     const [amount, setAmount] = useState('');
     const [otp, setOtp] = useState('');
     const [password, setPassword] = useState('');
-    const [authMethod, setAuthMethod] = useState<AuthMethod>('password');
+    const [verificationMethod, setVerificationMethod] = useState<VerificationMethod>('face');
     const [transferType, setTransferType] = useState<TransferType>('TO_AVAILABLE_BALANCE');
     const [step, setStep] = useState(1); // 1: Form, 2: Verification
     const [isLoading, setIsLoading] = useState(false);
     const [isSendingOtp, setIsSendingOtp] = useState(false);
     const [otpCooldown, setOtpCooldown] = useState(0);
     const [showConfetti, setShowConfetti] = useState(false);
+    const [faceVerified, setFaceVerified] = useState(false);
+    const [faceEnrolled, setFaceEnrolled] = useState(false);
+    const [faceVerificationId, setFaceVerificationId] = useState<string | null>(null);
+    const [faceApproved, setFaceApproved] = useState(true);
     
     const dropdownRef = useRef<HTMLDivElement>(null);
     const otpTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -138,21 +142,45 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
             toast.error('Self top-up is only available for To Package transfers.');
             return;
         }
-        if (user?.hasPasswordSet) {
-            setAuthMethod('password');
+        if (faceEnrolled && faceApproved) {
+            setVerificationMethod('face');
+        } else if (user?.hasPasswordSet) {
+            setVerificationMethod('password');
         } else {
-            setAuthMethod('otp');
+            setVerificationMethod('otp');
         }
         setStep(2);
     };
 
+    useEffect(() => {
+        if (step !== 2) return;
+        getBiometricsStatus()
+            .then((res) => {
+                if (!res?.error) {
+                    setFaceEnrolled(Boolean(res.enrolled));
+                    setFaceApproved(res.approved === undefined ? true : Boolean(res.approved));
+                }
+            })
+            .catch(() => null);
+    }, [step]);
+
+    useEffect(() => {
+        if (verificationMethod !== 'face') return;
+        if (faceApproved) return;
+        setVerificationMethod(user?.hasPasswordSet ? 'password' : 'otp');
+    }, [faceApproved, verificationMethod, user?.hasPasswordSet]);
+
     const handleExecuteTransfer = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (authMethod === 'otp' && (!otp || otp.length !== 6)) {
+        if (verificationMethod === 'face' && faceEnrolled && !faceVerificationId) {
+            toast.error('Please verify your face before completing the transfer.');
+            return;
+        }
+        if (verificationMethod === 'otp' && (!otp || otp.length !== 6)) {
             toast.error('Please enter the 6-digit OTP.');
             return;
         }
-        if (authMethod === 'password' && !password) {
+        if (verificationMethod === 'password' && !password) {
             toast.error('Please enter your password.');
             return;
         }
@@ -166,8 +194,9 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                 selectedRecipient.userId, 
                 numericAmount, 
                 transferType, 
-                authMethod === 'password' ? password : undefined,
-                authMethod === 'otp' ? otp : undefined
+                verificationMethod === 'password' ? password : undefined,
+                verificationMethod === 'otp' ? otp : undefined,
+                verificationMethod === 'face' ? faceVerificationId ?? undefined : undefined
             );
 
             if (result.error) {
@@ -183,12 +212,16 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                 setAmount('');
                 setOtp('');
                 setPassword('');
+                setFaceVerified(false);
+                setFaceVerificationId(null);
                 setTransferType('TO_AVAILABLE_BALANCE');
                 // Reset auth method to default based on user preference
-                if (user?.hasPasswordSet) {
-                    setAuthMethod('password');
+                if (faceEnrolled) {
+                    setVerificationMethod('face');
+                } else if (user?.hasPasswordSet) {
+                    setVerificationMethod('password');
                 } else {
-                    setAuthMethod('otp');
+                    setVerificationMethod('otp');
                 }
             }
         } catch (error) {
@@ -351,33 +384,73 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
 
             {step === 2 && (
                 <div className="space-y-4">
-                    <FaceVerificationPanel
-                        purpose="TRANSFER"
-                        enrollHref="/face-test?mode=enroll&next=/wallet"
-                    />
-                    <div className="flex justify-center gap-2 p-1 rounded-lg bg-gray-800/50">
-                        {user?.hasPasswordSet && (
+                    <div className="rounded-xl border border-gray-700/60 bg-gray-900/60 p-4 space-y-3">
+                        <p className="text-xs uppercase tracking-[0.25em] text-gray-400">Verification</p>
+                        <div className="flex justify-center gap-2 p-1 rounded-lg bg-gray-800/50">
+                            {faceApproved && (
+                                <button
+                                    type="button"
+                                    onClick={() => setVerificationMethod('face')}
+                                    className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
+                                        verificationMethod === 'face' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                                    }`}
+                                >
+                                    Use Face
+                                </button>
+                            )}
+                            {user?.hasPasswordSet && (
+                                <button
+                                    type="button"
+                                    onClick={() => setVerificationMethod('password')}
+                                    className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
+                                        verificationMethod === 'password' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                                    }`}
+                                >
+                                    Use Password
+                                </button>
+                            )}
                             <button
-                                onClick={() => setAuthMethod('password')}
+                                type="button"
+                                onClick={() => setVerificationMethod('otp')}
                                 className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
-                                    authMethod === 'password' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                                    verificationMethod === 'otp' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
                                 }`}
                             >
-                                Use Password
+                                Use OTP
                             </button>
+                        </div>
+
+                        {!faceEnrolled && (
+                            <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+                                Enable face verification for extra security.
+                                <button
+                                    type="button"
+                                    onClick={() => window.location.assign('/face-test?mode=enroll&next=/wallet')}
+                                    className="ml-2 underline"
+                                >
+                                    Set up now
+                                </button>
+                            </div>
                         )}
-                        <button
-                            onClick={() => setAuthMethod('otp')}
-                            className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
-                                authMethod === 'otp' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
-                            }`}
-                        >
-                            Use OTP
-                        </button>
+                        {faceEnrolled && !faceApproved && (
+                            <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                                Awaiting admin approval for face verification.
+                            </div>
+                        )}
+                        {verificationMethod === 'face' && faceApproved && (
+                            <FaceVerificationPanel
+                                purpose="TRANSFER"
+                                enrollHref="/face-test?mode=enroll&next=/wallet"
+                                onVerified={(passed) => setFaceVerified(passed)}
+                                onEnrollmentChange={(isEnrolled) => setFaceEnrolled(isEnrolled)}
+                                onVerificationToken={(token) => setFaceVerificationId(token?.verificationId ?? null)}
+                                onApprovalChange={(approved) => setFaceApproved(approved)}
+                            />
+                        )}
                     </div>
 
                     <form onSubmit={handleExecuteTransfer} className="space-y-4">
-                        {authMethod === 'password' ? (
+                        {verificationMethod === 'password' ? (
                             <div>
                                 <label htmlFor="password" className="block text-sm font-medium text-gray-300 mb-1">Enter Password</label>
                                 <input
@@ -390,7 +463,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                     required
                                 />
                             </div>
-                        ) : (
+                        ) : verificationMethod === 'otp' ? (
                             <div className="space-y-2">
                                 <label htmlFor="otp" className="block text-sm font-medium text-gray-300 mb-1">Enter OTP</label>
                                 <div className="flex flex-col sm:flex-row gap-2">
@@ -414,7 +487,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                     </button>
                                 </div>
                             </div>
-                        )}
+                        ) : null}
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 type="button"

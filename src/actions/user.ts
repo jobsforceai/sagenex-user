@@ -170,6 +170,30 @@ export async function verifyFaceEmbedding(payload: {
     return handleApiResponse(res);
 }
 
+export async function getNomineeStatus() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/nominee`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function setNomineePhrase(phrase: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/nominee`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ phrase }),
+    });
+    return handleApiResponse(res);
+}
+
+export async function disableNomineeAccess() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/nominee`, {
+        method: "DELETE",
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
 export async function getWalletCurrentCycleHistory(params?: {
     includeCycles?: boolean;
     cyclesLimit?: number;
@@ -314,8 +338,9 @@ export async function executeTransfer(
     transferType?: 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE',
     password?: string,
     otp?: string,
+    faceVerificationId?: string,
 ) {
-    const body: { recipientId: string; amount: number; transferType?: string; password?: string; otp?: string; } = {
+    const body: { recipientId: string; amount: number; transferType?: string; password?: string; otp?: string; faceVerificationId?: string; } = {
         recipientId,
         amount,
     };
@@ -327,6 +352,8 @@ export async function executeTransfer(
         body.password = password;
     } else if (otp) {
         body.otp = otp;
+    } else if (faceVerificationId) {
+        body.faceVerificationId = faceVerificationId;
     }
 
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/execute`, {
@@ -349,13 +376,15 @@ export async function createCryptoDepositInvoice(amount: number) {
 export async function requestWithdrawal(data: { 
     amount: number; 
     withdrawalAddress?: string; 
-    upiId?: string,
+    upiId?: string;
     bankDetails?: {
         bankName: string;
         accountNumber: string;
         ifscCode: string;
         holderName: string;
-    }
+    };
+    otp?: string;
+    password?: string;
 }) {
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/request-withdrawal`, {
         method: "POST",

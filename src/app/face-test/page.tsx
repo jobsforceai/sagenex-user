@@ -6,7 +6,7 @@ import Navbar from "@/app/components/Navbar";
 import { useAuth } from "@/app/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { enrollFaceEmbedding, verifyFaceEmbedding } from "@/actions/user";
+import { enrollFaceEmbedding, verifyFaceEmbedding, getBiometricsStatus } from "@/actions/user";
 import { ChevronDown } from "lucide-react";
 
 const MODEL_PATH = "/models/face-api";
@@ -26,6 +26,7 @@ function FaceTestContent() {
   const [lastEmbedding, setLastEmbedding] = useState<number[] | null>(null);
   const [enrollResponse, setEnrollResponse] = useState<unknown>(null);
   const [enrollSuccess, setEnrollSuccess] = useState(false);
+  const [biometricsApproved, setBiometricsApproved] = useState(true);
   const [verifyResponse, setVerifyResponse] = useState<unknown>(null);
   const [loadingAction, setLoadingAction] = useState<"enroll" | "verify" | null>(
     null
@@ -52,6 +53,24 @@ function FaceTestContent() {
       router.push("/login?next=/face-test");
     }
   }, [loading, isAuthenticated, router]);
+
+  const refreshBiometricsStatus = async () => {
+    try {
+      const res = await getBiometricsStatus();
+      if (!res?.error) {
+        const approved = res.approved === undefined ? true : Boolean(res.approved);
+        setBiometricsApproved(approved);
+      }
+    } catch {
+      // Ignore status refresh errors.
+    }
+  };
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      refreshBiometricsStatus();
+    }
+  }, [isAuthenticated]);
 
   useEffect(() => {
     return () => {
@@ -362,6 +381,10 @@ function FaceTestContent() {
       });
       setEnrollResponse(res);
       setEnrollSuccess(Boolean(res?.embeddingId));
+      await refreshBiometricsStatus();
+      if (isEnrollOnly && res?.embeddingId) {
+        router.push(nextUrl || "/profile");
+      }
     } catch (err: any) {
       setError(err?.message || "Failed to enroll face embedding.");
     } finally {
@@ -416,6 +439,11 @@ function FaceTestContent() {
           {error && (
             <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
               {error}
+            </div>
+          )}
+          {enrollSuccess && !biometricsApproved && (
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
+              Enrollment submitted. Awaiting admin approval.
             </div>
           )}
 

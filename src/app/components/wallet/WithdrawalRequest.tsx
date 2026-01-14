@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { requestWithdrawal, getProfileData } from "@/actions/user";
+import { useState, useEffect, useRef } from "react";
+import { requestWithdrawal, getProfileData, sendTransferOtp, getBiometricsStatus } from "@/actions/user";
+import { useAuth } from "@/app/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +19,8 @@ interface WithdrawalRequestProps {
 }
 
 type WithdrawalType = "crypto" | "upi" | "bank";
+type AuthMethod = "password" | "otp";
+type VerificationMethod = "face" | "password" | "otp";
 
 const WithdrawalRequest = ({
   currentBalance,
@@ -25,6 +28,7 @@ const WithdrawalRequest = ({
   className,
   remainingWithdrawalLimit,
 }: WithdrawalRequestProps) => {
+  const { user } = useAuth();
   const [amount, setAmount] = useState("");
   const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>("crypto");
   const [withdrawalAddress, setWithdrawalAddress] = useState("");
@@ -38,6 +42,18 @@ const WithdrawalRequest = ({
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [showConfetti, setShowConfetti] = useState(false);
+  const [step, setStep] = useState<1 | 2>(1);
+  const [authMethod, setAuthMethod] = useState<AuthMethod>("password");
+  const [verificationMethod, setVerificationMethod] = useState<VerificationMethod>("face");
+  const [otp, setOtp] = useState("");
+  const [password, setPassword] = useState("");
+  const [otpCooldown, setOtpCooldown] = useState(0);
+  const [isSendingOtp, setIsSendingOtp] = useState(false);
+  const [faceVerified, setFaceVerified] = useState(false);
+  const [faceEnrolled, setFaceEnrolled] = useState(false);
+  const [faceVerificationId, setFaceVerificationId] = useState<string | null>(null);
+  const [faceApproved, setFaceApproved] = useState(true);
+  const otpTimerRef = useRef<NodeJS.Timeout | null>(null);
   const safeRemainingLimit =
     typeof remainingWithdrawalLimit === "number"
       ? Math.max(0, remainingWithdrawalLimit)
@@ -56,6 +72,56 @@ const WithdrawalRequest = ({
     };
     fetchProfile();
   }, []);
+
+  useEffect(() => {
+    const otpCooldownEnd = localStorage.getItem("withdrawalOtpCooldownEnd");
+    if (otpCooldownEnd) {
+      const remainingTime = Math.ceil(
+        (Number(otpCooldownEnd) - Date.now()) / 1000
+      );
+      if (remainingTime > 0) {
+        setOtpCooldown(remainingTime);
+      } else {
+        localStorage.removeItem("withdrawalOtpCooldownEnd");
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (otpCooldown > 0) {
+      otpTimerRef.current = setTimeout(() => {
+        setOtpCooldown((prev) => prev - 1);
+      }, 1000);
+    } else if (otpTimerRef.current) {
+      clearTimeout(otpTimerRef.current);
+    }
+
+    return () => {
+      if (otpTimerRef.current) {
+        clearTimeout(otpTimerRef.current);
+      }
+    };
+  }, [otpCooldown]);
+
+  const handleRequestOtp = async () => {
+    setIsSendingOtp(true);
+    setError(null);
+    try {
+      const result = await sendTransferOtp();
+      if (result?.error) {
+        setError(result.error);
+        return;
+      }
+      toast.success(result?.message || "OTP sent successfully.");
+      const cooldownEnd = Date.now() + 60 * 1000;
+      localStorage.setItem("withdrawalOtpCooldownEnd", String(cooldownEnd));
+      setOtpCooldown(60);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Failed to send OTP.");
+    } finally {
+      setIsSendingOtp(false);
+    }
+  };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newAmount = e.target.value;
@@ -76,28 +142,21 @@ const WithdrawalRequest = ({
     setBankDetails((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleWithdrawalRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsLoading(true);
-    setError(null);
-
+  const buildWithdrawalPayload = () => {
     const withdrawalAmount = parseFloat(amount);
     if (isNaN(withdrawalAmount) || withdrawalAmount <= 0) {
       toast.error("Please enter a valid amount.");
-      setIsLoading(false);
-      return;
+      return null;
     }
 
     if (withdrawalAmount > maxWithdrawable) {
       toast.error("Withdrawal amount cannot exceed your remaining withdrawal limit.");
-      setIsLoading(false);
-      return;
+      return null;
     }
 
     if (withdrawalType === "upi" && withdrawalAmount > 50) {
       toast.error("UPI withdrawal amount cannot exceed $50.");
-      setIsLoading(false);
-      return;
+      return null;
     }
 
     const payload: {
@@ -110,29 +169,97 @@ const WithdrawalRequest = ({
         ifscCode: string;
         holderName: string;
       };
+      otp?: string;
+      password?: string;
+      faceVerificationId?: string;
     } = { amount: withdrawalAmount };
 
     if (withdrawalType === "crypto") {
       if (!withdrawalAddress) {
         toast.error("Please set your USDT (TRC20) withdrawal address in your profile or enter it manually.");
-        setIsLoading(false);
-        return;
+        return null;
       }
       payload.withdrawalAddress = withdrawalAddress;
     } else if (withdrawalType === "upi") {
       if (!upiId) {
         toast.error("Please enter your UPI ID.");
-        setIsLoading(false);
-        return;
+        return null;
       }
       payload.upiId = upiId;
     } else if (withdrawalType === "bank") {
       if (!bankDetails.bankName || !bankDetails.accountNumber || !bankDetails.ifscCode || !bankDetails.holderName) {
         toast.error("Please fill in all bank details.");
-        setIsLoading(false);
-        return;
+        return null;
       }
       payload.bankDetails = bankDetails;
+    }
+
+    return payload;
+  };
+
+  const handleProceedToVerification = (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    const payload = buildWithdrawalPayload();
+    if (!payload) {
+      return;
+    }
+    setStep(2);
+  };
+
+  useEffect(() => {
+    if (step !== 2) return;
+    getBiometricsStatus()
+      .then((res) => {
+        if (!res?.error) {
+          setFaceEnrolled(Boolean(res.enrolled));
+          setFaceApproved(res.approved === undefined ? true : Boolean(res.approved));
+        }
+      })
+      .catch(() => null);
+  }, [step]);
+
+  useEffect(() => {
+    if (verificationMethod !== "face") return;
+    if (faceApproved) return;
+    setVerificationMethod(user?.hasPasswordSet ? "password" : "otp");
+  }, [faceApproved, verificationMethod, user?.hasPasswordSet]);
+
+  const handleWithdrawalRequest = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsLoading(true);
+    setError(null);
+
+    if (verificationMethod === "face" && faceEnrolled && !faceVerificationId) {
+      toast.error("Please verify your face before submitting.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (verificationMethod === "otp" && (!otp || otp.length !== 6)) {
+      toast.error("Please enter a valid 6-digit OTP.");
+      setIsLoading(false);
+      return;
+    }
+
+    if (verificationMethod === "password" && !password) {
+      toast.error("Please enter your password.");
+      setIsLoading(false);
+      return;
+    }
+
+    const payload = buildWithdrawalPayload();
+    if (!payload) {
+      setIsLoading(false);
+      return;
+    }
+
+    if (verificationMethod === "otp") {
+      payload.otp = otp;
+    } else if (verificationMethod === "password") {
+      payload.password = password;
+    } else if (verificationMethod === "face" && faceVerificationId) {
+      payload.faceVerificationId = faceVerificationId;
     }
 
     try {
@@ -145,7 +272,12 @@ const WithdrawalRequest = ({
         setTimeout(() => setShowConfetti(false), 5000);
         setAmount("");
         setUpiId("");
+        setOtp("");
+        setPassword("");
+        setFaceVerified(false);
+        setFaceVerificationId(null);
         setBankDetails({ bankName: "", accountNumber: "", ifscCode: "", holderName: "" });
+        setStep(1);
       }
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -206,146 +338,274 @@ const WithdrawalRequest = ({
             Bank
           </Button>
         </div>
-        <FaceVerificationPanel
-          purpose="WITHDRAWAL"
-          enrollHref="/face-test?mode=enroll&next=/wallet"
-        />
-        <form onSubmit={handleWithdrawalRequest} className="flex flex-col gap-4 flex-1">
-          <div>
-            <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
-              Amount (USD)
-            </label>
-            <Input
-              id="amount"
-              name="amount"
-              type="number"
-              value={amount}
-              onChange={handleAmountChange}
-              placeholder={`Available: $${maxWithdrawable.toFixed(2)}`}
-              className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-              required
-              min="0.01"
-              step="0.01"
-            />
-            {safeRemainingLimit !== null && (
-              <p className="text-xs text-gray-500 mt-2">
-                Remaining withdrawal limit: ${maxWithdrawable.toFixed(2)}
-              </p>
-            )}
-            {withdrawalType === "upi" && parseFloat(amount) > 50 && (
-              <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed $50.</p>
-            )}
-            {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
-          </div>
-
-          {withdrawalType === "crypto" && (
+        {step === 1 && (
+          <form onSubmit={handleProceedToVerification} className="flex flex-col gap-4 flex-1">
             <div>
-              <label htmlFor="withdrawalAddress" className="block text-sm font-medium text-gray-400 mb-2">
-                USDT (TRC20) Withdrawal Address
+              <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
+                Amount (USD)
               </label>
               <Input
-                id="withdrawalAddress"
-                name="withdrawalAddress"
-                type="text"
-                value={withdrawalAddress}
-                onChange={(e) => setWithdrawalAddress(e.target.value)}
-                placeholder="Enter your withdrawal address"
+                id="amount"
+                name="amount"
+                type="number"
+                value={amount}
+                onChange={handleAmountChange}
+                placeholder={`Available: $${maxWithdrawable.toFixed(2)}`}
                 className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
                 required
+                min="0.01"
+                step="0.01"
               />
-              <p className="text-xs text-gray-500 mt-1">This is pre-filled from your profile settings.</p>
+              {safeRemainingLimit !== null && (
+                <p className="text-xs text-gray-500 mt-2">
+                  Remaining withdrawal limit: ${maxWithdrawable.toFixed(2)}
+                </p>
+              )}
+              {withdrawalType === "upi" && parseFloat(amount) > 50 && (
+                <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed $50.</p>
+              )}
+              {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
             </div>
-          )}
 
-          {withdrawalType === "upi" && (
-            <div>
-              <label htmlFor="upiId" className="block text-sm font-medium text-gray-400 mb-2">
-                UPI ID
-              </label>
-              <Input
-                id="upiId"
-                name="upiId"
-                type="text"
-                value={upiId}
-                onChange={(e) => setUpiId(e.target.value)}
-                placeholder="yourname@oksbi"
-                className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-                required
-              />
+            {withdrawalType === "crypto" && (
+              <div>
+                <label htmlFor="withdrawalAddress" className="block text-sm font-medium text-gray-400 mb-2">
+                  USDT (TRC20) Withdrawal Address
+                </label>
+                <Input
+                  id="withdrawalAddress"
+                  name="withdrawalAddress"
+                  type="text"
+                  value={withdrawalAddress}
+                  onChange={(e) => setWithdrawalAddress(e.target.value)}
+                  placeholder="Enter your withdrawal address"
+                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                  required
+                />
+                <p className="text-xs text-gray-500 mt-1">This is pre-filled from your profile settings.</p>
+              </div>
+            )}
+
+            {withdrawalType === "upi" && (
+              <div>
+                <label htmlFor="upiId" className="block text-sm font-medium text-gray-400 mb-2">
+                  UPI ID
+                </label>
+                <Input
+                  id="upiId"
+                  name="upiId"
+                  type="text"
+                  value={upiId}
+                  onChange={(e) => setUpiId(e.target.value)}
+                  placeholder="yourname@oksbi"
+                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                  required
+                />
+              </div>
+            )}
+
+            {withdrawalType === "bank" && (
+              <div className="space-y-4">
+                <div>
+                  <label htmlFor="holderName" className="block text-sm font-medium text-gray-400 mb-2">
+                    Account Holder Name
+                  </label>
+                  <Input
+                    id="holderName"
+                    name="holderName"
+                    type="text"
+                    value={bankDetails.holderName}
+                    onChange={handleBankDetailsChange}
+                    placeholder="John Doe"
+                    required
+                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-400 mb-2">
+                    Account Number
+                  </label>
+                  <Input
+                    id="accountNumber"
+                    name="accountNumber"
+                    type="text"
+                    value={bankDetails.accountNumber}
+                    onChange={handleBankDetailsChange}
+                    placeholder="1234567890"
+                    required
+                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="ifscCode" className="block text-sm font-medium text-gray-400 mb-2">
+                    IFSC Code
+                  </label>
+                  <Input
+                    id="ifscCode"
+                    name="ifscCode"
+                    type="text"
+                    value={bankDetails.ifscCode}
+                    onChange={handleBankDetailsChange}
+                    placeholder="SBIN0001234"
+                    required
+                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                  />
+                </div>
+                <div>
+                  <label htmlFor="bankName" className="block text-sm font-medium text-gray-400 mb-2">
+                    Bank Name
+                  </label>
+                  <Input
+                    id="bankName"
+                    name="bankName"
+                    type="text"
+                    value={bankDetails.bankName}
+                    onChange={handleBankDetailsChange}
+                    placeholder="State Bank of India"
+                    required
+                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                  />
+                </div>
+              </div>
+            )}
+
+            <div className="mt-auto pt-4">
+              <Button type="submit" className="w-full">
+                Proceed to Verification
+              </Button>
             </div>
-          )}
+          </form>
+        )}
 
-          {withdrawalType === "bank" && (
-            <div className="space-y-4">
-              <div>
-                <label htmlFor="holderName" className="block text-sm font-medium text-gray-400 mb-2">
-                  Account Holder Name
-                </label>
-                <Input
-                  id="holderName"
-                  name="holderName"
-                  type="text"
-                  value={bankDetails.holderName}
-                  onChange={handleBankDetailsChange}
-                  placeholder="John Doe"
-                  required
-                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-                />
+        {step === 2 && (
+          <form onSubmit={handleWithdrawalRequest} className="flex flex-col gap-4 flex-1">
+            <div className="rounded-xl border border-gray-700/60 bg-gray-900/60 p-4 space-y-3">
+              <p className="text-xs uppercase tracking-[0.25em] text-gray-400">Verification</p>
+              {!faceEnrolled && (
+                <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+                  Enable face verification for extra security.
+                  <button
+                    type="button"
+                    onClick={() => window.location.assign("/face-test?mode=enroll&next=/wallet")}
+                    className="ml-2 underline"
+                  >
+                    Set up now
+                  </button>
+                </div>
+              )}
+              {faceEnrolled && !faceApproved && (
+                <div className="rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                  Awaiting admin approval for face verification.
+                </div>
+              )}
+              <div className="flex justify-center gap-2 p-1 rounded-lg bg-gray-800/50">
+                {faceApproved && (
+                  <button
+                    type="button"
+                    onClick={() => setVerificationMethod("face")}
+                    className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
+                      verificationMethod === "face"
+                        ? "bg-emerald-600 text-white"
+                        : "text-gray-300 hover:bg-gray-700"
+                    }`}
+                  >
+                    Use Face
+                  </button>
+                )}
+                {user?.hasPasswordSet && (
+                  <button
+                    type="button"
+                    onClick={() => setVerificationMethod("password")}
+                    className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
+                      verificationMethod === "password"
+                        ? "bg-emerald-600 text-white"
+                        : "text-gray-300 hover:bg-gray-700"
+                    }`}
+                  >
+                    Use Password
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => setVerificationMethod("otp")}
+                  className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
+                    verificationMethod === "otp"
+                      ? "bg-emerald-600 text-white"
+                      : "text-gray-300 hover:bg-gray-700"
+                  }`}
+                >
+                  Use OTP
+                </button>
               </div>
-              <div>
-                <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-400 mb-2">
-                  Account Number
-                </label>
-                <Input
-                  id="accountNumber"
-                  name="accountNumber"
-                  type="text"
-                  value={bankDetails.accountNumber}
-                  onChange={handleBankDetailsChange}
-                  placeholder="1234567890"
-                  required
-                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+              {verificationMethod === "face" && faceApproved && (
+                <FaceVerificationPanel
+                  purpose="WITHDRAWAL"
+                  enrollHref="/face-test?mode=enroll&next=/wallet"
+                  onVerified={(passed) => setFaceVerified(passed)}
+                  onEnrollmentChange={(isEnrolled) => setFaceEnrolled(isEnrolled)}
+                  onVerificationToken={(token) => setFaceVerificationId(token?.verificationId ?? null)}
+                  onApprovalChange={(approved) => setFaceApproved(approved)}
                 />
-              </div>
-              <div>
-                <label htmlFor="ifscCode" className="block text-sm font-medium text-gray-400 mb-2">
-                  IFSC Code
-                </label>
-                <Input
-                  id="ifscCode"
-                  name="ifscCode"
-                  type="text"
-                  value={bankDetails.ifscCode}
-                  onChange={handleBankDetailsChange}
-                  placeholder="SBIN0001234"
-                  required
-                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-                />
-              </div>
-              <div>
-                <label htmlFor="bankName" className="block text-sm font-medium text-gray-400 mb-2">
-                  Bank Name
-                </label>
-                <Input
-                  id="bankName"
-                  name="bankName"
-                  type="text"
-                  value={bankDetails.bankName}
-                  onChange={handleBankDetailsChange}
-                  placeholder="State Bank of India"
-                  required
-                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
-                />
-              </div>
+              )}
+              {verificationMethod === "password" ? (
+                <div>
+                  <label htmlFor="withdrawal-password" className="block text-sm font-medium text-gray-300 mb-1">
+                    Enter Password
+                  </label>
+                  <Input
+                    id="withdrawal-password"
+                    type="password"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Your password"
+                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    required
+                  />
+                </div>
+              ) : verificationMethod === "otp" ? (
+                <div className="space-y-2">
+                  <label htmlFor="withdrawal-otp" className="block text-sm font-medium text-gray-300 mb-1">
+                    Enter OTP
+                  </label>
+                  <div className="flex flex-col sm:flex-row gap-2">
+                    <Input
+                      id="withdrawal-otp"
+                      type="text"
+                      value={otp}
+                      onChange={(e) => setOtp(e.target.value)}
+                      placeholder="123456"
+                      className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                      required
+                      maxLength={6}
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleRequestOtp}
+                      disabled={isSendingOtp || otpCooldown > 0}
+                      className="sm:w-48"
+                      variant="outline"
+                    >
+                      {isSendingOtp
+                        ? "Sending..."
+                        : otpCooldown > 0
+                          ? `Resend OTP in ${otpCooldown}s`
+                          : "Send OTP"}
+                    </Button>
+                  </div>
+                </div>
+              ) : null}
             </div>
-          )}
 
-          <div className="mt-auto pt-4">
-            <Button type="submit" disabled={isLoading} className="w-full">
-              {isLoading ? "Submitting Request..." : "Request Withdrawal"}
-            </Button>
-          </div>
-        </form>
+            <div className="mt-auto pt-4 flex flex-col sm:flex-row gap-3">
+              <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
+                Back
+              </Button>
+              <Button type="submit" disabled={isLoading} className="w-full">
+                {isLoading ? "Submitting Request..." : "Request Withdrawal"}
+              </Button>
+            </div>
+          </form>
+        )}
       </CardContent>
     </Card>
   );

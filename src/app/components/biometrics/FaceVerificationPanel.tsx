@@ -13,12 +13,18 @@ type FaceVerificationPanelProps = {
   purpose: "WITHDRAWAL" | "TRANSFER";
   enrollHref: string;
   onVerified?: (passed: boolean) => void;
+  onEnrollmentChange?: (enrolled: boolean) => void;
+  onVerificationToken?: (token: { verificationId: string; expiresAt?: string | null } | null) => void;
+  onApprovalChange?: (approved: boolean) => void;
 };
 
 export default function FaceVerificationPanel({
   purpose,
   enrollHref,
   onVerified,
+  onEnrollmentChange,
+  onVerificationToken,
+  onApprovalChange,
 }: FaceVerificationPanelProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -27,11 +33,14 @@ export default function FaceVerificationPanel({
   const [statusLoading, setStatusLoading] = useState(true);
   const [enrolled, setEnrolled] = useState(false);
   const [lastEnrolledAt, setLastEnrolledAt] = useState<string | null>(null);
+  const [approved, setApproved] = useState(true);
+  const [pending, setPending] = useState(false);
   const [modelsReady, setModelsReady] = useState(false);
   const [cameraReady, setCameraReady] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [verified, setVerified] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [verificationId, setVerificationId] = useState<string | null>(null);
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
 
@@ -41,8 +50,15 @@ export default function FaceVerificationPanel({
       try {
         const res = await getBiometricsStatus();
         if (!res?.error) {
-          setEnrolled(Boolean(res.enrolled));
+          const isEnrolled = Boolean(res.enrolled);
+          const isApproved = res.approved === undefined ? true : Boolean(res.approved);
+          const isPending = Boolean(res.pending);
+          setEnrolled(isEnrolled);
+          setApproved(isApproved);
+          setPending(isPending);
           setLastEnrolledAt(res.lastEnrolledAt || null);
+          onEnrollmentChange?.(isEnrolled);
+          onApprovalChange?.(isApproved);
         }
       } finally {
         setStatusLoading(false);
@@ -110,30 +126,42 @@ export default function FaceVerificationPanel({
     streamRef.current = stream;
     if (videoRef.current) {
       videoRef.current.srcObject = stream;
+      await new Promise<void>((resolve) => {
+        if (!videoRef.current) return resolve();
+        videoRef.current.onloadedmetadata = () => resolve();
+      });
       await videoRef.current.play();
       setCameraReady(true);
     }
   };
 
+  const ensureCamera = async () => {
+    if (cameraReady) return;
+    await startCamera();
+  };
+
   const getEmbeddingFromVideo = async () => {
     await loadModels();
-    await startCamera();
+    await ensureCamera();
     const faceapi = faceApiRef.current;
     const video = videoRef.current;
     if (!faceapi || !video) {
       throw new Error("Face detection is not ready.");
     }
-    const detection = await faceapi
-      .detectSingleFace(
+    const detections = await faceapi
+      .detectAllFaces(
         video,
         new faceapi.TinyFaceDetectorOptions({ inputSize: 416, scoreThreshold: 0.5 })
       )
       .withFaceLandmarks()
-      .withFaceDescriptor();
-    if (!detection?.descriptor) {
+      .withFaceDescriptors();
+    if (!detections || detections.length === 0) {
       throw new Error("No face detected. Look at the camera and try again.");
     }
-    return Array.from(detection.descriptor).map((value) =>
+    if (detections.length > 1) {
+      throw new Error("Multiple faces detected. Keep only one face in frame.");
+    }
+    return Array.from(detections[0].descriptor).map((value) =>
       Number(value.toFixed(6))
     );
   };
@@ -151,14 +179,24 @@ export default function FaceVerificationPanel({
       });
       if (res?.passed) {
         setVerified(true);
+        setVerificationId(res.verificationId || null);
+        onVerificationToken?.(
+          res.verificationId
+            ? { verificationId: res.verificationId, expiresAt: res.expiresAt || null }
+            : null
+        );
         onVerified?.(true);
       } else {
         setVerified(false);
+        setVerificationId(null);
+        onVerificationToken?.(null);
         onVerified?.(false);
         setError("Face verification failed. Please try again.");
       }
     } catch (err: any) {
       setError(err?.message || "Face verification failed.");
+      setVerificationId(null);
+      onVerificationToken?.(null);
     } finally {
       setVerifying(false);
     }
@@ -185,6 +223,26 @@ export default function FaceVerificationPanel({
           <Button asChild variant="outline" className="border-amber-400/40 text-amber-200">
             <Link href={enrollHref}>Set up face</Link>
           </Button>
+        </div>
+      </Card>
+    );
+  }
+
+  if (pending) {
+    return (
+      <Card className="bg-gray-900/40 border border-amber-500/30 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-sm font-semibold text-white">Awaiting admin approval</p>
+            <p className="text-xs text-gray-400">
+              Your face enrollment is pending review. You can continue with OTP or password.
+            </p>
+          </div>
+          {lastEnrolledAt && (
+            <span className="text-xs text-gray-500">
+              Enrolled {new Date(lastEnrolledAt).toLocaleDateString()}
+            </span>
+          )}
         </div>
       </Card>
     );
@@ -265,14 +323,21 @@ export default function FaceVerificationPanel({
           {error}
         </div>
       )}
+      {verificationId && (
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+          Verification valid for 5 minutes.
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button
           variant="outline"
           onClick={() => {
             setError(null);
-            loadModels().then(refreshDevices).catch(() => null);
-            startCamera().catch((err: any) => setError(err?.message || "Camera failed to start."));
+            loadModels()
+              .then(refreshDevices)
+              .then(ensureCamera)
+              .catch((err: any) => setError(err?.message || "Camera failed to start."));
           }}
         >
           Enable Camera
