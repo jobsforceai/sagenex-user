@@ -22,9 +22,9 @@ import {
   Gift,
   MonitorPlay,
   Ticket,
-  X,
 } from "lucide-react";
 import AgentOverview from "../components/dashboard/AgentOverview";
+import DashboardUpdatesOverlay from "../components/dashboard/DashboardUpdatesOverlay";
 import EarningsSummary from "../components/dashboard/EarningsSummary";
 import GamifiedChallenges from "../components/dashboard/GamifiedChallenges";
 import Leaderboard from "../components/dashboard/Leaderboard";
@@ -206,8 +206,6 @@ const DashboardPage = () => {
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[] | null>(null);
   const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [packageModalType, setPackageModalType] = useState<"new" | "reinvest" | null>(null);
-  const [showPackageModal, setShowPackageModal] = useState(false);
 
   const referralLink =
     dashboardData?.profile.referralCode
@@ -245,29 +243,6 @@ const DashboardPage = () => {
       fetchInitialData();
     }
   }, [token, isAuthenticated, loading, router]);
-
-  useEffect(() => {
-    if (!dashboardData) return;
-    const packageUSD = dashboardData.package?.packageUSD ?? 0;
-    const remainingCap = dashboardData.wallet?.remainingEarningsCap;
-    const earningsCapTotal = dashboardData.wallet?.earningsCapTotal ?? 0;
-    const hasLockedBonuses = dashboardData.wallet?.bonuses?.some((bonus) => bonus.lockedAmount > 0);
-    const hasPriorEarnings =
-      (dashboardData.wallet?.totalLifetimeWithdrawals ?? 0) > 0 ||
-      (dashboardData.wallet?.availableBalance ?? 0) > 0 ||
-      Boolean(hasLockedBonuses);
-
-    if (remainingCap !== undefined && remainingCap <= 0 && earningsCapTotal > 0) {
-      setPackageModalType("reinvest");
-      setShowPackageModal(true);
-      return;
-    }
-
-    if (packageUSD <= 0) {
-      setPackageModalType(hasPriorEarnings ? "reinvest" : "new");
-      setShowPackageModal(true);
-    }
-  }, [dashboardData]);
 
   useEffect(() => {
     if (!token) return;
@@ -341,63 +316,63 @@ const DashboardPage = () => {
       })()
     : 0;
 
-  if (loading || !dashboardData) {
-    return (
-      <div className="bg-black text-white min-h-screen flex items-center justify-center">
-        Loading...
-      </div>
-    );
-  }
-  if (error) {
-    return (
-      <div className="bg-black text-white min-h-screen flex items-center justify-center">
-        Error: {error}
-      </div>
-    );
-  }
-
-  const { profile, wallet, rank: dashboardRank, performanceRank } = dashboardData;
-  const lifetimeRank = dashboardRank ?? rankProgress?.rank;
-  const currentRank = rankProgress?.performanceRank ?? performanceRank ?? lifetimeRank;
+  const showLoading = loading || !dashboardData;
+  const showError = !showLoading && Boolean(error);
+  const profile = dashboardData?.profile;
+  const wallet = dashboardData?.wallet;
+  const lifetimeRank = dashboardData?.rank ?? rankProgress?.rank;
+  const currentRank = rankProgress?.performanceRank ?? dashboardData?.performanceRank ?? lifetimeRank;
   const consecutiveMonthsMissed = lifetimeRank?.consecutiveMonthsMissed;
   const earningsMultiplierDeadline =
-    profile?.earningsMultiplierDeadline ?? dashboardData.earningsMultiplierDeadline ?? null;
+    profile?.earningsMultiplierDeadline ?? dashboardData?.earningsMultiplierDeadline ?? null;
+
   return (
     <div className="bg-black text-white min-h-screen">
       {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
+      <DashboardUpdatesOverlay token={token} />
       <Navbar userLevel={currentRank?.name} />
       <main className="container mx-auto p-4 pt-24">
-        {/* Header */}
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold flex items-center">
-              <Crown className="mr-2 text-yellow-400" />
-              Sagenex Hub
-            </h1>
-            <p className="text-muted-foreground">
-              Welcome back, {profile.fullName}!
-            </p>
+        {showLoading ? (
+          <div className="flex items-center justify-center py-24 text-white/70">
+            Loading...
           </div>
-          <div className="text-right">
-            <p className="text-sm text-muted-foreground">Available Balance</p>
-            <p className="text-2xl font-bold">
-              {wallet.availableBalance.toLocaleString("en-US", {
-                style: "currency",
-                currency: "USD",
-                minimumFractionDigits: 0,
-                maximumFractionDigits: 0,
-              })}
-            </p>
+        ) : showError ? (
+          <div className="flex items-center justify-center py-24 text-white/70">
+            Error: {error}
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Header */}
+            <div className="flex justify-between items-center mb-8">
+              <div>
+                <h1 className="text-3xl font-bold flex items-center">
+                  <Crown className="mr-2 text-yellow-400" />
+                  Sagenex Hub
+                </h1>
+                <p className="text-muted-foreground">
+                  Welcome back, {profile?.fullName}!
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="text-sm text-muted-foreground">Available Balance</p>
+                <p className="text-2xl font-bold">
+                  {wallet?.availableBalance?.toLocaleString("en-US", {
+                    style: "currency",
+                    currency: "USD",
+                    minimumFractionDigits: 0,
+                    maximumFractionDigits: 0,
+                  })}
+                </p>
+              </div>
+            </div>
 
-        {/* Salary Alerts */}
-        {consecutiveMonthsMissed === 1 && (
-          <Alert
-            type="warning"
-            message="You have missed your performance target for 1 month. Your next salary will be reduced to 50%."
-          />
-        )}
+            {/* Salary Alerts */}
+            {consecutiveMonthsMissed === 1 && (
+              <Alert
+                type="warning"
+                message="You have missed your performance target for 1 month. Your next salary will be reduced to 50%."
+              />
+            )}
         {/* {consecutiveMonthsMissed && consecutiveMonthsMissed >= 2 && (
           <Alert
             type="danger"
@@ -406,18 +381,18 @@ const DashboardPage = () => {
         )} */}
 
         {/* Full-width Agent Overview */}
-        <div className="mb-6">
-          <AgentOverview
-            name={dashboardData.profile.fullName}
-            avatarUrl={dashboardData.profile.profilePicture}
-            currentLevel={currentRank?.name}
-            nextLevelLabel={rankProgress?.progress?.nextRankName ?? undefined}
-            progressPct={progressPercentage}
-            packageUSD={dashboardData.package?.packageUSD}
-            earningsMultiplier={dashboardData.earningsMultiplier}
-            earningsMultiplierDeadline={earningsMultiplierDeadline}
-            />
-        </div>
+            <div className="mb-6">
+              <AgentOverview
+                name={dashboardData?.profile.fullName}
+                avatarUrl={dashboardData?.profile.profilePicture}
+                currentLevel={currentRank?.name}
+                nextLevelLabel={rankProgress?.progress?.nextRankName ?? undefined}
+                progressPct={progressPercentage}
+                packageUSD={dashboardData?.package?.packageUSD}
+                earningsMultiplier={dashboardData?.earningsMultiplier}
+                earningsMultiplierDeadline={earningsMultiplierDeadline}
+                />
+            </div>
 
         {/* Quick Actions */}
         <div className="mb-6">
@@ -516,7 +491,7 @@ const DashboardPage = () => {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {financialSummary ? (
@@ -537,7 +512,7 @@ const DashboardPage = () => {
             {leaderboardData ? (
               <Leaderboard
                 leaderboardData={leaderboardData}
-                currentUserId={profile.userId}
+                currentUserId={profile?.userId ?? ""}
               />
             ) : (
               <Card>
@@ -583,14 +558,14 @@ const DashboardPage = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <SmartUpdates />
-            {dashboardData.wallet.withdrawalCap && (
+            {dashboardData?.wallet.withdrawalCap && (
                 <WithdrawalLimit
-                    withdrawalCap={dashboardData.wallet.withdrawalCap}
-                    totalLifetimeWithdrawals={dashboardData.wallet.totalLifetimeWithdrawals}
-                    remainingWithdrawalLimit={dashboardData.wallet.remainingWithdrawalLimit}
+                    withdrawalCap={dashboardData?.wallet.withdrawalCap}
+                    totalLifetimeWithdrawals={dashboardData?.wallet.totalLifetimeWithdrawals}
+                    remainingWithdrawalLimit={dashboardData?.wallet.remainingWithdrawalLimit}
                 />
             )}
-            {dashboardData.wallet.earningsCapTotal !== undefined && (
+            {dashboardData?.wallet.earningsCapTotal !== undefined && (
               <Card className="bg-[#0b0b0b] border border-emerald-900/40 rounded-2xl">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                   <CardTitle className="text-sm font-medium text-gray-400">
@@ -601,26 +576,26 @@ const DashboardPage = () => {
                   <div className="flex justify-between">
                     <span className="text-gray-400">Earnings cap:</span>
                     <span className="font-semibold text-white">
-                      {formatCurrency(dashboardData.wallet.earningsCapTotal)}
+                      {formatCurrency(dashboardData?.wallet.earningsCapTotal)}
                     </span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-400">Earned so far:</span>
                     <span className="font-semibold text-white">
-                      {formatCurrency(dashboardData.wallet.earnedSinceBaseline)}
+                      {formatCurrency(dashboardData?.wallet.earnedSinceBaseline)}
                     </span>
                   </div>
                   <div className="flex justify-between border-t border-dashed border-gray-700 pt-2">
                     <span className="text-gray-400">Remaining:</span>
                     <span className="font-semibold text-emerald-300">
-                      {formatCurrency(dashboardData.wallet.remainingEarningsCap)}
+                      {formatCurrency(dashboardData?.wallet.remainingEarningsCap)}
                     </span>
                   </div>
                 </CardContent>
               </Card>
             )}
-            {dashboardData.wallet.bonuses ? (
-              <LockedBonusesCard bonuses={dashboardData.wallet.bonuses} />
+            {dashboardData?.wallet.bonuses ? (
+              <LockedBonusesCard bonuses={dashboardData?.wallet.bonuses} />
             ) : (
               <Card>
                 <CardHeader><CardTitle>Locked Bonuses</CardTitle></CardHeader>
@@ -634,67 +609,21 @@ const DashboardPage = () => {
         </div>
 
         {/* Full-width Binary Tree View */}
-        <div className="mt-6">
-          {formattedLegs ? (
-            <SixLegTreeView legs={formattedLegs} />
-          ) : (
-            <Card>
-              <CardHeader><CardTitle>Team Structure</CardTitle></CardHeader>
-              <CardContent>
-                <Skeleton className="h-64 w-full" />
-              </CardContent>
-            </Card>
-          )}
-        </div>
+            <div className="mt-6">
+              {formattedLegs ? (
+                <SixLegTreeView legs={formattedLegs} />
+              ) : (
+                <Card>
+                  <CardHeader><CardTitle>Team Structure</CardTitle></CardHeader>
+                  <CardContent>
+                    <Skeleton className="h-64 w-full" />
+                  </CardContent>
+                </Card>
+              )}
+            </div>
+          </>
+        )}
       </main>
-      {showPackageModal && packageModalType && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_25px_80px_rgba(0,0,0,0.55)]">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">
-                  Account status
-                </p>
-                <h2 className="mt-2 text-2xl font-semibold">
-                  {packageModalType === "new"
-                    ? "Start earning today"
-                    : "Reinvest to unlock earnings"}
-                </h2>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowPackageModal(false)}
-                className="rounded-full border border-white/10 p-2 text-white/70 hover:text-white"
-                aria-label="Close"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-
-            <p className="mt-4 text-sm text-white/70 leading-relaxed">
-              {packageModalType === "new"
-                ? "Make your first investment purchase to activate your package and start earning."
-                : "Your package hit its cap. Reinvest to access the wallet fully and unlock all benefits again."}
-            </p>
-
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <Link
-                href="/wallet"
-                className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400"
-              >
-                {packageModalType === "new" ? "Purchase Package" : "Reinvest Now"}
-              </Link>
-              <button
-                type="button"
-                onClick={() => setShowPackageModal(false)}
-                className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/80 hover:border-white/30 hover:text-white"
-              >
-                Maybe later
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
