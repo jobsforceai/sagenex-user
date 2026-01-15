@@ -226,6 +226,13 @@ export async function getFinancialSummary() {
   return handleApiResponse(res);
 }
 
+export async function getUserUpdates() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/updates`, {
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res);
+}
+
 export async function uploadKycDocument(formData: FormData) {
     const res = await fetch(`${API_BASE_URL}/api/v1/kyc/document`, {
         method: "POST",

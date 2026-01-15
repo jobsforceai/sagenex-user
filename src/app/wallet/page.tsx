@@ -3,6 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
 import CryptoDeposit from "@/app/components/wallet/CryptoDeposit";
@@ -15,7 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { createSgbnCoupon, getWalletData, getDashboardData, getKycStatus, getWalletCurrentCycleHistory } from "@/actions/user";
 import { KycStatus } from "@/types";
-import { ChevronDown, ChevronUp, Lock, Unlock } from "lucide-react";
+import { ChevronDown, ChevronUp, Lock, Unlock, X } from "lucide-react";
 
 // Interfaces for wallet page data
 interface WalletTransaction {
@@ -118,6 +119,15 @@ interface CurrentCycleHistory {
   ledger: CurrentCycleLedgerEntry[];
   cycles?: CycleSnapshot[];
 }
+
+type DashboardSnapshot = {
+  packageUSD: number;
+  availableBalance?: number;
+  totalLifetimeWithdrawals?: number;
+  bonuses?: LockedBonus[];
+  remainingEarningsCap?: number;
+  earningsCapTotal?: number;
+};
 
 type SgbnCoupon = {
   transferId: string;
@@ -397,6 +407,9 @@ const WalletPage = () => {
   const [couponLoading, setCouponLoading] = useState<"BUSINESS" | "FREELANCER" | null>(null);
   const [couponError, setCouponError] = useState<string | null>(null);
   const [couponMessage, setCouponMessage] = useState<string | null>(null);
+  const [packageModalType, setPackageModalType] = useState<"new" | "reinvest" | null>(null);
+  const [showPackageModal, setShowPackageModal] = useState(false);
+  const [dashboardSnapshot, setDashboardSnapshot] = useState<DashboardSnapshot | null>(null);
   const [timeRemaining, setTimeRemaining] = useState<string | null>(null);
   const [isCouponExpired, setIsCouponExpired] = useState(false);
   const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
@@ -453,9 +466,21 @@ const WalletPage = () => {
         const dashboardRes = dashboardResult.value;
         if (dashboardRes?.error) {
           setDashboardError(dashboardRes.error);
-        } else if (!resolvedSummary) {
-          resolvedSummary = dashboardRes.wallet || null;
-          setWalletSummary(resolvedSummary);
+        } else {
+          if (!resolvedSummary) {
+            resolvedSummary = dashboardRes.wallet || null;
+            setWalletSummary(resolvedSummary);
+          }
+          if (dashboardRes?.package || dashboardRes?.wallet) {
+            setDashboardSnapshot({
+              packageUSD: dashboardRes.package?.packageUSD ?? 0,
+              availableBalance: dashboardRes.wallet?.availableBalance,
+              totalLifetimeWithdrawals: dashboardRes.wallet?.totalLifetimeWithdrawals,
+              bonuses: dashboardRes.wallet?.bonuses,
+              remainingEarningsCap: dashboardRes.wallet?.remainingEarningsCap,
+              earningsCapTotal: dashboardRes.wallet?.earningsCapTotal,
+            });
+          }
         }
       } else {
         setDashboardError("Unable to load dashboard summary.");
@@ -502,6 +527,29 @@ const WalletPage = () => {
       fetchData();
     }
   }, [isAuthenticated, authLoading, router, fetchData]);
+
+  useEffect(() => {
+    if (!dashboardSnapshot) return;
+    const packageUSD = dashboardSnapshot.packageUSD ?? 0;
+    const remainingCap = dashboardSnapshot.remainingEarningsCap;
+    const earningsCapTotal = dashboardSnapshot.earningsCapTotal ?? 0;
+    const hasLockedBonuses = dashboardSnapshot.bonuses?.some((bonus) => bonus.lockedAmount > 0);
+    const hasPriorEarnings =
+      (dashboardSnapshot.totalLifetimeWithdrawals ?? 0) > 0 ||
+      (dashboardSnapshot.availableBalance ?? 0) > 0 ||
+      Boolean(hasLockedBonuses);
+
+    if (remainingCap !== undefined && remainingCap <= 0 && earningsCapTotal > 0) {
+      setPackageModalType("reinvest");
+      setShowPackageModal(true);
+      return;
+    }
+
+    if (packageUSD <= 0) {
+      setPackageModalType(hasPriorEarnings ? "reinvest" : "new");
+      setShowPackageModal(true);
+    }
+  }, [dashboardSnapshot]);
 
   useEffect(() => {
     if (!coupon?.expiresAt) {
@@ -579,6 +627,55 @@ const WalletPage = () => {
   const showCycleNote = (cycleSummary?.delta ?? 0) > 0.01;
   const summaryLoading = walletLoading && dashboardLoading;
   const canShowActions = Boolean(walletSummary) && !walletError && !dashboardError;
+
+  const packageStatusModal = showPackageModal && packageModalType ? (
+    <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/70 px-4">
+      <div className="w-full max-w-lg rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_25px_80px_rgba(0,0,0,0.55)]">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-xs uppercase tracking-[0.3em] text-emerald-300/70">
+              Account status
+            </p>
+            <h2 className="mt-2 text-2xl font-semibold">
+              {packageModalType === "new"
+                ? "Start earning today"
+                : "Reinvest to unlock earnings"}
+            </h2>
+          </div>
+          <button
+            type="button"
+            onClick={() => setShowPackageModal(false)}
+            className="rounded-full border border-white/10 p-2 text-white/70 hover:text-white"
+            aria-label="Close"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        </div>
+
+        <p className="mt-4 text-sm text-white/70 leading-relaxed">
+          {packageModalType === "new"
+            ? "Make your first investment purchase to activate your package and start earning."
+            : "Your package hit its cap. Reinvest to access the wallet fully and unlock all benefits again."}
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-center gap-3">
+          <Link
+            href="/wallet"
+            className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-black hover:bg-emerald-400"
+          >
+            {packageModalType === "new" ? "Purchase Package" : "Reinvest Now"}
+          </Link>
+          <button
+            type="button"
+            onClick={() => setShowPackageModal(false)}
+            className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/80 hover:border-white/30 hover:text-white"
+          >
+            Maybe later
+          </button>
+        </div>
+      </div>
+    </div>
+  ) : null;
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -1105,6 +1202,7 @@ const WalletPage = () => {
           </CardContent>
         </Card>
       </div>
+      {packageStatusModal}
     </div>
   );
 };
