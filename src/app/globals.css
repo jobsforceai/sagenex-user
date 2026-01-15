@@ -65,6 +65,67 @@
   }
 }
 
+@keyframes face-scan {
+  0% {
+    transform: translateY(12%);
+    opacity: 0.2;
+  }
+  50% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(88%);
+    opacity: 0.2;
+  }
+}
+
+@keyframes face-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.18);
+    border-color: rgba(110, 231, 183, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 36px rgba(16, 185, 129, 0.35);
+    border-color: rgba(52, 211, 153, 0.75);
+  }
+}
+
+.face-scan-line {
+  height: 2px;
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0), rgba(16, 185, 129, 0.9), rgba(16, 185, 129, 0));
+  animation: face-scan 2.2s ease-in-out infinite;
+  box-shadow: 0 0 18px rgba(16, 185, 129, 0.45);
+}
+
+.face-scan-mask {
+  background: radial-gradient(ellipse at center, transparent 0 55%, rgba(0, 0, 0, 0.85) 56% 100%);
+}
+
+.face-scan-ticks {
+  background: repeating-conic-gradient(
+    rgba(16, 185, 129, 0.9) 0deg 3deg,
+    rgba(16, 185, 129, 0) 3deg 10deg
+  );
+  mask: radial-gradient(circle at center, transparent 0 46%, black 47% 52%, transparent 53% 100%);
+  animation: face-spin 6s linear infinite;
+}
+
+.face-scan-crosshair {
+  border: 2px solid rgba(16, 185, 129, 0.35);
+}
+
+.face-scan-aligned {
+  filter: drop-shadow(0 0 18px rgba(16, 185, 129, 0.85));
+}
+
+
+@keyframes face-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 @theme inline {
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);

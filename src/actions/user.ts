@@ -136,6 +136,40 @@ export async function clearUserCache() {
     return handleApiResponse(res);
 }
 
+export async function getBiometricsStatus() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/status`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function enrollFaceEmbedding(payload: {
+    embedding: number[];
+    source: string;
+    meta?: Record<string, unknown>;
+}) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/enroll`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res);
+}
+
+export async function verifyFaceEmbedding(payload: {
+    embedding: number[];
+    purpose: string;
+    livenessScore: number;
+    meta?: Record<string, unknown>;
+}) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/verify`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(payload),
+    });
+    return handleApiResponse(res);
+}
+
 export async function getNomineeStatus() {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/nominee`, {
         headers: await getAuthHeaders(),
@@ -311,8 +345,9 @@ export async function executeTransfer(
     transferType?: 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE',
     password?: string,
     otp?: string,
+    faceVerificationId?: string,
 ) {
-    const body: { recipientId: string; amount: number; transferType?: string; password?: string; otp?: string; } = {
+    const body: { recipientId: string; amount: number; transferType?: string; password?: string; otp?: string; faceVerificationId?: string; } = {
         recipientId,
         amount,
     };
@@ -324,6 +359,8 @@ export async function executeTransfer(
         body.password = password;
     } else if (otp) {
         body.otp = otp;
+    } else if (faceVerificationId) {
+        body.faceVerificationId = faceVerificationId;
     }
 
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/execute`, {
@@ -346,13 +383,15 @@ export async function createCryptoDepositInvoice(amount: number) {
 export async function requestWithdrawal(data: { 
     amount: number; 
     withdrawalAddress?: string; 
-    upiId?: string,
+    upiId?: string;
     bankDetails?: {
         bankName: string;
         accountNumber: string;
         ifscCode: string;
         holderName: string;
-    }
+    };
+    otp?: string;
+    password?: string;
 }) {
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/request-withdrawal`, {
         method: "POST",

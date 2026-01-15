@@ -14,7 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, BadgeCheck, XCircle, ShieldCheck, ShieldAlert, ShieldClose, Edit } from "lucide-react";
-import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess } from "@/actions/user";
+import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess, getBiometricsStatus } from "@/actions/user";
 import { KycStatus } from "@/types";
 
 interface UserProfile {
@@ -42,6 +42,17 @@ interface NomineeStatus {
   updatedAt: string;
   lastResetAt: string | null;
   disabledAt: string | null;
+}
+
+interface BiometricsStatus {
+  enrolled: boolean;
+  approved?: boolean;
+  pending?: boolean;
+  status?: string;
+  reviewedAt?: string | null;
+  reviewNotes?: string | null;
+  sources?: string[];
+  lastEnrolledAt?: string | null;
 }
 
 const KycStatusBadge = ({ status }: { status: KycStatus['status'] }) => {
@@ -92,6 +103,7 @@ const ProfilePage = () => {
   const [nomineePhrase, setNomineePhraseInput] = useState("");
   const [nomineeSubmitting, setNomineeSubmitting] = useState(false);
   const [nomineeMessage, setNomineeMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
+  const [biometricsStatus, setBiometricsStatus] = useState<BiometricsStatus | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -101,10 +113,11 @@ const ProfilePage = () => {
 
     const fetchPageData = async () => {
         try {
-            const [profileData, kycData, nomineeData] = await Promise.all([
+            const [profileData, kycData, nomineeData, biometricsData] = await Promise.all([
                 getProfileData(),
                 getKycStatus(),
-                getNomineeStatus()
+                getNomineeStatus(),
+                getBiometricsStatus(),
             ]);
             console.log("Fetched Profile Data:", profileData);
             if (profileData.error) {
@@ -126,6 +139,9 @@ const ProfilePage = () => {
 
             if (!nomineeData?.error) {
                 setNomineeStatus(nomineeData);
+            }
+            if (!biometricsData?.error) {
+                setBiometricsStatus(biometricsData);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -249,6 +265,7 @@ const ProfilePage = () => {
 
   const isNominee = user?.role === "nominee";
   const formatNomineeDate = (value?: string | null) => (value ? new Date(value).toLocaleString() : "—");
+  const formatBiometricDate = (value?: string | null) => (value ? new Date(value).toLocaleString() : "—");
 
   return (
     <div className="bg-black text-white min-h-screen">
@@ -392,6 +409,57 @@ const ProfilePage = () => {
                     </span>
                   )}
                 </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+        {!isNominee && (
+          <section>
+            <Card className="bg-black/60 border-white/10">
+              <CardHeader>
+                <CardTitle className="text-base">Face Verification</CardTitle>
+                <p className="text-sm text-gray-400">
+                  Add face verification for faster, more secure withdrawals and transfers.
+                </p>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-wrap items-center gap-4 text-sm text-gray-300">
+                  <span className={`rounded-full px-3 py-1 text-xs font-semibold ${
+                    biometricsStatus?.approved
+                      ? "bg-emerald-500/20 text-emerald-300"
+                      : biometricsStatus?.pending
+                        ? "bg-amber-500/20 text-amber-200"
+                        : "bg-gray-800 text-gray-300"
+                  }`}>
+                    {biometricsStatus?.approved
+                      ? "Approved"
+                      : biometricsStatus?.pending
+                        ? "Awaiting approval"
+                        : "Not enrolled"}
+                  </span>
+                  <span>
+                    Last enrolled:{" "}
+                    <span className="text-gray-100">
+                      {formatBiometricDate(biometricsStatus?.lastEnrolledAt || null)}
+                    </span>
+                  </span>
+                </div>
+                <div className="flex flex-wrap items-center gap-3">
+                  <Button
+                    type="button"
+                    className="bg-emerald-500 hover:bg-emerald-600"
+                    onClick={() => router.push("/face-test?mode=enroll&next=/profile")}
+                  >
+                    {biometricsStatus?.approved || biometricsStatus?.pending ? "Re-enroll Face" : "Set up Face Verification"}
+                  </Button>
+                </div>
+                {biometricsStatus?.status === "REJECTED" && biometricsStatus.reviewNotes && (
+                  <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+                    <p className="font-semibold">Re-enrollment needed</p>
+                    <p className="text-xs text-red-100/80 mt-1">{biometricsStatus.reviewNotes}</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </section>
