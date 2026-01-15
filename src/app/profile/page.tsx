@@ -216,7 +216,7 @@ const ProfilePage = () => {
     setNomineeMessage(null);
 
     if (nomineePhrase.trim().length < 6) {
-      setNomineeMessage({ type: 'error', text: 'Nominee phrase must be at least 6 characters.' });
+      setNomineeMessage({ type: 'error', text: 'Nominee code must be at least 6 characters.' });
       return;
     }
 
@@ -369,16 +369,14 @@ const ProfilePage = () => {
                   <span className={`rounded-full px-3 py-1 text-xs font-semibold ${nomineeStatus?.enabled ? 'bg-emerald-500/20 text-emerald-300' : 'bg-gray-800 text-gray-300'}`}>
                     {nomineeStatus?.enabled ? "Enabled" : "Disabled"}
                   </span>
-                  <span>Phrase hint: <span className="text-gray-100">{nomineeStatus?.phraseHint || "—"}</span></span>
-                  <span>Last reset: <span className="text-gray-100">{formatNomineeDate(nomineeStatus?.lastResetAt)}</span></span>
                 </div>
 
                 <form onSubmit={handleNomineeUpdate} className="grid gap-3 md:grid-cols-[1fr_auto] md:items-end">
                   <div>
-                    <label className="text-xs uppercase tracking-wide text-gray-500">Nominee phrase</label>
+                    <label className="text-xs uppercase tracking-wide text-gray-500">Nominee code</label>
                     <Input
                       type="password"
-                      placeholder="Enter a phrase (min 6 characters)"
+                      placeholder="Enter a code (min 6 characters)"
                       value={nomineePhrase}
                       onChange={(e) => setNomineePhraseInput(e.target.value)}
                       className="mt-2 bg-black border-gray-800 text-white"
@@ -390,9 +388,14 @@ const ProfilePage = () => {
                     className="bg-emerald-500 hover:bg-emerald-600"
                     disabled={nomineeSubmitting}
                   >
-                    {nomineeStatus?.enabled ? "Reset Phrase" : "Enable Access"}
+                    {nomineeStatus?.enabled ? "Reset Code" : "Enable Access"}
                   </Button>
                 </form>
+                {nomineeStatus?.enabled && (
+                  <div className="rounded-xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-gray-300">
+                    Share your <span className="text-gray-100">User ID</span> and <span className="text-gray-100">Nominee Code</span> with your nominee. They will need both to log in.
+                  </div>
+                )}
 
                 <div className="flex flex-wrap items-center gap-3">
                   <Button
