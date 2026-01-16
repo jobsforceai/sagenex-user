@@ -498,7 +498,11 @@ const WithdrawalRequest = ({
                   Awaiting admin approval for face verification.
                 </div>
               )}
-              <div className="flex justify-center gap-2 p-1 rounded-lg bg-gray-800/50">
+              <div
+                className={`grid gap-2 rounded-lg bg-gray-800/50 p-1 ${
+                  faceApproved ? "sm:grid-cols-3" : "sm:grid-cols-2"
+                }`}
+              >
                 {faceApproved && (
                   <button
                     type="button"
@@ -596,7 +600,7 @@ const WithdrawalRequest = ({
               ) : null}
             </div>
 
-            <div className="mt-auto pt-4 flex flex-col sm:flex-row gap-3">
+            <div className="mt-auto pt-4 flex flex-col gap-3">
               <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
                 Back
               </Button>
