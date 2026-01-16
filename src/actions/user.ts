@@ -146,6 +146,7 @@ export async function getBiometricsStatus() {
 export async function enrollFaceEmbedding(payload: {
     embedding: number[];
     source: string;
+    faceImageUrl?: string;
     meta?: Record<string, unknown>;
 }) {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/enroll`, {
