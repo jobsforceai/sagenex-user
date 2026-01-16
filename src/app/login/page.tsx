@@ -438,7 +438,7 @@ function Login() {
     setIsLoading(true);
 
     if (!nomineeUserId || !nomineePhrase) {
-      setError("User ID and nominee phrase are required.");
+      setError("User ID and nominee code are required.");
       setIsLoading(false);
       return;
     }
@@ -483,9 +483,9 @@ function Login() {
       <div className="relative">
         <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
         <Input
-          id="nominee-phrase"
+          id="nominee-code"
           type="password"
-          placeholder="Nominee phrase"
+          placeholder="Nominee code"
           value={nomineePhrase}
           onChange={(e) => setNomineePhrase(e.target.value)}
           required
@@ -593,7 +593,7 @@ function Login() {
         break;
       case "nominee-login":
         title = "Nominee Access";
-        description = "Enter the user ID and nominee phrase to continue.";
+        description = "Enter the user ID and nominee code to continue.";
         form = renderNomineeLoginView();
         break;
       case "otp":
