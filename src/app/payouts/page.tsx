@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useCallback, useRef } from "react";
+import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -8,7 +8,7 @@ import Navbar from "@/app/components/Navbar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { getPayouts, getCurrentPayoutProgress } from "@/actions/user";
-import { ArrowLeft, DollarSign, CalendarDays, TrendingUp, Loader2 } from "lucide-react";
+import { ArrowLeft, DollarSign, CalendarDays, TrendingUp, Loader2, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 // --- INTERFACES ---
@@ -25,6 +25,14 @@ interface Payout {
 interface CurrentPayout {
     nextPayoutDate: string | null;
     estimatedPayout: number;
+    earningsCapTotal?: number;
+    earnedSinceBaseline?: number;
+    remainingEarningsCap?: number;
+    roiRate?: number;
+    isCapReached?: boolean;
+    potentialRoiPerCycle?: number;
+    maxRemainingRoiPayouts?: number;
+    estimatedCapDate?: string | null;
     earningsBreakdown: {
         roiPayout: number;
         directReferralBonus: number;
@@ -85,6 +93,7 @@ const PayoutsPage = () => {
   const [countdown, setCountdown] = useState<string | null>(null);
   const [progressPercentage, setProgressPercentage] = useState(0);
   const [nextPayoutFormattedDate, setNextPayoutFormattedDate] = useState<string | null>(null);
+  const [showFullSchedule, setShowFullSchedule] = useState(false);
 
   const observer = useRef<IntersectionObserver | null>(null);
 
@@ -152,9 +161,10 @@ const PayoutsPage = () => {
   }, [isAuthenticated, authLoading, router]);
 
   useEffect(() => {
-    if (!currentPayout?.nextPayoutDate) {
-        setCountdown("Not started");
+    if (!currentPayout?.nextPayoutDate || currentPayout?.isCapReached) {
+        setCountdown(currentPayout?.isCapReached ? "ROI stopped" : "Not started");
         setNextPayoutFormattedDate("N/A");
+        setProgressPercentage(currentPayout?.isCapReached ? 100 : 0);
         return;
     }
 
@@ -191,6 +201,34 @@ const PayoutsPage = () => {
     return () => clearInterval(timer);
   }, [currentPayout]);
 
+  const payoutSchedule = useMemo(() => {
+    if (!currentPayout?.nextPayoutDate || currentPayout?.isCapReached) return [];
+    const potential = currentPayout.potentialRoiPerCycle ?? 0;
+    const remainingCap = currentPayout.remainingEarningsCap ?? 0;
+    if (!potential || !remainingCap) return [];
+    const maxRows =
+      currentPayout.maxRemainingRoiPayouts ??
+      Math.max(1, Math.ceil(remainingCap / potential));
+    const start = new Date(currentPayout.nextPayoutDate).getTime();
+    if (Number.isNaN(start)) return [];
+    const schedule: Array<{ date: string; amount: number }> = [];
+    for (let i = 0; i < maxRows; i += 1) {
+      const remaining = remainingCap - i * potential;
+      if (remaining <= 0) break;
+      const amount = Math.min(potential, remaining);
+      const payoutDate = new Date(start + i * 30 * 24 * 60 * 60 * 1000);
+      schedule.push({
+        date: payoutDate.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }),
+        amount,
+      });
+    }
+    return schedule;
+  }, [currentPayout]);
+
   if (initialLoading) {
     return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading Payouts...</div>;
   }
@@ -223,7 +261,20 @@ const PayoutsPage = () => {
                 </CardHeader>
                 <CardContent>
                     <div className="text-2xl font-bold text-white mb-2">{countdown}</div>
-                    {nextPayoutFormattedDate && <p className="text-sm text-gray-400 mb-2">Estimated Payout Date: {nextPayoutFormattedDate}</p>}
+                    {currentPayout?.isCapReached ? (
+                      <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                        ROI stopped, reinvest to continue.
+                        <Link href="/wallet" className="ml-2 underline">
+                          Reinvest now
+                        </Link>
+                      </div>
+                    ) : (
+                      nextPayoutFormattedDate && (
+                        <p className="text-sm text-gray-400 mb-2">
+                          Estimated Payout Date: {nextPayoutFormattedDate}
+                        </p>
+                      )
+                    )}
                     <div className="w-full bg-gray-700 rounded-full h-2.5">
                         <div 
                             className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500 ease-out"
@@ -231,13 +282,63 @@ const PayoutsPage = () => {
                         ></div>
                     </div>
                     <p className="text-xs text-gray-400 mt-1">{progressPercentage.toFixed(1)}% of current cycle completed</p>
-                    <p className="text-xs text-gray-400 mt-2">You will receive your next payout once this countdown ends and the progress bar completes.</p>
+                    {!currentPayout?.isCapReached && (
+                      <p className="text-xs text-gray-400 mt-2">
+                        You will receive your next payout once this countdown ends and the progress bar completes.
+                      </p>
+                    )}
                 </CardContent>
             </Card>
         </div>
 
+        {payoutSchedule.length > 0 && (
+          <Card className="bg-gray-900/40 border-gray-800 mb-8">
+            <CardHeader className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
+              <div className="space-y-1">
+                <CardTitle>Upcoming ROI Schedule</CardTitle>
+                <p className="text-xs text-gray-500">Approximate dates (every 30 days).</p>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-gray-400">
+                <Clock className="h-4 w-4 text-emerald-300" />
+                <span>{`~${payoutSchedule.length} payouts remaining`}</span>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4 text-sm text-gray-300">
+              <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {(showFullSchedule ? payoutSchedule : payoutSchedule.slice(0, 6)).map((row, index) => (
+                  <div
+                    key={`${row.date}-${index}`}
+                    className="flex items-center justify-between rounded-xl border border-gray-800/70 bg-black/30 px-4 py-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="rounded-full border border-emerald-500/30 bg-emerald-500/10 p-2">
+                        <Calendar className="h-4 w-4 text-emerald-300" />
+                      </div>
+                      <div>
+                        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Payout</p>
+                        <p className="text-sm text-gray-200">{row.date}</p>
+                      </div>
+                    </div>
+                    <span className="font-semibold text-white">{formatCurrency(row.amount)}</span>
+                  </div>
+                ))}
+              </div>
+              {payoutSchedule.length > 6 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full border-gray-800 text-gray-200 hover:bg-white/5"
+                  onClick={() => setShowFullSchedule((prev) => !prev)}
+                >
+                  {showFullSchedule ? "Show less" : "Show more"}
+                </Button>
+              )}
+            </CardContent>
+          </Card>
+        )}
+
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            <div className="lg:col-span-1">
+            <div className="lg:col-span-1 space-y-6">
                 <Card className="bg-gray-900/40 border-gray-800">
                     <CardHeader><CardTitle>Current Earnings Breakdown</CardTitle></CardHeader>
                     <CardContent>
@@ -248,6 +349,49 @@ const PayoutsPage = () => {
                         ) : <p className="text-gray-500">No current earnings data.</p>}
                     </CardContent>
                 </Card>
+                {currentPayout && (
+                  <Card className="bg-gray-900/40 border-gray-800">
+                    <CardHeader><CardTitle>ROI Projection</CardTitle></CardHeader>
+                    <CardContent className="space-y-2 text-sm text-gray-300">
+                      <div className="flex items-center justify-between">
+                        <span className="text-gray-400">Estimated payout</span>
+                        <span className="font-semibold text-white">{formatCurrency(currentPayout.estimatedPayout ?? 0)}</span>
+                      </div>
+                      {currentPayout.roiRate !== undefined && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">ROI rate</span>
+                          <span className="font-semibold text-white">{(currentPayout.roiRate * 100).toFixed(2)}%</span>
+                        </div>
+                      )}
+                      {currentPayout.potentialRoiPerCycle !== undefined && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Potential per cycle</span>
+                          <span className="font-semibold text-white">{formatCurrency(currentPayout.potentialRoiPerCycle)}</span>
+                        </div>
+                      )}
+                      {currentPayout.maxRemainingRoiPayouts !== undefined && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">~Payouts left</span>
+                          <span className="font-semibold text-white">{currentPayout.maxRemainingRoiPayouts}</span>
+                        </div>
+                      )}
+                      {currentPayout.estimatedCapDate && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-gray-400">Approx cap date</span>
+                          <span className="font-semibold text-white">
+                            {new Date(currentPayout.estimatedCapDate).toLocaleDateString()}
+                          </span>
+                        </div>
+                      )}
+                      {currentPayout.remainingEarningsCap !== undefined && (
+                        <div className="flex items-center justify-between border-t border-gray-800 pt-2">
+                          <span className="text-gray-400">Remaining cap</span>
+                          <span className="font-semibold text-emerald-300">{formatCurrency(currentPayout.remainingEarningsCap)}</span>
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
             </div>
             <div className="lg:col-span-2">
                 <Card className="bg-gray-900/40 border-gray-800">
