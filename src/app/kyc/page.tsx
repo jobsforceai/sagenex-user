@@ -132,6 +132,9 @@ export default function KycPage() {
     const detectionIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
     const countdownIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
     const detectionCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+    const detectedQuadRef = React.useRef<Array<{ x: number; y: number }> | null>(null);
+    const [detectedQuad, setDetectedQuad] = useState<Array<{ x: number; y: number }> | null>(null);
+    const [videoDims, setVideoDims] = useState<{ width: number; height: number } | null>(null);
     const [opencvLoaded, setOpencvLoaded] = React.useState(false);
     const cvRef = React.useRef<any>(null);
 
@@ -215,6 +218,43 @@ export default function KycPage() {
         }
         setDocumentDetected(false);
         setDetectionCountdown(null);
+        detectedQuadRef.current = null;
+        setDetectedQuad(null);
+    };
+
+    const orderQuadPoints = (points: Array<{ x: number; y: number }>) => {
+        if (points.length !== 4) return null;
+        const sum = points.map((p) => p.x + p.y);
+        const diff = points.map((p) => p.y - p.x);
+        const tl = points[sum.indexOf(Math.min(...sum))];
+        const br = points[sum.indexOf(Math.max(...sum))];
+        const tr = points[diff.indexOf(Math.min(...diff))];
+        const bl = points[diff.indexOf(Math.max(...diff))];
+        return [tl, tr, br, bl];
+    };
+
+    const extractQuadPoints = (approx: any) => {
+        const data = approx.data32S;
+        if (!data || data.length < 8) return null;
+        const points = [
+            { x: data[0], y: data[1] },
+            { x: data[2], y: data[3] },
+            { x: data[4], y: data[5] },
+            { x: data[6], y: data[7] },
+        ];
+        return orderQuadPoints(points);
+    };
+
+    const isLegalAspectRatio = (quad: Array<{ x: number; y: number }>) => {
+        if (quad.length !== 4) return true;
+        const dist = (p1: { x: number; y: number }, p2: { x: number; y: number }) =>
+            Math.hypot(p2.x - p1.x, p2.y - p1.y);
+        const [tl, tr, br, bl] = quad;
+        const width = Math.max(dist(tl, tr), dist(bl, br));
+        const height = Math.max(dist(tl, bl), dist(tr, br));
+        if (!width || !height) return true;
+        const ratio = width / height;
+        return ratio >= 0.6 && ratio <= 0.85; // Rough A4-ish range
     };
 
     const detectDocument = () => {
@@ -263,6 +303,7 @@ export default function KycPage() {
             // Look for rectangular contours
             let maxArea = 0;
             let documentFound = false;
+            let bestQuad: Array<{ x: number; y: number }> | null = null;
             const minArea = (width * height) * 0.1; // Document should be at least 10% of frame
             const maxAreaThreshold = (width * height) * 0.9; // But not more than 90%
             
@@ -277,8 +318,12 @@ export default function KycPage() {
                     
                     // Check if it's a quadrilateral (4 corners)
                     if (approx.rows === 4) {
+                        const quad = extractQuadPoints(approx);
                         maxArea = area;
-                        documentFound = true;
+                        if (quad && (currentDocType !== 'LEGAL_AGREEMENT' || isLegalAspectRatio(quad))) {
+                            documentFound = true;
+                            bestQuad = quad;
+                        }
                     }
                     approx.delete();
                 }
@@ -293,6 +338,15 @@ export default function KycPage() {
             contours.delete();
             hierarchy.delete();
             
+            if (documentFound && bestQuad) {
+                detectedQuadRef.current = bestQuad;
+                setDetectedQuad((prev) => {
+                    if (!prev) return bestQuad;
+                    const same = prev.every((p, i) => p.x === bestQuad[i].x && p.y === bestQuad[i].y);
+                    return same ? prev : bestQuad;
+                });
+            }
+
             return documentFound;
         } catch (error) {
             console.error('Document detection error:', error);
@@ -301,8 +355,6 @@ export default function KycPage() {
     };
 
     const startDocumentDetection = () => {
-        if (!autoCapture) return;
-        
         stopDocumentDetection();
         
         let consecutiveDetections = 0;
@@ -313,12 +365,18 @@ export default function KycPage() {
             
             if (detected) {
                 consecutiveDetections++;
-                if (consecutiveDetections >= requiredDetections && !documentDetected) {
-                    setDocumentDetected(true);
-                    startCountdown();
+                if (consecutiveDetections >= requiredDetections) {
+                    if (!documentDetected) {
+                        setDocumentDetected(true);
+                    }
+                    if (autoCapture && !detectionCountdown && !countdownIntervalRef.current) {
+                        startCountdown();
+                    }
                 }
             } else {
                 consecutiveDetections = 0;
+                detectedQuadRef.current = null;
+                setDetectedQuad(null);
                 if (documentDetected) {
                     setDocumentDetected(false);
                     setDetectionCountdown(null);
@@ -392,11 +450,14 @@ export default function KycPage() {
                 captureVideoRef.current.onloadedmetadata = () => resolve();
             });
             await captureVideoRef.current.play();
+            const width = captureVideoRef.current.videoWidth;
+            const height = captureVideoRef.current.videoHeight;
+            if (width && height) {
+                setVideoDims({ width, height });
+            }
             setCaptureReady(true);
             // Start document detection after camera is ready
-            if (autoCapture) {
-                setTimeout(() => startDocumentDetection(), 1000);
-            }
+            setTimeout(() => startDocumentDetection(), 1000);
         } else {
             throw new Error("Video element not available");
         }
@@ -437,11 +498,14 @@ export default function KycPage() {
                     captureVideoRef.current.onloadedmetadata = () => resolve();
                 });
                 await captureVideoRef.current.play();
+                const width = captureVideoRef.current.videoWidth;
+                const height = captureVideoRef.current.videoHeight;
+                if (width && height) {
+                    setVideoDims({ width, height });
+                }
                 setCaptureReady(true);
                 // Restart document detection
-                if (autoCapture) {
-                    setTimeout(() => startDocumentDetection(), 1000);
-                }
+                setTimeout(() => startDocumentDetection(), 1000);
             }
         } catch (err: any) {
             setCaptureError(err?.message || "Failed to switch camera");
@@ -520,6 +584,64 @@ export default function KycPage() {
 
     const allDocumentsCaptured = hasLegalCaptured && hasFrontCaptured && hasBackCaptured;
 
+    const captureDocumentFromQuad = async (quad: Array<{ x: number; y: number }>) => {
+        if (!captureVideoRef.current || !opencvLoaded || !cvRef.current) return null;
+        const video = captureVideoRef.current;
+        const width = video.videoWidth;
+        const height = video.videoHeight;
+        if (!width || !height) return null;
+
+        const cv = cvRef.current;
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) return null;
+        ctx.drawImage(video, 0, 0, width, height);
+
+        const src = cv.imread(canvas);
+
+        const [tl, tr, br, bl] = quad;
+        const dist = (p1: { x: number; y: number }, p2: { x: number; y: number }) =>
+            Math.hypot(p2.x - p1.x, p2.y - p1.y);
+
+        const targetWidth = Math.max(dist(tl, tr), dist(bl, br));
+        const targetHeight = Math.max(dist(tl, bl), dist(tr, br));
+
+        const outWidth = Math.max(1, Math.min(Math.round(targetWidth), width));
+        const outHeight = Math.max(1, Math.min(Math.round(targetHeight), height));
+
+        const srcTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+            tl.x, tl.y,
+            tr.x, tr.y,
+            br.x, br.y,
+            bl.x, bl.y,
+        ]);
+        const dstTri = cv.matFromArray(4, 1, cv.CV_32FC2, [
+            0, 0,
+            outWidth - 1, 0,
+            outWidth - 1, outHeight - 1,
+            0, outHeight - 1,
+        ]);
+
+        const M = cv.getPerspectiveTransform(srcTri, dstTri);
+        const dst = new cv.Mat();
+        cv.warpPerspective(src, dst, M, new cv.Size(outWidth, outHeight), cv.INTER_LINEAR, cv.BORDER_CONSTANT, new cv.Scalar());
+
+        const outCanvas = document.createElement("canvas");
+        cv.imshow(outCanvas, dst);
+        const dataUrl = outCanvas.toDataURL("image/jpeg", 0.85);
+        const blob = await (await fetch(dataUrl)).blob();
+
+        src.delete();
+        srcTri.delete();
+        dstTri.delete();
+        M.delete();
+        dst.delete();
+
+        return { dataUrl, blob };
+    };
+
     const captureSnapshot = async (docType: string) => {
         if (!captureVideoRef.current) return;
         const video = captureVideoRef.current;
@@ -527,46 +649,52 @@ export default function KycPage() {
         const height = video.videoHeight;
         if (!width || !height) return;
 
-        // Calculate crop dimensions to maintain 9:16 aspect ratio (portrait)
-        const targetRatio = 9 / 16;
-        const currentRatio = width / height;
-
-        let cropWidth, cropHeight, cropX, cropY;
-
-        if (currentRatio > targetRatio) {
-            // Video is wider than target, crop width
-            cropHeight = Math.round(height * 0.85); // 85% of height
-            cropWidth = Math.round(cropHeight * targetRatio);
-            cropX = Math.round((width - cropWidth) / 2);
-            cropY = Math.round((height - cropHeight) / 2);
-        } else {
-            // Video is taller than target, crop height
-            cropWidth = Math.round(width * 0.75); // 75% of width
-            cropHeight = Math.round(cropWidth / targetRatio);
-            cropX = Math.round((width - cropWidth) / 2);
-            cropY = Math.round((height - cropHeight) / 2);
+        let captured = null;
+        if (detectedQuadRef.current) {
+            captured = await captureDocumentFromQuad(detectedQuadRef.current);
         }
 
-        const canvas = document.createElement("canvas");
-        canvas.width = cropWidth;
-        canvas.height = cropHeight;
-        const ctx = canvas.getContext("2d");
-        if (!ctx) return;
-        ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
-        const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
-        const blob = await (await fetch(dataUrl)).blob();
+        if (!captured) {
+            // Fallback to center crop if detection isn't available
+            const targetRatio = 9 / 16;
+            const currentRatio = width / height;
+
+            let cropWidth, cropHeight, cropX, cropY;
+
+            if (currentRatio > targetRatio) {
+                cropHeight = Math.round(height * 0.85);
+                cropWidth = Math.round(cropHeight * targetRatio);
+                cropX = Math.round((width - cropWidth) / 2);
+                cropY = Math.round((height - cropHeight) / 2);
+            } else {
+                cropWidth = Math.round(width * 0.75);
+                cropHeight = Math.round(cropWidth / targetRatio);
+                cropX = Math.round((width - cropWidth) / 2);
+                cropY = Math.round((height - cropHeight) / 2);
+            }
+
+            const canvas = document.createElement("canvas");
+            canvas.width = cropWidth;
+            canvas.height = cropHeight;
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
+            ctx.drawImage(video, cropX, cropY, cropWidth, cropHeight, 0, 0, cropWidth, cropHeight);
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+            const blob = await (await fetch(dataUrl)).blob();
+            captured = { dataUrl, blob };
+        }
 
         // For legal agreement, handle 2 pages
         if (docType === 'LEGAL_AGREEMENT') {
             if (currentLegalPage === 1) {
-                setLegalPage1({ dataUrl, blob });
+                setLegalPage1({ dataUrl: captured.dataUrl, blob: captured.blob });
             } else {
-                setLegalPage2({ dataUrl, blob });
+                setLegalPage2({ dataUrl: captured.dataUrl, blob: captured.blob });
             }
         } else {
             // For ID documents, save normally
-            setCapturedImages((prev) => ({ ...prev, [docType]: { dataUrl, blob } }));
-            setPreviews((prev) => ({ ...prev, [docType]: dataUrl }));
+            setCapturedImages((prev) => ({ ...prev, [docType]: { dataUrl: captured.dataUrl, blob: captured.blob } }));
+            setPreviews((prev) => ({ ...prev, [docType]: captured.dataUrl }));
         }
         stopDocumentDetection();
         stopCaptureCamera();
@@ -774,8 +902,8 @@ export default function KycPage() {
                                 <ProgressStepper currentStep={currentStep} completedSteps={completedSteps} />
 
                                 {currentStep >= 1 && currentStep <= 3 && currentDocType && (
-                                    <Card className="bg-black/30 border border-gray-800">
-                                        <CardHeader>
+                                    <Card className={captureOpen ? "bg-transparent border-transparent shadow-none" : "bg-black/30 border border-gray-800"}>
+                                        <CardHeader className={captureOpen ? "px-0 pb-3" : undefined}>
                                             <CardTitle>
                                                 {`Step ${currentStep}: ${docMeta[currentDocType].label}`}
                                                 {currentDocType === 'LEGAL_AGREEMENT' && (
@@ -786,9 +914,9 @@ export default function KycPage() {
                                             </CardTitle>
                                             <p className="text-sm text-gray-400">{docMeta[currentDocType].description}</p>
                                         </CardHeader>
-                                        <CardContent className="space-y-4">
+                                        <CardContent className={captureOpen ? "space-y-4 px-0" : "space-y-4"}>
                                             {currentDocType === 'LEGAL_AGREEMENT' && (
-                                                <div className="rounded-xl border border-emerald-700/50 bg-emerald-900/30 p-4">
+                                                <div className={captureOpen ? "rounded-xl border border-emerald-700/50 bg-emerald-900/20 p-3" : "rounded-xl border border-emerald-700/50 bg-emerald-900/30 p-4"}>
                                                     <p className="text-sm text-emerald-200 mb-3">
                                                         Download the agreement, sign it, then scan it here.
                                                     </p>
@@ -803,34 +931,37 @@ export default function KycPage() {
                                                 </div>
                                             )}
 
-                                            <div className="rounded-xl border border-gray-800/80 bg-black/20 p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                                            <div className={captureOpen ? "rounded-xl border border-gray-800/60 bg-black/10 p-3 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between" : "rounded-xl border border-gray-800/80 bg-black/20 p-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"}>
                                                 <div className="flex items-center gap-4">
-                                                    {currentDocType === 'LEGAL_AGREEMENT' ? (
-                                                        // Show both legal pages if applicable
-                                                        <div className="flex gap-2">
-                                                            <div className="w-24 h-20 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
-                                                                {legalPage1 ? (
-                                                                    <Image src={legalPage1.dataUrl} alt="page 1" layout="fill" objectFit="cover" />
-                                                                ) : (
-                                                                    <div className="text-xs text-gray-400 text-center px-2">Page 1</div>
-                                                                )}
-                                                            </div>
-                                                            <div className="w-24 h-20 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
-                                                                {legalPage2 ? (
-                                                                    <Image src={legalPage2.dataUrl} alt="page 2" layout="fill" objectFit="cover" />
-                                                                ) : (
-                                                                    <div className="text-xs text-gray-400 text-center px-2">Page 2</div>
-                                                                )}
-                                                            </div>
-                                                        </div>
-                                                    ) : (
-                                                        <div className="w-24 h-20 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
-                                                            {previews[currentDocType] ? (
-                                                                <Image src={previews[currentDocType] as string} alt="preview" layout="fill" objectFit="cover" />
+                                                    {!captureOpen && (
+                                                        <>
+                                                            {currentDocType === 'LEGAL_AGREEMENT' ? (
+                                                                <div className="flex gap-2">
+                                                                    <div className="w-20 h-16 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
+                                                                        {legalPage1 ? (
+                                                                            <Image src={legalPage1.dataUrl} alt="page 1" layout="fill" objectFit="cover" />
+                                                                        ) : (
+                                                                            <div className="text-[11px] text-gray-400 text-center px-2">Page 1</div>
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="w-20 h-16 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
+                                                                        {legalPage2 ? (
+                                                                            <Image src={legalPage2.dataUrl} alt="page 2" layout="fill" objectFit="cover" />
+                                                                        ) : (
+                                                                            <div className="text-[11px] text-gray-400 text-center px-2">Page 2</div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
                                                             ) : (
-                                                                <div className="text-xs text-gray-400 text-center px-2">No snapshot</div>
+                                                                <div className="w-20 h-16 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
+                                                                    {previews[currentDocType] ? (
+                                                                        <Image src={previews[currentDocType] as string} alt="preview" layout="fill" objectFit="cover" />
+                                                                    ) : (
+                                                                        <div className="text-[11px] text-gray-400 text-center px-2">No snapshot</div>
+                                                                    )}
+                                                                </div>
                                                             )}
-                                                        </div>
+                                                        </>
                                                     )}
                                                     <div>
                                                         <p className="text-sm font-semibold text-gray-200">{docMeta[currentDocType].label}</p>
@@ -844,8 +975,8 @@ export default function KycPage() {
                                                 </div>
                                                 <Button
                                                     type="button"
-                                                    variant="outline"
-                                                    className="w-full border-gray-700 text-gray-200 hover:bg-white/5 sm:w-auto"
+                                                    variant={captureOpen ? "outline" : "default"}
+                                                    className={captureOpen ? "w-full border-gray-700 text-gray-200 hover:bg-white/5 sm:w-auto" : "w-full sm:w-auto bg-emerald-600 hover:bg-emerald-500 text-white"}
                                                     onClick={() => {
                                                         setCaptureError(null);
                                                         setCaptureOpen((prev) => {
@@ -862,41 +993,9 @@ export default function KycPage() {
                                             </div>
 
                                             {captureOpen && !currentDocCaptured && (
-                                                <div className="rounded-xl border border-gray-800/80 bg-black/30 p-2 sm:p-4 space-y-3 sm:space-y-4">
-                                                    {currentDocType === 'LEGAL_AGREEMENT' && (
-                                                        <div className="bg-emerald-900/30 border border-emerald-700/50 rounded-lg p-3 text-center">
-                                                            <p className="text-sm text-emerald-200 font-semibold">
-                                                                Capturing Page {currentLegalPage} of 2
-                                                            </p>
-                                                        </div>
-                                                    )}
-                                                    
-                                                    {/* Auto-capture toggle */}
-                                                    <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700 rounded-lg p-3">
-                                                        <div className="flex items-center gap-2">
-                                                            <div className={`w-10 h-6 rounded-full transition-all ${autoCapture ? 'bg-emerald-600' : 'bg-gray-600'} relative cursor-pointer`}
-                                                                onClick={() => {
-                                                                    setAutoCapture(!autoCapture);
-                                                                    if (!autoCapture && captureReady) {
-                                                                        setTimeout(() => startDocumentDetection(), 500);
-                                                                    } else {
-                                                                        stopDocumentDetection();
-                                                                    }
-                                                                }}
-                                                            >
-                                                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${autoCapture ? 'translate-x-5' : 'translate-x-1'}`} />
-                                                            </div>
-                                                            <span className="text-sm text-gray-300">Auto-capture</span>
-                                                        </div>
-                                                        {autoCapture && documentDetected && detectionCountdown && (
-                                                            <div className="text-emerald-400 font-bold text-lg animate-pulse">
-                                                                {detectionCountdown}
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                    
-                                                    <div className="relative w-full sm:max-w-md mx-auto" style={{ aspectRatio: '9/16' }}>
-                                                        <div className="overflow-hidden rounded-lg border border-gray-800 bg-black h-full">
+                                                <div className="rounded-xl border border-gray-800/40 bg-black/10 p-2 sm:p-4 space-y-3 sm:space-y-4 sm:rounded-2xl">
+                                                    <div className="relative w-full sm:max-w-3xl mx-auto" style={{ aspectRatio: '9/16' }}>
+                                                        <div className="overflow-hidden rounded-2xl border border-gray-800/40 bg-black h-full relative">
                                                             <video
                                                                 ref={captureVideoRef}
                                                                 className="absolute inset-0 h-full w-full object-cover"
@@ -904,10 +1003,24 @@ export default function KycPage() {
                                                                 muted
                                                                 playsInline
                                                             />
+                                                            {captureReady && detectedQuad && videoDims && (
+                                                                <svg
+                                                                    className="pointer-events-none absolute inset-0 h-full w-full"
+                                                                    viewBox={`0 0 ${videoDims.width} ${videoDims.height}`}
+                                                                    preserveAspectRatio="xMidYMid slice"
+                                                                >
+                                                                    <polygon
+                                                                        points={detectedQuad.map((p) => `${p.x},${p.y}`).join(" ")}
+                                                                        fill="rgba(16, 185, 129, 0.12)"
+                                                                        stroke="rgba(16, 185, 129, 0.85)"
+                                                                        strokeWidth="4"
+                                                                    />
+                                                                </svg>
+                                                            )}
                                                             {captureReady && (
                                                                 <>
                                                                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                                                                        <div className={`h-[85%] w-[75%] rounded-xl border-2 transition-all ${
+                                                                        <div className={`absolute inset-[6%] rounded-2xl border-2 transition-all ${
                                                                             documentDetected 
                                                                                 ? 'border-solid border-emerald-400 bg-emerald-500/10 shadow-[0_0_20px_rgba(52,211,153,0.5)]' 
                                                                                 : 'border-dashed border-emerald-400/60 bg-emerald-500/5'
@@ -920,9 +1033,9 @@ export default function KycPage() {
                                                                             </div>
                                                                         </div>
                                                                     )}
-                                                                    <div className="pointer-events-none absolute bottom-3 left-0 right-0 text-center text-[11px] text-emerald-200">
+                                                                    <div className="pointer-events-none absolute bottom-4 left-0 right-0 text-center text-[11px] text-emerald-200">
                                                                         {documentDetected 
-                                                                            ? '✓ Document detected! Hold steady...' 
+                                                                            ? 'Document detected. Hold steady...' 
                                                                             : 'Align the document inside the box'
                                                                         }
                                                                     </div>
@@ -936,6 +1049,33 @@ export default function KycPage() {
                                                                     </div>
                                                                 </div>
                                                             )}
+                                                            <div className="absolute top-3 left-3 right-3 flex items-center justify-between gap-2">
+                                                                <div className="px-3 py-2 rounded-lg bg-black/60 border border-gray-700/50 text-xs text-gray-200">
+                                                                    {currentDocType === 'LEGAL_AGREEMENT' ? `Agreement Page ${currentLegalPage} of 2` : docMeta[currentDocType].label}
+                                                                </div>
+                                                                <div className="flex items-center gap-2">
+                                                                    {autoCapture && documentDetected && detectionCountdown && (
+                                                                        <div className="px-2 py-1 rounded-md bg-emerald-500/20 text-emerald-300 text-sm font-semibold">
+                                                                            {detectionCountdown}
+                                                                        </div>
+                                                                    )}
+                                                                    <button
+                                                                        type="button"
+                                                                        className={`px-3 py-2 rounded-lg text-xs border transition-colors ${
+                                                                            autoCapture ? 'bg-emerald-600/80 border-emerald-500/60 text-white' : 'bg-black/60 border-gray-700/50 text-gray-200'
+                                                                        }`}
+                                                                        onClick={() => {
+                                                                            setAutoCapture((prev) => !prev);
+                                                                            if (!captureReady) return;
+                                                                            if (!detectionIntervalRef.current) {
+                                                                                setTimeout(() => startDocumentDetection(), 500);
+                                                                            }
+                                                                        }}
+                                                                    >
+                                                                        Auto-capture: {autoCapture ? 'On' : 'Off'}
+                                                                    </button>
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                     {captureError && (
@@ -973,7 +1113,6 @@ export default function KycPage() {
                                                             className="w-full bg-emerald-600 text-white hover:bg-emerald-500 text-sm sm:text-base py-3 sm:py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
                                                             disabled={!captureReady || (autoCapture && documentDetected && detectionCountdown !== null)}
                                                             onClick={() => {
-                                                                stopDocumentDetection();
                                                                 captureSnapshot(currentDocType);
                                                             }}
                                                         >
