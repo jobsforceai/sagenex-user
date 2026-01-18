@@ -369,7 +369,7 @@ export default function KycWizardModal({ isOpen, onClose, onComplete }: KycWizar
           <div className="w-full h-full flex flex-col items-center justify-center">
             <div className="w-full max-w-3xl space-y-6">
               {/* Camera view */}
-              <div className="relative aspect-video w-full overflow-hidden rounded-2xl bg-black">
+              <div className="relative h-[72vh] w-full overflow-hidden rounded-2xl bg-black sm:h-[75vh] lg:h-[70vh]">
                 <video
                   ref={videoRef}
                   className="absolute inset-0 h-full w-full object-cover scale-x-[-1]"
@@ -381,7 +381,7 @@ export default function KycWizardModal({ isOpen, onClose, onComplete }: KycWizar
                 {/* Oval face guide */}
                 {cameraReady && (
                   <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="relative w-72 h-96">
+                    <div className="relative w-80 h-[28rem] sm:w-96 sm:h-[32rem]">
                       <div className="absolute inset-0 border-4 border-emerald-400/60 rounded-full" 
                            style={{ 
                              boxShadow: '0 0 0 9999px rgba(0, 0, 0, 0.5)',
