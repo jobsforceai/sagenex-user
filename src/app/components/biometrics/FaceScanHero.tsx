@@ -8,6 +8,7 @@ interface FaceScanHeroProps {
   faceHint: string | null;
   mainInstruction: string | null;
   livenessStatus: "idle" | "running" | "passed";
+  layout?: "full" | "contained";
 }
 
 export function FaceScanHero({
@@ -16,10 +17,19 @@ export function FaceScanHero({
   faceHint,
   mainInstruction,
   livenessStatus,
+  layout = "full",
 }: FaceScanHeroProps) {
+  const isContained = layout === "contained";
+
   return (
     <div className="relative w-full overflow-hidden rounded-none lg:rounded-2xl border-0 lg:border lg:border-gray-800 bg-black/80">
-      <div className="relative w-full min-h-[100dvh] lg:min-h-0 lg:aspect-square">
+      <div
+        className={
+          isContained
+            ? "relative w-full h-[62vh] max-h-[520px] min-h-[320px]"
+            : "relative w-full min-h-[100dvh] lg:min-h-0 lg:aspect-square"
+        }
+      >
         {/* Main instruction overlay */}
         {mainInstruction && (
           <div className="absolute left-0 right-0 top-1/3 lg:top-6 z-10 flex justify-center px-4">
@@ -133,7 +143,13 @@ export function FaceScanHero({
       </div>
 
       {/* Bottom instruction */}
-      <div className="hidden lg:block px-4 pb-3 pt-2 text-center text-xs text-white/60">
+      <div
+        className={
+          isContained
+            ? "hidden"
+            : "hidden lg:block px-4 pb-3 pt-2 text-center text-xs text-white/60"
+        }
+      >
         Keep your face inside the oval and follow the instructions
       </div>
     </div>

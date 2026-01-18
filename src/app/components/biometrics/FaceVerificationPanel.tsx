@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ShieldCheck } from "lucide-react";
+import { ShieldCheck, X } from "lucide-react";
 import { getBiometricsStatus, verifyFaceEmbedding } from "@/actions/user";
 import { FaceScanHero } from "./FaceScanHero";
 import { DeviceSheet } from "./DeviceSheet";
@@ -18,6 +18,8 @@ type FaceVerificationPanelProps = {
   onEnrollmentChange?: (enrolled: boolean) => void;
   onVerificationToken?: (token: { verificationId: string; expiresAt?: string | null } | null) => void;
   onApprovalChange?: (approved: boolean) => void;
+  variant?: "inline" | "modal";
+  onClose?: () => void;
 };
 
 export default function FaceVerificationPanel({
@@ -27,6 +29,8 @@ export default function FaceVerificationPanel({
   onEnrollmentChange,
   onVerificationToken,
   onApprovalChange,
+  variant = "inline",
+  onClose,
 }: FaceVerificationPanelProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -47,6 +51,8 @@ export default function FaceVerificationPanel({
   const [videoDevices, setVideoDevices] = useState<MediaDeviceInfo[]>([]);
   const [selectedDeviceId, setSelectedDeviceId] = useState<string>("");
   const [mainInstruction, setMainInstruction] = useState("Position your face in the oval");
+
+  const modalVariant = variant === "modal";
 
   useEffect(() => {
     const fetchStatus = async () => {
@@ -263,94 +269,173 @@ export default function FaceVerificationPanel({
   }
 
   return (
-    <div className="space-y-4">
-      {/* Enrollment Status Banner */}
-      <Card className="bg-gray-900/40 border border-emerald-500/20 p-4">
-        <div className="flex flex-wrap items-center justify-between gap-3">
+    <div className={modalVariant ? "space-y-3" : "space-y-4"}>
+      {/* Header / Status */}
+      {modalVariant ? (
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-white flex items-center gap-2">
+            <p className="text-base font-semibold text-white flex items-center gap-2">
               <ShieldCheck className="h-4 w-4 text-emerald-300" />
-              Verify with Face
+              Face Verification
             </p>
             <p className="text-xs text-gray-400">
-              {lastEnrolledAt ? `Enrolled on ${new Date(lastEnrolledAt).toLocaleDateString()}` : "Face is enrolled."}
+              {purpose === "TRANSFER" ? "Verify to continue transfer" : "Verify to continue"}
             </p>
           </div>
-          {verified && (
-            <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
-              Face verified ✓
-            </span>
-          )}
+          <div className="flex items-center gap-2">
+            {verified && (
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+                Verified ✓
+              </span>
+            )}
+            {onClose && (
+              <button
+                type="button"
+                onClick={onClose}
+                className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-gray-800 bg-black/40 text-gray-200 hover:bg-white/5"
+                aria-label="Close"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            )}
+          </div>
         </div>
-      </Card>
+      ) : (
+        <Card className="bg-gray-900/40 border border-emerald-500/20 p-4">
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-white flex items-center gap-2">
+                <ShieldCheck className="h-4 w-4 text-emerald-300" />
+                Verify with Face
+              </p>
+              <p className="text-xs text-gray-400">
+                {lastEnrolledAt
+                  ? `Enrolled on ${new Date(lastEnrolledAt).toLocaleDateString()}`
+                  : "Face is enrolled."}
+              </p>
+            </div>
+            {verified && (
+              <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-3 py-1 text-xs text-emerald-200">
+                Face verified ✓
+              </span>
+            )}
+          </div>
+        </Card>
+      )}
 
-      {/* Camera Preview with Modern UI */}
-      <div className="relative">
+      {/* Camera Preview */}
+      <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-black">
         <FaceScanHero
           videoRef={videoRef}
           faceAligned={cameraReady && !verifying}
           faceHint={cameraReady ? (verified ? "Verified ✓" : "Ready") : null}
           mainInstruction={mainInstruction}
           livenessStatus={verified ? "passed" : verifying ? "running" : "idle"}
+          layout={modalVariant ? "contained" : "full"}
         />
-        
-        {/* Floating Device Controls */}
-        <div className="mt-4">
-          <DeviceSheet
-            videoDevices={videoDevices}
-            selectedDeviceId={selectedDeviceId}
-            modelsReady={modelsReady}
-            cameraReady={cameraReady}
-            onDeviceChange={setSelectedDeviceId}
-            onRetry={() => {
-              setCameraError(null);
-              loadModels()
-                .then(refreshDevices)
-                .then(startCamera)
-                .catch((err: any) => setCameraError(err?.message || "Camera failed"));
-            }}
-          />
-        </div>
-      </div>
 
-      {/* Error Messages */}
-      {error && (
-        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
-          {error}
-        </div>
-      )}
-      
-      {/* Success Message */}
-      {verificationId && (
-        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
-          ✓ Verification valid for 5 minutes.
-        </div>
-      )}
-
-      {/* Action Buttons */}
-      <div className="flex flex-wrap items-center gap-3">
-        <Button
-          variant="outline"
-          onClick={() => {
-            setError(null);
+        {/* Overlay: camera settings/status */}
+        <DeviceSheet
+          videoDevices={videoDevices}
+          selectedDeviceId={selectedDeviceId}
+          modelsReady={modelsReady}
+          cameraReady={cameraReady}
+          onDeviceChange={setSelectedDeviceId}
+          onRetry={() => {
             setCameraError(null);
             loadModels()
               .then(refreshDevices)
               .then(startCamera)
-              .catch((err: any) => {
-                const errorMsg = err?.message || "Camera failed to start.";
-                setError(errorMsg);
-                setCameraError(errorMsg);
-              });
+              .catch((err: any) => setCameraError(err?.message || "Camera failed"));
           }}
-          disabled={cameraReady}
-        >
-          {cameraReady ? "Camera Ready" : "Enable Camera"}
-        </Button>
-        <Button onClick={handleVerify} disabled={verifying || !cameraReady}>
-          {verifying ? "Verifying..." : "Verify with Face"}
-        </Button>
+          mode={modalVariant ? "overlay" : "inline"}
+        />
+
+        {/* Overlay: errors */}
+        {(error || cameraError) && modalVariant && (
+          <div className="absolute left-3 bottom-20 right-3 z-20 rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200 backdrop-blur">
+            {error || cameraError}
+          </div>
+        )}
+
+        {/* Overlay: actions */}
+        {modalVariant && (
+          <div className="absolute bottom-4 left-1/2 z-20 flex w-[min(520px,calc(100%-24px))] -translate-x-1/2 items-center gap-2 rounded-2xl border border-gray-800 bg-black/60 p-2 backdrop-blur">
+            <Button
+              type="button"
+              variant="outline"
+              className="flex-1 border-gray-700 text-gray-100 hover:bg-white/5"
+              onClick={() => {
+                setError(null);
+                setCameraError(null);
+                loadModels()
+                  .then(refreshDevices)
+                  .then(startCamera)
+                  .catch((err: any) => {
+                    const errorMsg = err?.message || "Camera failed to start.";
+                    setError(errorMsg);
+                    setCameraError(errorMsg);
+                  });
+              }}
+              disabled={cameraReady}
+            >
+              {cameraReady ? "Camera Ready" : "Enable Camera"}
+            </Button>
+            <Button
+              type="button"
+              className="flex-1 bg-emerald-600 text-white hover:bg-emerald-500"
+              onClick={handleVerify}
+              disabled={verifying || !cameraReady}
+            >
+              {verifying ? "Verifying..." : "Verify"}
+            </Button>
+          </div>
+        )}
       </div>
+
+      {/* Inline-only helpers */}
+      {!modalVariant && (
+        <>
+          {/* Error Messages */}
+          {error && (
+            <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+              {error}
+            </div>
+          )}
+
+          {/* Success Message */}
+          {verificationId && (
+            <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+              ✓ Verification valid for 5 minutes.
+            </div>
+          )}
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap items-center gap-3">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setError(null);
+                setCameraError(null);
+                loadModels()
+                  .then(refreshDevices)
+                  .then(startCamera)
+                  .catch((err: any) => {
+                    const errorMsg = err?.message || "Camera failed to start.";
+                    setError(errorMsg);
+                    setCameraError(errorMsg);
+                  });
+              }}
+              disabled={cameraReady}
+            >
+              {cameraReady ? "Camera Ready" : "Enable Camera"}
+            </Button>
+            <Button onClick={handleVerify} disabled={verifying || !cameraReady}>
+              {verifying ? "Verifying..." : "Verify with Face"}
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }

@@ -8,6 +8,7 @@ import { ArrowRight, Send, Wallet, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 import FaceVerificationPanel from '@/app/components/biometrics/FaceVerificationPanel';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
 type VerificationMethod = 'face' | 'password' | 'otp';
@@ -23,6 +24,8 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     const [otp, setOtp] = useState('');
     const [password, setPassword] = useState('');
     const [verificationMethod, setVerificationMethod] = useState<VerificationMethod>('face');
+    const [lastNonFaceMethod, setLastNonFaceMethod] = useState<VerificationMethod>('otp');
+    const [faceModalOpen, setFaceModalOpen] = useState(false);
     const [transferType, setTransferType] = useState<TransferType>('TO_AVAILABLE_BALANCE');
     const [step, setStep] = useState(1); // 1: Form, 2: Verification
     const [isLoading, setIsLoading] = useState(false);
@@ -108,6 +111,12 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
         document.addEventListener('mousedown', handleClickOutside);
         return () => document.removeEventListener('mousedown', handleClickOutside);
     }, []);
+
+    useEffect(() => {
+        if (step === 2 && verificationMethod === 'face' && faceApproved) {
+            setFaceModalOpen(true);
+        }
+    }, [step, verificationMethod, faceApproved]);
 
     const handleRecipientSelect = (recipient: Recipient) => {
         setSelectedRecipient(recipient);
@@ -390,7 +399,10 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             {faceApproved && (
                                 <button
                                     type="button"
-                                    onClick={() => setVerificationMethod('face')}
+                                    onClick={() => {
+                                        setVerificationMethod('face');
+                                        setFaceModalOpen(true);
+                                    }}
                                     className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
                                         verificationMethod === 'face' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
                                     }`}
@@ -401,7 +413,11 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             {user?.hasPasswordSet && (
                                 <button
                                     type="button"
-                                    onClick={() => setVerificationMethod('password')}
+                                    onClick={() => {
+                                        setVerificationMethod('password');
+                                        setLastNonFaceMethod('password');
+                                        setFaceModalOpen(false);
+                                    }}
                                     className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
                                         verificationMethod === 'password' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
                                     }`}
@@ -411,7 +427,11 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             )}
                             <button
                                 type="button"
-                                onClick={() => setVerificationMethod('otp')}
+                                onClick={() => {
+                                    setVerificationMethod('otp');
+                                    setLastNonFaceMethod('otp');
+                                    setFaceModalOpen(false);
+                                }}
                                 className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
                                     verificationMethod === 'otp' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
                                 }`}
@@ -438,14 +458,34 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             </div>
                         )}
                         {verificationMethod === 'face' && faceApproved && (
-                            <FaceVerificationPanel
-                                purpose="TRANSFER"
-                                enrollHref="/face-test?mode=enroll&next=/wallet"
-                                onVerified={(passed) => setFaceVerified(passed)}
-                                onEnrollmentChange={(isEnrolled) => setFaceEnrolled(isEnrolled)}
-                                onVerificationToken={(token) => setFaceVerificationId(token?.verificationId ?? null)}
-                                onApprovalChange={(approved) => setFaceApproved(approved)}
-                            />
+                            <Dialog
+                                open={faceModalOpen}
+                                onOpenChange={(open) => {
+                                    setFaceModalOpen(open);
+                                    if (!open) {
+                                        setVerificationMethod(lastNonFaceMethod);
+                                    }
+                                }}
+                            >
+                                <DialogContent className="bg-gray-950 border-gray-800 p-4 sm:p-6 sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                                    <FaceVerificationPanel
+                                        variant="modal"
+                                        purpose="TRANSFER"
+                                        enrollHref="/face-test?mode=enroll&next=/wallet"
+                                        onVerified={(passed) => {
+                                            setFaceVerified(passed);
+                                            if (passed) {
+                                                setFaceModalOpen(false);
+                                            }
+                                        }}
+                                        onEnrollmentChange={(isEnrolled) => setFaceEnrolled(isEnrolled)}
+                                        onVerificationToken={(token) =>
+                                            setFaceVerificationId(token?.verificationId ?? null)
+                                        }
+                                        onApprovalChange={(approved) => setFaceApproved(approved)}
+                                    />
+                                </DialogContent>
+                            </Dialog>
                         )}
                     </div>
 
