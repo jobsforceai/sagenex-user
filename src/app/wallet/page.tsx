@@ -316,7 +316,7 @@ const WalletPage = () => {
           <div className="flex justify-center">
             <TabsList className="grid w-full grid-cols-4 max-w-md bg-gray-900/40 border border-gray-800 rounded-2xl p-1">
               <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="transfer">Transfer</TabsTrigger>
+              <TabsTrigger value="transfer">SGChain</TabsTrigger>
               <TabsTrigger value="rewards">Rewards</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
             </TabsList>

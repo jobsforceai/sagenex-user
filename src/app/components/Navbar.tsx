@@ -8,7 +8,7 @@ import { usePathname, useRouter } from "next/navigation";
 import HeroButton from "../../components/ui/hero-button";
 import { useAuth } from "../context/AuthContext";
 import { clearUserCache, getRankProgress } from "@/actions/user";
-import { Crown } from "lucide-react";
+import { Crown, X } from "lucide-react";
 
 type NavLink = { href: string; label: string };
 
@@ -52,7 +52,21 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
   const [open, setOpen] = useState(false);
   const [userLevel, setUserLevel] = useState<string | null>(null);
   const [cacheClearing, setCacheClearing] = useState(false);
+  const [showTopBanner, setShowTopBanner] = useState(true);
   const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    // Check if user has dismissed the banner
+    const dismissed = localStorage.getItem('topBannerDismissed');
+    if (dismissed === 'true') {
+      setShowTopBanner(false);
+    }
+  }, []);
+
+  const dismissTopBanner = () => {
+    setShowTopBanner(false);
+    localStorage.setItem('topBannerDismissed', 'true');
+  };
 
   useEffect(() => {
     if (propUserLevel) {
@@ -125,18 +139,27 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
 
   return (
     <>
-      <div className="fixed inset-x-0 top-0 z-50 h-10 border-b border-amber-400/20 bg-amber-500/10 text-amber-100">
-        <div className="mx-auto flex h-full max-w-7xl items-center justify-center px-3 text-[11px] sm:px-4 sm:text-sm">
-          <span className="whitespace-nowrap overflow-x-auto">
-            Updates to investments or bonuses can take up to 24 hours to appear across the site. If you see old data, use the “Sync Profile” button to refresh.
-          </span>
+      {showTopBanner && (
+        <div className="fixed inset-x-0 top-0 z-50 h-10 border-b border-amber-400/20 bg-amber-500/10 text-amber-100">
+          <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-3 text-[11px] sm:px-4 sm:text-sm">
+            <span className="whitespace-nowrap overflow-x-auto flex-1">
+              Updates to investments or bonuses can take up to 24 hours to appear across the site. If you see old data, use the "Sync Profile" button to refresh.
+            </span>
+            <button
+              onClick={dismissTopBanner}
+              className="ml-2 flex-shrink-0 rounded p-1 hover:bg-amber-500/20 transition-colors"
+              aria-label="Dismiss notification"
+            >
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
-      </div>
+      )}
       <motion.header
         variants={navbarVariants}
         initial={prefersReducedMotion ? undefined : "hidden"}
         animate="show"
-        className="fixed inset-x-0 top-10 z-50"
+        className={`fixed inset-x-0 z-50 ${showTopBanner ? 'top-10' : 'top-0'}`}
         role="banner"
       >
       {/* Glass shell */}

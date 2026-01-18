@@ -4,14 +4,17 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navbar from "@/app/components/Navbar";
 import { useAuth } from "@/app/context/AuthContext";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { enrollFaceEmbedding, verifyFaceEmbedding, getBiometricsStatus } from "@/actions/user";
-import { ChevronDown } from "lucide-react";
+import { FaceScanHero } from "@/app/components/biometrics/FaceScanHero";
+import { LivenessPanel } from "@/app/components/biometrics/LivenessPanel";
+import { ActionsPanel } from "@/app/components/biometrics/ActionsPanel";
+import { DeviceSheet } from "@/app/components/biometrics/DeviceSheet";
+import { DebugDrawer } from "@/app/components/biometrics/DebugDrawer";
 
 const MODEL_PATH = "/models/face-api";
 const LIVENESS_STEPS = ["center", "left", "right"] as const;
 type LivenessStep = (typeof LIVENESS_STEPS)[number];
+
 
 function FaceTestContent() {
   const { isAuthenticated, loading } = useAuth();
@@ -73,7 +76,19 @@ function FaceTestContent() {
   }, [isAuthenticated]);
 
   useEffect(() => {
+    // Listen for enable camera event from mobile button
+    const handleEnableCamera = () => {
+      setError(null);
+      loadModels();
+      ensureCamera()
+        .then(() => refreshDevices())
+        .catch(() => null);
+    };
+    
+    window.addEventListener('enableCamera', handleEnableCamera);
+    
     return () => {
+      window.removeEventListener('enableCamera', handleEnableCamera);
       if (livenessTimerRef.current) {
         window.clearTimeout(livenessTimerRef.current);
         livenessTimerRef.current = null;
@@ -433,6 +448,40 @@ function FaceTestContent() {
     }
   };
 
+  const getMainInstruction = () => {
+    if (livenessStatus === "idle") return null;
+    if (livenessStatus === "passed") return null;
+    const step = LIVENESS_STEPS[livenessStepIndex];
+    if (step === "center") return "Look Straight";
+    // Camera is mirrored, so swap left/right
+    if (step === "left") return "Turn Your Head Right";
+    return "Turn Your Head Left";
+  };
+
+  const handleStartLiveness = () => {
+    setError(null);
+    if (!modelsReady || !cameraReady) {
+      setError("Enable camera and load models before starting liveness.");
+      return;
+    }
+    livenessRef.current = { stepIndex: 0, stableCount: 0, missCount: 0, logCount: 0 };
+    setLivenessStepIndex(0);
+    setYawDeg(null);
+    setFaceAligned(false);
+    setFaceHint(null);
+    livenessActiveRef.current = true;
+    setLivenessStatus("running");
+    runLivenessLoop();
+  };
+
+  const handleCameraRetry = () => {
+    setError(null);
+    loadModels();
+    ensureCamera()
+      .then(() => refreshDevices())
+      .catch(() => null);
+  };
+
   if (loading || !isAuthenticated) {
     return (
       <main className="min-h-screen bg-black text-white flex items-center justify-center">
@@ -444,241 +493,103 @@ function FaceTestContent() {
   return (
     <div className="min-h-screen bg-black text-white">
       <Navbar />
-      <main className="container mx-auto px-4 pt-28 pb-12">
-        <div className="max-w-6xl mx-auto space-y-6">
-          <header className="space-y-2">
-            <h1 className="text-3xl font-semibold">
-              {isEnrollOnly ? "Face Enrollment" : "Face Test"}
-            </h1>
-            <p className="text-sm text-white/70">
-              {isEnrollOnly
-                ? "Set up face verification by capturing a live frame and enrolling your embedding."
-                : "This test captures a live camera frame, generates a 128-d embedding, and sends it to the enroll/verify endpoints."}
-            </p>
-          </header>
 
-          {error && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-              {error}
-            </div>
-          )}
-          {enrollSuccess && !biometricsApproved && (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 text-sm text-amber-100">
-              Enrollment submitted. Awaiting admin approval.
-            </div>
-          )}
+      {/* Mobile: Back button (top-left) */}
+      <button
+        onClick={() => window.history.back()}
+        className="fixed top-4 left-4 z-50 lg:hidden rounded-full border border-gray-700 bg-gray-800/60 backdrop-blur-md p-2.5 hover:bg-gray-700/60 transition-colors"
+      >
+        <svg
+          className="h-5 w-5 text-white"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          strokeWidth={2.5}
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            d="M15 19l-7-7 7-7"
+          />
+        </svg>
+      </button>
 
-          <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_360px] items-start">
-            <Card className="bg-gray-900/40 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-base">Camera Preview</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="relative w-full overflow-hidden rounded-2xl border border-gray-800 bg-black/80">
-                  <div className="relative mx-auto aspect-[4/5] w-full max-w-[420px]">
-                    {faceHint && (
-                      <div className={`absolute right-3 top-3 z-10 rounded-full border px-3 py-1 text-[11px] font-semibold ${
-                        faceAligned
-                          ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-100"
-                          : "border-amber-400/40 bg-amber-500/15 text-amber-100"
-                      }`}>
-                        {faceHint}
-                      </div>
-                    )}
-                    <video
-                      ref={videoRef}
-                      className="absolute inset-0 h-full w-full object-cover"
-                      autoPlay
-                      muted
-                      playsInline
-                    />
-                    <div className="pointer-events-none absolute inset-0 face-scan-mask" />
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                      <div className={`h-[78%] w-[60%] rounded-[45%] border ${
-                        faceAligned ? "border-emerald-200 shadow-[0_0_30px_rgba(16,185,129,0.8)]" : "border-emerald-400/40"
-                      }`} />
-                    </div>
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                      <div
-                        className={`h-[90%] w-[70%] rounded-[45%] face-scan-ticks ${
-                          faceAligned ? "face-scan-aligned opacity-100" : "opacity-80"
-                        }`}
-                      />
-                    </div>
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                      <div className="relative h-[78%] w-[60%] rounded-[45%] face-scan-crosshair">
-                        <div className={`absolute left-1/2 top-[6%] h-[88%] w-px -translate-x-1/2 ${
-                          faceAligned ? "bg-emerald-200 shadow-[0_0_16px_rgba(16,185,129,0.9)]" : "bg-emerald-300/40"
-                        }`} />
-                        <div className={`absolute left-[6%] top-1/2 h-px w-[88%] -translate-y-1/2 ${
-                          faceAligned ? "bg-emerald-200 shadow-[0_0_16px_rgba(16,185,129,0.9)]" : "bg-emerald-300/40"
-                        }`} />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="px-4 pb-4 pt-2 text-center text-xs text-white/70">
-                    Keep your face inside the circle and move your head slowly to complete the scan.
-                  </div>
-                </div>
-                <div className="grid gap-3 text-sm text-white/70 sm:grid-cols-[1fr_auto] sm:items-center">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <span>
-                      Models:{" "}
-                      {modelsReady ? "Ready" : modelsLoading ? "Loading..." : "Not loaded"}
-                    </span>
-                    <span>Camera: {cameraReady ? "Ready" : "Not started"}</span>
-                  </div>
-                  <Button
-                    variant="outline"
-                    onClick={() => {
-                      setError(null);
-                      loadModels();
-                      ensureCamera()
-                        .then(() => refreshDevices())
-                        .catch(() => null);
-                    }}
-                  >
-                    Enable Camera
-                  </Button>
-                </div>
-                {videoDevices.length > 0 && (
-                  <div className="flex flex-col gap-2 text-sm text-white/70">
-                    <label htmlFor="cameraSelect" className="text-xs uppercase tracking-[0.2em] text-white/50">
-                      Camera
-                    </label>
-                    <div className="relative">
-                      <select
-                        id="cameraSelect"
-                        value={selectedDeviceId}
-                        onChange={(event) => setSelectedDeviceId(event.target.value)}
-                        className="w-full appearance-none rounded-lg border border-gray-800 bg-black/40 px-3 py-2 text-sm text-white/80"
-                      >
-                        {videoDevices.map((device) => (
-                          <option key={device.deviceId} value={device.deviceId}>
-                            {device.label || "Camera"}
-                          </option>
-                        ))}
-                      </select>
-                      <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-500" />
-                    </div>
-                    <Button
-                      variant="ghost"
-                      className="w-fit px-0 text-xs text-emerald-300 hover:bg-transparent"
-                      onClick={() => {
-                        setError(null);
-                        ensureCamera()
-                          .then(() => refreshDevices())
-                          .catch(() => null);
-                      }}
-                    >
-                      Retry with selected camera
-                    </Button>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+      {/* Mobile: Full-screen camera with floating controls */}
+      {/* Desktop: Two-column layout */}
+      <main className="lg:container lg:mx-auto lg:px-4 lg:pt-24 lg:pb-12 xl:px-6 xl:pt-28">
+        {/* Desktop Header (hidden on mobile) */}
+        <header className="mb-6 space-y-2 hidden lg:block max-w-7xl mx-auto">
+          <h1 className="text-2xl font-semibold lg:text-3xl">
+            {isEnrollOnly ? "Face Enrollment" : "Face Verification"}
+          </h1>
+          <p className="text-sm text-white/60">
+            {isEnrollOnly
+              ? "Complete the liveness check and capture your face to enable biometric security."
+              : "Test face verification with liveness detection and biometric capture."}
+          </p>
+        </header>
 
-            <div className="space-y-6">
-              <Card className="bg-gray-900/40 border-gray-800">
-                <CardHeader>
-                  <CardTitle className="text-base">Liveness Check</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="space-y-2 text-sm text-white/70">
-                    <p>Follow the head-turn sequence to unlock submit:</p>
-                    <p className="text-emerald-200">Center → Left → Right</p>
-                  </div>
-                  <Button
-                    variant="outline"
-                    className="w-full"
-                    onClick={() => {
-                      setError(null);
-                      if (!modelsReady || !cameraReady) {
-                        setError("Enable camera and load models before starting liveness.");
-                        return;
-                      }
-                      livenessRef.current = { stepIndex: 0, stableCount: 0, missCount: 0, logCount: 0 };
-                      setLivenessStepIndex(0);
-                      setYawDeg(null);
-                      setFaceAligned(false);
-                      setFaceHint(null);
-                      livenessActiveRef.current = true;
-                      setLivenessStatus("running");
-                      runLivenessLoop();
-                    }}
-                  >
-                    {livenessStatus === "running" ? "Checking..." : "Start Liveness"}
-                  </Button>
-                  <div className="grid gap-2 text-xs text-white/60">
-                    {LIVENESS_STEPS.map((step, index) => (
-                      <div
-                        key={step}
-                        className={`rounded-lg border px-3 py-2 ${
-                          livenessStepIndex > index
-                            ? "border-emerald-400/60 bg-emerald-500/10 text-emerald-200"
-                            : livenessStepIndex === index && livenessStatus === "running"
-                            ? "border-emerald-400/30 bg-emerald-500/5 text-white"
-                            : "border-gray-800 bg-black/30"
-                        }`}
-                      >
-                        {step.toUpperCase()}
-                      </div>
-                    ))}
-                  </div>
-                  <div className="flex items-center justify-between text-xs text-white/50">
-                    <span>Status: {livenessStatus}</span>
-                    <span>Yaw: {yawDeg !== null ? `${yawDeg}°` : "—"}</span>
-                  </div>
-                </CardContent>
-              </Card>
+        {/* Error banner */}
+        {error && (
+          <div className="absolute top-20 left-4 right-4 z-50 lg:relative lg:top-0 lg:left-0 lg:right-0 lg:mb-6 lg:max-w-7xl lg:mx-auto rounded-xl border border-red-500/30 bg-red-500/10 backdrop-blur-md px-4 py-3 text-sm text-red-200">
+            {error}
+          </div>
+        )}
 
-              <div className={`grid gap-4 ${isEnrollOnly ? "" : "sm:grid-cols-2"} lg:grid-cols-1`}>
-                <Button
-                  onClick={handleEnroll}
-                  disabled={loadingAction !== null || livenessStatus !== "passed"}
-                >
-                  {loadingAction === "enroll" ? "Enrolling..." : "Capture + Enroll"}
-                </Button>
-                {!isEnrollOnly && (
-                  <Button
-                    variant="outline"
-                    onClick={handleVerify}
-                    disabled={loadingAction !== null || livenessStatus !== "passed"}
-                  >
-                    {loadingAction === "verify" ? "Verifying..." : "Capture + Verify"}
-                  </Button>
-                )}
-              </div>
+        <div className="lg:max-w-7xl lg:mx-auto lg:grid lg:gap-6 lg:grid-cols-[60%_1fr]">
+          {/* Mobile: Full-screen camera | Desktop: Left column */}
+          <div className="relative lg:sticky lg:top-28 lg:self-start">
+            <FaceScanHero
+              videoRef={videoRef}
+              faceAligned={faceAligned}
+              faceHint={faceHint}
+              mainInstruction={getMainInstruction()}
+              livenessStatus={livenessStatus}
+          />
+
+            {/* Mobile: Floating status chips (top-right) */}
+            {/* Desktop: Normal DeviceSheet */}
+            <div className="lg:mt-4">
+              <DeviceSheet
+                videoDevices={videoDevices}
+                selectedDeviceId={selectedDeviceId}
+                modelsReady={modelsReady}
+                cameraReady={cameraReady}
+                onDeviceChange={setSelectedDeviceId}
+                onRetry={handleCameraRetry}
+              />
             </div>
           </div>
 
-          {isEnrollOnly && enrollSuccess && nextUrl && (
-            <Button asChild variant="outline">
-              <a href={nextUrl}>Return to Wallet</a>
-            </Button>
-          )}
+          {/* Mobile: Floating controls | Desktop: Right column */}
+          <div className="fixed bottom-0 left-0 right-0 z-40 lg:relative lg:space-y-4">
+            <LivenessPanel
+              livenessStatus={livenessStatus}
+              livenessStepIndex={livenessStepIndex}
+              yawDeg={yawDeg}
+              modelsReady={modelsReady}
+              cameraReady={cameraReady}
+              onStartLiveness={handleStartLiveness}
+            />
 
-          <div className="grid gap-6 lg:grid-cols-2">
-            <Card className="bg-gray-900/40 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-base">Enroll Response</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-xs whitespace-pre-wrap break-words text-gray-300">
-                  {enrollResponse ? JSON.stringify(enrollResponse, null, 2) : "—"}
-                </pre>
-              </CardContent>
-            </Card>
-            <Card className="bg-gray-900/40 border-gray-800">
-              <CardHeader>
-                <CardTitle className="text-base">Verify Response</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <pre className="text-xs whitespace-pre-wrap break-words text-gray-300">
-                  {verifyResponse ? JSON.stringify(verifyResponse, null, 2) : "—"}
-                </pre>
-              </CardContent>
-            </Card>
+            <ActionsPanel
+              isEnrollOnly={isEnrollOnly}
+              livenessStatus={livenessStatus}
+              loadingAction={loadingAction}
+              enrollSuccess={enrollSuccess}
+              biometricsApproved={biometricsApproved}
+              nextUrl={nextUrl}
+              modelsReady={modelsReady}
+              cameraReady={cameraReady}
+              onEnroll={handleEnroll}
+              onVerify={handleVerify}
+              onStartLiveness={handleStartLiveness}
+            />
+
+            <DebugDrawer
+              enrollResponse={enrollResponse}
+              verifyResponse={verifyResponse}
+            />
           </div>
         </div>
       </main>
