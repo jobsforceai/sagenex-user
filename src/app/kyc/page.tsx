@@ -126,6 +126,14 @@ export default function KycPage() {
     const [isTutorialOpen, setIsTutorialOpen] = useState(false);
     const [showWizardModal, setShowWizardModal] = useState(false);
     const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('environment');
+    const [autoCapture, setAutoCapture] = useState(true);
+    const [documentDetected, setDocumentDetected] = useState(false);
+    const [detectionCountdown, setDetectionCountdown] = useState<number | null>(null);
+    const detectionIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+    const countdownIntervalRef = React.useRef<NodeJS.Timeout | null>(null);
+    const detectionCanvasRef = React.useRef<HTMLCanvasElement | null>(null);
+    const [opencvLoaded, setOpencvLoaded] = React.useState(false);
+    const cvRef = React.useRef<any>(null);
 
     const fetchKycStatus = async () => {
         try {
@@ -146,6 +154,30 @@ export default function KycPage() {
     useEffect(() => {
         setLoading(true);
         fetchKycStatus();
+    }, []);
+
+    // Load OpenCV.js
+    useEffect(() => {
+        const loadOpenCV = async () => {
+            try {
+                const script = document.createElement('script');
+                script.src = 'https://docs.opencv.org/4.8.0/opencv.js';
+                script.async = true;
+                script.onload = () => {
+                    // @ts-ignore
+                    if (window.cv) {
+                        // @ts-ignore
+                        cvRef.current = window.cv;
+                        setOpencvLoaded(true);
+                        console.log('OpenCV.js loaded successfully');
+                    }
+                };
+                document.body.appendChild(script);
+            } catch (error) {
+                console.error('Failed to load OpenCV.js:', error);
+            }
+        };
+        loadOpenCV();
     }, []);
 
     useEffect(() => {
@@ -169,6 +201,156 @@ export default function KycPage() {
             captureStreamRef.current = null;
         }
         setCaptureReady(false);
+        stopDocumentDetection();
+    };
+
+    const stopDocumentDetection = () => {
+        if (detectionIntervalRef.current) {
+            clearInterval(detectionIntervalRef.current);
+            detectionIntervalRef.current = null;
+        }
+        if (countdownIntervalRef.current) {
+            clearInterval(countdownIntervalRef.current);
+            countdownIntervalRef.current = null;
+        }
+        setDocumentDetected(false);
+        setDetectionCountdown(null);
+    };
+
+    const detectDocument = () => {
+        if (!captureVideoRef.current || !captureReady || !opencvLoaded || !cvRef.current) return false;
+        
+        try {
+            const cv = cvRef.current;
+            const video = captureVideoRef.current;
+            const width = video.videoWidth;
+            const height = video.videoHeight;
+            if (!width || !height) return false;
+
+            // Create canvas for processing
+            if (!detectionCanvasRef.current) {
+                detectionCanvasRef.current = document.createElement('canvas');
+            }
+            const canvas = detectionCanvasRef.current;
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+            if (!ctx) return false;
+
+            // Draw current frame
+            ctx.drawImage(video, 0, 0, width, height);
+
+            // Convert to OpenCV Mat
+            const src = cv.imread(canvas);
+            const gray = new cv.Mat();
+            const blur = new cv.Mat();
+            const edges = new cv.Mat();
+            const contours = new cv.MatVector();
+            const hierarchy = new cv.Mat();
+
+            // Convert to grayscale
+            cv.cvtColor(src, gray, cv.COLOR_RGBA2GRAY);
+            
+            // Apply Gaussian blur to reduce noise
+            cv.GaussianBlur(gray, blur, new cv.Size(5, 5), 0);
+            
+            // Canny edge detection
+            cv.Canny(blur, edges, 50, 150);
+            
+            // Find contours
+            cv.findContours(edges, contours, hierarchy, cv.RETR_EXTERNAL, cv.CHAIN_APPROX_SIMPLE);
+            
+            // Look for rectangular contours
+            let maxArea = 0;
+            let documentFound = false;
+            const minArea = (width * height) * 0.1; // Document should be at least 10% of frame
+            const maxAreaThreshold = (width * height) * 0.9; // But not more than 90%
+            
+            for (let i = 0; i < contours.size(); i++) {
+                const contour = contours.get(i);
+                const area = cv.contourArea(contour);
+                
+                if (area > minArea && area < maxAreaThreshold && area > maxArea) {
+                    const peri = cv.arcLength(contour, true);
+                    const approx = new cv.Mat();
+                    cv.approxPolyDP(contour, approx, 0.02 * peri, true);
+                    
+                    // Check if it's a quadrilateral (4 corners)
+                    if (approx.rows === 4) {
+                        maxArea = area;
+                        documentFound = true;
+                    }
+                    approx.delete();
+                }
+                contour.delete();
+            }
+            
+            // Cleanup
+            src.delete();
+            gray.delete();
+            blur.delete();
+            edges.delete();
+            contours.delete();
+            hierarchy.delete();
+            
+            return documentFound;
+        } catch (error) {
+            console.error('Document detection error:', error);
+            return false;
+        }
+    };
+
+    const startDocumentDetection = () => {
+        if (!autoCapture) return;
+        
+        stopDocumentDetection();
+        
+        let consecutiveDetections = 0;
+        const requiredDetections = 3; // Need 3 consecutive detections
+        
+        detectionIntervalRef.current = setInterval(() => {
+            const detected = detectDocument();
+            
+            if (detected) {
+                consecutiveDetections++;
+                if (consecutiveDetections >= requiredDetections && !documentDetected) {
+                    setDocumentDetected(true);
+                    startCountdown();
+                }
+            } else {
+                consecutiveDetections = 0;
+                if (documentDetected) {
+                    setDocumentDetected(false);
+                    setDetectionCountdown(null);
+                    if (countdownIntervalRef.current) {
+                        clearInterval(countdownIntervalRef.current);
+                        countdownIntervalRef.current = null;
+                    }
+                }
+            }
+        }, 200); // Check every 200ms
+    };
+
+    const startCountdown = () => {
+        setDetectionCountdown(3);
+        let count = 3;
+        
+        countdownIntervalRef.current = setInterval(() => {
+            count--;
+            if (count > 0) {
+                setDetectionCountdown(count);
+            } else {
+                if (countdownIntervalRef.current) {
+                    clearInterval(countdownIntervalRef.current);
+                    countdownIntervalRef.current = null;
+                }
+                setDetectionCountdown(null);
+                // Auto-capture
+                if (currentDocType && documentDetected) {
+                    captureSnapshot(currentDocType);
+                }
+            }
+        }, 1000);
     };
 
     const startCaptureCamera = async () => {
@@ -211,6 +393,10 @@ export default function KycPage() {
             });
             await captureVideoRef.current.play();
             setCaptureReady(true);
+            // Start document detection after camera is ready
+            if (autoCapture) {
+                setTimeout(() => startDocumentDetection(), 1000);
+            }
         } else {
             throw new Error("Video element not available");
         }
@@ -252,6 +438,10 @@ export default function KycPage() {
                 });
                 await captureVideoRef.current.play();
                 setCaptureReady(true);
+                // Restart document detection
+                if (autoCapture) {
+                    setTimeout(() => startDocumentDetection(), 1000);
+                }
             }
         } catch (err: any) {
             setCaptureError(err?.message || "Failed to switch camera");
@@ -378,6 +568,7 @@ export default function KycPage() {
             setCapturedImages((prev) => ({ ...prev, [docType]: { dataUrl, blob } }));
             setPreviews((prev) => ({ ...prev, [docType]: dataUrl }));
         }
+        stopDocumentDetection();
         stopCaptureCamera();
     };
 
@@ -679,6 +870,31 @@ export default function KycPage() {
                                                             </p>
                                                         </div>
                                                     )}
+                                                    
+                                                    {/* Auto-capture toggle */}
+                                                    <div className="flex items-center justify-between bg-gray-900/50 border border-gray-700 rounded-lg p-3">
+                                                        <div className="flex items-center gap-2">
+                                                            <div className={`w-10 h-6 rounded-full transition-all ${autoCapture ? 'bg-emerald-600' : 'bg-gray-600'} relative cursor-pointer`}
+                                                                onClick={() => {
+                                                                    setAutoCapture(!autoCapture);
+                                                                    if (!autoCapture && captureReady) {
+                                                                        setTimeout(() => startDocumentDetection(), 500);
+                                                                    } else {
+                                                                        stopDocumentDetection();
+                                                                    }
+                                                                }}
+                                                            >
+                                                                <div className={`absolute top-1 w-4 h-4 bg-white rounded-full transition-transform ${autoCapture ? 'translate-x-5' : 'translate-x-1'}`} />
+                                                            </div>
+                                                            <span className="text-sm text-gray-300">Auto-capture</span>
+                                                        </div>
+                                                        {autoCapture && documentDetected && detectionCountdown && (
+                                                            <div className="text-emerald-400 font-bold text-lg animate-pulse">
+                                                                {detectionCountdown}
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                    
                                                     <div className="relative w-full sm:max-w-md mx-auto" style={{ aspectRatio: '9/16' }}>
                                                         <div className="overflow-hidden rounded-lg border border-gray-800 bg-black h-full">
                                                             <video
@@ -691,10 +907,24 @@ export default function KycPage() {
                                                             {captureReady && (
                                                                 <>
                                                                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
-                                                                        <div className="h-[85%] w-[75%] rounded-xl border-2 border-dashed border-emerald-400/60 bg-emerald-500/5" />
+                                                                        <div className={`h-[85%] w-[75%] rounded-xl border-2 transition-all ${
+                                                                            documentDetected 
+                                                                                ? 'border-solid border-emerald-400 bg-emerald-500/10 shadow-[0_0_20px_rgba(52,211,153,0.5)]' 
+                                                                                : 'border-dashed border-emerald-400/60 bg-emerald-500/5'
+                                                                        }`} />
                                                                     </div>
+                                                                    {documentDetected && detectionCountdown && (
+                                                                        <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                                                                            <div className="text-8xl font-bold text-emerald-400 animate-pulse drop-shadow-[0_0_30px_rgba(52,211,153,0.8)]">
+                                                                                {detectionCountdown}
+                                                                            </div>
+                                                                        </div>
+                                                                    )}
                                                                     <div className="pointer-events-none absolute bottom-3 left-0 right-0 text-center text-[11px] text-emerald-200">
-                                                                        Align the document inside the box
+                                                                        {documentDetected 
+                                                                            ? '✓ Document detected! Hold steady...' 
+                                                                            : 'Align the document inside the box'
+                                                                        }
                                                                     </div>
                                                                 </>
                                                             )}
@@ -740,11 +970,14 @@ export default function KycPage() {
                                                         </div>
                                                         <Button
                                                             type="button"
-                                                            className="w-full bg-emerald-600 text-white hover:bg-emerald-500 text-sm sm:text-base py-3 sm:py-3 font-semibold"
-                                                            disabled={!captureReady}
-                                                            onClick={() => captureSnapshot(currentDocType)}
+                                                            className="w-full bg-emerald-600 text-white hover:bg-emerald-500 text-sm sm:text-base py-3 sm:py-3 font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                                                            disabled={!captureReady || (autoCapture && documentDetected && detectionCountdown !== null)}
+                                                            onClick={() => {
+                                                                stopDocumentDetection();
+                                                                captureSnapshot(currentDocType);
+                                                            }}
                                                         >
-                                                            Take Snapshot
+                                                            {autoCapture ? 'Manual Capture' : 'Take Snapshot'}
                                                         </Button>
                                                     </div>
                                                 </div>
