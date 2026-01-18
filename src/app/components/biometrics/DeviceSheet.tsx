@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Camera, AlertCircle, Settings } from "lucide-react";
+import { ChevronDown, Camera, AlertCircle } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -72,8 +72,13 @@ export function DeviceSheet({
         {/* Settings button */}
         <Dialog open={isOpen} onOpenChange={setIsOpen}>
           <DialogTrigger asChild>
-            <button className="rounded-full border border-gray-700 bg-gray-800/60 backdrop-blur-md p-2 hover:bg-gray-700/60 transition-colors">
-              <Settings className="h-4 w-4 text-gray-300" />
+            <button
+              className="rounded-full border border-gray-700 bg-gray-800/60 backdrop-blur-md p-2 hover:bg-gray-700/60 transition-colors"
+              aria-label="Camera settings"
+            >
+              <span className="text-sm leading-none text-gray-300" aria-hidden="true">
+                📷
+              </span>
             </button>
           </DialogTrigger>
           <DialogContent className="bg-gray-950 border-gray-800 sm:max-w-md">

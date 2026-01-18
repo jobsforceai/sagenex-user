@@ -458,12 +458,16 @@ function FaceTestContent() {
     return "Turn Your Head Left";
   };
 
-  const handleStartLiveness = () => {
+  const handleStartLiveness = async () => {
     setError(null);
-    if (!modelsReady || !cameraReady) {
-      setError("Enable camera and load models before starting liveness.");
+    try {
+      await loadModels();
+      await ensureCamera();
+    } catch (err: any) {
+      setError(err?.message || "Failed to start camera for liveness.");
       return;
     }
+
     livenessRef.current = { stepIndex: 0, stableCount: 0, missCount: 0, logCount: 0 };
     setLivenessStepIndex(0);
     setYawDeg(null);

@@ -149,9 +149,8 @@ export function ActionsPanel({
                 className={`w-full shadow-lg ${isEnrollOnly ? "" : "col-span-2"}`}
                 size="lg"
                 onClick={onStartLiveness}
-                disabled={!canStart}
               >
-                Start Liveness Check
+                Start KYC
               </Button>
             )}
           </div>
