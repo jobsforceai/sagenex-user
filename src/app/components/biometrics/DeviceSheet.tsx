@@ -19,6 +19,7 @@ interface DeviceSheetProps {
   cameraReady: boolean;
   onDeviceChange: (deviceId: string) => void;
   onRetry: () => void;
+  mode?: "inline" | "overlay";
 }
 
 export function DeviceSheet({
@@ -28,8 +29,11 @@ export function DeviceSheet({
   cameraReady,
   onDeviceChange,
   onRetry,
+  mode = "inline",
 }: DeviceSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const overlayMode = mode === "overlay";
 
   const selectedDevice = videoDevices.find((d) => d.deviceId === selectedDeviceId);
   const deviceLabel = selectedDevice?.label || "Camera";
@@ -37,7 +41,13 @@ export function DeviceSheet({
   return (
     <>
       {/* Mobile: Floating status chips (top-right) */}
-      <div className="absolute top-40 right-4 z-30 flex flex-col items-end gap-2 lg:hidden">
+      <div
+        className={
+          overlayMode
+            ? "absolute top-3 right-3 z-30 flex flex-col items-end gap-2"
+            : "absolute top-40 right-4 z-30 flex flex-col items-end gap-2 lg:hidden"
+        }
+      >
         <div
           className={`flex items-center gap-1.5 rounded-full border px-2.5 py-1.5 text-[11px] backdrop-blur-md ${
             modelsReady
@@ -130,7 +140,13 @@ export function DeviceSheet({
       </div>
 
       {/* Desktop: Normal layout */}
-      <div className="hidden lg:flex items-center gap-3 rounded-lg border border-gray-800 bg-black/40 px-4 py-3">
+      <div
+        className={
+          overlayMode
+            ? "hidden"
+            : "hidden lg:flex items-center gap-3 rounded-lg border border-gray-800 bg-black/40 px-4 py-3"
+        }
+      >
         {/* Status chips */}
         <div className="flex flex-wrap items-center gap-2 flex-1">
           <div
