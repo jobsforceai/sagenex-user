@@ -190,7 +190,7 @@ export function LivenessPanel({
             >
               {livenessStatus === "running"
                 ? "Checking..."
-                : "Start KYC"}
+                : "Enroll my face"}
             </Button>
           )}
 

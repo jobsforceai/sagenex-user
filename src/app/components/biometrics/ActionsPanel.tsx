@@ -150,7 +150,7 @@ export function ActionsPanel({
                 size="lg"
                 onClick={onStartLiveness}
               >
-                Start KYC
+                Enroll my face
               </Button>
             )}
           </div>
