@@ -10,7 +10,7 @@ import { getBiometricsStatus, verifyFaceEmbedding } from "@/actions/user";
 const MODEL_PATH = "/models/face-api";
 
 type FaceVerificationPanelProps = {
-  purpose: "WITHDRAWAL" | "TRANSFER";
+  purpose: "WITHDRAWAL" | "TRANSFER" | "KYC";
   enrollHref: string;
   onVerified?: (passed: boolean) => void;
   onEnrollmentChange?: (enrolled: boolean) => void;
