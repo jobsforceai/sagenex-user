@@ -1,9 +1,8 @@
 "use client"
 
 import React, { useEffect, useState } from 'react';
-import { FileText, CheckCircle, Clock, AlertTriangle, CheckCircle2, ChevronDown, HelpCircle, Shield } from 'lucide-react';
+import { FileText, CheckCircle, Clock, AlertTriangle, CheckCircle2, Shield } from 'lucide-react';
 import Image from 'next/image';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import Navbar from '../components/Navbar';
 import { getKycStatus, uploadKycDocument, submitKycForReview } from '@/actions/user';
 import { KycStatus } from '@/types';
@@ -115,7 +114,6 @@ export default function KycPage() {
     const [uploading, setUploading] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
-    const [activeTab, setActiveTab] = useState('telugu');
     const [faceVerificationId, setFaceVerificationId] = useState<string | null>(null);
     const [currentStep, setCurrentStep] = useState(1);
     const [captureOpen, setCaptureOpen] = useState(false);
@@ -123,7 +121,6 @@ export default function KycPage() {
     const [captureReady, setCaptureReady] = useState(false);
     const captureVideoRef = React.useRef<HTMLVideoElement | null>(null);
     const captureStreamRef = React.useRef<MediaStream | null>(null);
-    const [isTutorialOpen, setIsTutorialOpen] = useState(false);
     const [showWizardModal, setShowWizardModal] = useState(false);
     const [cameraFacingMode, setCameraFacingMode] = useState<'user' | 'environment'>('environment');
     const [autoCapture, setAutoCapture] = useState(true);
@@ -1218,47 +1215,6 @@ export default function KycPage() {
 
                         {message && <div className="text-sm text-center text-emerald-300">{message}</div>}
                     </div>
-
-                    <Collapsible open={isTutorialOpen} onOpenChange={setIsTutorialOpen} className="mt-4 sm:mt-6">
-                        <CollapsibleTrigger className="w-full">
-                            <div className="bg-gray-900/40 border border-gray-800 rounded-xl p-3 sm:p-4 hover:bg-gray-900/60 transition-colors cursor-pointer">
-                                <div className="flex items-center justify-between gap-2">
-                                    <div className="flex items-center gap-2 sm:gap-3">
-                                        <HelpCircle className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-400 shrink-0" />
-                                        <div className="text-left">
-                                            <h3 className="text-sm sm:text-base font-semibold text-white">Need Help? Watch Video Tutorial</h3>
-                                            <p className="text-xs text-gray-400 hidden sm:block">Learn how to scan and upload documents properly</p>
-                                        </div>
-                                    </div>
-                                    <ChevronDown className={`w-4 h-4 sm:w-5 sm:h-5 text-gray-400 transition-transform shrink-0 ${isTutorialOpen ? 'rotate-180' : ''
-                                        }`} />
-                                </div>
-                            </div>
-                        </CollapsibleTrigger>
-                        <CollapsibleContent>
-                            <div className="bg-gray-900/40 border border-gray-800 border-t-0 rounded-b-xl p-4 sm:p-6">
-                                <div className="flex justify-center border-b border-gray-700 mb-4">
-                                    <button onClick={() => setActiveTab('telugu')} className={`px-3 sm:px-4 py-2 font-semibold text-xs sm:text-sm ${activeTab === 'telugu' ? 'border-b-2 border-emerald-400 text-emerald-400' : 'text-gray-400'}`}>Telugu</button>
-                                    <button onClick={() => setActiveTab('hindi')} className={`px-3 sm:px-4 py-2 font-semibold text-xs sm:text-sm ${activeTab === 'hindi' ? 'border-b-2 border-emerald-400 text-emerald-400' : 'text-gray-400'}`}>Hindi</button>
-                                    <button onClick={() => setActiveTab('english')} className={`px-3 sm:px-4 py-2 font-semibold text-xs sm:text-sm ${activeTab === 'english' ? 'border-b-2 border-emerald-400 text-emerald-400' : 'text-gray-400'}`}>English</button>
-                                </div>
-                                <div className="aspect-w-16 aspect-h-9">
-                                    <iframe
-                                        src={
-                                            activeTab === 'telugu' ? "https://www.youtube.com/embed/Kx53gpB6Uto" :
-                                                activeTab === 'hindi' ? "https://www.youtube.com/embed/54KEU7Osk60" :
-                                                    "https://www.youtube.com/embed/fo8UgBP8DEo"
-                                        }
-                                        title="YouTube video player"
-                                        frameBorder="0"
-                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                                        allowFullScreen
-                                        className="w-full h-[250px] sm:h-[350px] rounded-lg"
-                                    ></iframe>
-                                </div>
-                            </div>
-                        </CollapsibleContent>
-                    </Collapsible>
 
                 </div>
             )}
