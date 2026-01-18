@@ -22,6 +22,7 @@ export function LivenessPanel({
   cameraReady,
   onStartLiveness,
 }: LivenessPanelProps) {
+  const canStart = modelsReady && cameraReady && livenessStatus === "idle";
   const currentStep = LIVENESS_STEPS[livenessStepIndex];
 
   return (
@@ -186,11 +187,23 @@ export function LivenessPanel({
               onClick={() => {
                 onStartLiveness();
               }}
-              disabled={livenessStatus !== "idle"}
+              disabled={!canStart}
             >
               {livenessStatus === "running"
                 ? "Checking..."
                 : "Enroll my face"}
+            </Button>
+          )}
+          {!cameraReady && livenessStatus === "idle" && (
+            <Button
+              variant="outline"
+              className="w-full"
+              onClick={() => {
+                const event = new CustomEvent("enableCamera");
+                window.dispatchEvent(event);
+              }}
+            >
+              Enable Camera
             </Button>
           )}
 
