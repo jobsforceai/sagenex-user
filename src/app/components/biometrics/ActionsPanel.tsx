@@ -8,6 +8,7 @@ interface ActionsPanelProps {
   livenessStatus: "idle" | "running" | "passed";
   loadingAction: "enroll" | "verify" | null;
   enrollSuccess: boolean;
+  isEnrolled: boolean;
   biometricsApproved: boolean;
   nextUrl: string | null;
   modelsReady: boolean;
@@ -22,6 +23,7 @@ export function ActionsPanel({
   livenessStatus,
   loadingAction,
   enrollSuccess,
+  isEnrolled,
   biometricsApproved,
   nextUrl,
   modelsReady,
@@ -32,6 +34,7 @@ export function ActionsPanel({
 }: ActionsPanelProps) {
   const canCapture = livenessStatus === "passed" && loadingAction === null;
   const canStart = modelsReady && cameraReady && livenessStatus === "idle";
+  const returnUrl = nextUrl || "/profile";
 
   return (
     <>
@@ -52,6 +55,11 @@ export function ActionsPanel({
             <p className="font-medium">✓ Face Enrolled Successfully</p>
           </div>
         )}
+        {isEnrolled && (
+          <div className="mb-3 rounded-lg border border-emerald-500/30 bg-emerald-500/10 backdrop-blur-md px-3 py-2 text-xs text-emerald-100">
+            <p className="font-medium">✓ Face already enrolled</p>
+          </div>
+        )}
 
         {/* Action button(s) - only show when liveness is idle or passed */}
         {livenessStatus !== "running" && (
@@ -62,7 +70,7 @@ export function ActionsPanel({
                   className="w-full shadow-lg"
                   size="lg"
                   onClick={onEnroll}
-                  disabled={!canCapture}
+                  disabled={!canCapture || isEnrolled}
                 >
                   {loadingAction === "enroll" ? (
                     <span className="flex items-center gap-2">
@@ -91,6 +99,16 @@ export function ActionsPanel({
                     "Enroll Face"
                   )}
                 </Button>
+                {isEnrollOnly && isEnrolled && (
+                  <Button
+                    asChild
+                    size="lg"
+                    variant="outline"
+                    className="w-full shadow-lg"
+                  >
+                    <a href={returnUrl}>Return to Profile</a>
+                  </Button>
+                )}
 
                 {!isEnrollOnly && (
                   <Button
@@ -149,6 +167,7 @@ export function ActionsPanel({
                 className={`w-full shadow-lg ${isEnrollOnly ? "" : "col-span-2"}`}
                 size="lg"
                 onClick={onStartLiveness}
+                disabled={!canStart}
               >
                 Enroll my face
               </Button>
@@ -187,7 +206,7 @@ export function ActionsPanel({
               className="w-full"
               size="lg"
               onClick={onEnroll}
-              disabled={!canCapture}
+              disabled={!canCapture || isEnrolled}
             >
               {loadingAction === "enroll" ? (
                 <span className="flex items-center gap-2">
@@ -216,6 +235,11 @@ export function ActionsPanel({
                 "Enroll Face"
               )}
             </Button>
+            {isEnrollOnly && isEnrolled && (
+              <Button asChild variant="outline" className="w-full" size="lg">
+                <a href={returnUrl}>Return to Profile</a>
+              </Button>
+            )}
 
             {!isEnrollOnly && (
               <Button

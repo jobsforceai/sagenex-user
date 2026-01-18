@@ -44,7 +44,7 @@ export function FaceScanHero({
         {/* Face alignment hint */}
         {faceHint && (
           <div
-            className={`absolute right-3 top-3 z-10 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`absolute right-3 bottom-3 lg:top-3 lg:bottom-auto z-10 rounded-full border px-3 py-1.5 text-xs font-medium transition-all ${
               faceAligned
                 ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-100 animate-pulse"
                 : "border-amber-400/40 bg-amber-500/15 text-amber-100"

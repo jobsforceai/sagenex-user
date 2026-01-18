@@ -9,7 +9,6 @@ import { FaceScanHero } from "@/app/components/biometrics/FaceScanHero";
 import { LivenessPanel } from "@/app/components/biometrics/LivenessPanel";
 import { ActionsPanel } from "@/app/components/biometrics/ActionsPanel";
 import { DeviceSheet } from "@/app/components/biometrics/DeviceSheet";
-import { DebugDrawer } from "@/app/components/biometrics/DebugDrawer";
 
 const MODEL_PATH = "/models/face-api";
 const LIVENESS_STEPS = ["center", "left", "right"] as const;
@@ -27,10 +26,9 @@ function FaceTestContent() {
   const streamRef = useRef<MediaStream | null>(null);
   const faceApiRef = useRef<typeof import("face-api.js") | null>(null);
   const [lastEmbedding, setLastEmbedding] = useState<number[] | null>(null);
-  const [enrollResponse, setEnrollResponse] = useState<unknown>(null);
   const [enrollSuccess, setEnrollSuccess] = useState(false);
+  const [isEnrolled, setIsEnrolled] = useState(false);
   const [biometricsApproved, setBiometricsApproved] = useState(true);
-  const [verifyResponse, setVerifyResponse] = useState<unknown>(null);
   const [loadingAction, setLoadingAction] = useState<"enroll" | "verify" | null>(
     null
   );
@@ -61,6 +59,7 @@ function FaceTestContent() {
     try {
       const res = await getBiometricsStatus();
       if (!res?.error) {
+        setIsEnrolled(Boolean(res.enrolled));
         const approved = res.approved === undefined ? true : Boolean(res.approved);
         setBiometricsApproved(approved);
       }
@@ -400,14 +399,14 @@ function FaceTestContent() {
   const handleEnroll = async () => {
     setLoadingAction("enroll");
     setError(null);
+    if (isEnrolled) {
+      setLoadingAction(null);
+      setError("Face is already enrolled for this account.");
+      return;
+    }
     try {
       const embedding = await getEmbeddingFromVideo();
       const faceImageUrl = captureFaceSnapshot();
-      console.log("Enroll payload snapshot:", {
-        hasFaceImageUrl: Boolean(faceImageUrl),
-        urlcheck:faceImageUrl,
-        faceImageLength: faceImageUrl?.length ?? 0,
-      });
       setLastEmbedding(embedding);
       const res = await enrollFaceEmbedding({
         embedding,
@@ -415,10 +414,13 @@ function FaceTestContent() {
         faceImageUrl: faceImageUrl ?? undefined,
         meta: { note: "test enroll", capture: "webcam" },
       });
-      setEnrollResponse(res);
+      if (res?.error) {
+        setError(res.error);
+        return;
+      }
       setEnrollSuccess(Boolean(res?.embeddingId));
       await refreshBiometricsStatus();
-      if (isEnrollOnly && res?.embeddingId) {
+      if (res?.embeddingId) {
         router.push(nextUrl || "/profile");
       }
     } catch (err: any) {
@@ -440,7 +442,6 @@ function FaceTestContent() {
         livenessScore: 0.8,
         meta: { note: "test verify" },
       });
-      setVerifyResponse(res);
     } catch (err: any) {
       setError(err?.message || "Failed to verify face embedding.");
     } finally {
@@ -458,16 +459,12 @@ function FaceTestContent() {
     return "Turn Your Head Left";
   };
 
-  const handleStartLiveness = async () => {
+  const handleStartLiveness = () => {
     setError(null);
-    try {
-      await loadModels();
-      await ensureCamera();
-    } catch (err: any) {
-      setError(err?.message || "Failed to start camera for liveness.");
+    if (!modelsReady || !cameraReady) {
+      setError("Enable camera and load models before starting liveness.");
       return;
     }
-
     livenessRef.current = { stepIndex: 0, stableCount: 0, missCount: 0, logCount: 0 };
     setLivenessStepIndex(0);
     setYawDeg(null);
@@ -581,6 +578,7 @@ function FaceTestContent() {
               livenessStatus={livenessStatus}
               loadingAction={loadingAction}
               enrollSuccess={enrollSuccess}
+              isEnrolled={isEnrolled}
               biometricsApproved={biometricsApproved}
               nextUrl={nextUrl}
               modelsReady={modelsReady}
@@ -590,10 +588,6 @@ function FaceTestContent() {
               onStartLiveness={handleStartLiveness}
             />
 
-            <DebugDrawer
-              enrollResponse={enrollResponse}
-              verifyResponse={verifyResponse}
-            />
           </div>
         </div>
       </main>
