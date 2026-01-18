@@ -107,6 +107,11 @@ export default function KycPage() {
         ID_FRONT: null,
         ID_BACK: null,
     });
+    // For legal agreement, we need 2 pages
+    const [legalPage1, setLegalPage1] = useState<{ dataUrl: string; blob: Blob } | null>(null);
+    const [legalPage2, setLegalPage2] = useState<{ dataUrl: string; blob: Blob } | null>(null);
+    const [currentLegalPage, setCurrentLegalPage] = useState<1 | 2>(1);
+    
     const [uploading, setUploading] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [message, setMessage] = useState<string | null>(null);
@@ -289,7 +294,7 @@ export default function KycPage() {
     const hasBack = isDocUploaded(kycStatus, 'ID_BACK');
 
     // Check if documents are captured (not yet uploaded)
-    const hasLegalCaptured = capturedImages.LEGAL_AGREEMENT !== null;
+    const hasLegalCaptured = legalPage1 !== null && legalPage2 !== null;
     const hasFrontCaptured = capturedImages.ID_FRONT !== null;
     const hasBackCaptured = capturedImages.ID_BACK !== null;
 
@@ -315,7 +320,11 @@ export default function KycPage() {
     };
 
     const currentDoc = currentDocType ? docMeta[currentDocType] : null;
-    const currentDocCaptured = currentDocType ? capturedImages[currentDocType] !== null : false;
+    const currentDocCaptured = currentDocType 
+        ? (currentDocType === 'LEGAL_AGREEMENT' 
+            ? (currentLegalPage === 1 ? legalPage1 !== null : legalPage2 !== null)
+            : capturedImages[currentDocType] !== null)
+        : false;
     const currentDocFaceRequired = currentDocType ? FACE_REQUIRED_DOCS.has(currentDocType) : false;
     const faceBlocked = currentDocFaceRequired && !faceVerificationId;
 
@@ -357,22 +366,50 @@ export default function KycPage() {
         const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
         const blob = await (await fetch(dataUrl)).blob();
 
-        // Save captured image locally for preview
-        setCapturedImages((prev) => ({ ...prev, [docType]: { dataUrl, blob } }));
-        setPreviews((prev) => ({ ...prev, [docType]: dataUrl }));
+        // For legal agreement, handle 2 pages
+        if (docType === 'LEGAL_AGREEMENT') {
+            if (currentLegalPage === 1) {
+                setLegalPage1({ dataUrl, blob });
+            } else {
+                setLegalPage2({ dataUrl, blob });
+            }
+        } else {
+            // For ID documents, save normally
+            setCapturedImages((prev) => ({ ...prev, [docType]: { dataUrl, blob } }));
+            setPreviews((prev) => ({ ...prev, [docType]: dataUrl }));
+        }
         stopCaptureCamera();
     };
 
     const confirmCapture = (docType: string) => {
-        setCaptureOpen(false);
-        // Image is already saved in capturedImages, just close the capture panel
+        if (docType === 'LEGAL_AGREEMENT') {
+            if (currentLegalPage === 1 && legalPage1) {
+                // Move to page 2
+                setCurrentLegalPage(2);
+                setCaptureOpen(false);
+            } else if (currentLegalPage === 2 && legalPage2) {
+                // Both pages captured, mark as complete
+                setCapturedImages((prev) => ({ ...prev, LEGAL_AGREEMENT: { dataUrl: legalPage1!.dataUrl, blob: legalPage1!.blob } }));
+                setCaptureOpen(false);
+            }
+        } else {
+            setCaptureOpen(false);
+            // Image is already saved in capturedImages
+        }
     };
 
     const retakeCapture = (docType: string) => {
-        setCapturedImages((prev) => ({ ...prev, [docType]: null }));
-        setPreviews((prev) => ({ ...prev, [docType]: null }));
+        if (docType === 'LEGAL_AGREEMENT') {
+            if (currentLegalPage === 1) {
+                setLegalPage1(null);
+            } else {
+                setLegalPage2(null);
+            }
+        } else {
+            setCapturedImages((prev) => ({ ...prev, [docType]: null }));
+            setPreviews((prev) => ({ ...prev, [docType]: null }));
+        }
         setCaptureOpen(false);
-        // User can click "Capture Scan" again to retake
     };
 
     async function handleFinalSubmit(e: React.FormEvent) {
@@ -381,19 +418,60 @@ export default function KycPage() {
         setMessage(null);
 
         try {
+            // Check if we have both legal pages
+            if (!legalPage1 || !legalPage2) {
+                setMessage('Please capture both pages of the legal agreement');
+                setSubmitting(false);
+                return;
+            }
+
             // Upload all captured documents
             const docTypes = ['LEGAL_AGREEMENT', 'ID_FRONT', 'ID_BACK'];
 
             for (const docType of docTypes) {
-                const captured = capturedImages[docType];
-                if (!captured) {
-                    setMessage(`Please capture ${docMeta[docType].label}`);
-                    setSubmitting(false);
-                    return;
+                const formData = new FormData();
+
+                if (docType === 'LEGAL_AGREEMENT') {
+                    // Import jsPDF dynamically
+                    const { jsPDF } = await import('jspdf');
+                    
+                    // Create PDF with 2 pages
+                    const pdf = new jsPDF({
+                        orientation: 'portrait',
+                        unit: 'px',
+                        format: 'a4'
+                    });
+
+                    // Add first page
+                    const img1 = document.createElement('img');
+                    img1.src = legalPage1.dataUrl;
+                    await new Promise((resolve) => { img1.onload = resolve; });
+                    
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    pdf.addImage(img1, 'JPEG', 0, 0, pageWidth, pageHeight);
+
+                    // Add second page
+                    pdf.addPage();
+                    const img2 = document.createElement('img');
+                    img2.src = legalPage2.dataUrl;
+                    await new Promise((resolve) => { img2.onload = resolve; });
+                    pdf.addImage(img2, 'JPEG', 0, 0, pageWidth, pageHeight);
+
+                    // Convert PDF to blob
+                    const pdfBlob = pdf.output('blob');
+                    formData.append("document", pdfBlob, `LEGAL_AGREEMENT.pdf`);
+                } else {
+                    // For ID documents, use the captured image
+                    const captured = capturedImages[docType];
+                    if (!captured) {
+                        setMessage(`Please capture ${docMeta[docType].label}`);
+                        setSubmitting(false);
+                        return;
+                    }
+                    formData.append("document", captured.blob, `${docType}.jpg`);
                 }
 
-                const formData = new FormData();
-                formData.append("document", captured.blob, `${docType}.jpg`);
                 formData.append("docType", docType);
                 if (FACE_REQUIRED_DOCS.has(docType) && faceVerificationId) {
                     formData.append("faceVerificationId", faceVerificationId);
@@ -507,7 +585,14 @@ export default function KycPage() {
                                 {currentStep >= 1 && currentStep <= 3 && currentDocType && (
                                     <Card className="bg-black/30 border border-gray-800">
                                         <CardHeader>
-                                            <CardTitle>{`Step ${currentStep}: ${docMeta[currentDocType].label}`}</CardTitle>
+                                            <CardTitle>
+                                                {`Step ${currentStep}: ${docMeta[currentDocType].label}`}
+                                                {currentDocType === 'LEGAL_AGREEMENT' && (
+                                                    <span className="text-sm text-gray-400 ml-2">
+                                                        (Page {currentLegalPage} of 2)
+                                                    </span>
+                                                )}
+                                            </CardTitle>
                                             <p className="text-sm text-gray-400">{docMeta[currentDocType].description}</p>
                                         </CardHeader>
                                         <CardContent className="space-y-4">
@@ -529,17 +614,40 @@ export default function KycPage() {
 
                                             <div className="rounded-xl border border-gray-800/80 bg-black/20 p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                                                 <div className="flex items-center gap-4">
-                                                    <div className="w-24 h-20 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
-                                                        {previews[currentDocType] ? (
-                                                            <Image src={previews[currentDocType] as string} alt="preview" layout="fill" objectFit="cover" />
-                                                        ) : (
-                                                            <div className="text-xs text-gray-400 text-center px-2">No snapshot</div>
-                                                        )}
-                                                    </div>
+                                                    {currentDocType === 'LEGAL_AGREEMENT' ? (
+                                                        // Show both legal pages if applicable
+                                                        <div className="flex gap-2">
+                                                            <div className="w-24 h-20 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
+                                                                {legalPage1 ? (
+                                                                    <Image src={legalPage1.dataUrl} alt="page 1" layout="fill" objectFit="cover" />
+                                                                ) : (
+                                                                    <div className="text-xs text-gray-400 text-center px-2">Page 1</div>
+                                                                )}
+                                                            </div>
+                                                            <div className="w-24 h-20 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
+                                                                {legalPage2 ? (
+                                                                    <Image src={legalPage2.dataUrl} alt="page 2" layout="fill" objectFit="cover" />
+                                                                ) : (
+                                                                    <div className="text-xs text-gray-400 text-center px-2">Page 2</div>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    ) : (
+                                                        <div className="w-24 h-20 rounded-lg bg-gray-800/80 flex items-center justify-center overflow-hidden relative">
+                                                            {previews[currentDocType] ? (
+                                                                <Image src={previews[currentDocType] as string} alt="preview" layout="fill" objectFit="cover" />
+                                                            ) : (
+                                                                <div className="text-xs text-gray-400 text-center px-2">No snapshot</div>
+                                                            )}
+                                                        </div>
+                                                    )}
                                                     <div>
                                                         <p className="text-sm font-semibold text-gray-200">{docMeta[currentDocType].label}</p>
                                                         <p className="text-xs text-gray-500">
-                                                            {currentDocCaptured ? "Captured - ready to submit" : "Ready to scan"}
+                                                            {currentDocType === 'LEGAL_AGREEMENT' 
+                                                                ? (legalPage1 && legalPage2 ? "Both pages captured" : `Capturing page ${currentLegalPage}`)
+                                                                : (currentDocCaptured ? "Captured - ready to submit" : "Ready to scan")
+                                                            }
                                                         </p>
                                                     </div>
                                                 </div>
@@ -564,6 +672,13 @@ export default function KycPage() {
 
                                             {captureOpen && !currentDocCaptured && (
                                                 <div className="rounded-xl border border-gray-800/80 bg-black/30 p-2 sm:p-4 space-y-3 sm:space-y-4">
+                                                    {currentDocType === 'LEGAL_AGREEMENT' && (
+                                                        <div className="bg-emerald-900/30 border border-emerald-700/50 rounded-lg p-3 text-center">
+                                                            <p className="text-sm text-emerald-200 font-semibold">
+                                                                Capturing Page {currentLegalPage} of 2
+                                                            </p>
+                                                        </div>
+                                                    )}
                                                     <div className="relative w-full sm:max-w-md mx-auto" style={{ aspectRatio: '9/16' }}>
                                                         <div className="overflow-hidden rounded-lg border border-gray-800 bg-black h-full">
                                                             <video
@@ -635,16 +750,23 @@ export default function KycPage() {
                                                 </div>
                                             )}
 
-                                            {currentDocCaptured && previews[currentDocType] && (
+                                            {currentDocCaptured && (
                                                 <div className="rounded-xl border border-emerald-700/50 bg-emerald-900/20 p-3 sm:p-4 space-y-3 sm:space-y-4">
                                                     <div className="space-y-1 sm:space-y-2">
-                                                        <h4 className="text-sm sm:text-base font-semibold text-emerald-200">Preview captured image</h4>
+                                                        <h4 className="text-sm sm:text-base font-semibold text-emerald-200">
+                                                            Preview captured image
+                                                            {currentDocType === 'LEGAL_AGREEMENT' && ` - Page ${currentLegalPage}`}
+                                                        </h4>
                                                         <p className="text-xs text-emerald-200/80">Review your scan before continuing</p>
                                                     </div>
 
                                                     <div className="relative w-full sm:max-w-md mx-auto rounded-lg overflow-hidden border-2 border-emerald-500/30" style={{ aspectRatio: '9/16' }}>
                                                         <Image
-                                                            src={previews[currentDocType] as string}
+                                                            src={
+                                                                currentDocType === 'LEGAL_AGREEMENT'
+                                                                    ? (currentLegalPage === 1 ? legalPage1?.dataUrl : legalPage2?.dataUrl) || ''
+                                                                    : (previews[currentDocType] as string)
+                                                            }
                                                             alt="Captured preview"
                                                             layout="fill"
                                                             objectFit="contain"
@@ -661,6 +783,24 @@ export default function KycPage() {
                                                         >
                                                             Retake
                                                         </Button>
+                                                        {currentDocType === 'LEGAL_AGREEMENT' && currentLegalPage === 1 && legalPage1 && (
+                                                            <Button
+                                                                type="button"
+                                                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 font-semibold"
+                                                                onClick={() => confirmCapture(currentDocType)}
+                                                            >
+                                                                Continue to Page 2
+                                                            </Button>
+                                                        )}
+                                                        {currentDocType === 'LEGAL_AGREEMENT' && currentLegalPage === 2 && legalPage2 && (
+                                                            <Button
+                                                                type="button"
+                                                                className="w-full bg-emerald-600 hover:bg-emerald-500 text-white py-3 font-semibold"
+                                                                onClick={() => confirmCapture(currentDocType)}
+                                                            >
+                                                                Confirm Both Pages
+                                                            </Button>
+                                                        )}
                                                     </div>
                                                 </div>
                                             )}
