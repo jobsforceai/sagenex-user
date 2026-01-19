@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, Suspense } from "react";
+import React, { useState, useEffect, Suspense, useRef } from "react";
 import { useSearchParams } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
 import {
@@ -16,7 +16,7 @@ import { registerUser, loginOtp, verifyEmail, login, verifyEmailOtp, passwordSta
 import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2 } from "lucide-react";
 import Image from "next/image";
 
-type View = "identify" | "main" | "email-login" | "email-signup" | "otp" | "password-login" | "nominee-login";
+type View = "identify" | "main" | "email-login" | "email-signup" | "otp" | "password-login" | "nominee-login" | "face-stepup";
 
 type AuthResponse = {
   token: string;
@@ -32,12 +32,23 @@ type AuthResponse = {
 function Login() {
   const { login: authLogin } = useAuth();
   const searchParams = useSearchParams();
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+  const faceApiRef = useRef<typeof import("face-api.js") | null>(null);
+  const MODEL_PATH = "/models/face-api";
+  const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
   
   const [view, setView] = useState<View>("identify");
   const [previousView, setPreviousView] = useState<View>("identify");
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [pendingAuth, setPendingAuth] = useState<AuthResponse | null>(null);
+  const [faceError, setFaceError] = useState<string | null>(null);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [modelsReady, setModelsReady] = useState(false);
+  const [cameraReady, setCameraReady] = useState(false);
+  const [verifyingFace, setVerifyingFace] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
   const [hasPasswordSet, setHasPasswordSet] = useState<boolean | null>(null);
   const [passwordStatusEmail, setPasswordStatusEmail] = useState<string | null>(null);
@@ -60,6 +71,23 @@ function Login() {
       setSponsorId(ref);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    return () => {
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (view !== "face-stepup" && streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+      streamRef.current = null;
+      setCameraReady(false);
+    }
+  }, [view]);
 
   useEffect(() => {
     const verify = searchParams.get("verify");
@@ -106,6 +134,179 @@ function Login() {
     }
 
     return data;
+  };
+
+  const fetchBiometricsStatus = async (token: string) => {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/status`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const responseText = await res.text();
+    try {
+      return JSON.parse(responseText);
+    } catch {
+      return { error: "Invalid biometrics status response." };
+    }
+  };
+
+  const verifyFaceEmbedding = async (token: string, embedding: number[]) => {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/verify`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ embedding, purpose: "LOGIN" }),
+    });
+    const responseText = await res.text();
+    try {
+      return JSON.parse(responseText);
+    } catch {
+      return { error: "Invalid face verification response." };
+    }
+  };
+
+  const logBiometricsBypass = async (token: string, reason: string) => {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/bypass`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ reason }),
+    });
+    const responseText = await res.text();
+    try {
+      return JSON.parse(responseText);
+    } catch {
+      return { error: "Invalid bypass response." };
+    }
+  };
+
+  const handleAuthSuccess = async (data: AuthResponse) => {
+    const resolvedData = await resolvePasswordStatus(data);
+    const token = resolvedData.token;
+    const status = await fetchBiometricsStatus(token);
+    if (status?.approved === true) {
+      setPendingAuth(resolvedData);
+      setFaceError(null);
+      setCameraError(null);
+      changeView("face-stepup");
+      return;
+    }
+    authLogin(resolvedData);
+  };
+
+  const loadFaceModels = async () => {
+    if (modelsReady) return;
+    const faceapi = await import("face-api.js");
+    faceApiRef.current = faceapi;
+    await Promise.all([
+      faceapi.nets.tinyFaceDetector.loadFromUri(MODEL_PATH),
+      faceapi.nets.faceLandmark68Net.loadFromUri(MODEL_PATH),
+      faceapi.nets.faceRecognitionNet.loadFromUri(MODEL_PATH),
+    ]);
+    setModelsReady(true);
+  };
+
+  const startCamera = async () => {
+    setCameraError(null);
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setCameraError("Camera access is not supported in this browser.");
+      return;
+    }
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach((track) => track.stop());
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 1280 },
+          height: { ideal: 720 },
+        },
+        audio: false,
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await new Promise<void>((resolve) => {
+          if (!videoRef.current) return resolve();
+          videoRef.current.onloadedmetadata = () => resolve();
+        });
+        await videoRef.current.play();
+        setCameraReady(true);
+      }
+    } catch (err: any) {
+      const name = err?.name || "UnknownError";
+      const rawMessage = err?.message || "Failed to start camera.";
+      const msg =
+        name === "NotAllowedError" || name === "PermissionDeniedError"
+          ? "Camera permission denied. Please allow camera access in your browser settings."
+          : name === "NotFoundError"
+          ? "No camera device found. Connect a camera and try again."
+          : name === "NotReadableError"
+          ? "Camera is in use by another app. Close other apps and retry."
+          : name === "OverconstrainedError"
+          ? "Camera constraints are not supported. Try a different camera."
+          : name === "SecurityError"
+          ? "Camera access blocked. Use HTTPS or localhost."
+          : rawMessage;
+      console.error("Camera start failed:", { name, rawMessage });
+      setCameraError(`${msg} (${name})`);
+    }
+  };
+
+  const handleFaceVerify = async () => {
+    if (!pendingAuth) return;
+    setFaceError(null);
+    setVerifyingFace(true);
+    try {
+      await loadFaceModels();
+      if (!cameraReady) {
+        await startCamera();
+      }
+      const faceapi = faceApiRef.current;
+      const video = videoRef.current;
+      if (!faceapi || !video) {
+        throw new Error("Face detection not ready.");
+      }
+      const detection = await faceapi
+        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .withFaceLandmarks()
+        .withFaceDescriptor();
+      if (!detection) {
+        throw new Error("No face detected. Please look at the camera and try again.");
+      }
+      const embedding = Array.from(detection.descriptor);
+      const result = await verifyFaceEmbedding(pendingAuth.token, embedding);
+      if (result?.error) {
+        setFaceError(result.error);
+        return;
+      }
+      if (result?.passed) {
+        authLogin(pendingAuth);
+        return;
+      }
+      setFaceError("Face verification failed. Please try again.");
+    } catch (err: any) {
+      setFaceError(err?.message || "Face verification failed.");
+    } finally {
+      setVerifyingFace(false);
+    }
+  };
+
+  const handleFaceBypass = async () => {
+    if (!pendingAuth) return;
+    setFaceError(null);
+    const reason = "camera_permission_denied";
+    const result = await logBiometricsBypass(pendingAuth.token, reason);
+    if (result?.error) {
+      setFaceError(result.error);
+      return;
+    }
+    authLogin(pendingAuth);
   };
 
   const isAuthResponse = (data: unknown): data is AuthResponse => {
@@ -256,8 +457,7 @@ function Login() {
       } else if (!isAuthResponse(data)) {
         setError("An unexpected response was returned. Please try again.");
       } else {
-        const resolvedData = await resolvePasswordStatus(data);
-        authLogin(resolvedData);
+        await handleAuthSuccess(data);
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -285,8 +485,7 @@ function Login() {
         } else if (!isAuthResponse(data)) {
             setError("An unexpected response was returned. Please try again.");
         } else {
-            const resolvedData = await resolvePasswordStatus(data);
-            authLogin(resolvedData);
+            await handleAuthSuccess(data);
         }
     } catch (err) {
         setError(err instanceof Error ? err.message : "An unknown error occurred.");
@@ -499,6 +698,76 @@ function Login() {
     </form>
   );
 
+  const renderFaceStepUpView = () => (
+    <div className="space-y-4">
+      <div className="text-center space-y-2">
+        <h2 className="text-lg font-semibold text-white">Face verification required</h2>
+        <p className="text-sm text-gray-400">
+          Please verify your face to complete login.
+        </p>
+      </div>
+      <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-black">
+        <div className="relative w-full h-[50vh] min-h-[320px]">
+          <video
+            ref={videoRef}
+            className="absolute inset-0 h-full w-full object-cover"
+            autoPlay
+            muted
+            playsInline
+          />
+          {!cameraReady && (
+            <div className="absolute inset-0 flex items-center justify-center bg-black/70 text-sm text-gray-300">
+              Camera not started
+            </div>
+          )}
+        </div>
+      </div>
+      {(faceError || cameraError) && (
+        <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
+          {faceError || cameraError}
+        </div>
+      )}
+      <div className="grid gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full border-gray-700 text-gray-200 hover:bg-gray-900"
+          onClick={() => {
+            setCameraError(null);
+            loadFaceModels()
+              .then(startCamera)
+              .catch((err: any) => setCameraError(err?.message || "Failed to start camera."));
+          }}
+          disabled={cameraReady}
+        >
+          {cameraReady ? "Camera Ready" : "Enable Camera"}
+        </Button>
+        <Button
+          type="button"
+          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={handleFaceVerify}
+          disabled={verifyingFace}
+        >
+          {verifyingFace ? "Verifying..." : "Verify Face"}
+        </Button>
+      </div>
+      <div className="rounded-lg border border-gray-800 bg-black/40 px-4 py-3 text-xs text-gray-300">
+        <p className="font-semibold text-gray-200">Camera not working?</p>
+        <p className="mt-1 text-gray-400">
+          No worries. You can continue to login and we’ll log a camera bypass for now.
+        </p>
+        <Button
+          type="button"
+          variant="ghost"
+          className="mt-2 w-full justify-center text-gray-300 hover:text-white hover:bg-gray-900/60"
+          onClick={handleFaceBypass}
+        >
+          Continue without camera
+        </Button>
+      </div>
+    </div>
+  );
+
   const renderEmailSignUpView = () => (
     <form onSubmit={handleSignUpSubmit} className="space-y-4">
         <div className="relative">
@@ -601,6 +870,11 @@ function Login() {
         description = `We sent a 6-digit code to ${email}.`;
         form = renderOtpView();
         break;
+      case "face-stepup":
+        title = "Step-Up Verification";
+        description = "Complete face verification to finish signing in.";
+        form = renderFaceStepUpView();
+        break;
       case "main":
       default:
         title = "Welcome to Sagenex";
@@ -629,7 +903,7 @@ function Login() {
                       <User className="h-4 w-4" /> Nominee Access
                     </Button>
                 )}
-                {(view !== 'identify') && (
+                {(view !== 'identify' && view !== "face-stepup") && (
                     <p className="text-center text-sm text-gray-400">
                         <Button variant="link" className="p-0 flex items-center gap-2" onClick={handleBack} disabled={isLoading}>
                             <ArrowLeft className="h-4 w-4" /> Back
