@@ -13,6 +13,8 @@ interface CountdownTimerProps {
   deadline: string | null | undefined;
 }
 
+const QUALIFICATION_WINDOW_DAYS = 120;
+
 const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
   const calculateTimeLeft = () => {
     if (!deadline) return null;
@@ -32,7 +34,8 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
     if (!deadline) return 0;
     const now = Date.now();
     const end = new Date(deadline).getTime();
-    const start = end - 60 * 24 * 60 * 60 * 1000;
+    if (Number.isNaN(end)) return 0;
+    const start = end - QUALIFICATION_WINDOW_DAYS * 24 * 60 * 60 * 1000;
     if (now >= end) return 100;
     if (now <= start) return 0;
 
@@ -76,7 +79,7 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
                     <TooltipContent className="max-w-xs bg-gray-800 text-white border-gray-700 p-4 rounded-lg shadow-lg">
                         <h4 className="font-bold text-lg mb-2">How this works:</h4>
                         <p className="text-sm">
-                            You have a fixed 60-day window to qualify for higher multipliers.
+                            You have a fixed {QUALIFICATION_WINDOW_DAYS}-day window to qualify for higher multipliers.
                         </p>
                         <ul className="list-disc list-inside mt-2 text-xs space-y-1">
                             <li>3.0x: 6 direct active members + $5,000 team business.</li>
