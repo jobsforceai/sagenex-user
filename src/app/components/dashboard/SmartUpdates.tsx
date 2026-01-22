@@ -71,51 +71,58 @@ const SmartUpdates = () => {
       <CardHeader>
         <CardTitle>Smart Updates</CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4 max-h-72 overflow-y-auto pr-2">
+      <CardContent className="max-h-72 overflow-y-auto pr-2">
         {loading && <p className="text-sm text-muted-foreground">Loading updates...</p>}
         {error && <p className="text-sm text-red-300">{error}</p>}
         {!loading && !error && updates.length === 0 && (
           <p className="text-sm text-muted-foreground">No updates yet.</p>
         )}
-        {updates.map((update) => (
-          <div key={update._id} className="flex items-start gap-3">
-            <div className="rounded-full bg-yellow-500/20 p-2">
-              <Crown className="h-4 w-4 text-yellow-400" />
+        {updates.map((update, index) => (
+          <div
+            key={update._id}
+            className={`flex gap-4 py-4 ${index === 0 ? "pt-0" : ""} border-b border-white/10 last:border-0`}
+          >
+            <div className="mt-0.5 h-10 w-10 shrink-0 rounded-xl border border-amber-400/30 bg-amber-400/10 flex items-center justify-center">
+              <Crown className="h-4 w-4 text-amber-300" />
             </div>
-            <div className="space-y-1">
-              <div className="flex flex-wrap items-center gap-2">
-                <span
-                  className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${themeStyles[update.theme].badge}`}
-                >
-                  {update.theme}
-                </span>
-                <p className="text-xs text-muted-foreground">
-                  {formatTime(update.createdAt)}
-                </p>
-              </div>
-              <p className="font-semibold text-white">{update.title}</p>
-              <p className="text-sm text-white/70">{update.body}</p>
-              {update.ctaLabel && update.ctaUrl && (
-                <div className="pt-1">
-                  {isExternal(update.ctaUrl) ? (
-                    <a
-                      href={update.ctaUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className={`inline-flex rounded-lg px-3 py-1 text-xs font-semibold ${themeStyles[update.theme].button}`}
-                    >
-                      {update.ctaLabel}
-                    </a>
-                  ) : (
-                    <Link
-                      href={update.ctaUrl}
-                      className={`inline-flex rounded-lg px-3 py-1 text-xs font-semibold ${themeStyles[update.theme].button}`}
-                    >
-                      {update.ctaLabel}
-                    </Link>
-                  )}
+            <div className="flex-1 space-y-2">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span
+                    className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.2em] ${themeStyles[update.theme].badge}`}
+                  >
+                    {update.theme}
+                  </span>
+                  <p className="text-xs text-white/50">
+                    {formatTime(update.createdAt)}
+                  </p>
                 </div>
-              )}
+                {update.ctaLabel && update.ctaUrl && (
+                  <div className="shrink-0">
+                    {isExternal(update.ctaUrl) ? (
+                      <a
+                        href={update.ctaUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold ${themeStyles[update.theme].button} shadow-sm shadow-black/20`}
+                      >
+                        {update.ctaLabel}
+                      </a>
+                    ) : (
+                      <Link
+                        href={update.ctaUrl}
+                        className={`inline-flex items-center rounded-full px-4 py-1.5 text-xs font-semibold ${themeStyles[update.theme].button} shadow-sm shadow-black/20`}
+                      >
+                        {update.ctaLabel}
+                      </Link>
+                    )}
+                  </div>
+                )}
+              </div>
+              <div className="space-y-1">
+                <p className="text-sm font-semibold text-white">{update.title}</p>
+                <p className="text-sm text-white/70">{update.body}</p>
+              </div>
             </div>
           </div>
         ))}
