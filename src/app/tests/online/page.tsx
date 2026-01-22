@@ -810,7 +810,8 @@ export default function OnlineTestsPage() {
   const currentIndex = question?.index || 1;
   const completedCount = totalQuestions ? Math.min(currentIndex, totalQuestions) : 0;
   const remainingCount = totalQuestions ? Math.max(totalQuestions - completedCount, 0) : 0;
-  const attemptedCount = attempt?.answeredCount ?? Math.max(currentIndex - 1, 0);
+  const answeredCount = attempt?.answeredCount ?? 0;
+  const attemptedCount = Math.max(answeredCount, Math.max(currentIndex - 1, 0));
   const remainingBeforeEnd = totalQuestions ? Math.max(totalQuestions - attemptedCount, 0) : 0;
   const progressPercent = totalQuestions
     ? Math.min(Math.round((completedCount / totalQuestions) * 100), 100)
