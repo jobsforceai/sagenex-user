@@ -74,9 +74,11 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
         const updates: UserUpdate[] = res?.updates || [];
 
         const filtered = updates.filter((u) => {
+          if (u.type === "MODAL") {
+            return !localStorage.getItem(`update-done:${u._id}`);
+          }
           if (!u.showOnce) return true;
-          const key = `update-dismissed:${u._id}`;
-          return !localStorage.getItem(key);
+          return !localStorage.getItem(`update-dismissed:${u._id}`);
         });
 
         if (!cancelled) {
@@ -109,9 +111,26 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
     onModalChange?.(Boolean(activeModal));
   }, [activeModal, onModalChange]);
 
-  const dismissUpdate = (update: UserUpdate) => {
+  const dismissBanner = (update: UserUpdate) => {
     if (update.showOnce) localStorage.setItem(`update-dismissed:${update._id}`, "true");
     setUserUpdates((prev) => prev.filter((item) => item._id !== update._id));
+  };
+
+  const closeModal = (update: UserUpdate) => {
+    setUserUpdates((prev) => prev.filter((item) => item._id !== update._id));
+  };
+
+  const markUpdateDone = (update: UserUpdate) => {
+    localStorage.setItem(`update-done:${update._id}`, "true");
+    setUserUpdates((prev) => prev.filter((item) => item._id !== update._id));
+  };
+
+  const dismissAfterCta = (update: UserUpdate) => {
+    localStorage.setItem(`update-done:${update._id}`, "true");
+    // Defer removal so the current CTA href is used for navigation.
+    setTimeout(() => {
+      setUserUpdates((prev) => prev.filter((item) => item._id !== update._id));
+    }, 0);
   };
 
   const renderCta = (update: UserUpdate, className: string) => {
@@ -119,7 +138,7 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
 
     const common = {
       className: `rounded-lg px-4 py-2 text-sm font-semibold ${className}`,
-      onClick: () => dismissUpdate(update),
+      onClick: () => dismissAfterCta(update),
     };
 
     if (isExternal(update.ctaUrl)) {
@@ -160,7 +179,7 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
             {update.dismissible !== false && (
               <button
                 type="button"
-                onClick={() => dismissUpdate(update)}
+                onClick={() => dismissBanner(update)}
                 className="text-xs text-white/70 hover:text-white"
               >
                 Dismiss
@@ -188,7 +207,7 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
           {activeModal.dismissible !== false && (
             <button
               type="button"
-              onClick={() => dismissUpdate(activeModal)}
+              onClick={() => closeModal(activeModal)}
               className="rounded-full border border-white/10 p-2 text-white/70 hover:text-white"
               aria-label="Close"
             >
@@ -213,10 +232,10 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
           {activeModal.dismissible !== false && (
             <button
               type="button"
-              onClick={() => dismissUpdate(activeModal)}
+              onClick={() => markUpdateDone(activeModal)}
               className="rounded-lg border border-white/10 px-4 py-2 text-sm text-white/80 hover:border-white/30 hover:text-white"
             >
-              Maybe later
+              Already done
             </button>
           )}
         </div>
