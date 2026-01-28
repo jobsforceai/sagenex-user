@@ -377,22 +377,34 @@ function FaceTestContent() {
     if (detections.length > 1) {
       throw new Error("Multiple faces detected. Please keep only one face in frame.");
     }
-    return Array.from(detections[0].descriptor).map((value) =>
+    const embedding = Array.from(detections[0].descriptor).map((value) =>
       Number(value.toFixed(6))
     );
+    return { embedding, detection: detections[0] };
   };
 
-  const captureFaceSnapshot = () => {
+  const captureFaceSnapshot = (detection?: { detection?: { box?: { x: number; y: number; width: number; height: number } } }) => {
     const video = videoRef.current;
     if (!video || video.videoWidth === 0 || video.videoHeight === 0) return null;
+    const box = detection?.detection?.box;
+    if (!box) return null;
+    const padding = 0.2;
+    const padX = box.width * padding;
+    const padY = box.height * padding;
+    const sx = Math.max(0, Math.floor(box.x - padX));
+    const sy = Math.max(0, Math.floor(box.y - padY));
+    const sw = Math.min(video.videoWidth - sx, Math.ceil(box.width + padX * 2));
+    const sh = Math.min(video.videoHeight - sy, Math.ceil(box.height + padY * 2));
+    if (sw <= 0 || sh <= 0) return null;
+
     const targetWidth = 360;
-    const scale = targetWidth / video.videoWidth;
+    const scale = targetWidth / sw;
     const canvas = document.createElement("canvas");
     canvas.width = targetWidth;
-    canvas.height = Math.round(video.videoHeight * scale);
+    canvas.height = Math.round(sh * scale);
     const ctx = canvas.getContext("2d");
     if (!ctx) return null;
-    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    ctx.drawImage(video, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
     return canvas.toDataURL("image/jpeg", 0.7);
   };
 
@@ -405,8 +417,8 @@ function FaceTestContent() {
       return;
     }
     try {
-      const embedding = await getEmbeddingFromVideo();
-      const faceImageUrl = captureFaceSnapshot();
+      const { embedding, detection } = await getEmbeddingFromVideo();
+      const faceImageUrl = captureFaceSnapshot(detection);
       setLastEmbedding(embedding);
       const res = await enrollFaceEmbedding({
         embedding,
@@ -434,7 +446,7 @@ function FaceTestContent() {
     setLoadingAction("verify");
     setError(null);
     try {
-      const embedding = await getEmbeddingFromVideo();
+      const { embedding } = await getEmbeddingFromVideo();
       setLastEmbedding(embedding);
       const res = await verifyFaceEmbedding({
         embedding,
