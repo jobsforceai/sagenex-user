@@ -36,9 +36,48 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     const [faceEnrolled, setFaceEnrolled] = useState(false);
     const [faceVerificationId, setFaceVerificationId] = useState<string | null>(null);
     const [faceApproved, setFaceApproved] = useState(true);
+    const [transferIdempotencyKey, setTransferIdempotencyKey] = useState<string | null>(null);
+    const [transferCooldown, setTransferCooldown] = useState(0);
     
     const dropdownRef = useRef<HTMLDivElement>(null);
     const otpTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const transferTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+    const TRANSFER_LOCK_KEY = 'transferLock';
+    const TRANSFER_LOCK_MS = 120000;
+
+    const getTransferFingerprint = () => {
+        if (!selectedRecipient) return null;
+        return `${selectedRecipient.userId}|${numericAmount}|${transferType}`;
+    };
+
+    const generateIdempotencyKey = () => {
+        if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+            return crypto.randomUUID();
+        }
+        return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 14)}`;
+    };
+
+    const getTransferLock = () => {
+        try {
+            const raw = localStorage.getItem(TRANSFER_LOCK_KEY);
+            if (!raw) return null;
+            const parsed = JSON.parse(raw) as { key: string; expiresAt: number };
+            if (!parsed?.expiresAt || Date.now() > parsed.expiresAt) {
+                localStorage.removeItem(TRANSFER_LOCK_KEY);
+                return null;
+            }
+            return parsed;
+        } catch {
+            localStorage.removeItem(TRANSFER_LOCK_KEY);
+            return null;
+        }
+    };
+
+    const setTransferLock = (key: string) => {
+        const payload = { key, expiresAt: Date.now() + TRANSFER_LOCK_MS };
+        localStorage.setItem(TRANSFER_LOCK_KEY, JSON.stringify(payload));
+    };
 
     const numericAmount = useMemo(() => parseFloat(amount) || 0, [amount]);
     const minPackageAmount = 50;
@@ -103,6 +142,25 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     }, [otpCooldown]);
 
     useEffect(() => {
+        const updateCooldown = () => {
+            const lock = getTransferLock();
+            if (!lock) {
+                setTransferCooldown(0);
+                return;
+            }
+            const remaining = Math.max(0, Math.ceil((lock.expiresAt - Date.now()) / 1000));
+            setTransferCooldown(remaining);
+        };
+        updateCooldown();
+        transferTimerRef.current = setInterval(updateCooldown, 1000);
+        return () => {
+            if (transferTimerRef.current) {
+                clearInterval(transferTimerRef.current);
+            }
+        };
+    }, []);
+
+    useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
             if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
                 setIsDropdownVisible(false);
@@ -158,6 +216,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
         } else {
             setVerificationMethod('otp');
         }
+        setTransferIdempotencyKey(generateIdempotencyKey());
         setStep(2);
     };
 
@@ -181,6 +240,12 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
 
     const handleExecuteTransfer = async (e: React.FormEvent) => {
         e.preventDefault();
+        const transferKey = getTransferFingerprint();
+        const existingLock = getTransferLock();
+        if (transferKey && existingLock?.key === transferKey) {
+            toast.error('Transfer already in progress. Please wait a few seconds.');
+            return;
+        }
         if (verificationMethod === 'face' && faceEnrolled && !faceVerificationId) {
             toast.error('Please verify your face before completing the transfer.');
             return;
@@ -197,6 +262,9 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
             toast.error('Recipient not selected. Please go back.');
             return;
         }
+        if (transferKey) {
+            setTransferLock(transferKey);
+        }
         setIsLoading(true);
         try {
             const result = await executeTransfer(
@@ -205,7 +273,8 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                 transferType, 
                 verificationMethod === 'password' ? password : undefined,
                 verificationMethod === 'otp' ? otp : undefined,
-                verificationMethod === 'face' ? faceVerificationId ?? undefined : undefined
+                verificationMethod === 'face' ? faceVerificationId ?? undefined : undefined,
+                transferIdempotencyKey ?? undefined
             );
 
             if (result.error) {
@@ -223,6 +292,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                 setPassword('');
                 setFaceVerified(false);
                 setFaceVerificationId(null);
+                setTransferIdempotencyKey(null);
                 setTransferType('TO_AVAILABLE_BALANCE');
                 // Reset auth method to default based on user preference
                 if (faceEnrolled) {
@@ -267,6 +337,17 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     return (
         <div className={`bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col ${className ?? ''}`}>
             {showConfetti && <Confetti width={500} height={500} />}
+            {transferCooldown > 0 && (
+                <div className="mb-4 rounded-2xl border border-amber-500/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100 sm:text-xs">
+                    <div className="flex items-center gap-2">
+                        <span className="inline-flex h-2 w-2 rounded-full bg-amber-400 animate-pulse" />
+                        <span className="font-semibold">Transfer sent</span>
+                    </div>
+                    <p className="mt-1 text-amber-100/90">
+                        Please wait {transferCooldown}s before sending another transfer.
+                    </p>
+                </div>
+            )}
             <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
                 {/* <Send className="text-emerald-400" /> */}
                 Transfer Funds
@@ -531,7 +612,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                         <div className="flex flex-col sm:flex-row gap-4">
                             <button
                                 type="button"
-                                onClick={() => { setStep(1); }}
+                                onClick={() => { setStep(1); setTransferIdempotencyKey(null); }}
                                 className="w-full px-5 py-3 rounded-xl bg-gray-600 hover:bg-gray-500 text-white font-semibold"
                             >
                                 Back

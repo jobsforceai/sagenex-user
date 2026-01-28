@@ -354,6 +354,7 @@ export async function executeTransfer(
     password?: string,
     otp?: string,
     faceVerificationId?: string,
+    idempotencyKey?: string,
 ) {
     const body: { recipientId: string; amount: number; transferType?: string; password?: string; otp?: string; faceVerificationId?: string; } = {
         recipientId,
@@ -371,9 +372,13 @@ export async function executeTransfer(
         body.faceVerificationId = faceVerificationId;
     }
 
+    const headers = await getAuthHeaders();
+    if (idempotencyKey) {
+        headers["Idempotency-Key"] = idempotencyKey;
+    }
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/transfer/execute`, {
         method: "POST",
-        headers: await getAuthHeaders(),
+        headers,
         body: JSON.stringify(body),
     });
     return handleApiResponse(res);
