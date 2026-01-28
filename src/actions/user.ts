@@ -121,6 +121,13 @@ export async function getTeamTree() {
       return handleApiResponse(res);
 }
 
+export async function getBonusRulesConfig() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/config/bonus-rules`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
 export async function getWalletData() {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/wallet`, {
         headers: await getAuthHeaders(),
