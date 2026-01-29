@@ -61,6 +61,17 @@ type BonusRulesConfig = {
   };
 };
 
+// Frontend displays unilevel levels as +1 to match user-facing terminology.
+// Backend rules start at level 1 (internal), but UI should start at level 2.
+const DISPLAY_LEVEL_OFFSET = 1;
+
+// UI-only baseline rule for "Level 1" in the frontend (not provided by backend).
+const DEFAULT_LEVEL_ONE_RULE = {
+  level: 1,
+  description: "Have 1 active member at Level 1.",
+  requiresTest: false,
+};
+
 const TeamPage = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -214,7 +225,10 @@ const TeamPage = () => {
                             key={level.level}
                             className="flex items-center justify-between rounded-lg border border-white/10 bg-black/30 px-3 py-2"
                           >
-                            <span className="text-white/70">Level {level.level}</span>
+                            {/* Backend levels start at 1; UI shows levels starting at 2 */}
+                            <span className="text-white/70">
+                              Level {level.level + DISPLAY_LEVEL_OFFSET}
+                            </span>
                             <span className="text-white">{level.percentageLabel || "—"}</span>
                           </div>
                         )) || (
@@ -232,22 +246,55 @@ const TeamPage = () => {
                   <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
                     <p className="text-sm text-white/60">Unilevel Unlock Rules</p>
                     <div className="mt-3 space-y-2 text-xs">
-                      {bonusRules?.unilevelUnlockRules?.map((rule) => (
-                        <div
-                          key={rule.level}
-                          className="flex flex-col gap-1 rounded-lg border border-white/10 bg-black/30 px-3 py-2"
-                        >
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <span className="text-white/80">Level {rule.level}</span>
-                            {rule.requiresTest && (
-                              <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-200">
-                                Test required
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-white/60">{rule.description || "—"}</p>
-                        </div>
-                      )) || (
+                      {/* UI adds Level 1 rule and shifts backend levels by +1 for clarity */}
+                      {[DEFAULT_LEVEL_ONE_RULE, ...(bonusRules?.unilevelUnlockRules || [])].map(
+                        (rule) => {
+                          const displayLevel =
+                            rule === DEFAULT_LEVEL_ONE_RULE
+                              ? 1
+                              : rule.level + DISPLAY_LEVEL_OFFSET;
+                          const isDefaultLevelOne = rule === DEFAULT_LEVEL_ONE_RULE;
+                          return (
+                            <div
+                              key={`rule-${displayLevel}`}
+                              className={`flex flex-col gap-1 rounded-lg border px-3 py-2 ${
+                                isDefaultLevelOne
+                                  ? "border-emerald-500/40 bg-emerald-500/10"
+                                  : "border-white/10 bg-black/30"
+                              }`}
+                            >
+                              <div className="flex flex-wrap items-center justify-between gap-2">
+                                <span
+                                  className={
+                                    isDefaultLevelOne ? "text-emerald-200" : "text-white/80"
+                                  }
+                                >
+                                  Level {displayLevel}
+                                </span>
+                                {rule.requiresTest && (
+                                  <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-200">
+                                    Test required
+                                  </span>
+                                )}
+                                {isDefaultLevelOne && (
+                                  <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-200">
+                                    Unlocked
+                                  </span>
+                                )}
+                              </div>
+                              <p
+                                className={
+                                  isDefaultLevelOne ? "text-emerald-100/80" : "text-white/60"
+                                }
+                              >
+                                {rule.description || "—"}
+                              </p>
+                            </div>
+                          );
+                        }
+                      )}
+                      {(!bonusRules?.unilevelUnlockRules ||
+                        bonusRules.unilevelUnlockRules.length === 0) && (
                         <p className="text-xs text-white/40">No unlock rules configured.</p>
                       )}
                     </div>
@@ -271,19 +318,25 @@ const TeamPage = () => {
                             </p>
                           </div>
                         </div>
-                        <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-                          {cycle.splits?.map((split) => (
-                            <div
-                              key={split.level}
-                              className="flex items-center justify-between rounded-lg border border-white/10 bg-black/30 px-3 py-2"
-                            >
-                              <span className="text-white/70">Level {split.level}</span>
-                              <span className="text-white">{split.percentageLabel || "—"}</span>
+                        {cycle.splits && cycle.splits.length > 0 ? (
+                          cycle.splits.length === 1 && cycle.splits[0].level === 1 ? null : (
+                            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
+                              {cycle.splits.map((split) => (
+                                <div
+                                  key={split.level}
+                                  className="flex items-center justify-between rounded-lg border border-white/10 bg-black/30 px-3 py-2"
+                                >
+                                  <span className="text-white/70">Level {split.level}</span>
+                                  <span className="text-white">
+                                    {split.percentageLabel || "—"}
+                                  </span>
+                                </div>
+                              ))}
                             </div>
-                          )) || (
-                            <p className="text-xs text-white/40">No splits configured.</p>
-                          )}
-                        </div>
+                          )
+                        ) : (
+                          <p className="mt-3 text-xs text-white/40">No splits configured.</p>
+                        )}
                       </div>
                     )) || (
                       <p className="text-xs text-white/40">No reinvestment rules configured.</p>

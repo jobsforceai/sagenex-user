@@ -20,6 +20,14 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
     const getProgressPct = (current: number, required: number) =>
         required > 0 ? Math.min(100, (current / required) * 100) : 100;
 
+    // Backend levels start at 1; UI displays levels starting at 2.
+    const displayLevel = (level: number) => level + 1;
+    // Shift any "L<number>" and "Level <number>" tokens to match UI numbering.
+    const shiftLevelLabel = (value: string) =>
+        value
+            .replace(/\bL(\d+)\b/g, (_, raw) => `L${Number(raw) + 1}`)
+            .replace(/\bLevel\s+(\d+)\b/g, (_, raw) => `Level ${Number(raw) + 1}`);
+
     return (
         <Card className="bg-gradient-to-br from-gray-900 to-gray-800 border-gray-700">
             <CardHeader>
@@ -49,15 +57,19 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
                                     current: bonus.progress.testQualified.current,
                                     required: bonus.progress.testQualified.required,
                                     barClass: "bg-amber-500",
+                                    isTestStatus: true,
                                 },
                             ].filter(
-                                (item): item is { label: string; current: number; required: number; barClass: string } =>
+                                (item): item is { label: string; current: number; required: number; barClass: string; isTestStatus?: boolean } =>
                                     Boolean(item)
                             );
-                            const imageLevel = bonus.level + 1;
+                            const imageLevel = displayLevel(bonus.level);
                             const displayName = bonus.name?.trim()
-                                ? `${bonus.name} - Level ${imageLevel}`
+                                ? `${shiftLevelLabel(bonus.name)} - Level ${imageLevel}`
                                 : `Matrix Level ${imageLevel}`;
+                            const displayRequirement = bonus.unlockRequirement
+                                ? shiftLevelLabel(bonus.unlockRequirement)
+                                : "";
                             
                             return (
                                 <div key={bonus.level} className="p-4 rounded-lg bg-gray-800/60 border border-gray-700/50 shadow-md">
@@ -76,27 +88,61 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
                                     </div>
                                     <div className="mt-4 space-y-3">
                                         {progressItems.length > 0 ? (
-                                            progressItems.map((item) => (
-                                                <div key={item.label}>
-                                                    <div className="text-xs text-gray-400 flex justify-between mb-1.5">
-                                                        <span>{item.label}</span>
-                                                        <span className="font-medium">
-                                                            {item.current} / {item.required}
+                                            progressItems.map((item) =>
+                                                item.isTestStatus ? (
+                                                    <div
+                                                        key={item.label}
+                                                        className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs ${
+                                                            item.current >= item.required
+                                                                ? "border-emerald-500/40 bg-emerald-500/10"
+                                                                : "border-gray-700/50 bg-black/30"
+                                                        }`}
+                                                    >
+                                                        <span
+                                                            className={
+                                                                item.current >= item.required
+                                                                    ? "text-emerald-200"
+                                                                    : "text-gray-400"
+                                                            }
+                                                        >
+                                                            Test status
                                                         </span>
+                                                        {item.current >= item.required ? (
+                                                            <span className="rounded-full border border-emerald-400/50 bg-emerald-500/20 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-200">
+                                                                Passed
+                                                            </span>
+                                                        ) : (
+                                                            <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-200">
+                                                                Not passed
+                                                            </span>
+                                                        )}
                                                     </div>
-                                                    <div className="w-full bg-gray-700 rounded-full h-2.5">
-                                                        <div 
-                                                            className={`${item.barClass} h-2.5 rounded-full`}
-                                                            style={{ width: `${getProgressPct(item.current, item.required)}%` }}
-                                                        ></div>
+                                                ) : (
+                                                    <div key={item.label}>
+                                                        <div className="text-xs text-gray-400 flex justify-between mb-1.5">
+                                                            <span>{item.label}</span>
+                                                            <span className="font-medium">
+                                                                {item.current} / {item.required}
+                                                            </span>
+                                                        </div>
+                                                        <div className="w-full bg-gray-700 rounded-full h-2.5">
+                                                            <div
+                                                                className={`${item.barClass} h-2.5 rounded-full`}
+                                                                style={{ width: `${getProgressPct(item.current, item.required)}%` }}
+                                                            ></div>
+                                                        </div>
                                                     </div>
-                                                </div>
-                                            ))
+                                                )
+                                            )
                                         ) : (
                                             <p className="text-xs text-gray-500">Progress data unavailable.</p>
                                         )}
                                     </div>
-                                    <p className="text-xs text-gray-500 mt-3">{bonus.unlockRequirement}</p>
+                                    {displayRequirement && (
+                                        <p className="text-xs text-gray-500 mt-3">
+                                            {displayRequirement}
+                                        </p>
+                                    )}
                                 </div>
                             );
                         })}

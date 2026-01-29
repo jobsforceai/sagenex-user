@@ -30,6 +30,12 @@ const formatCurrency = (amount: number) =>
 export const BonusSummary = ({ bonuses, loading }: BonusSummaryProps) => {
   const [showDetails, setShowDetails] = useState(false);
 
+  // Backend levels start at 1, but UI should display starting at 2.
+  const displayLevel = (level: number) => level + 1;
+  // Also shift any "L<number>" tokens in names to match UI numbering.
+  const displayName = (name: string) =>
+    name.replace(/\bL(\d+)\b/g, (_, raw) => `L${Number(raw) + 1}`);
+
   const totalLocked = bonuses?.reduce((sum, b) => sum + b.lockedAmount, 0) ?? 0;
   const unlockedCount = bonuses?.filter((b) => b.isUnlocked).length ?? 0;
   const totalCount = bonuses?.length ?? 0;
@@ -100,8 +106,10 @@ export const BonusSummary = ({ bonuses, loading }: BonusSummaryProps) => {
                         <Lock className="h-4 w-4 text-gray-500" />
                       )}
                       <div>
-                        <p className="font-semibold text-white">Level {bonus.level}</p>
-                        <p className="text-xs text-gray-500">{bonus.name}</p>
+                        <p className="font-semibold text-white">
+                          Level {displayLevel(bonus.level)}
+                        </p>
+                        <p className="text-xs text-gray-500">{displayName(bonus.name)}</p>
                       </div>
                     </div>
                     <p
@@ -163,27 +171,34 @@ export const BonusSummary = ({ bonuses, loading }: BonusSummaryProps) => {
                         </div>
                       )}
                       {bonus.progress.testQualified && (
-                        <div>
-                          <div className="flex justify-between text-xs text-gray-500 mb-1">
-                            <span>Test Qualified</span>
-                            <span>
-                              {bonus.progress.testQualified.current} /{" "}
-                              {bonus.progress.testQualified.required}
+                        <div
+                          className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs ${
+                            bonus.progress.testQualified.current >=
+                            bonus.progress.testQualified.required
+                              ? "border-emerald-500/40 bg-emerald-500/10"
+                              : "border-gray-800 bg-black/30"
+                          }`}
+                        >
+                          <span
+                            className={
+                              bonus.progress.testQualified.current >=
+                              bonus.progress.testQualified.required
+                                ? "text-emerald-200"
+                                : "text-gray-500"
+                            }
+                          >
+                            Test status
+                          </span>
+                          {bonus.progress.testQualified.current >=
+                          bonus.progress.testQualified.required ? (
+                            <span className="rounded-full border border-emerald-400/50 bg-emerald-500/20 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-200">
+                              Passed
                             </span>
-                          </div>
-                          <div className="h-1.5 bg-gray-800 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-emerald-500 transition-all"
-                              style={{
-                                width: `${Math.min(
-                                  100,
-                                  (bonus.progress.testQualified.current /
-                                    bonus.progress.testQualified.required) *
-                                    100
-                                )}%`,
-                              }}
-                            />
-                          </div>
+                          ) : (
+                            <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-200">
+                              Not passed
+                            </span>
+                          )}
                         </div>
                       )}
                     </div>
