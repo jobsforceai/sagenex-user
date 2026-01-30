@@ -397,7 +397,7 @@ const RewardsPage = () => {
   };
 
   const handleRewardUpdate = (updatedReward: Reward) => {
-    setUploadModalReward(null);
+    setUploadModalReward(updatedReward);
     setRewardProgress(prevProgress => {
         const newProgress = { ...prevProgress };
         const program = newProgress[updatedReward.programId];

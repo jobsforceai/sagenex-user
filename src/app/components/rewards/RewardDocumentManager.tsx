@@ -14,7 +14,19 @@ interface RewardDocumentManagerProps {
 
 export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: RewardDocumentManagerProps) => {
   const numberOfTickets = reward.rewardSnapshot.numberOfTickets ?? 1;
-  const requiredDocs = reward.requiredDocuments || [];
+  // UI and API now support only passport front/back for rewards documents.
+  // Backend will reject any other docType, so we filter and provide a safe fallback.
+  const requiredDocs = useMemo(() => {
+    const baseDocs = reward.requiredDocuments || [];
+    const filtered = baseDocs.filter((doc) =>
+      ["PASSPORT_FRONT", "PASSPORT_BACK"].includes(doc.docType)
+    );
+    if (filtered.length > 0) return filtered;
+    return [
+      { docType: "PASSPORT_FRONT", description: "Passport front (biographical page)" },
+      { docType: "PASSPORT_BACK", description: "Passport back (address page)" },
+    ];
+  }, [reward.requiredDocuments]);
 
   const [activeTicketHolder, setActiveTicketHolder] = useState(1);
 
@@ -117,15 +129,12 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
   };
 
   const canSubmitForReview = useMemo(() => {
-    if (numberOfTickets === 1) {
-      return reward.uploadedDocuments?.some(d => d.docType === 'PASSPORT_FRONT');
-    }
     for (let i = 1; i <= numberOfTickets; i++) {
-      if (!isDocUploaded('PASSPORT_FRONT', i)) {
+      if (!isDocUploaded("PASSPORT_FRONT", i) || !isDocUploaded("PASSPORT_BACK", i)) {
         return false;
       }
     }
-    return true;
+    return numberOfTickets > 0;
   }, [reward.uploadedDocuments, numberOfTickets]);
 
 
@@ -204,7 +213,7 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
     <div className="bg-gray-900/40 border border-gray-800 rounded-2xl p-6 mt-4">
       <h4 className="font-bold text-lg text-emerald-300 mb-1">Action Required: Upload Documents</h4>
       <p className="text-sm text-gray-400 mb-4">
-        Your claim has been approved. Please upload the following documents to proceed.
+        Your claim has been approved. Please upload your passport front and back to proceed.
       </p>
 
       {reward.rejectionReason && (
@@ -253,7 +262,7 @@ export const RewardDocumentManager = ({ reward, onRewardUpdate, onClose }: Rewar
         <div className="text-xs text-gray-400 text-right">
           {canSubmitForReview
             ? "Ready for final submission."
-            : "Passport (Front) must be uploaded for all ticket holders to submit."}
+            : "Passport front and back must be uploaded for all ticket holders to submit."}
         </div>
       </div>
 
