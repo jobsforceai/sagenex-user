@@ -50,9 +50,31 @@ function Login() {
   const [cameraReady, setCameraReady] = useState(false);
   const [verifyingFace, setVerifyingFace] = useState(false);
   const [needsVerification, setNeedsVerification] = useState(false);
+  const [challengeId, setChallengeId] = useState<string | null>(null);
+  const [challengeExpected, setChallengeExpected] = useState(0);
+  const [challengeExpiresAt, setChallengeExpiresAt] = useState<string | null>(null);
+  const [blinkEvents, setBlinkEvents] = useState<string[]>([]);
+  const [livenessError, setLivenessError] = useState<string | null>(null);
+  const [challengeCountdown, setChallengeCountdown] = useState<number | null>(null);
+  const [debugEar, setDebugEar] = useState<number | null>(null);
+  const [debugBaseline, setDebugBaseline] = useState<number | null>(null);
+  const [debugFaceDetected, setDebugFaceDetected] = useState(false);
+  const [debugClosedFrames, setDebugClosedFrames] = useState(0);
+  const [debugOpenFrames, setDebugOpenFrames] = useState(0);
+  const [debugDetector, setDebugDetector] = useState<string>("—");
   const [hasPasswordSet, setHasPasswordSet] = useState<boolean | null>(null);
   const [passwordStatusEmail, setPasswordStatusEmail] = useState<string | null>(null);
   const [isVerifyFlow, setIsVerifyFlow] = useState(false);
+
+  const blinkMonitorRef = useRef<NodeJS.Timeout | null>(null);
+  const blinkingRef = useRef(false);
+  const blinkEventsRef = useRef<string[]>([]);
+  const closedFramesRef = useRef(0);
+  const openFramesRef = useRef(0);
+  const openEarRef = useRef<number | null>(null);
+  const earWindowRef = useRef<number[]>([]);
+  const blinkSyncRef = useRef<NodeJS.Timeout | null>(null);
+  const blinkMonitorActiveRef = useRef<string | null>(null);
 
   // Form fields
   const [sponsorId, setSponsorId] = useState("");
@@ -86,6 +108,33 @@ function Login() {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
       setCameraReady(false);
+    }
+  }, [view]);
+
+  useEffect(() => {
+    if (view !== "face-stepup") {
+      setChallengeId(null);
+      setChallengeExpected(0);
+      setChallengeExpiresAt(null);
+      setBlinkEvents([]);
+      setLivenessError(null);
+      setChallengeCountdown(null);
+      blinkEventsRef.current = [];
+      blinkingRef.current = false;
+      closedFramesRef.current = 0;
+      openFramesRef.current = 0;
+      openEarRef.current = null;
+      earWindowRef.current = [];
+      setDebugDetector("—");
+      if (blinkMonitorRef.current) {
+        clearInterval(blinkMonitorRef.current);
+        blinkMonitorRef.current = null;
+      }
+      if (blinkSyncRef.current) {
+        clearInterval(blinkSyncRef.current);
+        blinkSyncRef.current = null;
+      }
+      blinkMonitorActiveRef.current = null;
     }
   }, [view]);
 
@@ -150,20 +199,46 @@ function Login() {
     }
   };
 
-  const verifyFaceEmbedding = async (token: string, embedding: number[]) => {
+  const verifyFaceEmbedding = async (
+    token: string,
+    embedding: number[],
+    payload: { challengeId?: string | null; blinkEvents?: string[] } = {}
+  ) => {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/verify`, {
       method: "POST",
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ embedding, purpose: "LOGIN" }),
+      body: JSON.stringify({
+        embedding,
+        purpose: "LOGIN",
+        challengeId: payload.challengeId ?? challengeId,
+        blinkEvents: payload.blinkEvents ?? blinkEvents,
+      }),
     });
     const responseText = await res.text();
     try {
       return JSON.parse(responseText);
     } catch {
       return { error: "Invalid face verification response." };
+    }
+  };
+
+  const requestBlinkChallenge = async (token: string) => {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/biometrics/challenge`, {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ purpose: "LOGIN" }),
+    });
+    const responseText = await res.text();
+    try {
+      return JSON.parse(responseText);
+    } catch {
+      return { error: "Invalid challenge response." };
     }
   };
 
@@ -210,6 +285,132 @@ function Login() {
     setModelsReady(true);
   };
 
+  const getEyeAspectRatio = (eye: Array<{ x: number; y: number }>) => {
+    if (eye.length < 6) return 0;
+    const dist = (a: { x: number; y: number }, b: { x: number; y: number }) =>
+      Math.hypot(a.x - b.x, a.y - b.y);
+    const vertical1 = dist(eye[1], eye[5]);
+    const vertical2 = dist(eye[2], eye[4]);
+    const horizontal = dist(eye[0], eye[3]);
+    if (horizontal === 0) return 0;
+    return (vertical1 + vertical2) / (2 * horizontal);
+  };
+
+  const startBlinkMonitor = async (
+    overrideChallengeId?: string | null,
+    overrideExpected?: number
+  ) => {
+    const activeChallengeId = overrideChallengeId ?? challengeId;
+    const activeExpected = overrideExpected ?? challengeExpected;
+    if (!activeChallengeId || !activeExpected) return;
+    if (blinkMonitorActiveRef.current === activeChallengeId) return;
+    blinkMonitorActiveRef.current = activeChallengeId;
+    await loadFaceModels();
+    if (!cameraReady) {
+      await startCamera();
+    }
+    if (blinkMonitorRef.current) {
+      clearInterval(blinkMonitorRef.current);
+    }
+    if (blinkSyncRef.current) {
+      clearInterval(blinkSyncRef.current);
+    }
+    blinkingRef.current = false;
+    blinkEventsRef.current = [];
+    closedFramesRef.current = 0;
+    openFramesRef.current = 0;
+    openEarRef.current = null;
+    earWindowRef.current = [];
+    setBlinkEvents([]);
+    const minClosedFrames = 1;
+    const minOpenFrames = 1;
+    const maxWindow = 30;
+    console.log("[blink] monitor started", activeChallengeId);
+    if (blinkSyncRef.current) {
+      clearInterval(blinkSyncRef.current);
+    }
+    blinkSyncRef.current = setInterval(() => {
+      setBlinkEvents([...blinkEventsRef.current]);
+    }, 500);
+    blinkMonitorRef.current = setInterval(async () => {
+      const faceapi = faceApiRef.current;
+      const video = videoRef.current;
+      if (!faceapi || !video || video.readyState < 2) return;
+      try {
+        const tinyDetections = await faceapi
+          .detectAllFaces(
+            video,
+            new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.2 })
+          )
+          .withFaceLandmarks();
+        const detection = tinyDetections?.[0];
+        setDebugDetector(detection ? "tiny" : "none");
+        if (!detection) {
+          setDebugFaceDetected(false);
+          return;
+        }
+        setDebugFaceDetected(true);
+        const left = detection.landmarks.getLeftEye();
+        const right = detection.landmarks.getRightEye();
+        const ear = (getEyeAspectRatio(left) + getEyeAspectRatio(right)) / 2;
+        if (ear > 0.1) {
+          earWindowRef.current = [...earWindowRef.current, ear].slice(-maxWindow);
+        }
+        const baseline = earWindowRef.current.length
+          ? Math.max(...earWindowRef.current)
+          : ear;
+        openEarRef.current = baseline;
+        setDebugEar(ear);
+        setDebugBaseline(baseline);
+        // Detect a blink when eye openness drops ~15% from recent max.
+        const closedThreshold = baseline * 0.85;
+        const openThreshold = baseline * 0.92;
+
+        if (ear < closedThreshold) {
+          closedFramesRef.current += 1;
+          openFramesRef.current = 0;
+        } else if (ear > openThreshold) {
+          openFramesRef.current += 1;
+        }
+        setDebugClosedFrames(closedFramesRef.current);
+        setDebugOpenFrames(openFramesRef.current);
+
+        if (!blinkingRef.current && closedFramesRef.current >= minClosedFrames) {
+          blinkingRef.current = true;
+        }
+
+        if (blinkingRef.current && openFramesRef.current >= minOpenFrames) {
+          blinkingRef.current = false;
+          closedFramesRef.current = 0;
+          openFramesRef.current = 0;
+          const ts = new Date().toISOString();
+          blinkEventsRef.current = [...blinkEventsRef.current, ts];
+          setBlinkEvents(blinkEventsRef.current);
+          setDebugClosedFrames(0);
+          setDebugOpenFrames(0);
+          console.log("[blink] event", ts, "total", blinkEventsRef.current.length);
+        }
+      } catch (err) {
+        console.log("[blink] detection error", err);
+        // ignore transient detection errors
+      }
+    }, 120);
+  };
+
+  const resetBlinkTracking = async () => {
+    blinkEventsRef.current = [];
+    blinkingRef.current = false;
+    closedFramesRef.current = 0;
+    openFramesRef.current = 0;
+    openEarRef.current = null;
+    earWindowRef.current = [];
+    setBlinkEvents([]);
+    setLivenessError("Blink once to continue.");
+    setDebugDetector("—");
+    blinkMonitorActiveRef.current = null;
+    await startBlinkMonitor();
+  };
+
   const startCamera = async () => {
     setCameraError(null);
     if (!navigator.mediaDevices?.getUserMedia) {
@@ -237,6 +438,8 @@ function Login() {
         });
         await videoRef.current.play();
         setCameraReady(true);
+        // Intentionally do not auto-start blink detection here.
+        // The user can trigger it via "Retry blink detection" to avoid camera box loops.
       }
     } catch (err: any) {
       const name = err?.name || "UnknownError";
@@ -261,11 +464,31 @@ function Login() {
   const handleFaceVerify = async () => {
     if (!pendingAuth) return;
     setFaceError(null);
+    setLivenessError(null);
     setVerifyingFace(true);
     try {
       await loadFaceModels();
       if (!cameraReady) {
         await startCamera();
+      }
+      if (!challengeId) {
+        const challenge = await requestBlinkChallenge(pendingAuth.token);
+        if (challenge?.error) {
+          setLivenessError(challenge.error);
+          return;
+        }
+        setChallengeId(challenge.challengeId);
+        setChallengeExpected(challenge.expected || 1);
+        setChallengeExpiresAt(challenge.expiresAt || null);
+        await startBlinkMonitor(challenge.challengeId, challenge.expected || 1);
+        setLivenessError("Blink once to continue.");
+        return;
+      }
+      if (challengeExpected > 0 && blinkEventsRef.current.length < challengeExpected) {
+        setLivenessError(
+          `Please blink ${challengeExpected} time${challengeExpected > 1 ? "s" : ""}.`
+        );
+        return;
       }
       const faceapi = faceApiRef.current;
       const video = videoRef.current;
@@ -273,16 +496,32 @@ function Login() {
         throw new Error("Face detection not ready.");
       }
       const detection = await faceapi
-        .detectSingleFace(video, new faceapi.TinyFaceDetectorOptions())
+        .detectSingleFace(
+          video,
+          new faceapi.TinyFaceDetectorOptions({ inputSize: 160, scoreThreshold: 0.2 })
+        )
         .withFaceLandmarks()
         .withFaceDescriptor();
       if (!detection) {
         throw new Error("No face detected. Please look at the camera and try again.");
       }
       const embedding = Array.from(detection.descriptor);
-      const result = await verifyFaceEmbedding(pendingAuth.token, embedding);
+      const result = await verifyFaceEmbedding(pendingAuth.token, embedding, {
+        challengeId,
+        blinkEvents: [...blinkEventsRef.current],
+      });
       if (result?.error) {
-        setFaceError(result.error);
+        if (/challenge/i.test(result.error)) {
+          setLivenessError(result.error);
+          setChallengeId(null);
+          setChallengeExpected(0);
+          setChallengeExpiresAt(null);
+          setBlinkEvents([]);
+          blinkEventsRef.current = [];
+          blinkingRef.current = false;
+        } else {
+          setFaceError(result.error);
+        }
         return;
       }
       if (result?.passed) {
@@ -296,6 +535,49 @@ function Login() {
       setVerifyingFace(false);
     }
   };
+
+  useEffect(() => {
+    if (!challengeExpiresAt) {
+      setChallengeCountdown(null);
+      return;
+    }
+    const timer = setInterval(() => {
+      const remaining = Math.max(
+        0,
+        Math.ceil((new Date(challengeExpiresAt).getTime() - Date.now()) / 1000)
+      );
+      setChallengeCountdown(remaining);
+      if (remaining === 0 && challengeId) {
+        setLivenessError("Challenge expired. Please try again.");
+        setChallengeId(null);
+        setChallengeExpected(0);
+        setChallengeExpiresAt(null);
+        setBlinkEvents([]);
+        blinkEventsRef.current = [];
+        blinkingRef.current = false;
+        closedFramesRef.current = 0;
+        openFramesRef.current = 0;
+        openEarRef.current = null;
+        earWindowRef.current = [];
+        setDebugDetector("—");
+        if (blinkMonitorRef.current) {
+          clearInterval(blinkMonitorRef.current);
+          blinkMonitorRef.current = null;
+        }
+        if (blinkSyncRef.current) {
+          clearInterval(blinkSyncRef.current);
+          blinkSyncRef.current = null;
+        }
+        blinkMonitorActiveRef.current = null;
+      }
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [challengeExpiresAt, challengeId]);
+
+  useEffect(() => {
+    // Auto-start disabled to avoid camera box reset loops.
+    // Blink detection can be manually started via "Retry blink detection".
+  }, []);
 
   const handleFaceBypass = async () => {
     if (!pendingAuth) return;
@@ -725,6 +1007,44 @@ function Login() {
       {(faceError || cameraError) && (
         <div className="rounded-lg border border-red-500/30 bg-red-500/10 px-3 py-2 text-xs text-red-200">
           {faceError || cameraError}
+        </div>
+      )}
+      {(challengeId || livenessError) && (
+        <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
+          <div className="flex items-center justify-between">
+            <span>Blink check</span>
+            {challengeCountdown !== null && (
+              <span className="text-emerald-200/80">{challengeCountdown}s left</span>
+            )}
+          </div>
+          <p className="mt-1 text-emerald-200/80">
+            {livenessError
+              ? livenessError
+              : `Detected ${blinkEvents.length} / ${challengeExpected} blink${
+                  challengeExpected === 1 ? "" : "s"
+                }.`}
+          </p>
+          <div className="mt-2 rounded-md border border-emerald-500/20 bg-black/30 px-2 py-1 text-[10px] text-emerald-200/80">
+            <div className="flex flex-wrap gap-x-3 gap-y-1">
+              <span>Face: {debugFaceDetected ? "yes" : "no"}</span>
+              <span>Models: {modelsReady ? "ready" : "loading"}</span>
+              <span>Camera: {cameraReady ? "ready" : "off"}</span>
+              <span>Detector: {debugDetector}</span>
+              <span>EAR: {debugEar !== null ? debugEar.toFixed(3) : "—"}</span>
+              <span>Base: {debugBaseline !== null ? debugBaseline.toFixed(3) : "—"}</span>
+              <span>Closed: {debugClosedFrames}</span>
+              <span>Open: {debugOpenFrames}</span>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="mt-2 text-[11px] underline text-emerald-100 hover:text-white"
+            onClick={() => {
+              resetBlinkTracking().catch(() => null);
+            }}
+          >
+            Retry blink detection
+          </button>
         </div>
       )}
       <div className="grid gap-2">
