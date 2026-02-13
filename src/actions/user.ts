@@ -451,8 +451,20 @@ export async function submitRewardDocuments(rewardId: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/rewards/${rewardId}/documents/submit`, {
         method: "POST",
         headers: await getAuthHeaders(),
-      });
-      return handleApiResponse(res);
+    });
+    return handleApiResponse(res);
+}
+
+export async function generateSgGoldCode(sagenexUserId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/sggold/generate`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({
+            sagenexUserId,
+            platform: "sggold",
+        }),
+    });
+    return handleApiResponse(res);
 }
 
 export async function getAllCourses() {

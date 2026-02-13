@@ -141,7 +141,7 @@ const formatDate = (value?: string | null) =>
 
 
 const WalletPage = () => {
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { isAuthenticated, loading: authLoading, user } = useAuth();
   const router = useRouter();
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [walletSummary, setWalletSummary] = useState<WalletSummary | null>(null);
@@ -362,6 +362,7 @@ const WalletPage = () => {
             <RewardsTab
               bonuses={walletSummary?.bonuses}
               loading={summaryLoading}
+              userId={user?.userId}
             />
           </TabsContent>
 
