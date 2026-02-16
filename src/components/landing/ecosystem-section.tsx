@@ -37,6 +37,14 @@ const mainCards: EcosystemCard[] = [
     isMain: true,
   },
   {
+    name: "SGGOLD",
+    description: "Loyalty rewards powered by SG Gold with eligibility codes and exclusive gold incentives.",
+    url: "https://sggold.sgxmeta.ai/",
+    image: "/cards/gold.png",
+    gradient: "from-yellow-500/20 via-amber-400/20 to-yellow-300/20",
+    isMain: true,
+  },
+  {
     name: "SGBN",
     description: "Business network connecting entrepreneurs and investors for collaborative growth and opportunities.",
     url: "https://sgbn.sgxmeta.ai",

@@ -14,6 +14,7 @@ type NavLink = { href: string; label: string };
 
 const guestLinks: NavLink[] = [
   { href: "/about-us", label: "About Us" },
+  { href: "https://sggold.sgxmeta.ai/", label: "SGGOLD" },
   { href: "/sgbn", label: "SGBN" },
   { href: "/sgse", label: "SGSE" },
   { href: process.env.NEXT_PUBLIC_SGCHAIN_URL ?? "#", label: "SGChain" },
