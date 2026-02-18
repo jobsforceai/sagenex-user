@@ -467,6 +467,13 @@ export async function generateSgGoldCode(sagenexUserId: string) {
     return handleApiResponse(res);
 }
 
+export async function getTicketBalance() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/tickets/me`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
 export async function getAllCourses() {
     const res = await fetch(`${API_BASE_URL}/api/v1/courses`, {
         headers: await getAuthHeaders(),

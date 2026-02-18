@@ -12,6 +12,7 @@ import {
   getRankProgress,
   getLeaderboard,
   getFinancialSummary,
+  getTicketBalance,
 } from "@/actions/user";
 import Navbar from "@/app/components/Navbar";
 import {
@@ -205,6 +206,11 @@ const DashboardPage = () => {
   const [treeData, setTreeData] = useState<TreeData | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[] | null>(null);
   const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
+  const [ticketBalance, setTicketBalance] = useState<{
+    totalTickets: number;
+    totalInvestedUSD: number;
+    lastCalculatedAt: string | null;
+  } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const referralLink =
@@ -267,6 +273,10 @@ const DashboardPage = () => {
       getFinancialSummary().then(res => {
         if (res.error) console.error("Failed to fetch financial summary:", res.error);
         else setFinancialSummary(res);
+      });
+      getTicketBalance().then(res => {
+        if (res.error) console.error("Failed to fetch ticket balance:", res.error);
+        else setTicketBalance(res);
       });
     };
 
@@ -558,6 +568,37 @@ const DashboardPage = () => {
           {/* Sidebar */}
           <div className="space-y-6">
             <SmartUpdates />
+            {ticketBalance && (
+              <Card className="bg-[#0b0b0b] border border-amber-900/40 rounded-2xl">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-gray-400">
+                    Ticket Balance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Total tickets:</span>
+                    <span className="font-semibold text-amber-200">
+                      {ticketBalance.totalTickets}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-400">Total invested:</span>
+                    <span className="font-semibold text-white">
+                      {formatCurrency(ticketBalance.totalInvestedUSD)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500">
+                    <span>Last calculated:</span>
+                    <span>
+                      {ticketBalance.lastCalculatedAt
+                        ? new Date(ticketBalance.lastCalculatedAt).toLocaleString()
+                        : "N/A"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             {dashboardData?.wallet.withdrawalCap && (
                 <WithdrawalLimit
                     withdrawalCap={dashboardData?.wallet.withdrawalCap}

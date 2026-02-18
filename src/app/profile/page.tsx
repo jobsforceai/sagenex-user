@@ -14,7 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, BadgeCheck, XCircle, ShieldCheck, ShieldAlert, ShieldClose, Edit } from "lucide-react";
-import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess, getBiometricsStatus } from "@/actions/user";
+import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess, getBiometricsStatus, getTicketBalance } from "@/actions/user";
 import { KycStatus } from "@/types";
 
 interface UserProfile {
@@ -104,6 +104,11 @@ const ProfilePage = () => {
   const [nomineeSubmitting, setNomineeSubmitting] = useState(false);
   const [nomineeMessage, setNomineeMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
   const [biometricsStatus, setBiometricsStatus] = useState<BiometricsStatus | null>(null);
+  const [ticketBalance, setTicketBalance] = useState<{
+    totalTickets: number;
+    totalInvestedUSD: number;
+    lastCalculatedAt: string | null;
+  } | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -113,11 +118,12 @@ const ProfilePage = () => {
 
     const fetchPageData = async () => {
         try {
-            const [profileData, kycData, nomineeData, biometricsData] = await Promise.all([
+            const [profileData, kycData, nomineeData, biometricsData, ticketData] = await Promise.all([
                 getProfileData(),
                 getKycStatus(),
                 getNomineeStatus(),
                 getBiometricsStatus(),
+                getTicketBalance(),
             ]);
             console.log("Fetched Profile Data:", profileData);
             if (profileData.error) {
@@ -142,6 +148,9 @@ const ProfilePage = () => {
             }
             if (!biometricsData?.error) {
                 setBiometricsStatus(biometricsData);
+            }
+            if (!ticketData?.error) {
+                setTicketBalance(ticketData);
             }
         } catch (err) {
             setError(err instanceof Error ? err.message : "An unknown error occurred");
@@ -319,7 +328,7 @@ const ProfilePage = () => {
               </Button>
             </div>
           </div>
-          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
             <Card className="bg-black/50 border-white/10">
               <CardHeader className="pb-2">
                 <CardTitle className="text-xs uppercase tracking-wide text-gray-400">Package Value</CardTitle>
@@ -352,6 +361,26 @@ const ProfilePage = () => {
                 <p className="text-lg font-semibold">{profile.userId}</p>
               </CardContent>
             </Card>
+            {ticketBalance && (
+              <Card className="bg-black/50 border-white/10">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-xs uppercase tracking-wide text-gray-400">Tickets</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-1">
+                  <p className="text-2xl font-semibold text-amber-200">
+                    {ticketBalance.totalTickets}
+                  </p>
+                  <p className="text-xs text-gray-400">
+                    Invested: ${ticketBalance.totalInvestedUSD.toLocaleString()}
+                  </p>
+                  <p className="text-[10px] text-gray-500">
+                    {ticketBalance.lastCalculatedAt
+                      ? `Updated ${new Date(ticketBalance.lastCalculatedAt).toLocaleDateString()}`
+                      : "Updated N/A"}
+                  </p>
+                </CardContent>
+              </Card>
+            )}
           </div>
         </section>
 
