@@ -169,7 +169,7 @@ export function ActionsPanel({
                 onClick={onStartLiveness}
                 disabled={!canStart}
               >
-                Enroll my face
+                Start Face Scan
               </Button>
             )}
           </div>

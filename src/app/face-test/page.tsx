@@ -44,10 +44,12 @@ function FaceTestContent() {
   const [yawDeg, setYawDeg] = useState<number | null>(null);
   const [faceAligned, setFaceAligned] = useState(false);
   const [faceHint, setFaceHint] = useState<string | null>(null);
+  const [livenessProgress, setLivenessProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const livenessRef = useRef({ stepIndex: 0, stableCount: 0, missCount: 0, logCount: 0 });
   const livenessActiveRef = useRef(false);
   const livenessTimerRef = useRef<number | null>(null);
+  const yawHistoryRef = useRef<number[]>([]);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -171,10 +173,12 @@ function FaceTestContent() {
     return yawRatio * 60;
   };
 
+  // Raw yaw from face-api: user turns THEIR left → positive yaw (nose right in raw coords)
+  // Thresholds widened to be more forgiving on mobile
   const matchesStep = (yaw: number, step: LivenessStep) => {
-    if (step === "center") return yaw >= -5 && yaw <= 5;
-    if (step === "left") return yaw < -15;
-    return yaw > 15;
+    if (step === "center") return yaw >= -8 && yaw <= 8;
+    if (step === "left") return yaw > 12;    // user turns left → positive raw yaw
+    return yaw < -12;                         // user turns right → negative raw yaw
   };
 
   const stopLivenessLoop = () => {
@@ -203,7 +207,11 @@ function FaceTestContent() {
         .withFaceLandmarks();
       if (detection?.landmarks) {
         livenessRef.current.missCount = 0;
-        const yaw = estimateYawDeg(detection.landmarks);
+        const rawYaw = estimateYawDeg(detection.landmarks);
+        // Smooth yaw over last 3 frames to reduce noise
+        yawHistoryRef.current.push(rawYaw);
+        if (yawHistoryRef.current.length > 3) yawHistoryRef.current.shift();
+        const yaw = yawHistoryRef.current.reduce((a, b) => a + b, 0) / yawHistoryRef.current.length;
         setYawDeg(Number(yaw.toFixed(2)));
         const box = detection.detection.box;
         const minDim = Math.min(video.videoWidth || 0, video.videoHeight || 0);
@@ -228,9 +236,10 @@ function FaceTestContent() {
         });
         setFaceAligned(inside);
         if (inside) {
-          setFaceHint("Face aligned ✅");
+          setFaceHint("Face aligned");
         } else if (Math.abs(dxNorm) > Math.abs(dyNorm)) {
-          setFaceHint(dxNorm > 0 ? "Move slightly left" : "Move slightly right");
+          // Flipped for CSS-mirrored video
+          setFaceHint(dxNorm > 0 ? "Move slightly right" : "Move slightly left");
         } else {
           setFaceHint(dyNorm > 0 ? "Move slightly up" : "Move slightly down");
         }
@@ -258,9 +267,12 @@ function FaceTestContent() {
         }
         if (matchesStep(yaw, expectedStep)) {
           livenessRef.current.stableCount += 1;
+          setLivenessProgress(livenessRef.current.stableCount);
+          if (inside) setFaceHint(`Hold still... ${livenessRef.current.stableCount}/3`);
           if (livenessRef.current.stableCount >= 3) {
             livenessRef.current.stepIndex += 1;
             livenessRef.current.stableCount = 0;
+            setLivenessProgress(0);
             setLivenessStepIndex(livenessRef.current.stepIndex);
             if (livenessRef.current.stepIndex >= LIVENESS_STEPS.length) {
               setLivenessStatus("passed");
@@ -270,11 +282,26 @@ function FaceTestContent() {
           }
         } else {
           livenessRef.current.stableCount = 0;
+          setLivenessProgress(0);
+          // Dead-zone hints: user is turning but not enough
+          // left step → positive raw yaw, right step → negative raw yaw
+          if (inside && livenessActiveRef.current) {
+            if (expectedStep === "center") {
+              if (Math.abs(yaw) > 8) setFaceHint("Turn back to center");
+            } else if (expectedStep === "left") {
+              if (yaw > 5 && yaw <= 12) setFaceHint("Almost there, keep turning left");
+              else if (yaw <= 5) setFaceHint("Turn your head left");
+            } else if (expectedStep === "right") {
+              if (yaw < -5 && yaw >= -12) setFaceHint("Almost there, keep turning right");
+              else if (yaw >= -5) setFaceHint("Turn your head right");
+            }
+          }
         }
       } else {
         setYawDeg(null);
         setFaceAligned(false);
         setFaceHint("Face not detected. Move closer and center your face.");
+        yawHistoryRef.current = [];
         livenessRef.current.missCount += 1;
         livenessRef.current.logCount += 1;
         if (livenessRef.current.logCount % 5 === 0) {
@@ -283,7 +310,7 @@ function FaceTestContent() {
             stepIndex: livenessRef.current.stepIndex,
           });
         }
-        if (livenessRef.current.missCount >= 6) {
+        if (livenessRef.current.missCount >= 3) {
           setError("No face detected. Move closer to the camera and keep your face centered.");
           livenessRef.current.missCount = 0;
         }
@@ -465,10 +492,9 @@ function FaceTestContent() {
     if (livenessStatus === "idle") return null;
     if (livenessStatus === "passed") return null;
     const step = LIVENESS_STEPS[livenessStepIndex];
-    if (step === "center") return "Look Straight";
-    // Camera is mirrored, so swap left/right
-    if (step === "left") return "Turn Your Head Right";
-    return "Turn Your Head Left";
+    if (step === "center") return "Look Straight Ahead";
+    if (step === "left") return "Slowly Turn Left";
+    return "Slowly Turn Right";
   };
 
   const handleStartLiveness = () => {
@@ -478,7 +504,9 @@ function FaceTestContent() {
       return;
     }
     livenessRef.current = { stepIndex: 0, stableCount: 0, missCount: 0, logCount: 0 };
+    yawHistoryRef.current = [];
     setLivenessStepIndex(0);
+    setLivenessProgress(0);
     setYawDeg(null);
     setFaceAligned(false);
     setFaceHint(null);
@@ -558,6 +586,7 @@ function FaceTestContent() {
               faceHint={faceHint}
               mainInstruction={getMainInstruction()}
               livenessStatus={livenessStatus}
+              livenessProgress={livenessProgress}
           />
 
             {/* Mobile: Floating status chips (top-right) */}
@@ -570,6 +599,7 @@ function FaceTestContent() {
                 cameraReady={cameraReady}
                 onDeviceChange={setSelectedDeviceId}
                 onRetry={handleCameraRetry}
+                livenessStatus={livenessStatus}
               />
             </div>
           </div>
@@ -579,6 +609,7 @@ function FaceTestContent() {
             <LivenessPanel
               livenessStatus={livenessStatus}
               livenessStepIndex={livenessStepIndex}
+              livenessProgress={livenessProgress}
               yawDeg={yawDeg}
               modelsReady={modelsReady}
               cameraReady={cameraReady}

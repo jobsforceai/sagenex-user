@@ -8,6 +8,7 @@ const LIVENESS_STEPS = ["center", "left", "right"] as const;
 interface LivenessPanelProps {
   livenessStatus: "idle" | "running" | "passed";
   livenessStepIndex: number;
+  livenessProgress?: number;
   yawDeg: number | null;
   modelsReady: boolean;
   cameraReady: boolean;
@@ -17,6 +18,7 @@ interface LivenessPanelProps {
 export function LivenessPanel({
   livenessStatus,
   livenessStepIndex,
+  livenessProgress = 0,
   yawDeg,
   modelsReady,
   cameraReady,
@@ -29,43 +31,47 @@ export function LivenessPanel({
     <>
       {/* Mobile: Compact floating card at bottom */}
       <div className="lg:hidden p-4 pb-6">
-        {/* Step pills - only show when running or passed */}
+        {/* Step indicators - only show when running or passed */}
         {livenessStatus !== "idle" && (
-          <div className="mb-3 flex justify-center gap-2">
+          <div className="mb-3 flex justify-center items-center gap-1.5">
             {LIVENESS_STEPS.map((step, index) => {
               const isComplete = livenessStepIndex > index;
               const isCurrent = livenessStepIndex === index && livenessStatus === "running";
+              const label = step === "center" ? "Straight" : step === "left" ? "Left" : "Right";
 
               return (
-                <div
-                  key={step}
-                  className={`relative rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all duration-300 backdrop-blur-md ${
-                    isComplete
-                      ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-200"
-                      : isCurrent
-                      ? "border-emerald-400/40 bg-emerald-500/10 text-white"
-                      : "border-gray-700 bg-gray-800/40 text-white/40"
-                  }`}
-                >
-                  {isComplete && (
-                    <div className="absolute -right-1 -top-1 rounded-full bg-emerald-500 p-0.5">
-                      <svg
-                        className="h-2.5 w-2.5 text-white"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        strokeWidth={3}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M5 13l4 4L19 7"
-                        />
-                      </svg>
-                    </div>
+                <div key={step} className="flex items-center gap-1.5">
+                  {index > 0 && (
+                    <div className={`h-px w-4 transition-colors duration-300 ${isComplete ? "bg-emerald-400/60" : "bg-gray-700"}`} />
                   )}
-                  {/* Camera is mirrored, so swap left/right arrows */}
-                  {step === "center" ? "●" : step === "left" ? "→" : "←"}
+                  <div
+                    className={`relative flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[11px] font-medium transition-all duration-300 backdrop-blur-md ${
+                      isComplete
+                        ? "border-emerald-400/60 bg-emerald-500/20 text-emerald-200"
+                        : isCurrent
+                        ? "border-emerald-400/40 bg-emerald-500/10 text-white"
+                        : "border-gray-700 bg-gray-800/40 text-white/40"
+                    }`}
+                  >
+                    {isComplete ? (
+                      <svg className="h-3 w-3 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                      </svg>
+                    ) : isCurrent ? (
+                      /* Mini progress dots for current step */
+                      <span className="flex gap-0.5">
+                        {[0, 1, 2].map((i) => (
+                          <span
+                            key={i}
+                            className={`h-1.5 w-1.5 rounded-full transition-all duration-150 ${
+                              i < livenessProgress ? "bg-emerald-400" : "bg-white/20"
+                            }`}
+                          />
+                        ))}
+                      </span>
+                    ) : null}
+                    {label}
+                  </div>
                 </div>
               );
             })}
@@ -73,23 +79,11 @@ export function LivenessPanel({
         )}
 
         {/* Status indicator - compact */}
-        {livenessStatus !== "idle" && (
+        {livenessStatus === "passed" && (
           <div className="flex justify-center mb-3">
-            <div className="flex items-center gap-2 rounded-full border border-gray-700 bg-gray-800/60 backdrop-blur-md px-3 py-1.5 text-[11px]">
-              <div
-                className={`h-1.5 w-1.5 rounded-full ${
-                  livenessStatus === "passed"
-                    ? "bg-emerald-400 animate-pulse"
-                    : livenessStatus === "running"
-                    ? "bg-amber-400 animate-pulse"
-                    : "bg-gray-600"
-                }`}
-              />
-              <span className="text-white/70">
-                {livenessStatus === "passed" && "Passed"}
-                {/* Camera is mirrored, so swap left/right */}
-                {livenessStatus === "running" && currentStep && `Turn ${currentStep === "center" ? "center" : currentStep === "left" ? "right" : "left"}`}
-              </span>
+            <div className="flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 backdrop-blur-md px-3 py-1.5 text-[11px]">
+              <div className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              <span className="text-emerald-200">Scan complete</span>
             </div>
           </div>
         )}
@@ -98,18 +92,17 @@ export function LivenessPanel({
       {/* Desktop: Full card layout */}
       <Card className="hidden lg:block bg-gray-900/40 border-gray-800">
         <CardHeader>
-          <CardTitle className="text-base">Liveness Verification</CardTitle>
+          <CardTitle className="text-base">Face Scan</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           {/* Current instruction */}
           {livenessStatus === "running" && currentStep && (
             <div className="rounded-lg border border-emerald-400/30 bg-emerald-500/5 px-4 py-3 text-center">
-              <p className="text-sm text-white/60 mb-1">Turn your head:</p>
+              <p className="text-sm text-white/60 mb-1">Follow the instruction:</p>
               <p className="text-2xl font-semibold text-emerald-200">
-                {currentStep === "center" && "Look Straight"}
-                {/* Camera is mirrored, so swap left/right */}
-                {currentStep === "left" && "Turn Right"}
-                {currentStep === "right" && "Turn Left"}
+                {currentStep === "center" && "Look Straight Ahead"}
+                {currentStep === "left" && "Slowly Turn Left"}
+                {currentStep === "right" && "Slowly Turn Right"}
               </p>
             </div>
           )}
@@ -149,9 +142,18 @@ export function LivenessPanel({
                       </svg>
                     </div>
                   )}
-                  <div className="uppercase tracking-wider">
-                    {step === "center" ? "Center" : step === "left" ? "Left" : "Right"}
+                  <div className="uppercase tracking-wider text-[10px]">
+                    {step === "center" ? "Straight" : step === "left" ? "Left" : "Right"}
                   </div>
+                  {/* Progress bar for current step */}
+                  {isCurrent && (
+                    <div className="mt-1.5 h-1 w-full rounded-full bg-white/10 overflow-hidden">
+                      <div
+                        className="h-full rounded-full bg-emerald-400 transition-all duration-200"
+                        style={{ width: `${(livenessProgress / 3) * 100}%` }}
+                      />
+                    </div>
+                  )}
                 </div>
               );
             })}
@@ -175,8 +177,8 @@ export function LivenessPanel({
                 {livenessStatus === "idle" && "Not started"}
               </span>
             </div>
-            <span className="text-white/40">
-              Yaw: {yawDeg !== null ? `${yawDeg}°` : "—"}
+            <span className="text-white/30 text-[10px]">
+              {yawDeg !== null ? `${yawDeg}°` : ""}
             </span>
           </div>
 
@@ -190,8 +192,8 @@ export function LivenessPanel({
               disabled={!canStart}
             >
               {livenessStatus === "running"
-                ? "Checking..."
-                : "Enroll my face"}
+                ? "Scanning..."
+                : "Start Face Scan"}
             </Button>
           )}
           {!cameraReady && livenessStatus === "idle" && (

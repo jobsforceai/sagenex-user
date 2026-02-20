@@ -20,6 +20,7 @@ interface DeviceSheetProps {
   onDeviceChange: (deviceId: string) => void;
   onRetry: () => void;
   mode?: "inline" | "overlay";
+  livenessStatus?: "idle" | "running" | "passed";
 }
 
 export function DeviceSheet({
@@ -30,6 +31,7 @@ export function DeviceSheet({
   onDeviceChange,
   onRetry,
   mode = "inline",
+  livenessStatus = "idle",
 }: DeviceSheetProps) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -40,12 +42,14 @@ export function DeviceSheet({
 
   return (
     <>
-      {/* Mobile: Floating status chips (top-right) */}
+      {/* Mobile: Floating status chips (top-right) – hidden during liveness to reduce clutter */}
       <div
         className={
           overlayMode
             ? "absolute top-3 right-3 z-30 flex flex-col items-end gap-2"
-            : "absolute top-40 right-4 z-30 flex flex-col items-end gap-2 lg:hidden"
+            : `absolute top-40 right-4 z-30 flex flex-col items-end gap-2 lg:hidden transition-opacity duration-300 ${
+                livenessStatus !== "idle" ? "opacity-0 pointer-events-none" : "opacity-100"
+              }`
         }
       >
         <div

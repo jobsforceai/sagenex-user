@@ -8,6 +8,7 @@ interface FaceScanHeroProps {
   faceHint: string | null;
   mainInstruction: string | null;
   livenessStatus: "idle" | "running" | "passed";
+  livenessProgress?: number;
   layout?: "full" | "contained";
 }
 
@@ -17,6 +18,7 @@ export function FaceScanHero({
   faceHint,
   mainInstruction,
   livenessStatus,
+  livenessProgress = 0,
   layout = "full",
 }: FaceScanHeroProps) {
   const isContained = layout === "contained";
@@ -32,12 +34,27 @@ export function FaceScanHero({
       >
         {/* Main instruction overlay */}
         {mainInstruction && (
-          <div className="absolute left-0 right-0 top-1/3 lg:top-6 z-10 flex justify-center px-4">
+          <div className="absolute left-0 right-0 top-1/3 lg:top-6 z-10 flex flex-col items-center px-4 gap-2">
             <div className="rounded-full border border-emerald-400/60 bg-black/80 px-6 py-3 backdrop-blur-sm">
               <p className="text-lg font-semibold text-emerald-100">
                 {mainInstruction}
               </p>
             </div>
+            {/* Progress dots – fills as user holds the correct position */}
+            {livenessStatus === "running" && (
+              <div className="flex items-center gap-1.5">
+                {[0, 1, 2].map((i) => (
+                  <div
+                    key={i}
+                    className={`h-2 w-2 rounded-full transition-all duration-200 ${
+                      i < livenessProgress
+                        ? "bg-emerald-400 scale-110 shadow-[0_0_6px_rgba(16,185,129,0.8)]"
+                        : "bg-white/20"
+                    }`}
+                  />
+                ))}
+              </div>
+            )}
           </div>
         )}
 
@@ -54,10 +71,10 @@ export function FaceScanHero({
           </div>
         )}
 
-        {/* Video element */}
+        {/* Video element – mirrored so it behaves like a selfie / real mirror */}
         <video
           ref={videoRef}
-          className="absolute inset-0 h-full w-full object-cover"
+          className="absolute inset-0 h-full w-full object-cover -scale-x-100"
           autoPlay
           muted
           playsInline
