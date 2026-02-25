@@ -10,6 +10,7 @@ import { getWalletCurrentCycleHistory } from "@/actions/user";
 
 interface WalletSummary {
   availableBalance: number;
+  sgchainStakingBalance?: number;
   capLockedBalance?: number;
   totalLifetimeWithdrawals?: number;
   remainingWithdrawalLimit?: number;
@@ -137,6 +138,7 @@ export const OverviewTab = ({
         <div className="lg:col-span-2">
           <WalletBalanceCard
             availableBalance={walletSummary?.availableBalance ?? 0}
+            sgchainStakingBalance={walletSummary?.sgchainStakingBalance ?? 0}
             lockedBalance={walletSummary?.capLockedBalance ?? 0}
             remainingWithdrawal={remainingWithdrawalLimit}
             totalWithdrawn={walletSummary?.totalLifetimeWithdrawals ?? 0}

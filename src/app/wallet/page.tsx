@@ -80,6 +80,7 @@ interface LockedBonus {
 
 interface WalletSummary {
   availableBalance: number;
+  sgchainStakingBalance?: number;
   capLockedBalance?: number;
   bonuses: LockedBonus[];
   withdrawalCap?: number;
@@ -187,16 +188,36 @@ const WalletPage = () => {
           setWalletError(walletRes.error);
           setTransactions([]);
         } else {
+          console.log("Wallet API response:", walletRes);
           const walletPayload = walletRes as WalletLedgerResponse | WalletTransaction[];
           if (Array.isArray(walletPayload)) {
             setTransactions(walletPayload);
           } else {
             setTransactions(walletPayload.ledger || []);
           }
-          const summary = !Array.isArray(walletPayload) ? walletPayload.summary : null;
-          if (summary) {
-            resolvedSummary = summary;
-            setWalletSummary(summary);
+          if (!Array.isArray(walletPayload)) {
+            // Try summary nested, then root-level, then data-wrapped
+            const raw = walletPayload as Record<string, unknown>;
+            const summaryFromPayload =
+              walletPayload.summary ??
+              ((walletPayload as WalletSummary).availableBalance !== undefined
+                ? (walletPayload as WalletSummary)
+                : null);
+            if (summaryFromPayload) {
+              // Extract sgchainStakingBalance from summary, root, or data-wrapped response
+              const summaryAny = summaryFromPayload as unknown as Record<string, unknown>;
+              const stakingBalance =
+                summaryAny.sgchainStakingBalance ??
+                raw.sgchainStakingBalance ??
+                (raw.data as Record<string, unknown> | undefined)?.sgchainStakingBalance ??
+                0;
+              const mergedSummary = {
+                ...summaryFromPayload,
+                sgchainStakingBalance: Number(stakingBalance) || 0,
+              };
+              resolvedSummary = mergedSummary;
+              setWalletSummary(mergedSummary);
+            }
           }
         }
       } else {
@@ -209,7 +230,16 @@ const WalletPage = () => {
         if (dashboardRes?.error) {
           setDashboardError(dashboardRes.error);
         } else if (!resolvedSummary) {
-          resolvedSummary = dashboardRes.wallet || null;
+          const dashWallet = dashboardRes.wallet || null;
+          if (dashWallet) {
+            resolvedSummary = {
+              ...dashWallet,
+              sgchainStakingBalance:
+                dashWallet.sgchainStakingBalance ??
+                dashboardRes.sgchainStakingBalance ??
+                0,
+            };
+          }
           setWalletSummary(resolvedSummary);
         }
       } else {
