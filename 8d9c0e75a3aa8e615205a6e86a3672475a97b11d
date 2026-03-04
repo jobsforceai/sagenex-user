@@ -1,0 +1,33 @@
+src/app/dashboard/page.tsx
+  a2a56315d8920ea7 469
+src/app/team/page.tsx
+  a2a56315d8920ea7 73-75,260-267,296
+src/app/tests/book/page.tsx
+  a2a56315d8920ea7 1,3-5,9,11-16,18-19,21,23-24
+src/app/tests/online/page.tsx
+  a2a56315d8920ea7 1,3-5,7,9,11-16,18-19,21,23-24
+src/app/lottery/page.tsx
+  a2a56315d8920ea7 7,9,11-16,18,20-21,23,26
+src/app/components/dashboard/LockedBonusesCard.tsx
+  a2a56315d8920ea7 55,83-88,94,97
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.8",
+  "base_commit_sha": "8d9c0e75a3aa8e615205a6e86a3672475a97b11d",
+  "prompts": {
+    "a2a56315d8920ea7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019be4ff-371b-7a00-bc04-05e64451ce35",
+        "model": "gpt-5.2-codex"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>",
+      "messages": [],
+      "total_additions": 76,
+      "total_deletions": 2687,
+      "accepted_lines": 68,
+      "overriden_lines": 0
+    }
+  }
+}
