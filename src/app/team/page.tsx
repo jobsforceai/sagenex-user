@@ -70,6 +70,9 @@ const DEFAULT_LEVEL_ONE_RULE = {
   level: 1,
   description: "Have 1 active member at Level 1.",
   requiresTest: false,
+  activeLegDepth: 1,
+  activeLegsRequired: 1,
+  activeTeamRequired: 0,
 };
 
 const TeamPage = () => {
@@ -254,6 +257,14 @@ const TeamPage = () => {
                               ? 1
                               : rule.level + DISPLAY_LEVEL_OFFSET;
                           const isDefaultLevelOne = rule === DEFAULT_LEVEL_ONE_RULE;
+                          const activeLegsRequired = rule.activeLegsRequired ?? 0;
+                          const activeLegDepth = rule.activeLegDepth ?? displayLevel;
+                          const activeTeamRequired = rule.activeTeamRequired ?? 0;
+                          const descriptionText = isDefaultLevelOne
+                            ? "Have 1 active member at Level 1."
+                            : activeTeamRequired > 0
+                              ? `Have ${activeLegsRequired} active users at Level ${activeLegDepth} and ${activeTeamRequired} active team members.`
+                              : `Have ${activeLegsRequired} active users at Level ${activeLegDepth}.`;
                           return (
                             <div
                               key={`rule-${displayLevel}`}
@@ -271,11 +282,6 @@ const TeamPage = () => {
                                 >
                                   Level {displayLevel}
                                 </span>
-                                {rule.requiresTest && (
-                                  <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-200">
-                                    Test required
-                                  </span>
-                                )}
                                 {isDefaultLevelOne && (
                                   <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-200">
                                     Unlocked
@@ -287,7 +293,7 @@ const TeamPage = () => {
                                   isDefaultLevelOne ? "text-emerald-100/80" : "text-white/60"
                                 }
                               >
-                                {rule.description || "—"}
+                                {descriptionText}
                               </p>
                             </div>
                           );

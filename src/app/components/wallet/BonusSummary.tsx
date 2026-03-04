@@ -15,7 +15,6 @@ interface LockedBonus {
   progress: {
     activeLegs?: { current: number; required: number; depth?: number };
     activeTeam?: { current: number; required: number };
-    testQualified?: { current: number; required: number };
   };
 }
 
@@ -168,37 +167,6 @@ export const BonusSummary = ({ bonuses, loading }: BonusSummaryProps) => {
                               }}
                             />
                           </div>
-                        </div>
-                      )}
-                      {bonus.progress.testQualified && (
-                        <div
-                          className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs ${
-                            bonus.progress.testQualified.current >=
-                            bonus.progress.testQualified.required
-                              ? "border-emerald-500/40 bg-emerald-500/10"
-                              : "border-gray-800 bg-black/30"
-                          }`}
-                        >
-                          <span
-                            className={
-                              bonus.progress.testQualified.current >=
-                              bonus.progress.testQualified.required
-                                ? "text-emerald-200"
-                                : "text-gray-500"
-                            }
-                          >
-                            Test status
-                          </span>
-                          {bonus.progress.testQualified.current >=
-                          bonus.progress.testQualified.required ? (
-                            <span className="rounded-full border border-emerald-400/50 bg-emerald-500/20 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-200">
-                              Passed
-                            </span>
-                          ) : (
-                            <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-200">
-                              Not passed
-                            </span>
-                          )}
                         </div>
                       )}
                     </div>

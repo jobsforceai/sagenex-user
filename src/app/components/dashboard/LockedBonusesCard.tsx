@@ -12,7 +12,6 @@ interface LockedBonus {
     progress: {
         activeLegs?: { current: number; required: number; depth?: number };
         activeTeam?: { current: number; required: number };
-        testQualified?: { current: number; required: number };
     };
 }
 
@@ -52,15 +51,8 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
                                     required: bonus.progress.activeTeam.required,
                                     barClass: "bg-emerald-500",
                                 },
-                                bonus.progress?.testQualified && {
-                                    label: "Tests qualified",
-                                    current: bonus.progress.testQualified.current,
-                                    required: bonus.progress.testQualified.required,
-                                    barClass: "bg-amber-500",
-                                    isTestStatus: true,
-                                },
                             ].filter(
-                                (item): item is { label: string; current: number; required: number; barClass: string; isTestStatus?: boolean } =>
+                                (item): item is { label: string; current: number; required: number; barClass: string } =>
                                     Boolean(item)
                             );
                             const imageLevel = displayLevel(bonus.level);
@@ -88,52 +80,22 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
                                     </div>
                                     <div className="mt-4 space-y-3">
                                         {progressItems.length > 0 ? (
-                                            progressItems.map((item) =>
-                                                item.isTestStatus ? (
-                                                    <div
-                                                        key={item.label}
-                                                        className={`flex items-center justify-between rounded-lg border px-3 py-2 text-xs ${
-                                                            item.current >= item.required
-                                                                ? "border-emerald-500/40 bg-emerald-500/10"
-                                                                : "border-gray-700/50 bg-black/30"
-                                                        }`}
-                                                    >
-                                                        <span
-                                                            className={
-                                                                item.current >= item.required
-                                                                    ? "text-emerald-200"
-                                                                    : "text-gray-400"
-                                                            }
-                                                        >
-                                                            Test status
+                                            progressItems.map((item) => (
+                                                <div key={item.label}>
+                                                    <div className="text-xs text-gray-400 flex justify-between mb-1.5">
+                                                        <span>{item.label}</span>
+                                                        <span className="font-medium">
+                                                            {item.current} / {item.required}
                                                         </span>
-                                                        {item.current >= item.required ? (
-                                                            <span className="rounded-full border border-emerald-400/50 bg-emerald-500/20 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-200">
-                                                                Passed
-                                                            </span>
-                                                        ) : (
-                                                            <span className="rounded-full border border-amber-400/40 bg-amber-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-amber-200">
-                                                                Not passed
-                                                            </span>
-                                                        )}
                                                     </div>
-                                                ) : (
-                                                    <div key={item.label}>
-                                                        <div className="text-xs text-gray-400 flex justify-between mb-1.5">
-                                                            <span>{item.label}</span>
-                                                            <span className="font-medium">
-                                                                {item.current} / {item.required}
-                                                            </span>
-                                                        </div>
-                                                        <div className="w-full bg-gray-700 rounded-full h-2.5">
-                                                            <div
-                                                                className={`${item.barClass} h-2.5 rounded-full`}
-                                                                style={{ width: `${getProgressPct(item.current, item.required)}%` }}
-                                                            ></div>
-                                                        </div>
+                                                    <div className="w-full bg-gray-700 rounded-full h-2.5">
+                                                        <div
+                                                            className={`${item.barClass} h-2.5 rounded-full`}
+                                                            style={{ width: `${getProgressPct(item.current, item.required)}%` }}
+                                                        ></div>
                                                     </div>
-                                                )
-                                            )
+                                                </div>
+                                            ))
                                         ) : (
                                             <p className="text-xs text-gray-500">Progress data unavailable.</p>
                                         )}

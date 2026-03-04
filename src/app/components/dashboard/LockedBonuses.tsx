@@ -12,7 +12,6 @@ interface Bonus {
   progress: {
     activeLegs?: { current: number; required: number; depth?: number };
     activeTeam?: { current: number; required: number };
-    testQualified?: { current: number; required: number };
   };
 }
 
@@ -53,11 +52,6 @@ const LockedBonuses = ({ bonuses }: LockedBonusesProps) => {
               label: "Active team",
               current: bonus.progress.activeTeam.current,
               required: bonus.progress.activeTeam.required,
-            },
-            bonus.progress?.testQualified && {
-              label: "Tests qualified",
-              current: bonus.progress.testQualified.current,
-              required: bonus.progress.testQualified.required,
             },
           ].filter(
             (item): item is { label: string; current: number; required: number } => Boolean(item)

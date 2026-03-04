@@ -21,8 +21,6 @@ import {
   CalendarCheck,
   Crown,
   Gift,
-  MonitorPlay,
-  Ticket,
 } from "lucide-react";
 import AgentOverview from "../components/dashboard/AgentOverview";
 import DashboardUpdatesOverlay from "../components/dashboard/DashboardUpdatesOverlay";
@@ -468,36 +466,7 @@ const DashboardPage = () => {
                 </CardHeader>
               </Card>
             </Link> */}
-            <Link href="/tests/online" className="group">
-              <Card className="relative overflow-hidden bg-linear-to-br from-indigo-500/10 via-black/20 to-black border border-indigo-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-indigo-300/50 group-hover:shadow-[0_18px_40px_rgba(99,102,241,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-indigo-300 via-indigo-500 to-indigo-300" />
-                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-indigo-400/15 blur-2xl" />
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-indigo-500/20 text-indigo-200 flex items-center justify-center ring-1 ring-indigo-400/30">
-                    <MonitorPlay className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Online Exam</CardTitle>
-                    <p className="text-sm text-gray-400">Start instantly after payment</p>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
-            <Link href="/lottery" className="group">
-              <Card className="relative overflow-hidden bg-linear-to-br from-cyan-500/10 via-black/20 to-black border border-cyan-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-cyan-300/50 group-hover:shadow-[0_18px_40px_rgba(34,211,238,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-cyan-300 via-cyan-500 to-cyan-300" />
-                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-cyan-400/15 blur-2xl" />
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-cyan-500/20 text-cyan-200 flex items-center justify-center ring-1 ring-cyan-400/30">
-                    <Ticket className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Lottery</CardTitle>
-                    <p className="text-sm text-gray-400">Join active prize pools</p>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
+            {/* Online Exam + Lottery are disabled */}
           </div>
         </div>
 
