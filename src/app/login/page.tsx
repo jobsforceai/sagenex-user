@@ -13,7 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { registerUser, loginOtp, verifyEmail, login, verifyEmailOtp, passwordStatus, nomineeLogin } from "@/actions/auth";
-import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2 } from "lucide-react";
+import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2, ShieldAlert } from "lucide-react";
 import Image from "next/image";
 
 type View = "identify" | "main" | "email-login" | "email-signup" | "otp" | "password-login" | "nominee-login" | "face-stepup";
@@ -65,6 +65,7 @@ function Login() {
   const [hasPasswordSet, setHasPasswordSet] = useState<boolean | null>(null);
   const [passwordStatusEmail, setPasswordStatusEmail] = useState<string | null>(null);
   const [isVerifyFlow, setIsVerifyFlow] = useState(false);
+  const [isAccountBlocked, setIsAccountBlocked] = useState(false);
 
   const blinkMonitorRef = useRef<NodeJS.Timeout | null>(null);
   const blinkingRef = useRef(false);
@@ -156,8 +157,19 @@ function Login() {
     setView(newView);
   }
 
+  const isBlockedError = (value: string | null | undefined) =>
+    typeof value === "string" && /blocked by admin/i.test(value);
+
+  const setAuthError = (value: string | null) => {
+    setError(value);
+    setIsAccountBlocked(isBlockedError(value));
+  };
+
   const handleEmailChange = (value: string) => {
     setEmail(value);
+    if (isAccountBlocked) {
+      setIsAccountBlocked(false);
+    }
     if (passwordStatusEmail && passwordStatusEmail !== value) {
       setHasPasswordSet(null);
       setPasswordStatusEmail(null);
@@ -603,13 +615,13 @@ function Login() {
 
   const handleCheckPasswordStatus = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setAuthError(null);
     setMessage(null);
     setNeedsVerification(false);
     setIsLoading(true);
 
     if (!email) {
-      setError("Email is required.");
+      setAuthError("Email is required.");
       setIsLoading(false);
       return;
     }
@@ -618,7 +630,7 @@ function Login() {
       if (isVerifyFlow) {
         const data = await verifyEmailOtp(email);
         if (data.error) {
-          setError(data.error);
+          setAuthError(data.error);
         } else {
           setMessage(data.message || "Verification OTP has been sent to your email.");
           changeView("otp");
@@ -628,11 +640,11 @@ function Login() {
 
       const status = await passwordStatus(email);
       if (status?.error) {
-        setError(status.error);
+        setAuthError(status.error);
         return;
       }
       if (typeof status?.hasPasswordSet !== "boolean") {
-        setError("Unable to determine password status.");
+        setAuthError("Unable to determine password status.");
         return;
       }
 
@@ -646,7 +658,7 @@ function Login() {
         changeView("email-login");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      setAuthError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -654,23 +666,23 @@ function Login() {
 
   const handleSignUpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setAuthError(null);
     setMessage(null);
     setNeedsVerification(false);
 
     if (password !== confirmPassword) {
-      setError("Passwords do not match.");
+      setAuthError("Passwords do not match.");
       return;
     }
     if (password.length < 8) {
-        setError("Password must be at least 8 characters long.");
+        setAuthError("Password must be at least 8 characters long.");
         return;
     }
 
     setIsLoading(true);
 
     if (!fullName || !email || !phone) {
-        setError("Full name, email, and phone number are required.");
+        setAuthError("Full name, email, and phone number are required.");
         setIsLoading(false);
         return;
     }
@@ -678,13 +690,13 @@ function Login() {
     try {
         const data = await registerUser(fullName, email, phone, sponsorId, password);
         if (data.error) {
-            setError(data.error);
+            setAuthError(data.error);
         } else {
             setMessage(data.message || "Registration successful. Please check your email for OTP.");
             changeView("otp");
         }
     } catch (err) {
-        setError(err instanceof Error ? err.message : "An unknown error occurred.");
+        setAuthError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
         setIsLoading(false);
     }
@@ -692,13 +704,13 @@ function Login() {
 
   const handleEmailLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setAuthError(null);
     setMessage(null);
     setNeedsVerification(false);
     setIsLoading(true);
 
     if (!email) {
-        setError("Email is required.");
+        setAuthError("Email is required.");
         setIsLoading(false);
         return;
     }
@@ -706,14 +718,14 @@ function Login() {
     try {
         const data = await loginOtp(email);
         if (data.error) {
-            setError(data.error);
+            setAuthError(data.error);
             setNeedsVerification(/not verified/i.test(data.error));
         } else {
             setMessage(data.message || "Login OTP has been sent to your email.");
             changeView("otp");
         }
     } catch (err) {
-        setError(err instanceof Error ? err.message : "An unknown error occurred.");
+        setAuthError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
         setIsLoading(false);
     }
@@ -721,12 +733,12 @@ function Login() {
 
   const handlePasswordLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setAuthError(null);
     setNeedsVerification(false);
     setIsLoading(true);
 
     if (!email || !password) {
-      setError("Email and password are required.");
+      setAuthError("Email and password are required.");
       setIsLoading(false);
       return;
     }
@@ -734,15 +746,15 @@ function Login() {
     try {
       const data = await login(email, password);
       if (data.error) {
-        setError(data.error);
+        setAuthError(data.error);
         setNeedsVerification(/not verified/i.test(data.error));
       } else if (!isAuthResponse(data)) {
-        setError("An unexpected response was returned. Please try again.");
+        setAuthError("An unexpected response was returned. Please try again.");
       } else {
         await handleAuthSuccess(data);
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      setAuthError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -750,12 +762,12 @@ function Login() {
 
   const handleOtpSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setAuthError(null);
     setNeedsVerification(false);
     setIsLoading(true);
 
     if (!otp || !email) {
-        setError("Email and OTP are required.");
+        setAuthError("Email and OTP are required.");
         setIsLoading(false);
         return;
     }
@@ -763,26 +775,26 @@ function Login() {
     try {
         const data = await verifyEmail(email, otp);
         if (data.error) {
-            setError(data.error);
+            setAuthError(data.error);
         } else if (!isAuthResponse(data)) {
-            setError("An unexpected response was returned. Please try again.");
+            setAuthError("An unexpected response was returned. Please try again.");
         } else {
             await handleAuthSuccess(data);
         }
     } catch (err) {
-        setError(err instanceof Error ? err.message : "An unknown error occurred.");
+        setAuthError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
         setIsLoading(false);
     }
   };
 
   const handleRequestVerificationOtp = async () => {
-    setError(null);
+    setAuthError(null);
     setMessage(null);
     setIsLoading(true);
 
     if (!email) {
-      setError("Email is required.");
+      setAuthError("Email is required.");
       setIsLoading(false);
       return;
     }
@@ -790,13 +802,13 @@ function Login() {
     try {
       const data = await verifyEmailOtp(email);
       if (data.error) {
-        setError(data.error);
+        setAuthError(data.error);
       } else {
         setMessage(data.message || "Verification OTP has been sent to your email.");
         changeView("otp");
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      setAuthError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -914,12 +926,12 @@ function Login() {
 
   const handleNomineeLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError(null);
+    setAuthError(null);
     setMessage(null);
     setIsLoading(true);
 
     if (!nomineeUserId || !nomineePhrase) {
-      setError("User ID and nominee code are required.");
+      setAuthError("User ID and nominee code are required.");
       setIsLoading(false);
       return;
     }
@@ -927,9 +939,9 @@ function Login() {
     try {
       const data = await nomineeLogin(nomineeUserId, nomineePhrase);
       if (data.error) {
-        setError(data.error);
+        setAuthError(data.error);
       } else if (!isAuthResponse(data)) {
-        setError("An unexpected response was returned. Please try again.");
+        setAuthError("An unexpected response was returned. Please try again.");
       } else {
         authLogin({
           ...data,
@@ -940,7 +952,7 @@ function Login() {
         });
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : "An unknown error occurred.");
+      setAuthError(err instanceof Error ? err.message : "An unknown error occurred.");
     } finally {
       setIsLoading(false);
     }
@@ -1133,7 +1145,7 @@ function Login() {
   );
 
   const handleBack = () => {
-    setError(null);
+    setAuthError(null);
     setMessage(null);
     setNeedsVerification(false);
     if (view === "otp") {
@@ -1202,6 +1214,8 @@ function Login() {
         form = renderMainView();
     }
 
+    const showBlockedNotice = isAccountBlocked && error;
+
     return (
         <>
             <CardHeader className="text-center space-y-4">
@@ -1212,6 +1226,24 @@ function Login() {
                 </div>
             </CardHeader>
             <CardContent className="space-y-6">
+                {showBlockedNotice && (
+                  <div className="rounded-xl border border-red-500/30 bg-red-950/40 p-4 text-left">
+                    <div className="flex items-start gap-3">
+                      <div className="rounded-full bg-red-500/15 p-2 text-red-300">
+                        <ShieldAlert className="h-5 w-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-sm font-semibold text-red-100">Account blocked by admin</p>
+                        <p className="text-sm text-red-200/85">
+                          This account is currently blocked. You cannot continue login until admin access is restored.
+                        </p>
+                        <p className="text-xs text-red-200/70">
+                          Please contact support or your admin team for the unblock status.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {form}
                 {(view === "identify" || view === "main") && (
                     <Button
@@ -1238,7 +1270,7 @@ function Login() {
                         </Button>
                     </p>
                 )}
-                {error && <p className="text-red-500 text-sm text-center pt-2">{error}</p>}
+                {error && !showBlockedNotice && <p className="text-red-500 text-sm text-center pt-2">{error}</p>}
                 {message && <p className="text-green-500 text-sm text-center pt-2">{message}</p>}
             </CardContent>
         </>

@@ -29,7 +29,11 @@ async function handleApiResponse(response: Response) {
       )}`
     );
     return {
-      error: responseData.message || `Request failed with status ${response.status}`,
+      // Prefer backend-provided domain error details over generic wrapper messages.
+      error:
+        (typeof responseData.error === "string" && responseData.error) ||
+        responseData.message ||
+        `Request failed with status ${response.status}`,
     };
   }
 
