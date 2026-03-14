@@ -1,0 +1,23 @@
+FACE_REGISTRATION_LIVENESS_INTEGRATION.md
+  a2a56315d8920ea7 1-285
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.12",
+  "base_commit_sha": "c46ca7e03e4bba720a947b45281c14f3082dc49c",
+  "prompts": {
+    "a2a56315d8920ea7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019be4ff-371b-7a00-bc04-05e64451ce35",
+        "model": "gpt-5.4"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>",
+      "messages": [],
+      "total_additions": 285,
+      "total_deletions": 0,
+      "accepted_lines": 285,
+      "overriden_lines": 0
+    }
+  }
+}
