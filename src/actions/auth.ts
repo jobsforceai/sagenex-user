@@ -1,5 +1,7 @@
 "use server";
 
+import { cookies } from "next/headers";
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
 
 async function handleApiResponse(response: Response) {
@@ -114,6 +116,24 @@ export async function passwordStatus(email: string) {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email }),
+  });
+
+  return handleApiResponse(res);
+}
+
+export async function stopImpersonation() {
+  const cookieStore = await cookies();
+  const token = cookieStore.get("authToken")?.value;
+  if (!token) {
+    return { error: "No active session found." };
+  }
+
+  const res = await fetch(`${API_BASE_URL}/api/v1/auth/impersonation/stop`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
   });
 
   return handleApiResponse(res);
