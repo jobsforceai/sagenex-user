@@ -16,6 +16,8 @@ interface WithdrawalRequestProps {
   kycStatus: string | undefined;
   className?: string;
   remainingWithdrawalLimit?: number;
+  disabled?: boolean;
+  disabledMessage?: string;
 }
 
 type WithdrawalType = "crypto" | "upi" | "bank";
@@ -27,6 +29,8 @@ const WithdrawalRequest = ({
   kycStatus,
   className,
   remainingWithdrawalLimit,
+  disabled = false,
+  disabledMessage,
 }: WithdrawalRequestProps) => {
   const { user } = useAuth();
   const [amount, setAmount] = useState("");
@@ -299,6 +303,30 @@ const WithdrawalRequest = ({
           <div className="flex items-center gap-3 bg-yellow-900/50 text-yellow-300 p-4 rounded-md">
             <AlertCircle className="w-5 h-5" />
             <p className="text-sm font-medium">Your KYC must be verified before you can make a withdrawal.</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (disabled) {
+    return (
+      <Card className={`bg-gray-900 border-gray-800 flex flex-col ${className ?? ''}`}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <DollarSign className="w-5 h-5" />
+            Request Withdrawal
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="flex-1">
+          <div className="flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 p-4">
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
+            <div>
+              <p className="text-sm font-medium text-amber-200">Important Announcement - Withdrawal Downtime</p>
+              <p className="mt-1 text-xs leading-5 text-amber-200/80">
+                {disabledMessage || "We are facing a bank issue today. Withdrawal service will resume tomorrow."}
+              </p>
+            </div>
           </div>
         </CardContent>
       </Card>

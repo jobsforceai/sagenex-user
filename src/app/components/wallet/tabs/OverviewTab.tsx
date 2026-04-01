@@ -88,6 +88,7 @@ interface OverviewTabProps {
   setCycleError: (error: string | null) => void;
   setCycleHistory: (history: CurrentCycleHistory | null) => void;
   remainingWithdrawalLimit: number;
+  withdrawalsDisabled?: boolean;
   onDepositClick: () => void;
   onWithdrawClick: () => void;
   onTransferClick: () => void;
@@ -121,6 +122,7 @@ export const OverviewTab = ({
   setCycleError,
   setCycleHistory,
   remainingWithdrawalLimit,
+  withdrawalsDisabled = false,
   onDepositClick,
   onWithdrawClick,
   onTransferClick,
@@ -149,6 +151,7 @@ export const OverviewTab = ({
           onDeposit={onDepositClick}
           onWithdraw={onWithdrawClick}
           onTransfer={onTransferClick}
+          withdrawDisabled={withdrawalsDisabled}
         />
       </div>
 

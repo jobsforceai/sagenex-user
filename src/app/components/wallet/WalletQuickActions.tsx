@@ -7,12 +7,14 @@ interface WalletQuickActionsProps {
   onDeposit: () => void;
   onWithdraw: () => void;
   onTransfer: () => void;
+  withdrawDisabled?: boolean;
 }
 
 export const WalletQuickActions = ({
   onDeposit,
   onWithdraw,
   onTransfer,
+  withdrawDisabled = false,
 }: WalletQuickActionsProps) => {
   return (
     <Card className="bg-gray-900/40 border-gray-800 rounded-2xl h-full">
@@ -28,9 +30,10 @@ export const WalletQuickActions = ({
         </Button>
         <Button
           onClick={onWithdraw}
+          disabled={withdrawDisabled}
           className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
         >
-          Withdraw
+          {withdrawDisabled ? "Withdraw Unavailable" : "Withdraw"}
         </Button>
         <Button
           onClick={onTransfer}
