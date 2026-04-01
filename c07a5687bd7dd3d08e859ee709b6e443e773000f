@@ -1,0 +1,23 @@
+src/app/wallet/page.tsx
+  a2a56315d8920ea7 356-371
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "c07a5687bd7dd3d08e859ee709b6e443e773000f",
+  "prompts": {
+    "a2a56315d8920ea7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019be4ff-371b-7a00-bc04-05e64451ce35",
+        "model": "gpt-5.4"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>",
+      "messages": [],
+      "total_additions": 16,
+      "total_deletions": 0,
+      "accepted_lines": 16,
+      "overriden_lines": 0
+    }
+  }
+}
