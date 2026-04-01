@@ -1,0 +1,29 @@
+src/app/components/wallet/WalletQuickActions.tsx
+  a2a56315d8920ea7 10,17,33,36
+src/app/components/wallet/tabs/OverviewTab.tsx
+  a2a56315d8920ea7 91,125,154
+src/app/components/wallet/WithdrawalRequest.tsx
+  a2a56315d8920ea7 19-20,32-33,308-329
+src/app/wallet/page.tsx
+  a2a56315d8920ea7 31-42,387,389-392,449-461,485-486
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.23",
+  "base_commit_sha": "7bc00a6d2b4d1ef101055cfc2a8ab4486d2cb882",
+  "prompts": {
+    "a2a56315d8920ea7": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019be4ff-371b-7a00-bc04-05e64451ce35",
+        "model": "gpt-5.4"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>",
+      "messages": [],
+      "total_additions": 76,
+      "total_deletions": 11,
+      "accepted_lines": 67,
+      "overriden_lines": 0
+    }
+  }
+}
