@@ -28,18 +28,6 @@ import { getWalletData, getDashboardData, getKycStatus, getWalletCurrentCycleHis
 import { KycStatus } from "@/types";
 import { X, AlertCircle } from "lucide-react";
 
-const WITHDRAWALS_DISABLED_TODAY = true;
-const WITHDRAWALS_DISABLED_TITLE = "Important Announcement - Withdrawal Downtime";
-const WITHDRAWALS_DISABLED_LINES = [
-  "Dear Sagenex Community,",
-  "Due to financial year closing procedures by banks, services like NEFT and RTGS are currently unavailable today.",
-  "As a result, withdrawals on the Sagenex platform will be temporarily paused for today.",
-  "This is a bank-side downtime and not related to platform operations.",
-  "All withdrawal services will resume once banking systems are back to normal.",
-  "We appreciate your patience and understanding.",
-  "- Team Sagenex",
-];
-
 // Interfaces for wallet page data
 interface WalletTransaction {
   _id: string;
@@ -384,12 +372,8 @@ const WalletPage = () => {
               setCycleError={setCycleError}
               setCycleHistory={setCycleHistory}
               remainingWithdrawalLimit={remainingWithdrawalLimit}
-              withdrawalsDisabled={WITHDRAWALS_DISABLED_TODAY}
               onDepositClick={() => setDepositDrawerOpen(true)}
-              onWithdrawClick={() => {
-                if (WITHDRAWALS_DISABLED_TODAY) return;
-                setWithdrawDrawerOpen(true);
-              }}
+              onWithdrawClick={() => setWithdrawDrawerOpen(true)}
               onTransferClick={() => setTransferDrawerOpen(true)}
               onViewAllTransactions={() => setActiveTab("history")}
             />
@@ -446,19 +430,6 @@ const WalletPage = () => {
               </DrawerDescription>
             </DrawerHeader>
             <div className="px-6 py-4 overflow-y-auto max-h-[calc(100vh-200px)]">
-              {WITHDRAWALS_DISABLED_TODAY && (
-                <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-amber-200 font-medium">{WITHDRAWALS_DISABLED_TITLE}</p>
-                    <div className="mt-2 space-y-1 text-xs text-amber-200/80">
-                      {WITHDRAWALS_DISABLED_LINES.map((line) => (
-                        <p key={line}>{line}</p>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
               {kycStatus?.status !== "VERIFIED" && (
                 <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 flex items-start gap-3">
                   <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
@@ -482,8 +453,6 @@ const WalletPage = () => {
                 currentBalance={walletSummary?.availableBalance ?? 0}
                 kycStatus={kycStatus?.status}
                 remainingWithdrawalLimit={remainingWithdrawalLimit}
-                disabled={WITHDRAWALS_DISABLED_TODAY}
-                disabledMessage={WITHDRAWALS_DISABLED_LINES.join(" ")}
               />
             </div>
           </DrawerContent>
