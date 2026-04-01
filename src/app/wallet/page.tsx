@@ -29,15 +29,15 @@ import { KycStatus } from "@/types";
 import { X, AlertCircle } from "lucide-react";
 
 const WITHDRAWALS_DISABLED_TODAY = true;
-const WITHDRAWALS_DISABLED_TITLE = "🚨 Important Announcement – Withdrawal Downtime 🚨";
+const WITHDRAWALS_DISABLED_TITLE = "Important Announcement - Withdrawal Downtime";
 const WITHDRAWALS_DISABLED_LINES = [
   "Dear Sagenex Community,",
-  "Due to financial year closing procedures by banks, services like NEFT & RTGS are currently unavailable today.",
+  "Due to financial year closing procedures by banks, services like NEFT and RTGS are currently unavailable today.",
   "As a result, withdrawals on the Sagenex platform will be temporarily paused for today.",
-  "💡 This is a bank-side downtime and not related to platform operations.",
-  "✅ All withdrawal services will resume once banking systems are back to normal.",
+  "This is a bank-side downtime and not related to platform operations.",
+  "All withdrawal services will resume once banking systems are back to normal.",
   "We appreciate your patience and understanding.",
-  "— Team Sagenex",
+  "- Team Sagenex",
 ];
 
 // Interfaces for wallet page data
@@ -352,22 +352,6 @@ const WalletPage = () => {
             </Badge>
           </div>
         </header>
-
-        {WITHDRAWALS_DISABLED_TODAY && (
-          <div className="rounded-2xl border border-amber-500/30 bg-amber-500/10 px-5 py-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-400" />
-              <div>
-                <p className="text-sm font-semibold text-amber-200">{WITHDRAWALS_DISABLED_TITLE}</p>
-                <div className="mt-2 space-y-1 text-sm text-amber-100/85">
-                  {WITHDRAWALS_DISABLED_LINES.map((line) => (
-                    <p key={line}>{line}</p>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
