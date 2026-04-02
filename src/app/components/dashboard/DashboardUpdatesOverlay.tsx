@@ -61,7 +61,16 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
   const [userUpdates, setUserUpdates] = useState<UserUpdate[]>([]);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => setMounted(true), []);
+  useEffect(() => {
+    setMounted(true);
+    // One-time cleanup: remove stale update-done keys from before the showOnce fix
+    if (!localStorage.getItem("update-done-cleanup-v1")) {
+      Object.keys(localStorage).forEach((key) => {
+        if (key.startsWith("update-done:")) localStorage.removeItem(key);
+      });
+      localStorage.setItem("update-done-cleanup-v1", "true");
+    }
+  }, []);
 
   useEffect(() => {
     if (!token) return;
@@ -75,7 +84,9 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
 
         const filtered = updates.filter((u) => {
           if (u.type === "MODAL") {
-            return !localStorage.getItem(`update-done:${u._id}`);
+            // Only persist dismissal if showOnce is true
+            if (u.showOnce && localStorage.getItem(`update-done:${u._id}`)) return false;
+            return true;
           }
           if (!u.showOnce) return true;
           return !localStorage.getItem(`update-dismissed:${u._id}`);
@@ -121,12 +132,12 @@ const DashboardUpdatesOverlay = memo(function DashboardUpdatesOverlay({
   };
 
   const markUpdateDone = (update: UserUpdate) => {
-    localStorage.setItem(`update-done:${update._id}`, "true");
+    if (update.showOnce) localStorage.setItem(`update-done:${update._id}`, "true");
     setUserUpdates((prev) => prev.filter((item) => item._id !== update._id));
   };
 
   const dismissAfterCta = (update: UserUpdate) => {
-    localStorage.setItem(`update-done:${update._id}`, "true");
+    if (update.showOnce) localStorage.setItem(`update-done:${update._id}`, "true");
     // Defer removal so the current CTA href is used for navigation.
     setTimeout(() => {
       setUserUpdates((prev) => prev.filter((item) => item._id !== update._id));
