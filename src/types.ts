@@ -116,15 +116,26 @@ export interface Reward {
   }[];
   rejectionReason?: string;
 }
+export interface RewardTier {
+    reward: string;
+    valueUSD: number;
+    numberOfTickets?: number;
+}
+
 export interface RewardProgram {
     programId: string;
     name: string;
-    description: string;
-    rewards: {
-        reward: string;
-        valueUSD: number;
-    }[];
-    status: 'active' | 'locked' | 'archived';
+    startDate: string;
+    endDate: string;
+    status: 'upcoming' | 'active' | 'locked';
+    images?: {
+        heroImageUrl?: string;
+        squareImageUrl?: string;
+    };
+    selfBusinessTiers: RewardTier[];
+    teamBusinessTiers: RewardTier[];
+    ticketRedemptionTiers?: RewardTier[];
+    performanceTiers?: RewardTier[];
 }
 
 // --- Expense Management ---
