@@ -1,0 +1,27 @@
+src/types.ts
+  3eb1101916e45c39 119-124,128-138
+CLAUDE.md
+  3eb1101916e45c39 1-67
+src/app/rewards/page.tsx
+  3eb1101916e45c39 3,12,29-32,37-145,184-190,293-295,305,319-321,338-341,349-352,356-359,385-387,403-411,419-513,517-518,523-528,533-538,541-546,548,551-558,560,564,574,578-584,586-588,591-592,595,606,616,618-621,626,629-631,637-639,646-652,654-655,677,679-680,683-684,689-691,693-699,701-717,720,726,739
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "2ec4532d5dc86f628a47ecfc3efa72ab11b1b2b7",
+  "prompts": {
+    "3eb1101916e45c39": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "32016805-d57b-4238-b5df-7e6c478b788d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 446,
+      "total_deletions": 215,
+      "accepted_lines": 438,
+      "overriden_lines": 0
+    }
+  }
+}
