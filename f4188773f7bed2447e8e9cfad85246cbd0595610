@@ -1,0 +1,23 @@
+src/app/components/dashboard/DashboardUpdatesOverlay.tsx
+  3eb1101916e45c39 64-73,87-89,135,140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "f4188773f7bed2447e8e9cfad85246cbd0595610",
+  "prompts": {
+    "3eb1101916e45c39": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "32016805-d57b-4238-b5df-7e6c478b788d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 15,
+      "total_deletions": 4,
+      "accepted_lines": 15,
+      "overriden_lines": 0
+    }
+  }
+}
