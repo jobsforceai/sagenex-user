@@ -25,6 +25,7 @@ const guestLinks: NavLink[] = [
 
 const authLinks: NavLink[] = [
   { href: "/dashboard", label: "Dashboard" },
+  { href: "/sgnx-gold", label: "SGNX Gold" },
   { href: "/courses", label: "Courses" },
   { href: "/kyc", label: "KYC" },
   { href: "/wallet", label: "Wallet" },

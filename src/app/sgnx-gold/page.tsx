@@ -3,16 +3,77 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import Navbar from "@/app/components/Navbar";
-import OverviewCards from "@/app/components/sgnx-gold/OverviewCards";
-import VaultSection from "@/app/components/sgnx-gold/VaultSection";
+import SgnxGoldHero from "@/app/components/sgnx-gold/SgnxGoldHero";
+import LivePriceCards from "@/app/components/sgnx-gold/LivePriceCards";
+import CityPricesGrid from "@/app/components/sgnx-gold/CityPricesGrid";
+import PriceChart from "@/app/components/sgnx-gold/PriceChart";
 import PaymentProgress from "@/app/components/sgnx-gold/PaymentProgress";
-import EnrollForm from "@/app/components/sgnx-gold/EnrollForm";
 import TransactionHistory from "@/app/components/sgnx-gold/TransactionHistory";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
-import { getMyEnrollments, getLiveGoldRate } from "@/actions/sgnxgold";
-import { Loader2, Gem } from "lucide-react";
+import EnrollModal from "@/app/components/sgnx-gold/EnrollModal";
+import {
+  getMyEnrollments,
+  getLiveGoldRate,
+  getLivePrices,
+  getCityPrices,
+} from "@/actions/sgnxgold";
+import { Loader2 } from "lucide-react";
+
+// Lazy-load the tree (heavy: React Flow + dagre)
+const SgnxGoldTree = dynamic(
+  () => import("@/app/components/sgnx-gold/SgnxGoldTree"),
+  { ssr: false, loading: () => <TreeSkeleton /> },
+);
+
+function TreeSkeleton() {
+  return (
+    <div className="rounded-[20px] border border-[#3c4256] bg-[#1B1F2D] overflow-hidden">
+      <div className="flex items-center gap-2.5 border-b border-[#3c4256] px-5 py-4">
+        <div className="h-4 w-4 rounded bg-[#252A3A] animate-pulse" />
+        <div className="h-4 w-32 rounded bg-[#252A3A] animate-pulse" />
+      </div>
+      <div className="flex items-center justify-center py-16">
+        <Loader2 className="h-6 w-6 animate-spin text-[#D7AF35]" />
+      </div>
+    </div>
+  );
+}
+
+// Skeleton components for each section
+function HeroSkeleton() {
+  return (
+    <div className="rounded-[30px] border border-[#7f70ba]/35 bg-[#1B1F2D] p-6 animate-pulse">
+      <div className="grid gap-6 md:grid-cols-[1fr_280px]">
+        <div className="space-y-4">
+          <div className="h-4 w-40 rounded bg-[#252A3A]" />
+          <div className="h-10 w-56 rounded bg-[#252A3A]" />
+          <div className="h-4 w-80 rounded bg-[#252A3A]" />
+          <div className="grid grid-cols-3 gap-3 pt-2">
+            {[1, 2, 3].map(i => (
+              <div key={i} className="rounded-2xl border border-[#3c4256] bg-[#252A3A]/60 p-4 h-20" />
+            ))}
+          </div>
+        </div>
+        <div className="rounded-2xl bg-[#252A3A]/60 h-48" />
+      </div>
+    </div>
+  );
+}
+
+function PriceCardsSkeleton() {
+  return (
+    <div className="grid grid-cols-2 gap-3">
+      {[1, 2].map(i => (
+        <div key={i} className="rounded-2xl border border-[#3c4256] bg-[#1B1F2D] p-5 h-28 animate-pulse">
+          <div className="h-3 w-16 rounded bg-[#252A3A] mb-3" />
+          <div className="h-6 w-32 rounded bg-[#252A3A] mb-2" />
+          <div className="h-3 w-20 rounded bg-[#252A3A]" />
+        </div>
+      ))}
+    </div>
+  );
+}
 
 interface Enrollment {
   _id: string;
@@ -35,60 +96,81 @@ interface Vault {
   maturityValueUsd?: number;
 }
 
-interface GoldRate {
+interface LivePriceData {
+  metal: string;
+  price: number;
+  change: number;
+  changePercent: number;
+  currency: string;
+}
+
+interface CityPrice {
+  city: string;
   pricePerGram: number;
-  pricePerGramBeforeGst: number;
-  gstPercent: number;
-  pricePerGramUsd: number;
-  exchangeRate: number;
-  source: string;
-  timestamp: string;
 }
 
 export default function SgnxGoldPage() {
-  const { isAuthenticated, loading: authLoading, user } = useAuth();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
+
+  // Each section has its own loading state
+  const [heroLoading, setHeroLoading] = useState(true);
+  const [pricesLoading, setPricesLoading] = useState(true);
+  const [cityLoading, setCityLoading] = useState(true);
 
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [vault, setVault] = useState<Vault | null>(null);
-  const [goldRate, setGoldRate] = useState<GoldRate | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState("enroll");
+  const [goldRate, setGoldRate] = useState<{ pricePerGramUsd: number } | null>(null);
+  const [goldLive, setGoldLive] = useState<LivePriceData | null>(null);
+  const [silverLive, setSilverLive] = useState<LivePriceData | null>(null);
+  const [cityPrices, setCityPrices] = useState<CityPrice[]>([]);
+  const [activeMetal, setActiveMetal] = useState<"gold" | "silver">("gold");
+  const [enrollModalOpen, setEnrollModalOpen] = useState(false);
+  const [showHistory, setShowHistory] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    setLoading(true);
-    setError(null);
+  // Fetch hero data (enrollments + gold rate)
+  const fetchHeroData = useCallback(async () => {
+    setHeroLoading(true);
     try {
       const [enrollResult, rateResult] = await Promise.allSettled([
         getMyEnrollments(),
         getLiveGoldRate(),
       ]);
-
-      if (enrollResult.status === "fulfilled") {
-        const data = enrollResult.value;
-        if (data?.error) {
-          setError(data.error);
-        } else {
-          setEnrollments(data.enrollments ?? []);
-          setVault(data.vault ?? null);
-        }
-      } else {
-        setError("Unable to load enrollments.");
+      if (enrollResult.status === "fulfilled" && !enrollResult.value?.error) {
+        setEnrollments(enrollResult.value.enrollments ?? []);
+        setVault(enrollResult.value.vault ?? null);
       }
-
-      if (rateResult.status === "fulfilled") {
-        const rateData = rateResult.value;
-        if (rateData && !rateData.error) {
-          setGoldRate(rateData);
-        }
+      if (rateResult.status === "fulfilled" && !rateResult.value?.error) {
+        setGoldRate(rateResult.value);
       }
-    } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "An unknown error occurred";
-      setError(message);
     } finally {
-      setLoading(false);
+      setHeroLoading(false);
+    }
+  }, []);
+
+  // Fetch live prices (independent)
+  const fetchPrices = useCallback(async () => {
+    setPricesLoading(true);
+    try {
+      const [goldRes, silverRes] = await Promise.allSettled([
+        getLivePrices("gold", "INR"),
+        getLivePrices("silver", "INR"),
+      ]);
+      if (goldRes.status === "fulfilled" && !goldRes.value?.error) setGoldLive(goldRes.value);
+      if (silverRes.status === "fulfilled" && !silverRes.value?.error) setSilverLive(silverRes.value);
+    } finally {
+      setPricesLoading(false);
+    }
+  }, []);
+
+  // Fetch city prices (independent)
+  const fetchCityPrices = useCallback(async () => {
+    setCityLoading(true);
+    try {
+      const res = await getCityPrices();
+      if (!res?.error) setCityPrices(res.prices ?? []);
+    } finally {
+      setCityLoading(false);
     }
   }, []);
 
@@ -98,125 +180,102 @@ export default function SgnxGoldPage() {
       return;
     }
     if (isAuthenticated) {
-      fetchData();
+      // Fire all fetches independently
+      fetchHeroData();
+      fetchPrices();
+      fetchCityPrices();
     }
-  }, [isAuthenticated, authLoading, router, fetchData]);
-
-  // Set active tab based on whether user has active enrollment
-  useEffect(() => {
-    if (!loading && enrollments.length > 0) {
-      const hasActive = enrollments.some((e) => e.status === "ACTIVE");
-      if (hasActive) {
-        setActiveTab("dashboard");
-      }
-    }
-  }, [loading, enrollments]);
+  }, [isAuthenticated, authLoading, router, fetchHeroData, fetchPrices, fetchCityPrices]);
 
   if (authLoading) {
     return (
-      <div className="bg-black text-white min-h-screen flex items-center justify-center">
-        Loading...
+      <div className="min-h-screen bg-[#0f1219] flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[#D7AF35]" />
       </div>
     );
   }
 
   const activeEnrollment = enrollments.find((e) => e.status === "ACTIVE") ?? null;
-  const hasActiveEnrollment = activeEnrollment !== null;
+  const hasEnrollment = enrollments.length > 0;
 
   const handleEnrollSuccess = () => {
-    fetchData();
-    setActiveTab("dashboard");
+    setEnrollModalOpen(false);
+    fetchHeroData();
   };
 
   return (
-    <div className="bg-black text-white min-h-screen mt-10">
+    <div className="min-h-screen bg-[#0f1219] text-[#ECEFF8] mt-10">
       <Navbar />
-      <div className="container mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-12 space-y-6">
-        {/* Header */}
-        <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white flex items-center gap-3">
-              <Gem className="h-8 w-8 text-amber-400" />
-              SGNX Gold
-            </h1>
-            <p className="text-gray-400 mt-1">
-              Invest in gold or cash plans with bonus multipliers.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {goldRate && (
-              <Badge className="border-amber-500/30 bg-amber-500/10 text-amber-200">
-                Gold: ${goldRate.pricePerGramUsd.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}/g
-              </Badge>
-            )}
-            {hasActiveEnrollment && (
-              <Badge variant="success">Active Enrollment</Badge>
-            )}
-          </div>
-        </header>
+      <div className="mx-auto max-w-[1180px] px-4 sm:px-6 pt-20 sm:pt-24 pb-12 space-y-6">
 
-        {/* Loading State */}
-        {loading && (
-          <div className="flex items-center justify-center py-20">
-            <Loader2 className="h-8 w-8 animate-spin text-emerald-400" />
-          </div>
+        {/* Hero Portfolio - own loading */}
+        {heroLoading ? <HeroSkeleton /> : (
+          <SgnxGoldHero
+            totalDepositedUsd={vault?.totalDepositedUsd ?? 0}
+            totalGoldGrams={vault?.totalGoldQuantityGrams ?? 0}
+            maturityValueUsd={vault?.maturityValueUsd ?? 0}
+            totalCashBonusUsd={vault?.totalCashBonusUsd ?? 0}
+            goldRateUsd={goldRate?.pricePerGramUsd ?? null}
+            hasEnrollment={hasEnrollment}
+          />
         )}
 
-        {/* Error State */}
-        {!loading && error && (
-          <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-red-300 text-sm">
-            {error}
-          </div>
-        )}
-
-        {/* Main Content */}
-        {!loading && !error && (
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <div className="flex justify-center">
-              <TabsList
-                className={`grid w-full ${
-                  hasActiveEnrollment ? "grid-cols-3" : "grid-cols-2"
-                } max-w-md bg-gray-900/40 border border-gray-800 rounded-2xl p-1`}
+        {/* Action Buttons */}
+        {!heroLoading && (
+          <div className="flex flex-wrap gap-2.5">
+            <button
+              onClick={() => setEnrollModalOpen(true)}
+              className="rounded-xl bg-[#D7AF35] px-5 py-2.5 text-sm font-extrabold text-[#171B27] transition hover:brightness-110"
+            >
+              {hasEnrollment ? "New Investment" : "Start Investing"}
+            </button>
+            {hasEnrollment && (
+              <button
+                onClick={() => setShowHistory(!showHistory)}
+                className="rounded-xl border border-[#8a77c8]/35 bg-[#252A3A] px-5 py-2.5 text-sm font-semibold text-[#ECEFF8] transition hover:border-[#d7af35]/40"
               >
-                {hasActiveEnrollment && (
-                  <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
-                )}
-                <TabsTrigger value="enroll">Enroll</TabsTrigger>
-                <TabsTrigger value="history">History</TabsTrigger>
-              </TabsList>
-            </div>
-
-            {/* Dashboard Tab */}
-            {hasActiveEnrollment && activeEnrollment && (
-              <TabsContent value="dashboard" className="space-y-6 mt-6">
-                <OverviewCards
-                  enrollment={activeEnrollment}
-                  goldRate={goldRate}
-                />
-                <VaultSection
-                  vault={vault}
-                  planType={activeEnrollment.planType}
-                  goldRate={goldRate}
-                />
-                <PaymentProgress enrollmentId={activeEnrollment._id} />
-              </TabsContent>
+                {showHistory ? "Hide History" : "View History"}
+              </button>
             )}
-
-            {/* Enroll Tab */}
-            <TabsContent value="enroll" className="mt-6">
-              <EnrollForm
-                userId={user?.userId ?? ""}
-                onSuccess={handleEnrollSuccess}
-              />
-            </TabsContent>
-
-            {/* History Tab */}
-            <TabsContent value="history" className="mt-6">
-              <TransactionHistory enrollments={enrollments} />
-            </TabsContent>
-          </Tabs>
+          </div>
         )}
+
+        {/* Live Price Cards - own loading */}
+        {pricesLoading ? <PriceCardsSkeleton /> : (
+          <LivePriceCards
+            gold={goldLive}
+            silver={silverLive}
+            activeMetal={activeMetal}
+            onMetalChange={setActiveMetal}
+          />
+        )}
+
+        {/* Price Chart (fetches its own data internally) */}
+        <PriceChart metal={activeMetal} />
+
+        {/* City Prices - own loading */}
+        {cityLoading ? null : <CityPricesGrid prices={cityPrices} />}
+
+        {/* Payment Progress (if active enrollment) */}
+        {!heroLoading && activeEnrollment && (
+          <PaymentProgress enrollmentId={activeEnrollment._id} />
+        )}
+
+        {/* Transaction History (toggle) */}
+        {showHistory && hasEnrollment && (
+          <TransactionHistory enrollments={enrollments} />
+        )}
+
+        {/* SGNX Gold Referral Tree - lazy loaded on scroll */}
+        <SgnxGoldTree />
       </div>
+
+      {/* Enrollment Modal */}
+      <EnrollModal
+        open={enrollModalOpen}
+        onOpenChange={setEnrollModalOpen}
+        onSuccess={handleEnrollSuccess}
+      />
     </div>
   );
 }

@@ -77,7 +77,12 @@ export async function getEnrollmentDetail(enrollmentId: string) {
     return handleApiResponse(res);
 }
 
-export async function enrollFromWallet(body: { userId: string; amountUsd: number; planType: "gold" | "cash" }) {
+export async function enrollFromWallet(body: {
+    userId?: string;
+    amountUsd: number;
+    planType: "gold" | "cash";
+    referralCode?: string;
+}) {
     const res = await fetch(`${API_BASE_URL}/api/v1/sgnxgold/enroll-from-wallet`, {
         method: "POST",
         headers: await getAuthHeaders(),
@@ -90,5 +95,58 @@ export async function getLiveGoldRate() {
     const res = await fetch(`${API_BASE_URL}/api/v1/sgnxgold/gold-rate`, {
         headers: await getAuthHeaders(),
     });
+    return handleApiResponse(res);
+}
+
+export async function getSlabConfig() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/sgnxgold/slabs`, {
+        cache: "no-store",
+    });
+    return handleApiResponse(res);
+}
+
+export async function getLivePrices(metal: "gold" | "silver" = "gold", currency = "INR") {
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/sgnxgold/prices/live?metal=${metal}&currency=${currency}`,
+        { cache: "no-store" },
+    );
+    return handleApiResponse(res);
+}
+
+export async function getHistoricalPrices(metal: "gold" | "silver" = "gold", range = "1M", currency = "INR") {
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/sgnxgold/prices/historical?metal=${metal}&range=${range}&currency=${currency}`,
+        { cache: "no-store" },
+    );
+    return handleApiResponse(res);
+}
+
+export async function getCityPrices() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/sgnxgold/prices/cities`, {
+        cache: "no-store",
+    });
+    return handleApiResponse(res);
+}
+
+export async function getWalletBalance() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/dashboard`, {
+        headers: await getAuthHeaders(),
+    });
+    const data = await handleApiResponse(res);
+    return { availableBalance: data?.wallet?.availableBalance ?? 0 };
+}
+
+export async function getSgnxGoldTree() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/sgnxgold/my-tree?depth=6`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getAssetsOverview(currency = "INR") {
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/sgnxgold/prices/overview?currency=${currency}`,
+        { cache: "no-store" },
+    );
     return handleApiResponse(res);
 }
