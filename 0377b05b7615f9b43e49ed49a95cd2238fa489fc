@@ -1,0 +1,23 @@
+src/app/components/sgnx-gold/PaymentProgress.tsx
+  b51bf1af2b3b09d1 9-10,23,51,55,105,108,115
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "0377b05b7615f9b43e49ed49a95cd2238fa489fc",
+  "prompts": {
+    "b51bf1af2b3b09d1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "018ca1d7-6bf7-419a-aeee-ae6ea158bbf1",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 9,
+      "total_deletions": 8,
+      "accepted_lines": 8,
+      "overriden_lines": 0
+    }
+  }
+}
