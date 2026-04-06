@@ -1,0 +1,37 @@
+src/app/components/sgnx-gold/PaymentProgress.tsx
+  b51bf1af2b3b09d1 1-134
+src/actions/sgnxgold.ts
+  b51bf1af2b3b09d1 1-94
+src/app/components/sgnx-gold/VaultSection.tsx
+  b51bf1af2b3b09d1 1-149
+src/app/components/sgnx-gold/TransactionHistory.tsx
+  b51bf1af2b3b09d1 1-130
+src/app/sgnx-gold/page.tsx
+  b51bf1af2b3b09d1 1-222
+src/app/components/sgnx-gold/EnrollForm.tsx
+  b51bf1af2b3b09d1 1-296
+src/app/components/Navbar.tsx
+  b51bf1af2b3b09d1 12,31
+src/app/components/sgnx-gold/OverviewCards.tsx
+  b51bf1af2b3b09d1 1-140
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "94b95a5f08dbfd85ba59282ea0ea57de7468b585",
+  "prompts": {
+    "b51bf1af2b3b09d1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "018ca1d7-6bf7-419a-aeee-ae6ea158bbf1",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 1330,
+      "total_deletions": 164,
+      "accepted_lines": 1167,
+      "overriden_lines": 0
+    }
+  }
+}
