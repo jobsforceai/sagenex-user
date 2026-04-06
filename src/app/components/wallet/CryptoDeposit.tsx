@@ -8,6 +8,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QRCode from "react-qr-code";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
+import RoiPlanPicker from "./RoiPlanPicker";
+import { type RoiPlanType, isDualRoiWindowOpen, isNewRoiOnly } from "@/lib/roi";
 
 interface Invoice {
   id: number;
@@ -22,6 +24,9 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [roiPlanType, setRoiPlanType] = useState<RoiPlanType | null>(null);
+
+  const showPicker = isDualRoiWindowOpen() || isNewRoiOnly();
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +41,17 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
       return;
     }
 
+    const effectivePlan = isNewRoiOnly() ? "new" : roiPlanType;
+    if (showPicker && !effectivePlan) {
+      setError("Please select an ROI plan before proceeding.");
+      setIsLoading(false);
+      return;
+    }
+
     setOriginalAmount(depositAmount);
 
     try {
-      const result = await createCryptoDepositInvoice(depositAmount);
+      const result = await createCryptoDepositInvoice(depositAmount, effectivePlan ?? undefined);
       if (result.error) {
         setError(result.error);
       } else {
@@ -91,6 +103,13 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
                 step="0.01"
               />
             </div>
+            {showPicker && (
+              <RoiPlanPicker
+                value={isNewRoiOnly() ? "new" : roiPlanType}
+                onChange={setRoiPlanType}
+                packageUSD={parseFloat(amount) || undefined}
+              />
+            )}
             <Button type="submit" disabled={isLoading} className="w-full mt-auto">
               {isLoading ? "Generating Invoice..." : "Generate Deposit Address"}
             </Button>
