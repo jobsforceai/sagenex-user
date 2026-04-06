@@ -9,7 +9,7 @@ import HeroButton from "../../components/ui/hero-button";
 import { useAuth } from "../context/AuthContext";
 import { clearUserCache, getRankProgress } from "@/actions/user";
 import { stopImpersonation } from "@/actions/auth";
-import { Crown, X, ShieldAlert, CornerUpLeft, Gem } from "lucide-react";
+import { Crown, X, ShieldAlert, CornerUpLeft } from "lucide-react";
 
 type NavLink = { href: string; label: string };
 
@@ -28,7 +28,6 @@ const authLinks: NavLink[] = [
   { href: "/courses", label: "Courses" },
   { href: "/kyc", label: "KYC" },
   { href: "/wallet", label: "Wallet" },
-  { href: "/sgnx-gold", label: "SGNX Gold" },
   { href: "/team", label: "My Team" },
   { href: "/profile", label: "Profile" },
   { href: process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "#", label: "Download App" },

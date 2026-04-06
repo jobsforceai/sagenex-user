@@ -20,6 +20,7 @@ import {
   BadgeDollarSign,
   CalendarCheck,
   Crown,
+  Gem,
   Gift,
 } from "lucide-react";
 import AgentOverview from "../components/dashboard/AgentOverview";
@@ -447,6 +448,21 @@ const DashboardPage = () => {
                   <div>
                     <CardTitle className="text-base">Payouts</CardTitle>
                     <p className="text-sm text-gray-400">Withdrawals and history</p>
+                  </div>
+                </CardHeader>
+              </Card>
+            </Link>
+            <Link href="/sgnx-gold" className="group">
+              <Card className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-black/20 to-black border border-amber-500/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-amber-400/50 group-hover:shadow-[0_18px_40px_rgba(245,158,11,0.18)]">
+                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-amber-300 via-amber-500 to-amber-300" />
+                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-amber-400/15 blur-2xl" />
+                <CardHeader className="flex flex-row items-center gap-3">
+                  <div className="h-10 w-10 rounded-full bg-amber-500/20 text-amber-200 flex items-center justify-center ring-1 ring-amber-400/30">
+                    <Gem className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <CardTitle className="text-base">SGNX Gold</CardTitle>
+                    <p className="text-sm text-gray-400">Gold & cash investment plans</p>
                   </div>
                 </CardHeader>
               </Card>
