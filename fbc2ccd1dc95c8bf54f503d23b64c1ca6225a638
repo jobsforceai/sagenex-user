@@ -1,0 +1,39 @@
+src/app/components/sgnx-gold/PriceChart.tsx
+  b51bf1af2b3b09d1 1-234
+src/app/components/sgnx-gold/SgnxGoldHero.tsx
+  b51bf1af2b3b09d1 1-92
+src/app/components/sgnx-gold/CityPricesGrid.tsx
+  b51bf1af2b3b09d1 1-68
+src/actions/sgnxgold.ts
+  b51bf1af2b3b09d1 80-84,100-150
+src/app/components/sgnx-gold/LivePriceCards.tsx
+  b51bf1af2b3b09d1 1-92
+src/app/components/sgnx-gold/SgnxGoldTree.tsx
+  b51bf1af2b3b09d1 1-228
+src/app/components/Navbar.tsx
+  b51bf1af2b3b09d1 28
+src/app/sgnx-gold/page.tsx
+  b51bf1af2b3b09d1 6,8-11,14-19,21,23-76,99-108,113,116-120,123-129,131-133,139-141,143-144,147-171,173,183-186,188,192-193,199,202-203,207,209,211-220,223-235,237-238,243-254,256-261,263-270,272-278
+src/app/components/sgnx-gold/EnrollModal.tsx
+  b51bf1af2b3b09d1 1-208
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "fbc2ccd1dc95c8bf54f503d23b64c1ca6225a638",
+  "prompts": {
+    "b51bf1af2b3b09d1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "018ca1d7-6bf7-419a-aeee-ae6ea158bbf1",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 1696,
+      "total_deletions": 656,
+      "accepted_lines": 1187,
+      "overriden_lines": 0
+    }
+  }
+}
