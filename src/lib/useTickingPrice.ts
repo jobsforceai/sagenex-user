@@ -18,8 +18,8 @@ function clamp(value: number, min: number, max: number) {
  * to keep both apps consistent.
  */
 export function useIndicativePrice(baseValue: number, options?: Options) {
-  const maxPercent = options?.maxPercent ?? 0.5;
-  const stepPercent = options?.stepPercent ?? 0.18;
+  const maxPercent = options?.maxPercent ?? 0.005;
+  const stepPercent = options?.stepPercent ?? 0.002;
   const intervalMs = options?.intervalMs ?? 2200;
 
   const [offsetPercent, setOffsetPercent] = useState(0);
