@@ -1,0 +1,23 @@
+src/lib/useTickingPrice.ts
+  b51bf1af2b3b09d1 21-22
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "8036fb4e4335a9f5afd50c9790ae58ff0fcfe39f",
+  "prompts": {
+    "b51bf1af2b3b09d1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "018ca1d7-6bf7-419a-aeee-ae6ea158bbf1",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 2,
+      "total_deletions": 2,
+      "accepted_lines": 2,
+      "overriden_lines": 0
+    }
+  }
+}
