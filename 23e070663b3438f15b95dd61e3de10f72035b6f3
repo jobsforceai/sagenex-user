@@ -1,0 +1,27 @@
+src/app/components/wallet/CryptoDeposit.tsx
+  964e0d3fba450c9c 3-4,12,28,30-36,51-52,113-119,131
+src/app/components/wallet/FundTransfer.tsx
+  964e0d3fba450c9c 6,13,33,119-121,201-202,480-486
+src/app/components/wallet/RoiPlanPicker.tsx
+  964e0d3fba450c9c 3,9-12,16-18,20-21,23
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "23e070663b3438f15b95dd61e3de10f72035b6f3",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 47,
+      "total_deletions": 36,
+      "accepted_lines": 47,
+      "overriden_lines": 0
+    }
+  }
+}
