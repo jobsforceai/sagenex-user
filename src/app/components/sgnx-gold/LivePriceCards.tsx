@@ -1,5 +1,7 @@
 "use client";
 
+import { useIndicativePrice } from "@/lib/useTickingPrice";
+
 interface LivePriceData {
   metal: string;
   price: number;
@@ -27,8 +29,10 @@ export default function LivePriceCards({
   activeMetal,
   onMetalChange,
 }: LivePriceCardsProps) {
-  const goldPrice10g = gold ? (gold.price / GRAMS_PER_OUNCE) * 10 : 0;
-  const silverPrice1kg = silver ? (silver.price / GRAMS_PER_OUNCE) * 1000 : 0;
+  const goldBase10g = gold ? (gold.price / GRAMS_PER_OUNCE) * 10 : 0;
+  const silverBase1kg = silver ? (silver.price / GRAMS_PER_OUNCE) * 1000 : 0;
+  const { value: goldPrice10g } = useIndicativePrice(goldBase10g);
+  const { value: silverPrice1kg } = useIndicativePrice(silverBase1kg);
   const isGoldUp = gold ? gold.changePercent >= 0 : true;
   const isSilverUp = silver ? silver.changePercent >= 0 : true;
 

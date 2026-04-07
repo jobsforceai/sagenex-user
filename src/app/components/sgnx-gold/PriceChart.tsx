@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { getHistoricalPrices } from "@/actions/sgnxgold";
+import { useIndicativePrice } from "@/lib/useTickingPrice";
 import { Loader2 } from "lucide-react";
 
 const RANGES = ["1D", "1W", "1M", "5M", "1Y", "5Y"] as const;
@@ -101,10 +102,12 @@ export default function PriceChart({ metal }: PriceChartProps) {
   const lineColor = metal === "gold" ? "#d4a843" : "#9ca3af";
   const metalLabel = metal === "gold" ? "Gold" : "Silver";
 
-  // Current selected asset live stats
+  // Current selected asset live stats with ticking
   const lastPoint = chartData.length > 0 ? chartData[chartData.length - 1] : null;
   const firstPoint = chartData.length > 0 ? chartData[0] : null;
-  const liveChange = lastPoint && firstPoint ? lastPoint.price - firstPoint.price : 0;
+  const { value: tickingPrice } = useIndicativePrice(lastPoint?.price ?? 0);
+  const displayPrice = lastPoint ? tickingPrice : 0;
+  const liveChange = firstPoint ? displayPrice - firstPoint.price : 0;
   const livePct = firstPoint && firstPoint.price > 0 ? (liveChange / firstPoint.price) * 100 : 0;
   const isUp = liveChange >= 0;
 
@@ -220,7 +223,7 @@ export default function PriceChart({ metal }: PriceChartProps) {
           <p className="text-[11px] uppercase tracking-[0.16em] text-[#8B92AA]">Current Selected Asset</p>
           <div className="mt-1 flex flex-wrap items-center gap-3">
             <span className="text-2xl font-black text-[#ECEFF8]">
-              {formatCurrencyValue(lastPoint.price, currency)}
+              {formatCurrencyValue(displayPrice, currency)}
             </span>
             <span className={`inline-flex items-center gap-1 text-sm font-semibold ${isUp ? "text-emerald-300" : "text-red-300"}`}>
               {isUp ? "▲" : "▼"} {formatCurrencyValue(Math.abs(liveChange), currency)} ({isUp ? "+" : ""}{livePct.toFixed(2)}%)
