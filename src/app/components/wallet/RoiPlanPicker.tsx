@@ -1,26 +1,26 @@
 "use client";
 
-import { type RoiPlanType, isDualRoiWindowOpen, isNewRoiOnly, getNewTieredROIRate, getTieredROIRate } from "@/lib/roi";
+import { type RoiPlanType, getNewTieredROIRate, getTieredROIRate } from "@/lib/roi";
 
 interface RoiPlanPickerProps {
   value: RoiPlanType | null;
   onChange: (plan: RoiPlanType) => void;
   packageUSD?: number;
+  /** Backend says whether to show the picker at all. */
+  show: boolean;
+  /** Backend says all deposits are forced to 'new' (post April 10). */
+  forceNew: boolean;
 }
 
 /**
- * ROI Plan selector shown during the dual-ROI window (April 6–10).
- * After April 10, shows an info banner instead (auto "new").
- * Returns null when neither condition is active (before April 6).
+ * ROI Plan selector driven by backend config.
+ * When forceNew=true, shows an info banner (auto "new").
+ * When show=false, renders nothing.
  */
-const RoiPlanPicker = ({ value, onChange, packageUSD }: RoiPlanPickerProps) => {
-  const now = new Date();
-  const dualOpen = isDualRoiWindowOpen(now);
-  const newOnly = isNewRoiOnly(now);
+const RoiPlanPicker = ({ value, onChange, packageUSD, show, forceNew }: RoiPlanPickerProps) => {
+  if (!show) return null;
 
-  if (!dualOpen && !newOnly) return null;
-
-  if (newOnly) {
+  if (forceNew) {
     return (
       <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
         <p className="font-semibold">New ROI Plan Active</p>
