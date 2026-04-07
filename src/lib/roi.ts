@@ -1,3 +1,38 @@
+// ─── Dual ROI Plan (April 6–10, 2026) ──────────────────────────────────
+export type RoiPlanType = 'old' | 'new';
+
+const DUAL_ROI_START = new Date('2026-04-06T23:59:00+05:30');
+const DUAL_ROI_END   = new Date('2026-04-10T23:59:00+05:30');
+
+/** True when the user should see the Old/New ROI picker. */
+export const isDualRoiWindowOpen = (now: Date = new Date()): boolean =>
+  now >= DUAL_ROI_START && now <= DUAL_ROI_END;
+
+/** True when every new deposit must use the new plan. */
+export const isNewRoiOnly = (now: Date = new Date()): boolean =>
+  now > DUAL_ROI_END;
+
+/** New-plan tiered monthly ROI rate (3 simplified tiers). */
+export function getNewTieredROIRate(packageUSD: number): number {
+  if (packageUSD >= 10000) return 0.10; // 10%
+  if (packageUSD >= 5000)  return 0.08; // 8%
+  if (packageUSD >= 50)    return 0.06; // 6%
+  return 0;
+}
+
+// New-plan referral bonus constants (first deposit only).
+export const NEW_PLAN_DIRECT_BONUS_PCT = 0.15; // 15% to direct sponsor
+export const NEW_PLAN_UNILEVEL_PCTS = [
+  0.10, // Level 1: 10%
+  0.08, // Level 2: 8%
+  0.06, // Level 3: 6%
+  0.04, // Level 4: 4%
+  0.02, // Level 5: 2%
+  0.01, // Level 6+: 1%
+];
+
+// ─── Legacy & Current ROI Rates ─────────────────────────────────────────
+
 /**
  * Calculates the tiered monthly ROI rate based on the package value (legacy plan).
  * @param packageUSD The user's package investment in USD.

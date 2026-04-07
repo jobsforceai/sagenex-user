@@ -3,12 +3,14 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { Recipient } from '@/types';
-import { getTransferRecipients, sendTransferOtp, executeTransfer, getBiometricsStatus } from '@/actions/user';
+import { getTransferRecipients, sendTransferOtp, executeTransfer, getBiometricsStatus, getBonusRulesConfig } from '@/actions/user';
 import { ArrowRight, Send, Wallet, Briefcase } from 'lucide-react';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 import FaceVerificationPanel from '@/app/components/biometrics/FaceVerificationPanel';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
+import RoiPlanPicker from './RoiPlanPicker';
+import { type RoiPlanType } from '@/lib/roi';
 
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
 type VerificationMethod = 'face' | 'password' | 'otp';
@@ -27,6 +29,8 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     const [lastNonFaceMethod, setLastNonFaceMethod] = useState<VerificationMethod>('otp');
     const [faceModalOpen, setFaceModalOpen] = useState(false);
     const [transferType, setTransferType] = useState<TransferType>('TO_AVAILABLE_BALANCE');
+    const [roiPlanType, setRoiPlanType] = useState<RoiPlanType | null>(null);
+    const [pickerConfig, setPickerConfig] = useState<{ show: boolean; forceNew: boolean }>({ show: false, forceNew: false });
     const [step, setStep] = useState(1); // 1: Form, 2: Verification
     const [isLoading, setIsLoading] = useState(false);
     const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -112,6 +116,9 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
             }
         };
         fetchRecipients();
+        getBonusRulesConfig().then((data) => {
+            if (data?.roiPlanPicker) setPickerConfig(data.roiPlanPicker);
+        }).catch(() => {});
     }, []);
 
     const isSelfRecipient = selectedRecipient?.userId && selectedRecipient.userId === user?.userId;
@@ -191,6 +198,9 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
         setIsDropdownVisible(true);
     };
 
+    const showRoiPicker = transferType === 'TO_PACKAGE' && pickerConfig.show;
+    const effectiveRoiPlan = pickerConfig.forceNew ? 'new' as RoiPlanType : roiPlanType;
+
     const handleInitiateTransfer = (e: React.FormEvent) => {
         e.preventDefault();
         if (isAmountInvalid || numericAmount <= 0) {
@@ -207,6 +217,10 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
         }
         if (selectedRecipient.userId === user?.userId && transferType !== 'TO_PACKAGE') {
             toast.error('Self top-up is only available for To Package transfers.');
+            return;
+        }
+        if (showRoiPicker && !effectiveRoiPlan) {
+            toast.error('Please select an ROI plan before proceeding.');
             return;
         }
         if (faceEnrolled && faceApproved) {
@@ -268,13 +282,14 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
         setIsLoading(true);
         try {
             const result = await executeTransfer(
-                selectedRecipient.userId, 
-                numericAmount, 
-                transferType, 
+                selectedRecipient.userId,
+                numericAmount,
+                transferType,
                 verificationMethod === 'password' ? password : undefined,
                 verificationMethod === 'otp' ? otp : undefined,
                 verificationMethod === 'face' ? faceVerificationId ?? undefined : undefined,
-                transferIdempotencyKey ?? undefined
+                transferIdempotencyKey ?? undefined,
+                transferType === 'TO_PACKAGE' ? effectiveRoiPlan ?? undefined : undefined
             );
 
             if (result.error) {
@@ -294,6 +309,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                 setFaceVerificationId(null);
                 setTransferIdempotencyKey(null);
                 setTransferType('TO_AVAILABLE_BALANCE');
+                setRoiPlanType(null);
                 // Reset auth method to default based on user preference
                 if (faceEnrolled) {
                     setVerificationMethod('face');
@@ -460,6 +476,14 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             </p>
                         )}
                     </div>
+
+                    <RoiPlanPicker
+                        value={effectiveRoiPlan}
+                        onChange={setRoiPlanType}
+                        packageUSD={numericAmount > 0 ? numericAmount : undefined}
+                        show={showRoiPicker}
+                        forceNew={pickerConfig.forceNew}
+                    />
 
                     <button
                         type="submit"

@@ -348,21 +348,25 @@ export async function sendTransferOtp() {
 }
 
 export async function executeTransfer(
-    recipientId: string, 
-    amount: number, 
+    recipientId: string,
+    amount: number,
     transferType?: 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE',
     password?: string,
     otp?: string,
     faceVerificationId?: string,
     idempotencyKey?: string,
+    roiPlanType?: 'old' | 'new',
 ) {
-    const body: { recipientId: string; amount: number; transferType?: string; password?: string; otp?: string; faceVerificationId?: string; } = {
+    const body: { recipientId: string; amount: number; transferType?: string; password?: string; otp?: string; faceVerificationId?: string; roiPlanType?: string; } = {
         recipientId,
         amount,
     };
 
     if (transferType) {
         body.transferType = transferType;
+    }
+    if (roiPlanType) {
+        body.roiPlanType = roiPlanType;
     }
     if (password) {
         body.password = password;
@@ -384,11 +388,11 @@ export async function executeTransfer(
     return handleApiResponse(res);
 }
 
-export async function createCryptoDepositInvoice(amount: number) {
+export async function createCryptoDepositInvoice(amount: number, roiPlanType?: 'old' | 'new') {
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/deposits/crypto`, {
         method: "POST",
         headers: await getAuthHeaders(),
-        body: JSON.stringify({ amount }),
+        body: JSON.stringify({ amount, ...(roiPlanType ? { roiPlanType } : {}) }),
       });
       return handleApiResponse(res);
 }

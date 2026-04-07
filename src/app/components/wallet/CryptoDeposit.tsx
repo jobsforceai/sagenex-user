@@ -1,13 +1,15 @@
 "use client";
 
-import { useState } from "react";
-import { createCryptoDepositInvoice } from "@/actions/user";
+import { useState, useEffect } from "react";
+import { createCryptoDepositInvoice, getBonusRulesConfig } from "@/actions/user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import QRCode from "react-qr-code";
 import { Copy } from "lucide-react";
 import { toast } from "sonner";
+import RoiPlanPicker from "./RoiPlanPicker";
+import { type RoiPlanType } from "@/lib/roi";
 
 interface Invoice {
   id: number;
@@ -22,6 +24,16 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
   const [invoice, setInvoice] = useState<Invoice | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [roiPlanType, setRoiPlanType] = useState<RoiPlanType | null>(null);
+  const [pickerConfig, setPickerConfig] = useState<{ show: boolean; forceNew: boolean }>({ show: false, forceNew: false });
+
+  useEffect(() => {
+    getBonusRulesConfig().then((data) => {
+      if (data?.roiPlanPicker) {
+        setPickerConfig(data.roiPlanPicker);
+      }
+    }).catch(() => {});
+  }, []);
 
   const handleCreateInvoice = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,10 +48,17 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
       return;
     }
 
+    const effectivePlan = pickerConfig.forceNew ? "new" : roiPlanType;
+    if (pickerConfig.show && !effectivePlan) {
+      setError("Please select an ROI plan before proceeding.");
+      setIsLoading(false);
+      return;
+    }
+
     setOriginalAmount(depositAmount);
 
     try {
-      const result = await createCryptoDepositInvoice(depositAmount);
+      const result = await createCryptoDepositInvoice(depositAmount, effectivePlan ?? undefined);
       if (result.error) {
         setError(result.error);
       } else {
@@ -91,6 +110,13 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
                 step="0.01"
               />
             </div>
+            <RoiPlanPicker
+              value={pickerConfig.forceNew ? "new" : roiPlanType}
+              onChange={setRoiPlanType}
+              packageUSD={parseFloat(amount) || undefined}
+              show={pickerConfig.show}
+              forceNew={pickerConfig.forceNew}
+            />
             <Button type="submit" disabled={isLoading} className="w-full mt-auto">
               {isLoading ? "Generating Invoice..." : "Generate Deposit Address"}
             </Button>
@@ -102,7 +128,7 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
             <p className="text-muted-foreground text-sm">
               To credit your account with ${originalAmount.toFixed(2)} USD, please send the exact crypto amount to the address below.
             </p>
-            
+
             <div className="bg-white p-4 rounded-lg inline-block">
               <QRCode value={invoice.pay_address} size={160} />
             </div>
