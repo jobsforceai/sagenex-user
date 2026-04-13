@@ -4,7 +4,7 @@
 import {  Twitter, Youtube, Linkedin, Github } from "lucide-react";
 import Link from "next/link";
 
-const GOLD = "from-[#FCE79A] via-[#F5C04E] to-[#B67E20]";
+const GREEN_ACCENT = "from-[#00b386] via-[#00d9a5] to-[#00b386]";
 
 export default function Footer() {
   const year = new Date().getFullYear();
@@ -23,7 +23,7 @@ export default function Footer() {
       <div className="pointer-events-none absolute inset-0 bg-[linear-gradient(to_right,transparent_0,rgba(255,255,255,.05)_1px,transparent_2px)] bg-[length:42px_100%] opacity-10" />
 
       {/* top gold divider */}
-      <div className={`relative h-[3px] w-full bg-gradient-to-r ${GOLD}`} />
+      <div className={`relative h-[3px] w-full bg-gradient-to-r ${GREEN_ACCENT}`} />
 
       <div className="relative mx-auto max-w-7xl px-6 py-14 md:py-20">
         {/* CTA band */}
@@ -84,7 +84,7 @@ export default function Footer() {
             <Link href="/" className="inline-flex items-center gap-3">
               {/* replace with your logo */}
               {/* <div className="h-8 w-8 rounded-full bg-emerald-400/20 ring-1 ring-emerald-400/30" /> */}
-              <span className="text-xl font-semibold tracking-wide">Sagenex</span>
+              <span className="text-xl font-semibold tracking-wide text-[#00b386]">Sagenex</span>
             </Link>
             <p className="mt-3 text-sm text-white/75 max-w-sm">
               A global wealth ecosystem uniting AI, real-world assets, and community power. Built with transparency and performance at its core.
