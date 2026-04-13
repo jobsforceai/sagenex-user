@@ -57,7 +57,14 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
   const [cacheClearing, setCacheClearing] = useState(false);
   const [showTopBanner, setShowTopBanner] = useState(true);
   const [stoppingImpersonation, setStoppingImpersonation] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const prefersReducedMotion = useReducedMotion();
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 10);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   const isImpersonated = Boolean(isAuthenticated && user?.isImpersonated);
   const adminAppUrl = process.env.NEXT_PUBLIC_ADMIN_APP_URL ?? "http://localhost:3001";
 
@@ -103,9 +110,9 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
   const navItemClass = (href: string) =>
     [
       "relative px-2 py-1 text-sm md:text-[15px] transition",
-      "text-zinc-200 hover:text-white",
-      "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70 rounded-md",
-      isActive(href) && "text-white",
+      scrolled ? "text-zinc-700 hover:text-zinc-900" : "text-zinc-800 hover:text-zinc-900",
+      "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50 rounded-md",
+      isActive(href) && "text-[#00b386] font-semibold",
     ]
       .filter(Boolean)
       .join(" ");
@@ -223,8 +230,12 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
       {/* Glass shell */}
       <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
         <div
-          className="mt-3 rounded-2xl border border-white/10 bg-black/35 backdrop-blur-xl
-                     shadow-[0_8px_40px_rgba(0,0,0,0.35)]"
+          className={[
+            "mt-3 rounded-2xl border transition-all duration-300",
+            scrolled
+              ? "border-[#e8e8e8] bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
+              : "border-white/10 bg-white/0 backdrop-blur-xl shadow-none",
+          ].join(" ")}
         >
           {/* Top row */}
           <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
@@ -244,7 +255,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   priority
                 />
               </span>
-              <span className="text-base font-semibold tracking-tight text-white group-hover:opacity-90">
+              <span className="text-base font-semibold tracking-tight text-zinc-900 group-hover:opacity-90">
                 Sagenex
               </span>
             </Link>
@@ -266,7 +277,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                       {l.label}
                       {/* Active underline */}
                       {isActive(l.href) && (
-                        <span className="absolute left-2 right-2 -bottom-1 h-px bg-gradient-to-r from-transparent via-emerald-300/70 to-transparent" />
+                        <span className="absolute left-2 right-2 -bottom-1 h-px bg-[#00b386] rounded-full" />
                       )}
                     </Link>
                   );
@@ -313,9 +324,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
             {/* Mobile toggle */}
             {variant === "full" && (
               <button
-                className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-white/10
-                           bg-white/5 text-white/90 hover:bg-white/10
-                           focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70"
+                className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#e8e8e8] bg-white text-zinc-700 hover:bg-[#f7f8fa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50"
                 aria-label="Toggle navigation"
                 aria-expanded={open}
                 onClick={() => setOpen((v) => !v)}
@@ -343,7 +352,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
               initial={false}
               animate={open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="md:hidden overflow-hidden"
+              className="md:hidden overflow-hidden bg-white rounded-b-2xl"
             >
               <div className="px-4 pb-4 pt-1">
                 <nav className="flex flex-col">
@@ -358,9 +367,9 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                         onClick={() => setOpen(false)}
                         className={[
                           "flex items-center justify-between rounded-lg px-3 py-2 text-sm",
-                          "text-zinc-200 hover:text-white hover:bg-white/5",
+                          "text-zinc-700 hover:text-zinc-900 hover:bg-[#f7f8fa]",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70",
-                          isActive(l.href) && "bg-white/5 text-white",
+                          isActive(l.href) && "bg-[#e6f7f3] text-[#00b386]",
                         ]
                           .filter(Boolean)
                           .join(" ")}
@@ -433,10 +442,6 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
         </div>
       </div>
 
-      {/* Top sheen line */}
-      <div className="pointer-events-none absolute inset-x-0 top-0">
-        <div className="mx-auto h-[1px] w-full max-w-7xl bg-gradient-to-r from-transparent via-white/60 to-transparent" />
-      </div>
       </motion.header>
       <div className={isImpersonated ? (showTopBanner ? "h-20" : "h-10") : "h-10"} aria-hidden="true" />
     </>
