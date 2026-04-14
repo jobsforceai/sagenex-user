@@ -1,0 +1,23 @@
+src/app/components/Navbar.tsx
+  964e0d3fba450c9c 10,58-61,134-138,140-183,186-189,195-197,496-548
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "48d13a3a68cda4f2fec508be27a35c8727295108",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 116,
+      "total_deletions": 9,
+      "accepted_lines": 116,
+      "overriden_lines": 0
+    }
+  }
+}
