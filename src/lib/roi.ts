@@ -1,8 +1,8 @@
-// ─── Dual ROI Plan (April 6–15, 2026) ──────────────────────────────────
+// ─── Dual ROI Plan (April 6–19, 2026) ──────────────────────────────────
 export type RoiPlanType = 'old' | 'new';
 
 const DUAL_ROI_START = new Date('2026-04-06T23:59:00+05:30');
-const DUAL_ROI_END   = new Date('2026-04-15T23:59:00+05:30');
+const DUAL_ROI_END   = new Date('2026-04-19T23:59:00+05:30');
 
 /** True when the user should see the Old/New ROI picker. */
 export const isDualRoiWindowOpen = (now: Date = new Date()): boolean =>
