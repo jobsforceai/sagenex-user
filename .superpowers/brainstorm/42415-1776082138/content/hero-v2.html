@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Hero Redesign Options</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f0f0; padding: 24px; }
+  h1 { font-size: 18px; font-weight: 700; color: #1a1a1a; margin-bottom: 6px; }
+  .subtitle { font-size: 13px; color: #666; margin-bottom: 24px; }
+  .label { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: #888; margin-bottom: 10px; }
+
+  .options { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+
+  .option {
+    background: white;
+    border-radius: 12px;
+    border: 2px solid #e8e8e8;
+    overflow: hidden;
+    cursor: pointer;
+    transition: border-color .2s, box-shadow .2s;
+  }
+  .option:hover { border-color: #00b386; box-shadow: 0 4px 20px rgba(0,179,134,0.15); }
+  .option.selected { border-color: #00b386; box-shadow: 0 0 0 3px rgba(0,179,134,0.2); }
+  .option .letter {
+    background: #00b386;
+    color: white;
+    font-weight: 800;
+    font-size: 13px;
+    padding: 4px 12px;
+    display: inline-block;
+    border-radius: 0 0 8px 0;
+  }
+  .option .card-body { padding: 12px 14px; border-top: 1px solid #f0f0f0; }
+  .option .card-body h3 { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-bottom: 4px; }
+  .option .card-body p { font-size: 11px; color: #666; line-height: 1.5; }
+
+  /* ─── OPTION A: Split Layout ─── */
+  .hero-a {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    min-height: 280px;
+    background: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  .hero-a-left { padding: 28px 20px; display: flex; flex-direction: column; justify-content: center; gap: 10px; }
+  .hero-a-right {
+    background: linear-gradient(135deg, #e6f7f3, #f0faf7);
+    display: flex; align-items: flex-end; justify-content: center;
+    overflow: hidden; padding-top: 16px;
+  }
+  .hero-a-badge { display: inline-flex; align-items: center; gap: 6px; background: #e6f7f3; border: 1px solid rgba(0,179,134,.3); border-radius: 20px; padding: 3px 10px; font-size: 9px; font-weight: 600; color: #00875f; }
+  .hero-a-badge span { height: 6px; width: 6px; border-radius: 50%; background: #00b386; }
+  .hero-a h1 { font-size: 22px; font-weight: 800; color: #1a1a1a; line-height: 1.15; }
+  .hero-a h1 em { color: #00b386; font-style: normal; }
+  .hero-a p { font-size: 10px; color: #555; line-height: 1.5; max-width: 180px; }
+  .hero-a-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+  .btn-g { background: #00b386; color: #fff; font-size: 9px; font-weight: 600; padding: 6px 14px; border-radius: 6px; border: none; }
+  .btn-go { background: transparent; color: #00b386; font-size: 9px; font-weight: 600; padding: 5px 13px; border-radius: 6px; border: 1.5px solid #00b386; }
+  .dash-mock {
+    width: 100%;
+    height: 160px;
+    background: #fff;
+    border-radius: 10px 10px 0 0;
+    box-shadow: 0 -4px 20px rgba(0,0,0,.1);
+    margin: 0 10px;
+    padding: 8px;
+    display: flex; flex-direction: column; gap: 5px;
+  }
+  .dash-top { display: flex; gap: 5px; }
+  .dash-card { flex: 1; background: #f7f8fa; border-radius: 6px; padding: 6px; }
+  .dash-card .dv { font-size: 13px; font-weight: 700; color: #00b386; }
+  .dash-card .dl { font-size: 8px; color: #888; }
+  .dash-chart { flex: 1; background: #f7f8fa; border-radius: 6px; padding: 6px; display: flex; align-items: flex-end; gap: 2px; }
+  .dash-bar { flex: 1; background: #00b386; border-radius: 2px 2px 0 0; opacity: .7; }
+  .stats-mini { display: flex; gap: 0; border: 1px solid #e8e8e8; border-radius: 8px; overflow: hidden; }
+  .stat-item { flex: 1; padding: 5px 8px; text-align: center; border-right: 1px solid #e8e8e8; }
+  .stat-item:last-child { border-right: none; }
+  .stat-item .sv { font-size: 11px; font-weight: 800; color: #1a1a1a; }
+  .stat-item .sl { font-size: 7px; color: #888; }
+
+  /* ─── OPTION B: Full-width gradient hero ─── */
+  .hero-b {
+    background: linear-gradient(160deg, #f0faf8 0%, #fff 50%, #f0f9ff 100%);
+    min-height: 280px;
+    display: flex; flex-direction: column; align-items: center;
+    justify-content: center; padding: 28px 20px 0;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .hero-b::before {
+    content: '';
+    position: absolute; top: -40px; left: 50%; transform: translateX(-50%);
+    width: 500px; height: 300px;
+    background: radial-gradient(ellipse, rgba(0,179,134,.1) 0%, transparent 70%);
+    pointer-events: none;
+  }
+  .hero-b h1 { font-size: 24px; font-weight: 800; color: #1a1a1a; line-height: 1.15; margin: 8px 0 6px; position: relative; }
+  .hero-b h1 em { color: #00b386; font-style: normal; }
+  .hero-b p { font-size: 10px; color: #555; max-width: 260px; line-height: 1.6; margin-bottom: 10px; position: relative; }
+  .hero-b-btns { display: flex; gap: 6px; margin-bottom: 14px; position: relative; }
+  .hero-b-stats { display: flex; gap: 0; background: white; border: 1px solid #e8e8e8; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,.06); overflow: hidden; width: 100%; position: relative; }
+  .hero-b-stat { flex: 1; padding: 8px; text-align: center; border-right: 1px solid #f0f0f0; }
+  .hero-b-stat:last-child { border-right: none; }
+  .hero-b-stat .v { font-size: 14px; font-weight: 800; color: #1a1a1a; }
+  .hero-b-stat .l { font-size: 7px; color: #888; }
+  /* Floating cards decoration */
+  .float-cards { display: flex; gap: 6px; margin-bottom: 14px; position: relative; }
+  .float-card { background: white; border: 1px solid #e8e8e8; border-radius: 8px; padding: 6px 10px; box-shadow: 0 2px 8px rgba(0,0,0,.08); font-size: 9px; }
+  .float-card .fc-val { font-weight: 700; color: #00b386; font-size: 11px; }
+  .float-card .fc-lbl { color: #888; }
+
+  /* Dashboard preview strip at bottom */
+  .hero-b-dash {
+    width: 80%;
+    background: white;
+    border-radius: 10px 10px 0 0;
+    border: 1px solid #e8e8e8;
+    border-bottom: none;
+    box-shadow: 0 -6px 24px rgba(0,0,0,.08);
+    padding: 10px;
+    display: flex; gap: 6px;
+    margin-top: 4px;
+  }
+
+  /* ─── OPTION C: Bold Groww-exact clone ─── */
+  .hero-c {
+    min-height: 280px;
+    background: #fff;
+    display: flex; flex-direction: column; align-items: center;
+    padding: 24px 20px 0;
+    text-align: center; position: relative; overflow: hidden;
+  }
+  .hero-c-bg {
+    position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(180deg, #f0faf8 0%, #fff 60%);
+    pointer-events: none;
+  }
+  .hero-c-dot-grid {
+    position: absolute; top: 0; left: 0; right: 0; height: 200px;
+    background-image: radial-gradient(circle, #00b38618 1px, transparent 1px);
+    background-size: 24px 24px;
+    pointer-events: none;
+  }
+  .hero-c h1 { font-size: 26px; font-weight: 800; color: #1a1a1a; line-height: 1.1; margin: 8px 0 4px; position: relative; z-index: 1; }
+  .hero-c h1 em { color: #00b386; font-style: normal; }
+  .hero-c-sub { font-size: 10px; color: #555; max-width: 240px; line-height: 1.6; margin-bottom: 10px; position: relative; z-index: 1; }
+  .hero-c-sub strong { color: #1a1a1a; }
+  .hero-c-btns { display: flex; gap: 8px; margin-bottom: 16px; position: relative; z-index: 1; }
+  .hero-c-stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; background: white; border: 1px solid #e8e8e8; border-radius: 14px; box-shadow: 0 6px 24px rgba(0,0,0,.07); overflow: hidden; width: 90%; margin-bottom: 14px; position: relative; z-index: 1; }
+  .hero-c-stat { padding: 10px 8px; text-align: center; border-right: 1px solid #f0f0f0; }
+  .hero-c-stat:last-child { border-right: none; }
+  .hero-c-stat .v { font-size: 15px; font-weight: 800; color: #1a1a1a; }
+  .hero-c-stat .l { font-size: 7.5px; color: #888; margin-top: 1px; }
+  /* Grow chart decoration at bottom */
+  .hero-c-chart {
+    width: 90%; height: 60px;
+    background: white; border-radius: 10px 10px 0 0;
+    border: 1px solid #e8e8e8; border-bottom: none;
+    box-shadow: 0 -4px 16px rgba(0,0,0,.06);
+    position: relative; overflow: hidden;
+    display: flex; align-items: flex-end; padding: 0 8px; gap: 1px;
+  }
+  .hero-c-chart-fill {
+    position: absolute; bottom: 0; left: 0; right: 0; height: 40px;
+    background: linear-gradient(to top, rgba(0,179,134,.15), transparent);
+  }
+  .hero-c-chart-line {
+    position: absolute; bottom: 20px; left: 0; right: 0; height: 1.5px;
+    background: linear-gradient(90deg, #00b38600, #00b386, #00b38600);
+  }
+</style>
+</head>
+<body>
+
+<h1>Fix the Hero — which layout do you want?</h1>
+<p class="subtitle">Current hero looks flat. These 3 options show stronger layouts. Click to select.</p>
+
+<div class="options">
+
+  <!-- Option A -->
+  <div class="option" data-choice="a" onclick="toggleSelect(this)">
+    <div class="letter">A</div>
+    <!-- Mockup -->
+    <div class="hero-a">
+      <div class="hero-a-left">
+        <div class="hero-a-badge"><span></span> India's Most Trusted Wealth Platform</div>
+        <h1>Grow Your Wealth<br/>with <em>Sagenex</em></h1>
+        <p>Where AI Meets Financial Precision. Structured. Diversified. Transparent.</p>
+        <div class="hero-a-btns">
+          <button class="btn-g">Join the Revolution</button>
+          <button class="btn-go">Explore Packages</button>
+        </div>
+        <div class="stats-mini">
+          <div class="stat-item"><div class="sv">12%+</div><div class="sl">Avg Returns</div></div>
+          <div class="stat-item"><div class="sv">50K+</div><div class="sl">Members</div></div>
+          <div class="stat-item"><div class="sv">$10M+</div><div class="sl">Deployed</div></div>
+        </div>
+      </div>
+      <div class="hero-a-right">
+        <div class="dash-mock">
+          <div class="dash-top">
+            <div class="dash-card"><div class="dv">$12,450</div><div class="dl">Total Earnings ↑ 2.3%</div></div>
+            <div class="dash-card"><div class="dv">+12%</div><div class="dl">ROI This Month</div></div>
+          </div>
+          <div class="dash-chart">
+            <div class="dash-bar" style="height:30%"></div>
+            <div class="dash-bar" style="height:50%"></div>
+            <div class="dash-bar" style="height:40%"></div>
+            <div class="dash-bar" style="height:70%"></div>
+            <div class="dash-bar" style="height:55%"></div>
+            <div class="dash-bar" style="height:80%"></div>
+            <div class="dash-bar" style="height:65%"></div>
+            <div class="dash-bar" style="height:90%"></div>
+            <div class="dash-bar" style="height:75%"></div>
+            <div class="dash-bar" style="height:100%"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Split: Text Left + Dashboard Preview Right</h3>
+      <p>Two-column. Headline + stats on left. A mini dashboard mockup emerges from right side on a light green bg. No weird cityscape. Feels like a real fintech product page.</p>
+    </div>
+  </div>
+
+  <!-- Option B -->
+  <div class="option" data-choice="b" onclick="toggleSelect(this)">
+    <div class="letter">B</div>
+    <div class="hero-b">
+      <div class="hero-b::before"></div>
+      <div class="hero-a-badge" style="position:relative;z-index:1;"><span></span> India's Most Trusted Wealth Ecosystem</div>
+      <h1>Grow Your Wealth<br/>with <em>Sagenex</em></h1>
+      <p>Where Artificial Intelligence Meets Financial Precision. Structured. Diversified. Transparent.</p>
+      <!-- Floating metric cards -->
+      <div class="float-cards" style="position:relative;z-index:1;">
+        <div class="float-card"><div class="fc-val">+$1,240</div><div class="fc-lbl">This month</div></div>
+        <div class="float-card"><div class="fc-val">12%+</div><div class="fc-lbl">Annual ROI</div></div>
+        <div class="float-card"><div class="fc-val">1,234</div><div class="fc-lbl">Team size</div></div>
+      </div>
+      <div class="hero-b-btns">
+        <button class="btn-g">Join the Revolution</button>
+        <button class="btn-go">Explore Packages</button>
+      </div>
+      <div class="hero-b-stats">
+        <div class="hero-b-stat"><div class="v">12%+</div><div class="l">Avg Returns</div></div>
+        <div class="hero-b-stat"><div class="v">50K+</div><div class="l">Members</div></div>
+        <div class="hero-b-stat"><div class="v">8</div><div class="l">Verticals</div></div>
+        <div class="hero-b-stat"><div class="v">$10M+</div><div class="l">Deployed</div></div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Centre + Floating Metric Cards</h3>
+      <p>Centered layout, but instead of a cityscape, floating metric cards hover above the CTA buttons. Radial green glow behind. Stats bar below. Clean, data-forward, no weird image dependency.</p>
+    </div>
+  </div>
+
+  <!-- Option C -->
+  <div class="option" data-choice="c" onclick="toggleSelect(this)">
+    <div class="letter">C</div>
+    <div class="hero-c">
+      <div class="hero-c-bg"></div>
+      <div class="hero-c-dot-grid"></div>
+      <div class="hero-a-badge" style="position:relative;z-index:1;"><span></span> AI-Powered Wealth Ecosystem</div>
+      <h1>Grow Your Wealth<br/>with <em>Sagenex</em></h1>
+      <p class="hero-c-sub">Where Artificial Intelligence Meets Financial Precision. <strong>Structured. Diversified. Transparent.</strong></p>
+      <div class="hero-c-btns">
+        <button class="btn-g" style="font-size:10px;padding:7px 16px;">Join the Revolution</button>
+        <button class="btn-go" style="font-size:10px;padding:6px 15px;">Explore Packages</button>
+      </div>
+      <div class="hero-c-stats">
+        <div class="hero-c-stat"><div class="v">12%+</div><div class="l">Avg Annual Returns</div></div>
+        <div class="hero-c-stat"><div class="v">50K+</div><div class="l">Active Members</div></div>
+        <div class="hero-c-stat"><div class="v">8</div><div class="l">Verticals</div></div>
+        <div class="hero-c-stat"><div class="v">$10M+</div><div class="l">Capital Deployed</div></div>
+      </div>
+      <!-- Growth chart strip at bottom -->
+      <div class="hero-c-chart">
+        <div class="hero-c-chart-fill"></div>
+        <div class="hero-c-chart-line"></div>
+        <svg viewBox="0 0 300 50" width="100%" height="100%" style="position:absolute;bottom:0;left:0;" preserveAspectRatio="none">
+          <polyline points="0,45 30,38 60,30 90,35 120,20 150,15 180,22 210,10 240,12 270,5 300,8"
+            fill="none" stroke="#00b386" stroke-width="1.5" />
+        </svg>
+        <div style="position:absolute;right:8px;top:6px;font-size:8px;font-weight:700;color:#00b386;">↑ Growing</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Centre + Dot Grid + Growth Chart Strip</h3>
+      <p>Centered, but with a subtle dot-grid pattern as background (like many fintech sites), bold stats bar, and a live-looking growth chart strip at bottom instead of the city SVG. Most premium feel.</p>
+    </div>
+  </div>
+
+</div>
+
+<p style="margin-top:20px;font-size:12px;color:#888;text-align:center;">Click to select — or tell me in the terminal if you want elements mixed across options.</p>
+
+<script>
+function toggleSelect(el) {
+  document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  const choice = el.getAttribute('data-choice');
+  const text = el.querySelector('h3').textContent;
+  if (window.__sp_recordEvent) window.__sp_recordEvent({ type: 'click', choice, text });
+}
+</script>
+</body>
+</html>

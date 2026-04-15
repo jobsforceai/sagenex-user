@@ -14,27 +14,23 @@ const ITEMS = [
 ];
 
 export default function MarqueeTicker() {
-  // Duplicate for seamless loop
   const doubled = [...ITEMS, ...ITEMS];
 
   return (
-    <section className="w-full bg-[#f7f8fa] border-y border-[#e8e8e8] py-4 overflow-hidden">
+    <div className="w-full bg-[#0a0a0a] py-4 overflow-hidden border-y border-[#1a1a1a]">
       <div className="animate-marquee">
         {doubled.map((item, i) => (
-          <div
-            key={i}
-            className="flex items-center gap-3 mx-8 flex-shrink-0"
-          >
-            <span className="h-2 w-2 rounded-full bg-[#00b386] flex-shrink-0" />
-            <span className="text-sm font-semibold text-[#1a1a1a] whitespace-nowrap">
+          <div key={i} className="flex items-center gap-4 mx-10 shrink-0">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#00b386] shrink-0" />
+            <span className="text-[13px] font-semibold text-white/90 whitespace-nowrap tracking-wide">
               {item.name}
             </span>
-            <span className="text-xs text-[#888] whitespace-nowrap bg-[#e6f7f3] px-2 py-0.5 rounded-full">
+            <span className="text-[11px] font-medium text-[#00b386]/80 whitespace-nowrap tracking-wider uppercase">
               {item.tag}
             </span>
           </div>
         ))}
       </div>
-    </section>
+    </div>
   );
 }

@@ -5,6 +5,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "sonner";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import ChatbotWidget from "@/app/components/ChatbotWidget";
+import CursorFollower from "@/components/landing/cursor-follower";
 
 export const metadata: Metadata = {
   title: "Sagenex",
@@ -32,6 +33,7 @@ export default function RootLayout({
               {children}
               <ChatbotWidget />
               <Toaster />
+              <CursorFollower />
             </NextThemesProvider>
           </AuthProvider>
         </GoogleOAuthProvider>

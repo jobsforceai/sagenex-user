@@ -1,99 +1,129 @@
 "use client";
-import Image from "next/image";
+
 import { motion } from "framer-motion";
 
 type Tier = { tier: string; price: number; items: string[]; goal: string };
 
 const DATA: Tier[] = [
-  { tier: "Starter Academy", price: 50, items: ["Basics of Crypto & Blockchain", "Intro to Unilevel Business Model"], goal: "Kickstart journey with foundations." },
-  { tier: "Bronze Academy", price: 100, items: ["Affiliate Marketing Basics", "Intro Wallets & Trading"], goal: "Build skills + start duplication." },
-  { tier: "Silver Academy", price: 300, items: ["Technical Analysis Basics", "Duplication Workshops"], goal: "Handle first 50–100 team members." },
-  { tier: "Gold Academy", price: 500, items: ["Leadership Blueprint", "Passive vs Active Income"], goal: "Transition to Leader Rank." },
-  { tier: "Platinum Academy", price: 1000, items: ["Market Analysis", "Compliance & Taxation Basics"], goal: "Prepare for Manager Rank (1,000+ teams)." },
-  { tier: "Titanium Academy", price: 2500, items: ["Multi-Country Network Growth", "Mastermind Access"], goal: "Train to become Director." },
-  { tier: "Diamond Academy", price: 5000, items: ["CEO Mindset Training", "Investment Diversification"], goal: "Crown Ambassador Level." },
-  { tier: "Crown Academy", price: 10000, items: ["Elite Global Leadership Training", "Direct 1-on-1 Mentorship", "Luxury Global Summits (Dubai/Thailand/Europe)", "Premium Business Expansion Tools"], goal: "Build global empire under SAGENEX." },
+  { tier: "Starter", price: 50, items: ["Basics of Crypto & Blockchain", "Intro to Unilevel Business Model"], goal: "Kickstart journey with foundations." },
+  { tier: "Bronze", price: 100, items: ["Affiliate Marketing Basics", "Intro Wallets & Trading"], goal: "Build skills + start duplication." },
+  { tier: "Silver", price: 300, items: ["Technical Analysis Basics", "Duplication Workshops"], goal: "Handle first 50–100 team members." },
+  { tier: "Gold", price: 500, items: ["Leadership Blueprint", "Passive vs Active Income"], goal: "Transition to Leader Rank." },
+  { tier: "Platinum", price: 1000, items: ["Market Analysis", "Compliance & Taxation Basics"], goal: "Prepare for Manager Rank (1,000+ teams)." },
+  { tier: "Titanium", price: 2500, items: ["Multi-Country Network Growth", "Mastermind Access"], goal: "Train to become Director." },
+  { tier: "Diamond", price: 5000, items: ["CEO Mindset Training", "Investment Diversification"], goal: "Crown Ambassador Level." },
+  { tier: "Crown", price: 10000, items: ["Elite Global Leadership Training", "Direct 1-on-1 Mentorship", "Luxury Global Summits", "Premium Business Expansion Tools"], goal: "Build global empire under SAGENEX." },
 ];
 
-const tierImages: Record<string, string> = {
-  "Titanium Academy": "/academy/3.png",
-  "Diamond Academy": "/academy/4.png",
-  "Crown Academy": "/academy/5.png",
-};
-
-function getTierRibbon(tier: string) {
-  if (tier.includes("Platinum")) return { ribbon: "from-[#a78bfa] to-[#7c3aed]", price: "#7c3aed", wallet: "bg-purple-50 border-purple-200 text-purple-700" };
-  if (tier.includes("Gold"))     return { ribbon: "from-[#b58a2b] to-[#f1d27a]", price: "#b58a2b", wallet: "bg-amber-50 border-amber-200 text-amber-700" };
-  if (tier.includes("Silver"))   return { ribbon: "from-[#8e8f93] to-[#cfd3d6]", price: "#555", wallet: "bg-gray-50 border-gray-200 text-gray-600" };
-  if (tier.includes("Bronze"))   return { ribbon: "from-[#7a4b2c] to-[#b5763a]", price: "#7a4b2c", wallet: "bg-orange-50 border-orange-200 text-orange-700" };
-  if (tier.includes("Crown"))    return { ribbon: "from-[#1a1a1a] to-[#444]", price: "#1a1a1a", wallet: "bg-gray-50 border-gray-200 text-gray-700" };
-  if (tier.includes("Diamond"))  return { ribbon: "from-[#0ea5e9] to-[#6366f1]", price: "#0ea5e9", wallet: "bg-sky-50 border-sky-200 text-sky-700" };
-  if (tier.includes("Titanium")) return { ribbon: "from-[#475569] to-[#94a3b8]", price: "#475569", wallet: "bg-slate-50 border-slate-200 text-slate-600" };
-  return { ribbon: "from-[#00b386] to-[#00875f]", price: "#00875f", wallet: "bg-[#e6f7f3] border-[#b2e5d8] text-[#00875f]" };
+function getTierStyle(tier: string) {
+  if (tier === "Platinum") return { accent: "#7c3aed", bg: "#f5f3ff", border: "#ddd6fe" };
+  if (tier === "Gold")     return { accent: "#b58a2b", bg: "#fffbeb", border: "#fde68a" };
+  if (tier === "Silver")   return { accent: "#64748b", bg: "#f8fafc", border: "#e2e8f0" };
+  if (tier === "Bronze")   return { accent: "#92400e", bg: "#fff7ed", border: "#fed7aa" };
+  if (tier === "Crown")    return { accent: "#0a0a0a", bg: "#fafafa", border: "#d4d4d4" };
+  if (tier === "Diamond")  return { accent: "#0ea5e9", bg: "#f0f9ff", border: "#bae6fd" };
+  if (tier === "Titanium") return { accent: "#475569", bg: "#f8fafc", border: "#cbd5e1" };
+  return { accent: "#00b386", bg: "#f0fdf9", border: "#99f6e4" }; // Starter
 }
 
-const container = { hidden: { opacity: 0 }, show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.1 } } };
-const item = { hidden: { opacity: 0, y: 20 }, show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 200, damping: 22 } } };
+const container = {
+  hidden: { opacity: 0 },
+  show: { opacity: 1, transition: { staggerChildren: 0.06, delayChildren: 0.05 } },
+};
+const item = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { type: "spring" as const, stiffness: 180, damping: 22 } },
+};
 
 export default function SagenexAcademy() {
   return (
-    <section id="academy" className="w-full bg-[#f7f8fa] py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="text-center mb-12">
-          <span className="inline-block bg-[#e6f7f3] text-[#00875f] text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-            Sagenex Academy
-          </span>
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-extrabold text-[#1a1a1a] mb-3 tracking-tight">
-            LEARN, EARN &amp; LEAD
-          </h2>
-          <p className="text-[#555] text-lg max-w-3xl mx-auto">
-            Eight progressive tracks from Starter to Crown — turning beginners into confident global leaders through structured, real-world training.
-          </p>
-        </div>
+    <section id="academy" className="w-full bg-white py-24 md:py-32">
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16">
 
-        {/* Tier grid */}
+        {/* ── Header ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.6 }}
+          className="mb-16"
+        >
+          <p className="eyebrow mb-4">Sagenex Academy</p>
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6">
+            <h2
+              className="font-extrabold text-[#0a0a0a] leading-[0.95]"
+              style={{ fontSize: "clamp(40px, 5.5vw, 80px)", letterSpacing: "-0.03em" }}
+            >
+              Learn, Earn<br />
+              <span className="text-[#00b386]">&amp; Lead.</span>
+            </h2>
+            <p className="text-[16px] text-[#666] max-w-sm leading-relaxed lg:text-right">
+              Eight progressive tracks from Starter to Crown — turning beginners into confident global leaders.
+            </p>
+          </div>
+        </motion.div>
+
+        {/* ── Tier grid ── */}
         <motion.div
           variants={container}
           initial="hidden"
           whileInView="show"
           viewport={{ once: true, margin: "-60px" }}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-12"
         >
           {DATA.map((c) => {
-            const { ribbon, price, wallet } = getTierRibbon(c.tier);
-            const img = tierImages[c.tier];
+            const { accent, bg, border } = getTierStyle(c.tier);
             return (
               <motion.article
                 key={c.tier}
                 variants={item}
-                whileHover={{ y: -6, boxShadow: "0 12px 32px rgba(0,0,0,0.12)" }}
-                className="bg-white border border-[#e8e8e8] rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.06)] overflow-hidden flex flex-col"
+                whileHover={{ y: -5, boxShadow: "0 16px 40px rgba(0,0,0,0.10)" }}
+                className="rounded-2xl border overflow-hidden flex flex-col bg-white transition-shadow"
+                style={{ borderColor: border }}
               >
-                {/* Ribbon */}
-                <div className={`bg-gradient-to-r ${ribbon} px-4 py-2.5 flex items-center justify-between`}>
-                  <span className="text-sm font-bold text-white">{c.tier}</span>
-                  {img && <Image src={img} alt={c.tier} width={28} height={28} className="h-7 w-7" />}
+                {/* Tier header */}
+                <div
+                  className="px-5 py-4 flex items-baseline justify-between"
+                  style={{ background: bg, borderBottom: `1px solid ${border}` }}
+                >
+                  <div>
+                    <span
+                      className="text-[11px] font-bold tracking-widest uppercase block mb-1"
+                      style={{ color: accent }}
+                    >
+                      {c.tier}
+                    </span>
+                    <span
+                      className="text-3xl font-extrabold"
+                      style={{ color: accent, letterSpacing: "-0.03em" }}
+                    >
+                      ${c.price.toLocaleString()}
+                    </span>
+                  </div>
+                  <span
+                    className="text-[11px] font-semibold px-2.5 py-1 rounded-full"
+                    style={{ background: accent + "14", color: accent }}
+                  >
+                    E-Wallet
+                  </span>
                 </div>
 
                 {/* Body */}
-                <div className="p-4 flex-1 flex flex-col">
-                  <div className="text-3xl font-extrabold mb-3" style={{ color: price }}>
-                    <span className="text-base align-top" style={{ color: price }}>$</span>
-                    {c.price.toLocaleString()}
-                  </div>
-
-                  <ul className="list-disc pl-4 space-y-1 text-sm text-[#555] min-h-[4.5rem] flex-1">
-                    {c.items.map((t, i) => <li key={i}>{t}</li>)}
+                <div className="px-5 py-4 flex-1 flex flex-col">
+                  <ul className="space-y-2 flex-1 mb-4">
+                    {c.items.map((t, i) => (
+                      <li key={i} className="flex items-start gap-2 text-[13px] text-[#555]">
+                        <span
+                          className="mt-[5px] h-1.5 w-1.5 rounded-full shrink-0"
+                          style={{ background: accent }}
+                        />
+                        {t}
+                      </li>
+                    ))}
                   </ul>
-
-                  <div className={`mt-4 flex items-center justify-between rounded-xl border px-3 py-2 text-sm font-semibold ${wallet}`}>
-                    <span className="text-xs tracking-wide opacity-75">E-WALLET</span>
-                    <span>${c.price.toLocaleString()}</span>
-                  </div>
-
-                  <p className="mt-3 text-xs text-[#888]">
-                    <span className="font-semibold text-[#444]">Goal:</span> {c.goal}
+                  <p className="text-[12px] text-[#999] border-t border-[#f0f0f0] pt-3 leading-snug">
+                    <span className="font-semibold" style={{ color: accent }}>Goal: </span>
+                    {c.goal}
                   </p>
                 </div>
               </motion.article>
@@ -101,15 +131,28 @@ export default function SagenexAcademy() {
           })}
         </motion.div>
 
-        {/* Footer tag line */}
-        <div className="mt-10 flex flex-wrap justify-center gap-4 text-sm text-[#555]">
-          {["Learn + Earn model at all levels", "E-Wallet = Package value (no-risk learning)", "Recognition at each level with perks"].map(t => (
-            <span key={t} className="inline-flex items-center gap-2">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#00b386]" />
+        {/* ── Footer chips ── */}
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.5 }}
+          className="flex flex-wrap justify-center gap-3"
+        >
+          {[
+            "Learn + Earn model at all levels",
+            "E-Wallet = Package value (no-risk learning)",
+            "Recognition at each level with perks",
+          ].map((t) => (
+            <span
+              key={t}
+              className="inline-flex items-center gap-2 text-[13px] text-[#555] bg-[#f5f5f5] rounded-full px-4 py-2 border border-[#e8e8e8]"
+            >
+              <span className="h-1.5 w-1.5 rounded-full bg-[#00b386] shrink-0" />
               {t}
             </span>
           ))}
-        </div>
+        </motion.div>
       </div>
     </section>
   );
