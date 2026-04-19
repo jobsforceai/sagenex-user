@@ -901,3 +901,18 @@ export async function submitExpenseTicket(ticketId: string) {
     });
     return handleApiResponse(res);
 }
+
+export async function toggleCompounding() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/compounding/toggle`, {
+    method: "POST",
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res);
+}
+
+export async function getCompoundingStatus() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/profile`, {
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res);
+}

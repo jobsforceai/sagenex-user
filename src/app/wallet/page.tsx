@@ -132,7 +132,7 @@ interface CurrentCycleHistory {
 }
 
 const formatCurrency = (amount: number) =>
-  amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  amount.toLocaleString("en-IN", { style: "currency", currency: "INR" });
 
 const formatOptionalCurrency = (amount?: number | null) =>
   amount === undefined || amount === null ? "N/A" : formatCurrency(amount);

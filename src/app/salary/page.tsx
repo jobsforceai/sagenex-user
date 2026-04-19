@@ -183,7 +183,7 @@ const SalaryPage = () => {
     let displayGracePeriodStatus = "";
 
     if (salaryEligibility.isEligible) {
-        displayMessage = `Congratulations! You have met the performance requirements for '${performanceRank.name}' and are eligible for this month's salary of ${performanceRank.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })}.`;
+        displayMessage = `Congratulations! You have met the performance requirements for '${performanceRank.name}' and are eligible for this month's salary of ${performanceRank.salary.toLocaleString("en-IN", { style: "currency", currency: "INR" })}.`;
         if (rank.consecutiveMonthsMissed === 1) {
             displayGracePeriodStatus = `You are in your 1-month grace period. Your payout will be 50% of the base salary.`;
         } else {
@@ -204,7 +204,7 @@ const SalaryPage = () => {
       const percentage = required > 0 ? Math.min((current / required) * 100, 100) : 100;
       const formatValue = (value: number) =>
         isCurrency
-          ? value.toLocaleString("en-US", { style: "currency", currency: "USD", minimumFractionDigits: 0, maximumFractionDigits: 0 })
+          ? value.toLocaleString("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0, maximumFractionDigits: 0 })
           : value;
   
       return (
@@ -250,7 +250,7 @@ const SalaryPage = () => {
                                 <p className="text-lg text-green-300">Eligible Salary</p>
                                 <p className="text-4xl font-bold text-white mt-1">{performanceRank.name}</p>
                                 <p className="text-2xl font-semibold text-green-400">
-                                    {performanceRank.salary.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                                    {performanceRank.salary.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
                                 </p>
                             </div>
                             <div className="text-right">
@@ -291,9 +291,9 @@ const SalaryPage = () => {
                     {progress.requirements.legRule &&
                       renderRequirement(
                         progress.requirements.legRule,
-                        `Legs with ${progress.requirements.legRule.businessPerLeg.toLocaleString("en-US", {
+                        `Legs with ${progress.requirements.legRule.businessPerLeg.toLocaleString("en-IN", {
                           style: "currency",
-                          currency: "USD",
+                          currency: "INR",
                         })} Volume`
                       )}
                     {progress.requirements.requires4x && (
@@ -331,7 +331,7 @@ const SalaryPage = () => {
                       {rankProgress.legDetails.map((leg) => (
                         <tr key={leg.userId}>
                           <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-white">{leg.userId}</td>
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-300">{leg.monthlyBusiness.toLocaleString("en-US", { style: "currency", currency: "USD" })}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-300">{leg.monthlyBusiness.toLocaleString("en-IN", { style: "currency", currency: "INR" })}</td>
                           <td className="px-6 py-4 whitespace-nowrap text-sm text-neutral-300">{leg.activeTeam}</td>
                         </tr>
                       ))}

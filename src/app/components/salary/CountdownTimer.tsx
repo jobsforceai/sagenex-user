@@ -53,7 +53,7 @@ const CountdownTimer = ({ expiryTimestamp, payoutAmount }: CountdownTimerProps) 
         <div className="text-left">
           <p className="text-neutral-400 text-sm">Next Payout Amount</p>
           <p className="text-3xl font-bold text-white">
-            {payoutAmount.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+            {payoutAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
           </p>
         </div>
         <div className="flex items-center gap-2">

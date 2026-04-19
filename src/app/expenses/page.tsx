@@ -103,7 +103,7 @@ const ExpensesPage = () => {
                       {ticket.status.replace("_", " ")}
                     </p>
                     <p className="text-lg font-bold text-emerald-400 mt-1">
-                      {ticket.totalAmount.toLocaleString("en-US", { style: "currency", currency: "USD" })}
+                      {ticket.totalAmount.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
                     </p>
                   </div>
                 </CardContent>

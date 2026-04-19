@@ -72,9 +72,9 @@ const LockedBonuses = ({ bonuses }: LockedBonusesProps) => {
                   <span className="font-semibold">{displayName}</span>
                 </div>
                 <span className="font-bold text-lg">
-                  {bonus.lockedAmount.toLocaleString("en-US", {
+                  {bonus.lockedAmount.toLocaleString("en-IN", {
                     style: "currency",
-                    currency: "USD",
+                    currency: "INR",
                   })}
                 </span>
               </div>

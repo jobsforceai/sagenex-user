@@ -7,6 +7,7 @@ import { WalletQuickActions } from "@/app/components/wallet/WalletQuickActions";
 import { RecentTransactions } from "@/app/components/wallet/RecentTransactions";
 import { AlertCircle, ChevronDown, ChevronUp } from "lucide-react";
 import { getWalletCurrentCycleHistory } from "@/actions/user";
+import { CompoundingToggle } from "@/app/components/wallet/CompoundingToggle";
 
 interface WalletSummary {
   availableBalance: number;
@@ -95,7 +96,7 @@ interface OverviewTabProps {
 }
 
 const formatCurrency = (amount: number) =>
-  amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  amount.toLocaleString("en-IN", { style: "currency", currency: "INR" });
 
 const formatOptionalCurrency = (amount?: number | null) =>
   amount === undefined || amount === null ? "N/A" : formatCurrency(amount);
@@ -151,6 +152,9 @@ export const OverviewTab = ({
           onTransfer={onTransferClick}
         />
       </div>
+
+      {/* Compounding Toggle */}
+      <CompoundingToggle />
 
       {/* Error Messages */}
       {(walletError || dashboardError) && (

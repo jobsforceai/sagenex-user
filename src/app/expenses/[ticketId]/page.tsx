@@ -231,7 +231,7 @@ const SingleTicketPage = () => {
         <Card className="bg-gray-900/40 border-gray-800">
           <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
             <CardTitle>Expense Items</CardTitle>
-            <p className="text-2xl font-bold text-emerald-400">{(ticket.totalAmount ?? 0).toLocaleString("en-US", { style: "currency", currency: "USD" })}</p>
+            <p className="text-2xl font-bold text-emerald-400">{(ticket.totalAmount ?? 0).toLocaleString("en-IN", { style: "currency", currency: "INR" })}</p>
           </CardHeader>
           <CardContent>
             {(ticket.items && ticket.items.length > 0) ? (
@@ -248,7 +248,7 @@ const SingleTicketPage = () => {
                           {new Intl.NumberFormat('en-US', { style: 'currency', currency: item.currency }).format(item.amountInLocalCurrency)}
                         </p>
                         <p className="text-xs text-gray-400">
-                          (≈ {item.amount.toLocaleString("en-US", { style: "currency", currency: "USD" })})
+                          (≈ {item.amount.toLocaleString("en-IN", { style: "currency", currency: "INR" })})
                         </p>
                       </div>
                     </div>
