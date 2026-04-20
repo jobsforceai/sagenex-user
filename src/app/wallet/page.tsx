@@ -6,7 +6,6 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
-import CryptoDeposit from "@/app/components/wallet/CryptoDeposit";
 import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
 import { OverviewTab } from "@/app/components/wallet/tabs/OverviewTab";
 import { TransferTab } from "@/app/components/wallet/tabs/TransferTab";
@@ -159,8 +158,7 @@ const WalletPage = () => {
   const [cycleLoading, setCycleLoading] = useState(true);
   
   // Drawer states
-  const [depositDrawerOpen, setDepositDrawerOpen] = useState(false);
-  const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
+const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
   const [transferDrawerOpen, setTransferDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -300,12 +298,7 @@ const WalletPage = () => {
   const summaryLoading = walletLoading && dashboardLoading;
   const canShowActions = Boolean(walletSummary) && !walletError && !dashboardError;
 
-  const handleDepositSuccess = () => {
-    setDepositDrawerOpen(false);
-    fetchData();
-  };
-
-  const handleWithdrawSuccess = () => {
+const handleWithdrawSuccess = () => {
     setWithdrawDrawerOpen(false);
     fetchData();
   };
@@ -372,8 +365,7 @@ const WalletPage = () => {
               setCycleError={setCycleError}
               setCycleHistory={setCycleHistory}
               remainingWithdrawalLimit={remainingWithdrawalLimit}
-              onDepositClick={() => setDepositDrawerOpen(true)}
-              onWithdrawClick={() => setWithdrawDrawerOpen(true)}
+onWithdrawClick={() => setWithdrawDrawerOpen(true)}
               onTransferClick={() => setTransferDrawerOpen(true)}
               onViewAllTransactions={() => setActiveTab("history")}
             />
@@ -407,21 +399,7 @@ const WalletPage = () => {
         </Tabs>
 
         {/* Drawers for Actions */}
-        <Drawer open={depositDrawerOpen} onOpenChange={setDepositDrawerOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>Deposit Funds</DrawerTitle>
-              <DrawerDescription>
-                Add funds to your wallet using cryptocurrency
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="px-6 py-4 overflow-y-auto max-h-[calc(100vh-200px)]">
-              <CryptoDeposit />
-            </div>
-          </DrawerContent>
-        </Drawer>
-
-        <Drawer open={withdrawDrawerOpen} onOpenChange={setWithdrawDrawerOpen}>
+<Drawer open={withdrawDrawerOpen} onOpenChange={setWithdrawDrawerOpen}>
           <DrawerContent>
             <DrawerHeader>
               <DrawerTitle>Withdraw Funds</DrawerTitle>

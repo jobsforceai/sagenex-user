@@ -27,8 +27,8 @@ interface RecentTransactionsProps {
   onViewAll: () => void;
 }
 
-const formatCurrency = (amount: number, currency = "USDT") =>
-  `${amount >= 0 ? "+" : ""}${amount.toFixed(2)} ${currency}`;
+const formatCurrency = (amount: number, currency = "INR") =>
+  `${amount >= 0 ? "+" : ""}₹${Math.abs(amount).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
 
 const getTransactionTitle = (tx: WalletTransaction) => {
   if (tx.description) return tx.description;

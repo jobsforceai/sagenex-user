@@ -366,7 +366,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             <Wallet size={16} className="text-gray-400" />
                             <span className="text-sm font-medium text-gray-300">Available Balance:</span>
                         </div>
-                        <span className="font-semibold text-white">${currentBalance.toFixed(2)}</span>
+                        <span className="font-semibold text-white">₹{currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="relative" ref={dropdownRef}>
@@ -397,7 +397,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                     </div>
 
                     <div>
-                        <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-1">Amount (USD)</label>
+                        <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-1">Amount (INR)</label>
                         <input
                             id="amount"
                             type="number"

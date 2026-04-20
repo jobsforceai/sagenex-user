@@ -182,8 +182,12 @@ const SalaryPage = () => {
     let displayMessage = "";
     let displayGracePeriodStatus = "";
 
+    const salaryMin = Math.round(performanceRank.salary * 0.5);
+    const salaryMax = performanceRank.salary;
+    const salaryRangeText = `${salaryMin.toLocaleString("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 })} – ${salaryMax.toLocaleString("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 })}`;
+
     if (salaryEligibility.isEligible) {
-        displayMessage = `Congratulations! You have met the performance requirements for '${performanceRank.name}' and are eligible for this month's salary of ${performanceRank.salary.toLocaleString("en-IN", { style: "currency", currency: "INR" })}.`;
+        displayMessage = `Congratulations! You have met the performance requirements for '${performanceRank.name}' and are eligible for this month's salary.`;
         if (rank.consecutiveMonthsMissed === 1) {
             displayGracePeriodStatus = `You are in your 1-month grace period. Your payout will be 50% of the base salary.`;
         } else {
@@ -249,9 +253,11 @@ const SalaryPage = () => {
                             <div className="text-left">
                                 <p className="text-lg text-green-300">Eligible Salary</p>
                                 <p className="text-4xl font-bold text-white mt-1">{performanceRank.name}</p>
+                                <p className="text-sm text-neutral-400 mt-1">Estimated range</p>
                                 <p className="text-2xl font-semibold text-green-400">
-                                    {performanceRank.salary.toLocaleString("en-IN", { style: "currency", currency: "INR" })}
+                                    {salaryRangeText}
                                 </p>
+                                <p className="text-xs text-neutral-500 mt-1">Actual amount credited after admin review</p>
                             </div>
                             <div className="text-right">
                                 <p className="text-sm font-medium text-gray-400">Salary Credits In</p>

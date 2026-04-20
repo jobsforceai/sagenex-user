@@ -89,7 +89,6 @@ interface OverviewTabProps {
   setCycleError: (error: string | null) => void;
   setCycleHistory: (history: CurrentCycleHistory | null) => void;
   remainingWithdrawalLimit: number;
-  onDepositClick: () => void;
   onWithdrawClick: () => void;
   onTransferClick: () => void;
   onViewAllTransactions: () => void;
@@ -122,7 +121,6 @@ export const OverviewTab = ({
   setCycleError,
   setCycleHistory,
   remainingWithdrawalLimit,
-  onDepositClick,
   onWithdrawClick,
   onTransferClick,
   onViewAllTransactions,
@@ -147,7 +145,6 @@ export const OverviewTab = ({
           />
         </div>
         <WalletQuickActions
-          onDeposit={onDepositClick}
           onWithdraw={onWithdrawClick}
           onTransfer={onTransferClick}
         />

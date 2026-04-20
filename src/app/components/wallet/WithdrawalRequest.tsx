@@ -342,7 +342,7 @@ const WithdrawalRequest = ({
           <form onSubmit={handleProceedToVerification} className="flex flex-col gap-4 flex-1">
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
-                Amount (USD)
+                Amount (INR)
               </label>
               <Input
                 id="amount"
@@ -350,7 +350,7 @@ const WithdrawalRequest = ({
                 type="number"
                 value={amount}
                 onChange={handleAmountChange}
-                placeholder={`Available: $${maxWithdrawable.toFixed(2)}`}
+                placeholder={`Available: ₹${maxWithdrawable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
                 required
                 min="0.01"
