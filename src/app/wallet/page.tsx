@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
+import { CompoundingProjectionModal } from "@/app/components/wallet/CompoundingProjectionModal";
 import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
 import { OverviewTab } from "@/app/components/wallet/tabs/OverviewTab";
 import { TransferTab } from "@/app/components/wallet/tabs/TransferTab";
@@ -454,6 +455,8 @@ onWithdrawClick={() => setWithdrawDrawerOpen(true)}
             </div>
           </DrawerContent>
         </Drawer>
+
+        <CompoundingProjectionModal />
       </div>
     </div>
   );
