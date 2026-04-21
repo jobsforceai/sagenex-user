@@ -1,0 +1,23 @@
+src/app/salary/page.tsx
+  964e0d3fba450c9c 31-36,43-48,77-78,88-89,93-94,98-99,103-104,108-109,113-114,311-318,471,478,481-490,502,510
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "ce4b9d2fdc6151a33ec15c3adfc1ec6bdcca8ba5",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 48,
+      "total_deletions": 69,
+      "accepted_lines": 48,
+      "overriden_lines": 0
+    }
+  }
+}
