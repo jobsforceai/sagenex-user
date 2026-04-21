@@ -4,7 +4,8 @@ import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { Recipient } from '@/types';
 import { getTransferRecipients, sendTransferOtp, executeTransfer, getBiometricsStatus } from '@/actions/user';
-import { ArrowRight, Send, Wallet, Briefcase } from 'lucide-react';
+import { ArrowRight, Send, Wallet, Briefcase, TrendingUp } from 'lucide-react';
+import { getNewTieredROIRate, getTieredROIRate } from '@/lib/roi';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 import FaceVerificationPanel from '@/app/components/biometrics/FaceVerificationPanel';
@@ -464,6 +465,47 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                         )}
                     </div>
 
+                    {transferType === 'TO_PACKAGE' && selectedRecipient && numericAmount > 0 && (() => {
+                        const currentPkg = selectedRecipient.packageUSD ?? 0;
+                        const newPkg = currentPkg + numericAmount;
+                        const currentRate = selectedRecipient.roiPlanType === 'new'
+                            ? getNewTieredROIRate(currentPkg)
+                            : getTieredROIRate(currentPkg);
+                        const newRate = getNewTieredROIRate(newPkg);
+                        const currentMonthly = currentPkg * currentRate;
+                        const newMonthly = newPkg * newRate;
+                        const deltaMonthly = newMonthly - currentMonthly;
+                        const rateChanged = newRate !== currentRate || selectedRecipient.roiPlanType !== 'new';
+                        const fmt = (v: number) => `₹${v.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                        return (
+                            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-3">
+                                <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wide">
+                                    <TrendingUp className="h-3.5 w-3.5" />
+                                    ROI Preview
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="rounded-lg bg-gray-800/60 p-3">
+                                        <p className="text-xs text-gray-400 mb-1">Current Package</p>
+                                        <p className="text-sm font-semibold text-white">{fmt(currentPkg)}</p>
+                                        <p className="text-xs text-gray-400 mt-1">{(currentRate * 100).toFixed(0)}% / month</p>
+                                        <p className="text-xs text-gray-500">{fmt(currentMonthly)} / month</p>
+                                    </div>
+                                    <div className="rounded-lg bg-emerald-900/30 border border-emerald-500/20 p-3">
+                                        <p className="text-xs text-emerald-300 mb-1">After Top-up</p>
+                                        <p className="text-sm font-semibold text-white">{fmt(newPkg)}</p>
+                                        <p className="text-xs text-emerald-400 mt-1">{(newRate * 100).toFixed(0)}% / month{rateChanged && newRate > currentRate ? ' ↑' : ''}</p>
+                                        <p className="text-xs text-emerald-300">{fmt(newMonthly)} / month</p>
+                                    </div>
+                                </div>
+                                {deltaMonthly > 0 && (
+                                    <div className="flex items-center justify-between rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2">
+                                        <span className="text-xs text-gray-300">Monthly ROI increase</span>
+                                        <span className="text-sm font-bold text-emerald-400">+{fmt(deltaMonthly)} / mo</span>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
 
                     <button
                         type="submit"

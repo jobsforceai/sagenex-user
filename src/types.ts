@@ -87,6 +87,8 @@ export interface QueuedUser {
 export interface Recipient {
     userId: string;
     fullName: string;
+    packageUSD?: number;
+    roiPlanType?: 'old' | 'new';
 }
 
 export interface Reward {
