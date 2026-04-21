@@ -28,21 +28,24 @@ interface RankProgress {
     isEligible: boolean;
     requirements?: {
       directs?: { current: number; required: number };
-      activeLegs?: { current: number; required: number };
-      activeTeam?: { current: number; required: number };
-      monthlyBusiness?: { current: number; required: number };
-      legRule?: { current: number; required: number; businessPerLeg: number };
+      requiresActivePackage?: { current: boolean; required: true };
+      direct3X?: { current: number; required: number };
+      orCondition?: {
+        direct3X: { current: number; required: number };
+        direct4X: { current: number; required: number };
+      };
     };
   };
   progress: {
     nextRankName?: string | null;
     requirements?: {
       directs?: { current: number; required: number };
-      activeLegs?: { current: number; required: number };
-      activeTeam?: { current: number; required: number };
-      monthlyBusiness?: { current: number; required: number };
-      legRule?: { current: number; required: number; businessPerLeg: number };
-      requires4x?: boolean;
+      requiresActivePackage?: { current: boolean; required: true };
+      direct3X?: { current: number; required: number };
+      orCondition?: {
+        direct3X: { current: number; required: number };
+        direct4X: { current: number; required: number };
+      };
     } | null;
   };
   legDetails: {
@@ -71,8 +74,8 @@ const fmtK = (n: number) => {
 };
 
 // Mirror of backend ranks — kept in sync with user.service.ts
-// salaryMax comes from the official Achiever-Based Salary Program image
-// achieverBonus.orCondition = the mixed 3X+4X alternative qualifier from the image
+// Qualification is based on direct 3X/4X achiever counts (earningsMultiplier ≥ 3/4).
+// orCondition = the mixed 3X+4X alternative from the official Achiever-Based Salary Program image.
 const RANKS = [
   { level: 0, name: "Member", salary: 0, salaryMax: 0, requirements: null, achieverBonus: null },
   {
@@ -82,33 +85,33 @@ const RANKS = [
   },
   {
     level: 2, name: "Builder", salary: 30000, salaryMax: 50000,
-    requirements: { activeLegs: 6, activeTeam: 36, monthlyBusiness: 900000, legRule: { count: 6, business: 135000 } },
-    achieverBonus: { base3X: 3, orCondition: "2×3X + 1×4X", extra3X: 4500, extra4X: 9000 },
+    requirements: { direct3X: 3, orCondition: { direct3X: 2, direct4X: 1 } },
+    achieverBonus: { base3X: 3, orConditionLabel: "2×3X + 1×4X", extra3X: 4500, extra4X: 9000 },
   },
   {
     level: 3, name: "Leader", salary: 80000, salaryMax: 120000,
-    requirements: { activeLegs: 8, activeTeam: 200, monthlyBusiness: 1800000, legRule: { count: 8, business: 225000 } },
-    achieverBonus: { base3X: 6, orCondition: "4×3X + 1×4X", extra3X: 6750, extra4X: 13500 },
+    requirements: { direct3X: 6, orCondition: { direct3X: 4, direct4X: 1 } },
+    achieverBonus: { base3X: 6, orConditionLabel: "4×3X + 1×4X", extra3X: 6750, extra4X: 13500 },
   },
   {
     level: 4, name: "Manager", salary: 180000, salaryMax: 250000,
-    requirements: { activeLegs: 10, activeTeam: 1000, monthlyBusiness: 4500000, legRule: { count: 10, business: 450000 } },
-    achieverBonus: { base3X: 12, orCondition: "8×3X + 2×4X", extra3X: 9000, extra4X: 18000 },
+    requirements: { direct3X: 12, orCondition: { direct3X: 8, direct4X: 2 } },
+    achieverBonus: { base3X: 12, orConditionLabel: "8×3X + 2×4X", extra3X: 9000, extra4X: 18000 },
   },
   {
     level: 5, name: "Director", salary: 350000, salaryMax: 500000,
-    requirements: { activeLegs: 12, activeTeam: 7000, monthlyBusiness: 13500000, legRule: { count: 12, business: 900000 } },
-    achieverBonus: { base3X: 20, orCondition: "12×3X + 4×4X", extra3X: 13500, extra4X: 27000 },
+    requirements: { direct3X: 20, orCondition: { direct3X: 12, direct4X: 4 } },
+    achieverBonus: { base3X: 20, orConditionLabel: "12×3X + 4×4X", extra3X: 13500, extra4X: 27000 },
   },
   {
     level: 6, name: "Elite Director", salary: 600000, salaryMax: 1000000,
-    requirements: { activeLegs: 12, activeTeam: 20000, monthlyBusiness: 22500000, requires4x: true },
-    achieverBonus: { base3X: 35, orCondition: "20×3X + 6×4X", extra3X: 18000, extra4X: 36000 },
+    requirements: { direct3X: 35, orCondition: { direct3X: 20, direct4X: 6 } },
+    achieverBonus: { base3X: 35, orConditionLabel: "20×3X + 6×4X", extra3X: 18000, extra4X: 36000 },
   },
   {
     level: 7, name: "Crown Elite", salary: 1200000, salaryMax: 1200000,
-    requirements: { activeLegs: 12, activeTeam: 46000, monthlyBusiness: 27000000, requires4x: true },
-    achieverBonus: { base3X: 60, orCondition: "30×3X + 10×4X", extra3X: 0, extra4X: 0, isSpecial: true },
+    requirements: { direct3X: 60, orCondition: { direct3X: 30, direct4X: 10 } },
+    achieverBonus: { base3X: 60, orConditionLabel: "30×3X + 10×4X", extra3X: 0, extra4X: 0, isSpecial: true },
   },
 ];
 
@@ -305,19 +308,14 @@ const SalaryPage = () => {
             <CardContent className="space-y-4">
               {progress.requirements ? (
                 <>
-                  {progress.requirements.directs && renderBar(progress.requirements.directs.current, progress.requirements.directs.required, "Directs")}
-                  {progress.requirements.activeLegs && renderBar(progress.requirements.activeLegs.current, progress.requirements.activeLegs.required, "Active Legs")}
-                  {progress.requirements.activeTeam && renderBar(progress.requirements.activeTeam.current, progress.requirements.activeTeam.required, "Active Team Members")}
-                  {progress.requirements.monthlyBusiness && renderBar(progress.requirements.monthlyBusiness.current, progress.requirements.monthlyBusiness.required, "Monthly Business Volume", true)}
-                  {progress.requirements.legRule && renderBar(
-                    progress.requirements.legRule.current,
-                    progress.requirements.legRule.required,
-                    `Legs with ${fmt(progress.requirements.legRule.businessPerLeg)} Volume`
-                  )}
-                  {progress.requirements.requires4x && (
-                    <p className="text-sm text-amber-300 bg-amber-900/10 border border-amber-700/20 rounded p-2">
-                      Requires 4x earnings multiplier (KYC verified + 4 active legs each ≥ ₹2L team business).
-                    </p>
+                  {progress.requirements.directs && renderBar(progress.requirements.directs.current, progress.requirements.directs.required, "Direct Referrals")}
+                  {progress.requirements.direct3X && renderBar(progress.requirements.direct3X.current, progress.requirements.direct3X.required, "Direct 3X Achievers")}
+                  {progress.requirements.orCondition && (
+                    <div className="rounded-lg border border-neutral-700 bg-neutral-800/50 p-3 space-y-3">
+                      <p className="text-xs text-neutral-400 uppercase tracking-wide">— OR qualify with mixed achievers —</p>
+                      {renderBar(progress.requirements.orCondition.direct3X.current, progress.requirements.orCondition.direct3X.required, "Pure 3X Achievers")}
+                      {renderBar(progress.requirements.orCondition.direct4X.current, progress.requirements.orCondition.direct4X.required, "4X Achievers")}
+                    </div>
                   )}
                 </>
               ) : (
@@ -470,45 +468,26 @@ const SalaryPage = () => {
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-3">
                       {"directs" in r.requirements && (
                         <div className="bg-black/30 rounded p-2">
-                          <p className="text-neutral-400">Directs</p>
+                          <p className="text-neutral-400">Direct Referrals</p>
                           <p className="font-semibold text-white">{r.requirements.directs}</p>
-                        </div>
-                      )}
-                      {"activeLegs" in r.requirements && (
-                        <div className="bg-black/30 rounded p-2">
-                          <p className="text-neutral-400">Active Legs</p>
-                          <p className="font-semibold text-white">{r.requirements.activeLegs}</p>
-                        </div>
-                      )}
-                      {"activeTeam" in r.requirements && (
-                        <div className="bg-black/30 rounded p-2">
-                          <p className="text-neutral-400">Active Team</p>
-                          <p className="font-semibold text-white">{(r.requirements.activeTeam as number).toLocaleString("en-IN")}</p>
-                        </div>
-                      )}
-                      {"monthlyBusiness" in r.requirements && (
-                        <div className="bg-black/30 rounded p-2">
-                          <p className="text-neutral-400">Monthly Business</p>
-                          <p className="font-semibold text-white">{fmtK(r.requirements.monthlyBusiness as number)}</p>
-                        </div>
-                      )}
-                      {"legRule" in r.requirements && r.requirements.legRule && (
-                        <div className="bg-black/30 rounded p-2 col-span-2 sm:col-span-1">
-                          <p className="text-neutral-400">Per-Leg Minimum</p>
-                          <p className="font-semibold text-white">
-                            {(r.requirements.legRule as { count: number; business: number }).count} legs × {fmtK((r.requirements.legRule as { count: number; business: number }).business)}
-                          </p>
                         </div>
                       )}
                       {"note" in r.requirements && (
                         <div className="bg-black/30 rounded p-2 col-span-2">
                           <p className="text-neutral-400">Condition</p>
-                          <p className="font-semibold text-white">{r.requirements.note}</p>
+                          <p className="font-semibold text-white">{(r.requirements as { note: string }).note}</p>
                         </div>
                       )}
-                      {"requires4x" in r.requirements && r.requirements.requires4x && (
-                        <div className="bg-amber-900/20 border border-amber-700/30 rounded p-2 col-span-2 sm:col-span-3">
-                          <p className="text-amber-300 font-semibold">Requires 4x Multiplier (KYC + 4 legs ≥ ₹2L each)</p>
+                      {"direct3X" in r.requirements && (
+                        <div className="bg-blue-900/20 border border-blue-700/30 rounded p-2 col-span-2 sm:col-span-3">
+                          <p className="text-blue-300 font-semibold text-sm">
+                            {r.requirements.direct3X}× Direct 3X Achievers
+                            <span className="text-neutral-400 font-normal ml-2">OR</span>
+                            <span className="text-amber-300 font-semibold ml-2">
+                              {(r.requirements.orCondition as { direct3X: number; direct4X: number }).direct3X}×3X + {(r.requirements.orCondition as { direct3X: number; direct4X: number }).direct4X}×4X
+                            </span>
+                          </p>
+                          <p className="text-neutral-500 text-xs mt-1">Directs with earningsMultiplier ≥ 3 (3X) or ≥ 4 (4X)</p>
                         </div>
                       )}
                     </div>
@@ -520,7 +499,7 @@ const SalaryPage = () => {
                       <p className="text-neutral-400 font-medium">Achiever Bonus — requalify every month</p>
                       {'isSpecial' in r.achieverBonus && r.achieverBonus.isSpecial ? (
                         <div className="text-white space-y-0.5">
-                          <p>Qualify: <strong>{r.achieverBonus.base3X}×3X</strong> OR <strong>{r.achieverBonus.orCondition}</strong></p>
+                          <p>Qualify: <strong>{r.achieverBonus.base3X}×3X</strong> OR <strong>{r.achieverBonus.orConditionLabel}</strong></p>
                           <p className="text-amber-300">+ Leadership Bonus Pool + Global Team Overrides (Performance Based)</p>
                         </div>
                       ) : (
@@ -528,7 +507,7 @@ const SalaryPage = () => {
                           <p className="text-white">
                             Qualify: <strong>{r.achieverBonus.base3X}×3X Achievers</strong>
                             <span className="text-neutral-400"> OR </span>
-                            <strong>{r.achieverBonus.orCondition}</strong>
+                            <strong>{r.achieverBonus.orConditionLabel}</strong>
                           </p>
                           <div className="flex flex-wrap gap-3 text-white pt-0.5">
                             <span>Each extra 3X: <strong className="text-blue-300">+{fmt(r.achieverBonus.extra3X)}</strong></span>
