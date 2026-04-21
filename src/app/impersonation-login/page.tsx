@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ShieldAlert, Loader2 } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
@@ -11,8 +11,12 @@ function ImpersonationLoginContent() {
   const searchParams = useSearchParams();
   const { bootstrapImpersonationSession } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const bootstrapped = useRef(false);
 
   useEffect(() => {
+    if (bootstrapped.current) return;
+    bootstrapped.current = true;
+
     const token = searchParams.get("token");
     if (!token) {
       setError("Missing impersonation token.");
@@ -24,10 +28,8 @@ function ImpersonationLoginContent() {
     const email = searchParams.get("email");
     const userData = userId && fullName && email ? { userId, fullName, email } : undefined;
 
-    let cancelled = false;
     const bootstrap = async () => {
       const result = await bootstrapImpersonationSession(token, userData);
-      if (cancelled) return;
       if (result.error) {
         setError(result.error);
         return;
@@ -36,9 +38,6 @@ function ImpersonationLoginContent() {
     };
 
     bootstrap();
-    return () => {
-      cancelled = true;
-    };
   }, [bootstrapImpersonationSession, router, searchParams]);
 
   return (
