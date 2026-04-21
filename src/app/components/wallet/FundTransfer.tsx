@@ -3,14 +3,13 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
 import { Recipient } from '@/types';
-import { getTransferRecipients, sendTransferOtp, executeTransfer, getBiometricsStatus, getBonusRulesConfig } from '@/actions/user';
-import { ArrowRight, Send, Wallet, Briefcase } from 'lucide-react';
+import { getTransferRecipients, sendTransferOtp, executeTransfer, getBiometricsStatus } from '@/actions/user';
+import { ArrowRight, Send, Wallet, Briefcase, TrendingUp } from 'lucide-react';
+import { getNewTieredROIRate, getTieredROIRate } from '@/lib/roi';
 import { toast } from 'sonner';
 import Confetti from 'react-confetti';
 import FaceVerificationPanel from '@/app/components/biometrics/FaceVerificationPanel';
 import { Dialog, DialogContent } from '@/components/ui/dialog';
-import RoiPlanPicker from './RoiPlanPicker';
-import { type RoiPlanType } from '@/lib/roi';
 
 type TransferType = 'TO_AVAILABLE_BALANCE' | 'TO_PACKAGE';
 type VerificationMethod = 'face' | 'password' | 'otp';
@@ -29,8 +28,6 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     const [lastNonFaceMethod, setLastNonFaceMethod] = useState<VerificationMethod>('otp');
     const [faceModalOpen, setFaceModalOpen] = useState(false);
     const [transferType, setTransferType] = useState<TransferType>('TO_AVAILABLE_BALANCE');
-    const [roiPlanType, setRoiPlanType] = useState<RoiPlanType | null>(null);
-    const [pickerConfig, setPickerConfig] = useState<{ show: boolean; forceNew: boolean }>({ show: false, forceNew: false });
     const [step, setStep] = useState(1); // 1: Form, 2: Verification
     const [isLoading, setIsLoading] = useState(false);
     const [isSendingOtp, setIsSendingOtp] = useState(false);
@@ -116,9 +113,6 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
             }
         };
         fetchRecipients();
-        getBonusRulesConfig().then((data) => {
-            if (data?.roiPlanPicker) setPickerConfig(data.roiPlanPicker);
-        }).catch(() => {});
     }, []);
 
     const isSelfRecipient = selectedRecipient?.userId && selectedRecipient.userId === user?.userId;
@@ -198,8 +192,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
         setIsDropdownVisible(true);
     };
 
-    const showRoiPicker = transferType === 'TO_PACKAGE' && pickerConfig.show;
-    const effectiveRoiPlan = pickerConfig.forceNew ? 'new' as RoiPlanType : roiPlanType;
+    const effectiveRoiPlan = 'new' as const;
 
     const handleInitiateTransfer = (e: React.FormEvent) => {
         e.preventDefault();
@@ -217,10 +210,6 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
         }
         if (selectedRecipient.userId === user?.userId && transferType !== 'TO_PACKAGE') {
             toast.error('Self top-up is only available for To Package transfers.');
-            return;
-        }
-        if (showRoiPicker && !effectiveRoiPlan) {
-            toast.error('Please select an ROI plan before proceeding.');
             return;
         }
         if (faceEnrolled && faceApproved) {
@@ -309,7 +298,6 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                 setFaceVerificationId(null);
                 setTransferIdempotencyKey(null);
                 setTransferType('TO_AVAILABLE_BALANCE');
-                setRoiPlanType(null);
                 // Reset auth method to default based on user preference
                 if (faceEnrolled) {
                     setVerificationMethod('face');
@@ -379,7 +367,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             <Wallet size={16} className="text-gray-400" />
                             <span className="text-sm font-medium text-gray-300">Available Balance:</span>
                         </div>
-                        <span className="font-semibold text-white">${currentBalance.toFixed(2)}</span>
+                        <span className="font-semibold text-white">₹{currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="relative" ref={dropdownRef}>
@@ -410,7 +398,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                     </div>
 
                     <div>
-                        <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-1">Amount (USD)</label>
+                        <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-1">Amount (INR)</label>
                         <input
                             id="amount"
                             type="number"
@@ -477,13 +465,47 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                         )}
                     </div>
 
-                    <RoiPlanPicker
-                        value={effectiveRoiPlan}
-                        onChange={setRoiPlanType}
-                        packageUSD={numericAmount > 0 ? numericAmount : undefined}
-                        show={showRoiPicker}
-                        forceNew={pickerConfig.forceNew}
-                    />
+                    {transferType === 'TO_PACKAGE' && selectedRecipient && numericAmount > 0 && (() => {
+                        const currentPkg = selectedRecipient.packageUSD ?? 0;
+                        const newPkg = currentPkg + numericAmount;
+                        const currentRate = selectedRecipient.roiPlanType === 'new'
+                            ? getNewTieredROIRate(currentPkg)
+                            : getTieredROIRate(currentPkg);
+                        const newRate = getNewTieredROIRate(newPkg);
+                        const currentMonthly = currentPkg * currentRate;
+                        const newMonthly = newPkg * newRate;
+                        const deltaMonthly = newMonthly - currentMonthly;
+                        const rateChanged = newRate !== currentRate || selectedRecipient.roiPlanType !== 'new';
+                        const fmt = (v: number) => `₹${v.toLocaleString('en-IN', { minimumFractionDigits: 0, maximumFractionDigits: 0 })}`;
+                        return (
+                            <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4 space-y-3">
+                                <div className="flex items-center gap-2 text-emerald-400 text-xs font-semibold uppercase tracking-wide">
+                                    <TrendingUp className="h-3.5 w-3.5" />
+                                    ROI Preview
+                                </div>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="rounded-lg bg-gray-800/60 p-3">
+                                        <p className="text-xs text-gray-400 mb-1">Current Package</p>
+                                        <p className="text-sm font-semibold text-white">{fmt(currentPkg)}</p>
+                                        <p className="text-xs text-gray-400 mt-1">{(currentRate * 100).toFixed(0)}% / month</p>
+                                        <p className="text-xs text-gray-500">{fmt(currentMonthly)} / month</p>
+                                    </div>
+                                    <div className="rounded-lg bg-emerald-900/30 border border-emerald-500/20 p-3">
+                                        <p className="text-xs text-emerald-300 mb-1">After Top-up</p>
+                                        <p className="text-sm font-semibold text-white">{fmt(newPkg)}</p>
+                                        <p className="text-xs text-emerald-400 mt-1">{(newRate * 100).toFixed(0)}% / month{rateChanged && newRate > currentRate ? ' ↑' : ''}</p>
+                                        <p className="text-xs text-emerald-300">{fmt(newMonthly)} / month</p>
+                                    </div>
+                                </div>
+                                {deltaMonthly > 0 && (
+                                    <div className="flex items-center justify-between rounded-lg bg-emerald-500/10 border border-emerald-500/20 px-3 py-2">
+                                        <span className="text-xs text-gray-300">Monthly ROI increase</span>
+                                        <span className="text-sm font-bold text-emerald-400">+{fmt(deltaMonthly)} / mo</span>
+                                    </div>
+                                )}
+                            </div>
+                        );
+                    })()}
 
                     <button
                         type="submit"

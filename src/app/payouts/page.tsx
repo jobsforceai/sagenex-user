@@ -74,7 +74,7 @@ const PayoutDetailRow = ({ label, value, icon: Icon }: { label: string; value: n
 );
 
 const formatCurrency = (amount: number) =>
-    amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
+    amount.toLocaleString("en-IN", { style: "currency", currency: "INR" });
 
 // --- MAIN COMPONENT ---
 const PayoutsPage = () => {

@@ -10,9 +10,9 @@ interface WithdrawalLimitProps {
 }
 
 const formatCurrency = (amount: number) =>
-  amount.toLocaleString("en-US", {
+  amount.toLocaleString("en-IN", {
     style: "currency",
-    currency: "USD",
+    currency: "INR",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });

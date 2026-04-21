@@ -901,3 +901,42 @@ export async function submitExpenseTicket(ticketId: string) {
     });
     return handleApiResponse(res);
 }
+
+export async function toggleCompounding() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/compounding/toggle`, {
+    method: "POST",
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res);
+}
+
+export async function getCompoundingStatus() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/profile`, {
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res);
+}
+
+export async function requestCashWithdrawal(amount: number) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/wallet/cash-withdrawal`, {
+    method: 'POST',
+    headers: { ...(await getAuthHeaders()), 'Content-Type': 'application/json' },
+    body: JSON.stringify({ amount }),
+  });
+  return handleApiResponse(res);
+}
+
+export async function getUserCashWithdrawals() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/wallet/cash-withdrawals`, {
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res);
+}
+
+export async function cancelUserCashWithdrawal(id: string) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/wallet/cash-withdrawals/${id}/cancel`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res);
+}

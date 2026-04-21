@@ -208,7 +208,7 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
                       ["To User", tx.toUserId],
                       ["Counterparty", counterparty],
                       ["Method", tx.method],
-                      ["Currency", tx.currency || "USDT"],
+                      ["Currency", tx.currency || "INR"],
                       ["Created By", tx.createdBy],
                     ]
                       .map(([label, value]) => [label, formatDetailValue(value)] as const)

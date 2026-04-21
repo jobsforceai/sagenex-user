@@ -48,7 +48,7 @@ const couponErrorMessages: Record<string, string> = {
 };
 
 const formatCurrency = (amount: number) =>
-  amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  amount.toLocaleString("en-IN", { style: "currency", currency: "INR" });
 
 const formatCountdown = (ms: number) => {
   const totalSeconds = Math.max(0, Math.floor(ms / 1000));

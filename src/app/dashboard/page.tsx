@@ -165,9 +165,9 @@ interface RankProgress {
 
 const formatCurrency = (amount?: number) => {
   if (amount === undefined || amount === null) return "N/A";
-  return amount.toLocaleString("en-US", {
+  return amount.toLocaleString("en-IN", {
     style: "currency",
-    currency: "USD",
+    currency: "INR",
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
@@ -365,9 +365,9 @@ const DashboardPage = () => {
               <div className="text-right">
                 <p className="text-sm text-muted-foreground">Available Balance</p>
                 <p className="text-2xl font-bold">
-                  {wallet?.availableBalance?.toLocaleString("en-US", {
+                  {wallet?.availableBalance?.toLocaleString("en-IN", {
                     style: "currency",
-                    currency: "USD",
+                    currency: "INR",
                     minimumFractionDigits: 0,
                     maximumFractionDigits: 0,
                   })}

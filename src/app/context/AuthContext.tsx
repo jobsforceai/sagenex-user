@@ -21,7 +21,7 @@ interface AuthContextType {
   user: User | null;
   login: (data: { token: string; user: User }) => void;
   logout: () => void;
-  bootstrapImpersonationSession: (token: string) => Promise<{ error?: string }>;
+  bootstrapImpersonationSession: (token: string, userData?: { userId: string; fullName: string; email: string }) => Promise<{ error?: string }>;
   replaceSession: (data: { token: string; user: User | null }, redirectPath?: string) => void;
   isAuthenticated: boolean;
   loading: boolean;
@@ -127,7 +127,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  const bootstrapImpersonationSession = async (authToken: string) => {
+  const bootstrapImpersonationSession = async (
+    authToken: string,
+    userData?: { userId: string; fullName: string; email: string }
+  ) => {
+    if (userData) {
+      persistSession(authToken, { ...userData, isImpersonated: true });
+      return {};
+    }
     const profile = await fetchProfileWithToken(authToken);
     if ("error" in profile) {
       return { error: profile.error };

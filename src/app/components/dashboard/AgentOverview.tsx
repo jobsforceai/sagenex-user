@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent } from "@/components/ui/card";
-import { Target, Lock, CheckCircle2, Star } from "lucide-react";
+import { Target, Lock, CheckCircle2, Star, Info } from "lucide-react";
 import Image from "next/image";
 import clsx from "clsx";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -104,6 +104,21 @@ export default function AgentOverview({
                     {earningsMultiplier}x
                   </span>
                 )}
+              </div>
+              {/* 3x / 4x qualification rules */}
+              <div className="mt-3 rounded-lg border border-neutral-700/60 bg-neutral-800/40 p-3 text-xs space-y-2">
+                <div className="flex items-center gap-1.5 text-neutral-400 font-semibold uppercase tracking-wide text-[10px]">
+                  <Info className="h-3 w-3" />
+                  Earnings Multiplier Rules (monthly / 30 days)
+                </div>
+                <div className={`flex items-start gap-2 ${earningsMultiplier && earningsMultiplier >= 3 ? 'text-yellow-300' : 'text-neutral-300'}`}>
+                  <span className="font-bold shrink-0">3x</span>
+                  <span>3 legs × ≥ ₹1.5L business + ₹5L total team volume</span>
+                </div>
+                <div className={`flex items-start gap-2 ${earningsMultiplier === 4 ? 'text-yellow-300' : 'text-neutral-300'}`}>
+                  <span className="font-bold shrink-0">4x</span>
+                  <span>4 legs × ≥ ₹2L business + ₹10L total team volume + KYC verified</span>
+                </div>
               </div>
             </div>
           </div>

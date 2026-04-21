@@ -24,7 +24,7 @@ interface BonusSummaryProps {
 }
 
 const formatCurrency = (amount: number) =>
-  amount.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  amount.toLocaleString("en-IN", { style: "currency", currency: "INR" });
 
 export const BonusSummary = ({ bonuses, loading }: BonusSummaryProps) => {
   const [showDetails, setShowDetails] = useState(false);

@@ -4,13 +4,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 
 interface WalletQuickActionsProps {
-  onDeposit: () => void;
   onWithdraw: () => void;
   onTransfer: () => void;
 }
 
 export const WalletQuickActions = ({
-  onDeposit,
   onWithdraw,
   onTransfer,
 }: WalletQuickActionsProps) => {
@@ -20,12 +18,6 @@ export const WalletQuickActions = ({
         <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-4">
           Quick Actions
         </p>
-        <Button
-          onClick={onDeposit}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
-        >
-          Deposit
-        </Button>
         <Button
           onClick={onWithdraw}
           className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
