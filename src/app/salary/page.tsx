@@ -455,7 +455,9 @@ const SalaryPage = () => {
                       {r.salary > 0 ? (
                         <>
                           <p className="text-xs text-neutral-400 uppercase tracking-wide">Monthly Salary</p>
-                          <p className={`text-xl font-bold ${RANK_COLORS[r.name] ?? "text-white"}`}>{fmt(r.salary)}</p>
+                          <p className={`text-xl font-bold ${RANK_COLORS[r.name] ?? "text-white"}`}>
+                            {fmt(r.salary)}{r.salaryMax > r.salary ? ` – ${fmt(r.salaryMax)}` : ""}
+                          </p>
                         </>
                       ) : (
                         <p className="text-xs text-neutral-500">No salary</p>
