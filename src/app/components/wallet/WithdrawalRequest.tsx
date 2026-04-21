@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { requestWithdrawal, getProfileData, sendTransferOtp, getBiometricsStatus } from "@/actions/user";
+import { requestWithdrawal, getProfileData, sendTransferOtp, getBiometricsStatus, requestCashWithdrawal, getUserCashWithdrawals, cancelUserCashWithdrawal } from "@/actions/user";
 import { useAuth } from "@/app/context/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DollarSign, AlertCircle } from "lucide-react";
+import { DollarSign, AlertCircle, Banknote, MapPin, Calendar, User, Phone, XCircle, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import Confetti from "react-confetti";
 import FaceVerificationPanel from "@/app/components/biometrics/FaceVerificationPanel";
@@ -18,7 +18,7 @@ interface WithdrawalRequestProps {
   remainingWithdrawalLimit?: number;
 }
 
-type WithdrawalType = "crypto" | "upi" | "bank";
+type WithdrawalType = "crypto" | "upi" | "bank" | "cash";
 type AuthMethod = "password" | "otp";
 type VerificationMethod = "face" | "password" | "otp";
 
@@ -54,6 +54,54 @@ const WithdrawalRequest = ({
   const [faceVerificationId, setFaceVerificationId] = useState<string | null>(null);
   const [faceApproved, setFaceApproved] = useState(true);
   const otpTimerRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Cash withdrawal state
+  const [cashAmount, setCashAmount] = useState("");
+  const [cashLoading, setCashLoading] = useState(false);
+  const [cashWithdrawals, setCashWithdrawals] = useState<any[]>([]);
+  const [cashWithdrawalsLoading, setCashWithdrawalsLoading] = useState(false);
+  const [cancellingId, setCancellingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (withdrawalType !== "cash") return;
+    setCashWithdrawalsLoading(true);
+    getUserCashWithdrawals().then((res) => {
+      if (!res?.error && Array.isArray(res)) setCashWithdrawals(res);
+      setCashWithdrawalsLoading(false);
+    });
+  }, [withdrawalType]);
+
+  const handleCashWithdrawal = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const amt = parseFloat(cashAmount);
+    if (!amt || amt <= 0) { toast.error("Enter a valid amount."); return; }
+    if (amt > currentBalance) { toast.error("Insufficient balance."); return; }
+    setCashLoading(true);
+    try {
+      const res = await requestCashWithdrawal(amt);
+      if (res?.error) { toast.error(res.error); }
+      else {
+        toast.success("Cash withdrawal requested. Amount held. Admin will schedule pickup.");
+        setCashAmount("");
+        setCashWithdrawals((prev) => [res, ...prev]);
+      }
+    } catch { toast.error("Request failed."); }
+    finally { setCashLoading(false); }
+  };
+
+  const handleCancelCash = async (id: string) => {
+    setCancellingId(id);
+    try {
+      const res = await cancelUserCashWithdrawal(id);
+      if (res?.error) { toast.error(res.error); }
+      else {
+        toast.success("Cash withdrawal cancelled. Amount refunded.");
+        setCashWithdrawals((prev) => prev.map(c => c._id === id ? { ...c, status: 'CANCELLED' } : c));
+      }
+    } catch { toast.error("Cancel failed."); }
+    finally { setCancellingId(null); }
+  };
+
   const safeRemainingLimit =
     typeof remainingWithdrawalLimit === "number"
       ? Math.max(0, remainingWithdrawalLimit)
@@ -325,6 +373,7 @@ const WithdrawalRequest = ({
             <option value="crypto">Crypto</option>
             <option value="upi">UPI</option>
             <option value="bank">Bank</option>
+            <option value="cash">Cash</option>
           </select>
         </div>
         <div className="hidden sm:flex gap-2 mb-4 border-b border-gray-700">
@@ -337,8 +386,96 @@ const WithdrawalRequest = ({
           <Button variant={withdrawalType === "bank" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("bank")}>
             Bank
           </Button>
+          <Button variant={withdrawalType === "cash" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("cash")} className="flex items-center gap-1">
+            <Banknote className="h-3.5 w-3.5" />
+            Cash
+          </Button>
         </div>
-        {step === 1 && (
+        {withdrawalType === "cash" && (
+          <div className="flex flex-col gap-4">
+            {/* Request form */}
+            <form onSubmit={handleCashWithdrawal} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-400 mb-2">Amount (INR)</label>
+                <Input
+                  type="number"
+                  value={cashAmount}
+                  onChange={(e) => setCashAmount(e.target.value)}
+                  placeholder={`Available: ₹${currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  className="bg-gray-800 border-gray-600 text-white"
+                  min="0.01"
+                  step="0.01"
+                />
+                <p className="text-xs text-gray-500 mt-1">
+                  Amount is held immediately. Admin will contact you with pickup details.
+                </p>
+              </div>
+              <Button type="submit" disabled={cashLoading} className="w-full bg-emerald-600 hover:bg-emerald-500">
+                {cashLoading ? "Requesting..." : "Request Cash Withdrawal"}
+              </Button>
+            </form>
+
+            {/* Existing cash withdrawal requests */}
+            <div className="space-y-2 mt-2">
+              {cashWithdrawalsLoading && <p className="text-xs text-gray-400">Loading requests...</p>}
+              {cashWithdrawals.map((cw) => (
+                <div key={cw._id} className={`rounded-xl border p-3 space-y-2 text-sm ${
+                  cw.status === 'CANCELLED' ? 'border-red-500/20 bg-red-500/5' :
+                  cw.status === 'DELIVERED' ? 'border-emerald-500/20 bg-emerald-500/5' :
+                  cw.status === 'SCHEDULED' ? 'border-blue-500/20 bg-blue-500/5' :
+                  'border-gray-700 bg-gray-800/40'
+                }`}>
+                  <div className="flex items-center justify-between">
+                    <span className="font-semibold text-white">₹{cw.amount.toLocaleString('en-IN')}</span>
+                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
+                      cw.status === 'CANCELLED' ? 'bg-red-500/20 text-red-300' :
+                      cw.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-300' :
+                      cw.status === 'SCHEDULED' ? 'bg-blue-500/20 text-blue-300' :
+                      'bg-gray-600/40 text-gray-300'
+                    }`}>{cw.status}</span>
+                  </div>
+
+                  {cw.status === 'SCHEDULED' && (
+                    <div className="space-y-1 text-xs text-gray-300">
+                      {cw.location && <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-blue-400" />{cw.location}</div>}
+                      {cw.scheduledAt && <div className="flex items-center gap-1.5"><Calendar className="h-3 w-3 text-blue-400" />{new Date(cw.scheduledAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</div>}
+                      {cw.contactName && <div className="flex items-center gap-1.5"><User className="h-3 w-3 text-blue-400" />{cw.contactName}</div>}
+                      {cw.contactPhone && <div className="flex items-center gap-1.5"><Phone className="h-3 w-3 text-blue-400" />{cw.contactPhone}</div>}
+                    </div>
+                  )}
+
+                  {cw.status === 'CANCELLED' && cw.cancelReason && (
+                    <div className="flex items-start gap-1.5 text-xs text-red-300">
+                      <XCircle className="h-3 w-3 shrink-0 mt-0.5" />
+                      <span>Reason: {cw.cancelReason}</span>
+                    </div>
+                  )}
+
+                  {cw.status === 'DELIVERED' && (
+                    <div className="flex items-center gap-1.5 text-xs text-emerald-300">
+                      <CheckCircle2 className="h-3 w-3" />
+                      <span>Cash delivered on {new Date(cw.deliveredAt).toLocaleDateString('en-IN')}</span>
+                    </div>
+                  )}
+
+                  {['PENDING', 'SCHEDULED'].includes(cw.status) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full border-red-500/30 text-red-300 hover:bg-red-500/10 text-xs"
+                      disabled={cancellingId === cw._id}
+                      onClick={() => handleCancelCash(cw._id)}
+                    >
+                      {cancellingId === cw._id ? "Cancelling..." : "Cancel Request"}
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {withdrawalType !== "cash" && step === 1 && (
           <form onSubmit={handleProceedToVerification} className="flex flex-col gap-4 flex-1">
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
@@ -477,7 +614,7 @@ const WithdrawalRequest = ({
           </form>
         )}
 
-        {step === 2 && (
+        {withdrawalType !== "cash" && step === 2 && (
           <form onSubmit={handleWithdrawalRequest} className="flex flex-col gap-4 flex-1">
             <div className="rounded-xl border border-gray-700/60 bg-gray-900/60 p-4 space-y-3">
               <p className="text-xs uppercase tracking-[0.25em] text-gray-400">Verification</p>
