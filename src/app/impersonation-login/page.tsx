@@ -19,9 +19,14 @@ function ImpersonationLoginContent() {
       return;
     }
 
+    const userId = searchParams.get("userId");
+    const fullName = searchParams.get("fullName");
+    const email = searchParams.get("email");
+    const userData = userId && fullName && email ? { userId, fullName, email } : undefined;
+
     let cancelled = false;
     const bootstrap = async () => {
-      const result = await bootstrapImpersonationSession(token);
+      const result = await bootstrapImpersonationSession(token, userData);
       if (cancelled) return;
       if (result.error) {
         setError(result.error);

@@ -180,8 +180,8 @@ const WithdrawalRequest = ({
     const withdrawalAmount = parseFloat(newAmount);
     if (!isNaN(withdrawalAmount) && withdrawalAmount > maxWithdrawable) {
       setError("Withdrawal amount cannot exceed your remaining withdrawal limit.");
-    } else if (withdrawalType === "upi" && !isNaN(withdrawalAmount) && withdrawalAmount > 50) {
-      setError("UPI withdrawal amount cannot exceed $50.");
+    } else if (withdrawalType === "upi" && !isNaN(withdrawalAmount) && withdrawalAmount > 5000) {
+      setError("UPI withdrawal amount cannot exceed ₹5,000.");
     }
   };
 
@@ -202,8 +202,8 @@ const WithdrawalRequest = ({
       return null;
     }
 
-    if (withdrawalType === "upi" && withdrawalAmount > 50) {
-      toast.error("UPI withdrawal amount cannot exceed $50.");
+    if (withdrawalType === "upi" && withdrawalAmount > 5000) {
+      toast.error("UPI withdrawal amount cannot exceed ₹5,000.");
       return null;
     }
 
@@ -498,8 +498,8 @@ const WithdrawalRequest = ({
                   Remaining withdrawal limit: ${maxWithdrawable.toFixed(2)}
                 </p>
               )}
-              {withdrawalType === "upi" && parseFloat(amount) > 50 && (
-                <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed $50.</p>
+              {withdrawalType === "upi" && parseFloat(amount) > 5000 && (
+                <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed ₹5,000.</p>
               )}
               {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
             </div>
