@@ -12,11 +12,12 @@ export const isDualRoiWindowOpen = (now: Date = new Date()): boolean =>
 export const isNewRoiOnly = (now: Date = new Date()): boolean =>
   now > DUAL_ROI_END;
 
-/** New-plan tiered monthly ROI rate (3 simplified tiers). */
+/** New-plan tiered monthly ROI rate (INR thresholds — April 2026 Leaders Guide). */
 export function getNewTieredROIRate(packageUSD: number): number {
-  if (packageUSD >= 10000) return 0.10; // 10%
-  if (packageUSD >= 5000)  return 0.08; // 8%
-  if (packageUSD >= 50)    return 0.06; // 6%
+  if (packageUSD >= 1000000) return 0.10; // Elite:    ₹10L+      → 10%
+  if (packageUSD >= 500000)  return 0.08; // Advanced: ₹5L–₹10L   → 8%
+  if (packageUSD >= 100000)  return 0.07; // Standard: ₹1L–₹5L    → 7%
+  if (packageUSD >= 5000)    return 0.06; // Trail:    ₹5K–₹1L    → 6%
   return 0;
 }
 
