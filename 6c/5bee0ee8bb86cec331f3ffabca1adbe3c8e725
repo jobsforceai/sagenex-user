@@ -1,0 +1,27 @@
+src/app/wallet/page.tsx
+  964e0d3fba450c9c 15,355,360,415-422
+src/actions/user.ts
+  964e0d3fba450c9c 943-977
+src/app/components/wallet/tabs/LiquidityProviderTab.tsx
+  964e0d3fba450c9c 1-452
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.2",
+  "base_commit_sha": "6c5bee0ee8bb86cec331f3ffabca1adbe3c8e725",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 498,
+      "total_deletions": 1,
+      "accepted_lines": 498,
+      "overriden_lines": 0
+    }
+  }
+}
