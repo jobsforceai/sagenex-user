@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import SgnxGoldHero from "@/app/components/sgnx-gold/SgnxGoldHero";
 import LivePriceCards from "@/app/components/sgnx-gold/LivePriceCards";
 import CityPricesGrid from "@/app/components/sgnx-gold/CityPricesGrid";
@@ -18,6 +18,7 @@ import {
   getLivePrices,
   getCityPrices,
 } from "@/actions/sgnxgold";
+import { getDashboardData } from "@/actions/user";
 import { Loader2 } from "lucide-react";
 
 // Lazy-load the tree (heavy: React Flow + dagre)
@@ -127,6 +128,9 @@ export default function SgnxGoldPage() {
   const [activeMetal, setActiveMetal] = useState<"gold" | "silver">("gold");
   const [enrollModalOpen, setEnrollModalOpen] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
+  const [profileData, setProfileData] = useState<{ fullName?: string; profilePicture?: string; } | null>(null);
+  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
+  const [walletData, setWalletData] = useState<{ availableBalance?: number } | null>(null);
 
   // Fetch hero data (enrollments + gold rate)
   const fetchHeroData = useCallback(async () => {
@@ -184,6 +188,21 @@ export default function SgnxGoldPage() {
       fetchHeroData();
       fetchPrices();
       fetchCityPrices();
+      
+      // Fetch dashboard data for AppShell
+      getDashboardData().then((dashboardData) => {
+        if (dashboardData && !dashboardData.error) {
+          if (dashboardData.profile) {
+            setProfileData(dashboardData.profile);
+          }
+          if (dashboardData.rank || dashboardData.performanceRank) {
+            setRankData(dashboardData.rank || dashboardData.performanceRank);
+          }
+          if (dashboardData.wallet) {
+            setWalletData(dashboardData.wallet);
+          }
+        }
+      });
     }
   }, [isAuthenticated, authLoading, router, fetchHeroData, fetchPrices, fetchCityPrices]);
 
@@ -204,9 +223,13 @@ export default function SgnxGoldPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0f1219] text-[#ECEFF8] mt-10">
-      <Navbar />
-      <div className="mx-auto max-w-[1180px] px-4 sm:px-6 pt-20 sm:pt-24 pb-12 space-y-6">
+    <AppShell
+      balance={walletData?.availableBalance}
+      userName={profileData?.fullName}
+      userRank={rankData?.name}
+      avatarUrl={profileData?.profilePicture}
+    >
+      <div className="dashboard-light-scope p-6 space-y-6">
 
         {/* Hero Portfolio - own loading */}
         {heroLoading ? <HeroSkeleton /> : (
@@ -276,6 +299,6 @@ export default function SgnxGoldPage() {
         onOpenChange={setEnrollModalOpen}
         onSuccess={handleEnrollSuccess}
       />
-    </div>
+    </AppShell>
   );
 }

@@ -5,7 +5,7 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getRankProgress } from "@/actions/user";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -202,25 +202,26 @@ const SalaryPage = () => {
 
   if (loading || dataLoading) {
     return (
-      <div className="bg-black text-white min-h-screen">
-        <Navbar userLevel={undefined} />
-        <main className="container mx-auto p-4 pt-24 space-y-6">
+      <AppShell>
+        <main className="dashboard-light-scope p-6 space-y-6">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-48 w-full" />
         </main>
-      </div>
+      </AppShell>
     );
   }
 
   if (error) {
     return (
-      <div className="bg-black text-white min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-3">
-          <p className="text-red-400">{error}</p>
-          <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+      <AppShell>
+        <div className="dashboard-light-scope min-h-screen flex items-center justify-center">
+          <div className="text-center space-y-3">
+            <p className="text-red-500">{error}</p>
+            <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
+          </div>
         </div>
-      </div>
+      </AppShell>
     );
   }
 
@@ -230,9 +231,8 @@ const SalaryPage = () => {
   const graceMultiplier = rank.consecutiveMonthsMissed === 1 ? 0.5 : 1;
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      <Navbar userLevel={performanceRank?.name ?? rank.name} />
-      <main className="container mx-auto p-4 pt-24 space-y-6">
+    <AppShell userRank={performanceRank?.name ?? rank.name}>
+      <main className="dashboard-light-scope p-6 space-y-6">
         <Button asChild variant="outline" className="mb-2">
           <Link href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" />Back to Dashboard</Link>
         </Button>
@@ -626,7 +626,7 @@ const SalaryPage = () => {
           </CardContent>
         </Card>
       </main>
-    </div>
+    </AppShell>
   );
 };
 

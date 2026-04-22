@@ -1,135 +1,131 @@
 "use client";
-import { motion, Variants } from "framer-motion";
-import { FaAndroid, FaApple, FaMobileAlt, FaRocket, FaShieldAlt } from "react-icons/fa";
-import React from "react";
-import Image from "next/image";
-import HeroButton from "../ui/hero-button";
 
-const features = [
-  {
-    icon: <FaMobileAlt className="h-8 w-8 text-[#d4b36a]" />,
-    title: "Full Dashboard Access",
-    desc: "Manage your portfolio, track earnings, and view your team's progress on the go.",
-  },
-  {
-    icon: <FaShieldAlt className="h-8 w-8 text-[#d4b36a]" />,
-    title: "Secure Wallet Management",
-    desc: "Deposit, withdraw, and transfer funds with the same level of security as the web platform.",
-  },
-  {
-    icon: <FaRocket className="h-8 w-8 text-[#d4b36a]" />,
-    title: "Real-time Notifications",
-    desc: "Get instant alerts for new sign-ups, payouts, and important announcements.",
-  },
+import Image from "next/image";
+import Link from "next/link";
+import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
+import { useRef } from "react";
+import { Smartphone, ShieldCheck, Bell } from "lucide-react";
+import { FaAndroid, FaApple } from "react-icons/fa";
+
+const FEATURES = [
+  { icon: Smartphone, label: "Full Dashboard Access", desc: "Manage your portfolio, track earnings, and view team progress on the go." },
+  { icon: ShieldCheck, label: "Secure Wallet Management", desc: "Deposit, withdraw, and transfer funds with the same security as the web platform." },
+  { icon: Bell, label: "Real-time Notifications", desc: "Instant alerts for new sign-ups, payouts, and important announcements." },
 ];
 
-const container: Variants = {
-  hidden: { opacity: 0 },
-  show: {
-    opacity: 1,
-    transition: { staggerChildren: 0.1, delayChildren: 0.2 },
-  },
-};
-
-const item: Variants = {
-  hidden: { opacity: 0, y: 24 },
-  show: { opacity: 1, y: 0, transition: { type: "spring", stiffness: 200, damping: 24 } },
-};
-
 export default function AppDownloadSection() {
-    const apkUrl = process.env.NEXT_PUBLIC_ANDROID_APK_URL || "https://example.com/sagenex.apk";
-    const iosUrl = "https://apps.apple.com/us/app/sagenex/id6755692818"
+  const apkUrl = process.env.NEXT_PUBLIC_ANDROID_APK_URL || "https://example.com/sagenex.apk";
+  const iosUrl = "https://apps.apple.com/us/app/sagenex/id6755692818";
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const phoneY = useTransform(scrollYProgress, [0, 1], [70, -60]);
+  const phoneRotate = useTransform(scrollYProgress, [0, 1], [-8, 6]);
+  const copyY = useTransform(scrollYProgress, [0, 1], [40, -20]);
+  const orbOneY = useTransform(scrollYProgress, [0, 1], [-12, 18]);
+  const orbTwoY = useTransform(scrollYProgress, [0, 1], [18, -22]);
 
   return (
-    <section
-      id="android-app"
-      className="relative overflow-hidden bg-[#0a0a0a]"
-      aria-labelledby="appdownload-heading"
-    >
-      <div className="absolute inset-0 -z-10 bg-gradient-to-br from-[#0b0f0c] via-[#103c73] to-[#111823]" />
-        <div
-        className="absolute inset-0 -z-10 opacity-20"
-        style={{
-          background:
-            "radial-gradient(1000px 600px at 20% 30%, rgba(106, 179, 212, 0.3), transparent 70%)",
-        }}
-        />
-
-
-      <div className="mx-auto max-w-7xl px-4 py-16 sm:py-24 grid lg:grid-cols-2 lg:gap-16 items-center">
-        {/* Left Side: Image */}
+    <section ref={sectionRef} id="app" className="w-full section-light py-24 md:py-32 overflow-hidden border-t border-(--border-light) relative">
+      <div aria-hidden className="pointer-events-none absolute inset-0">
         <motion.div
+          className="absolute left-[7%] top-[14%] h-28 w-28 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(0,179,134,0.18) 0%, rgba(0,179,134,0) 70%)",
+            y: prefersReducedMotion ? 0 : orbOneY,
+          }}
+        />
+        <motion.div
+          className="absolute right-[9%] top-[58%] h-40 w-40 rounded-full"
+          style={{
+            background: "radial-gradient(circle, rgba(196,30,58,0.12) 0%, rgba(196,30,58,0) 74%)",
+            y: prefersReducedMotion ? 0 : orbTwoY,
+          }}
+        />
+      </div>
+
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 relative z-10">
+        <div className="flex flex-col lg:flex-row items-center justify-between gap-16">
+
+          <motion.div
             initial={{ opacity: 0, x: -40 }}
             whileInView={{ opacity: 1, x: 0 }}
-            transition={{ type: "spring", stiffness: 100, damping: 20, delay: 0.1 }}
             viewport={{ once: true }}
-            className="flex justify-center"
-        >
-          <div className="relative w-[280px] h-[560px] sm:w-[300px] sm:h-[600px]">
-            <Image
-              src="/mobdash.JPG"
-              alt="SAGENEX App on Mobile"
-              fill
-              className="object-contain"
-            />
-          </div>
-        </motion.div>
-
-        {/* Right Side: Content */}
-        <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{delay: 0.2}}
-            viewport={{ once: true, margin: "-80px" }}
-            className="text-white mt-12 lg:mt-0"
-        >
-          <h2
-            id="appdownload-heading"
-            className="text-3xl sm:text-4xl font-extrabold tracking-tight"
+            transition={{ duration: 0.8, ease: [0.22, 1, 0.36, 1] }}
+            className="flex-1 flex justify-center lg:justify-start"
+            style={{ y: prefersReducedMotion ? 0 : phoneY }}
           >
-            <span className="text-[#d4b36a]">Access Sagenex On The Go</span>
-          </h2>
-          <p className="mt-4 text-[#b6c8bf] max-w-2xl text-lg">
-            Download our official Android application to stay connected with the Sagenex ecosystem anytime, anywhere.
-          </p>
-
             <motion.div
-                variants={container}
-                initial="hidden"
-                whileInView="show"
-                viewport={{ once: true, margin: "-80px" }}
-                className="mt-8 grid gap-4 sm:grid-cols-1"
+              className="relative rounded-[2.5rem] p-3 bg-white shadow-2xl border border-(--border-light)"
+              style={{ rotate: prefersReducedMotion ? -2 : phoneRotate }}
+              whileHover={prefersReducedMotion ? undefined : { rotate: 0, y: -8 }}
+              transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
             >
-              {features.map((f) => (
+              <div className="relative rounded-4xl overflow-hidden" style={{ width: 280, height: 580 }}>
+                <Image src="/mobdash.JPG" alt="Sagenex Mobile App" fill className="object-cover" />
+              </div>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, x: 40 }}
+            whileInView={{ opacity: 1, x: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="flex-1 max-w-xl"
+            style={{ y: prefersReducedMotion ? 0 : copyY }}
+          >
+            <p className="eyebrow mb-4 text-(--crimson)">Mobile App</p>
+            <h2 className="display-headline text-(--text-primary-light) mb-6 leading-[0.9]">
+              Sagenex,<br />
+              <span className="text-(--emerald)">in your pocket.</span>
+            </h2>
+            <p className="text-(--text-muted-light) text-lg mb-12">
+              Stay connected to the Sagenex wealth ecosystem anytime, anywhere. Full control, institutional security, right at your fingertips.
+            </p>
+
+            <div className="space-y-8 mb-12">
+              {FEATURES.map(({ icon: Icon, label, desc }, idx) => (
                 <motion.div
-                  key={f.title}
-                  variants={item}
-                  className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#0f1411]/70 p-4 backdrop-blur-sm"
+                  key={label}
+                  className="flex items-start gap-5"
+                  initial={{ opacity: 0, x: 16 }}
+                  whileInView={{ opacity: 1, x: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.45, delay: 0.12 + idx * 0.08 }}
                 >
-                  <div className="flex-shrink-0">{f.icon}</div>
+                  <div className="shrink-0 h-12 w-12 rounded-2xl bg-(--emerald-glow) border border-(--emerald)/20 flex items-center justify-center">
+                    <Icon className="h-5 w-5 text-(--emerald)" />
+                  </div>
                   <div>
-                    <h3 className="text-base font-bold text-[#f0d493]">{f.title}</h3>
-                    <p className="mt-1 text-sm text-[#d8e8e0]">{f.desc}</p>
+                    <h4 className="font-bold font-display text-lg text-(--text-primary-light) mb-1">{label}</h4>
+                    <p className="text-(--text-muted-light) leading-relaxed">{desc}</p>
                   </div>
                 </motion.div>
               ))}
+            </div>
+
+            <motion.div
+              className="flex flex-wrap gap-4"
+              initial={{ opacity: 0, y: 12 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.5, delay: 0.35 }}
+            >
+              <Link href={apkUrl} target="_blank">
+                <button className="btn-primary gap-2 bg-(--emerald) hover:bg-[#009b74] shadow-[0_4px_20px_var(--emerald-glow)]">
+                  <FaAndroid size={18} /> Android APK
+                </button>
+              </Link>
+              <Link href={iosUrl} target="_blank">
+                <button className="btn-secondary text-(--text-primary-light) border-(--border-light) hover:bg-(--paper)">
+                  <FaApple size={18} /> App Store
+                </button>
+              </Link>
             </motion.div>
+          </motion.div>
 
-           <div className="mt-8 flex flex-col sm:flex-row gap-4">
-             <HeroButton href={apkUrl}>
-                <FaAndroid className="mr-2 h-5 w-5" />
-                Download for Android
-             </HeroButton>
-             <HeroButton href={iosUrl}>
-                <FaApple className="mr-2 h-5 w-5" />
-                Download for IOS
-             </HeroButton>
-           </div>
-           <p className="mt-4 text-xs text-[#9aaea2]">
-            *Requires Android 8.0 or later.
-          </p>
-        </motion.div>
-
+        </div>
       </div>
     </section>
   );

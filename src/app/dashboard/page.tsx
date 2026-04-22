@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Alert from "../components/dashboard/Alert";
@@ -8,32 +8,25 @@ import { useAuth } from "@/app/context/AuthContext";
 import {
   getDashboardData,
   getReferralSummary,
-  getTeamTree,
   getRankProgress,
   getLeaderboard,
   getFinancialSummary,
   getTicketBalance,
 } from "@/actions/user";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import {
   ArrowDownCircle,
   BadgeDollarSign,
-  CalendarCheck,
-  Crown,
+  Copy,
   Gem,
   Gift,
+  TrendingUp,
+  Users,
+  Wallet,
 } from "lucide-react";
-import AgentOverview from "../components/dashboard/AgentOverview";
-import DashboardUpdatesOverlay from "../components/dashboard/DashboardUpdatesOverlay";
-import EarningsSummary from "../components/dashboard/EarningsSummary";
-import GamifiedChallenges from "../components/dashboard/GamifiedChallenges";
-import Leaderboard from "../components/dashboard/Leaderboard";
-import ReferralGrowthTools from "../components/dashboard/ReferralAndGrowth";
-import SixLegTreeView from "../components/dashboard/BinaryTreeView";
-import SmartUpdates from "../components/dashboard/SmartUpdates";
-
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 
 // --- INTERFACES ---
 interface Profile {
@@ -61,9 +54,9 @@ interface Wallet {
     isUnlocked: boolean;
     unlockRequirement: string;
     progress: {
-        activeLegs?: { current: number; required: number; depth?: number };
-        activeTeam?: { current: number; required: number };
-        testQualified?: { current: number; required: number };
+      activeLegs?: { current: number; required: number; depth?: number };
+      activeTeam?: { current: number; required: number };
+      testQualified?: { current: number; required: number };
     };
   }[];
 }
@@ -101,20 +94,6 @@ interface ReferralSummary {
   totalDownlineVolume: number;
 }
 
-interface TreeLeg {
-  userId: string;
-  fullName: string;
-  packageUSD: number;
-  activityStatus: string;
-  children?: TreeLeg[];
-}
-
-interface TreeData {
-  tree: {
-    children: TreeLeg[];
-  };
-}
-
 interface RankProgress {
   rank: {
     name: string;
@@ -131,33 +110,16 @@ interface RankProgress {
   salaryEligibility: {
     isEligible: boolean;
     requirements: {
-      monthlyBusiness: {
-        current: number;
-        required: number;
-      };
-      legRule: {
-        current: number;
-        required: number;
-        businessPerLeg: number;
-      };
+      monthlyBusiness: { current: number; required: number };
+      legRule: { current: number; required: number; businessPerLeg: number };
     };
   };
   progress: {
     nextRankName: string | null;
     requirements: {
-      directs: {
-        current: number;
-        required: number;
-      };
-      activeTeam: {
-        current: number;
-        required: number;
-      };
-      legRule?: {
-        current: number;
-        required: number;
-        businessPerLeg: number;
-      };
+      directs: { current: number; required: number };
+      activeTeam: { current: number; required: number };
+      legRule?: { current: number; required: number; businessPerLeg: number };
       requires4x?: boolean;
     } | null;
   };
@@ -189,12 +151,6 @@ interface LeaderboardEntry {
   earnings: number;
 }
 
-const ALL_RANKS = ["Member", "Starter", "Builder","Leader","Manager", "Director", "Crown"];
-
-import LockedBonusesCard from "../components/dashboard/LockedBonusesCard";
-import SetPasswordModal from "../components/dashboard/SetPasswordModal";
-import WithdrawalLimit from "../components/dashboard/WithdrawalLimit";
-
 // --- COMPONENT ---
 const DashboardPage = () => {
   const { token, isAuthenticated, loading, showSetPasswordModal, onPasswordSet } = useAuth();
@@ -202,7 +158,6 @@ const DashboardPage = () => {
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
   const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
-  const [treeData, setTreeData] = useState<TreeData | null>(null);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[] | null>(null);
   const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
   const [ticketBalance, setTicketBalance] = useState<{
@@ -211,16 +166,20 @@ const DashboardPage = () => {
     lastCalculatedAt: string | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
-  const referralLink =
-    dashboardData?.profile.referralCode
-      ? `${process.env.NEXT_PUBLIC_APP_URL}/login?ref=${dashboardData.profile.referralCode}`
-      : "";
+  const referralLink = useMemo(() => {
+    const code = dashboardData?.profile?.referralCode;
+    if (!code) return "";
+    const origin = typeof window !== "undefined" ? window.location.origin : "";
+    return `${origin}/login?ref=${code}`;
+  }, [dashboardData?.profile?.referralCode]);
 
   const handleCopy = () => {
     if (referralLink) {
       navigator.clipboard.writeText(referralLink);
-      alert("Referral link copied to clipboard!");
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1200);
     }
   };
 
@@ -253,27 +212,23 @@ const DashboardPage = () => {
     if (!token) return;
 
     const fetchSecondaryData = async () => {
-        getRankProgress().then(res => {
-            if (res.error) console.error("Failed to fetch rank progress:", res.error);
-            else setRankProgress(res);
-        });
-      getReferralSummary().then(res => {
+      getRankProgress().then((res) => {
+        if (res.error) console.error("Failed to fetch rank progress:", res.error);
+        else setRankProgress(res);
+      });
+      getReferralSummary().then((res) => {
         if (res.error) console.error("Failed to fetch referral summary:", res.error);
         else setReferralSummary(res);
       });
-      getTeamTree().then(res => {
-        if (res.error) console.error("Failed to fetch team tree:", res.error);
-        else setTreeData(res);
-      });
-      getLeaderboard().then(res => {
+      getLeaderboard().then((res) => {
         if (res.error) console.error("Failed to fetch leaderboard:", res.error);
         else setLeaderboardData(res);
       });
-      getFinancialSummary().then(res => {
+      getFinancialSummary().then((res) => {
         if (res.error) console.error("Failed to fetch financial summary:", res.error);
         else setFinancialSummary(res);
       });
-      getTicketBalance().then(res => {
+      getTicketBalance().then((res) => {
         if (res.error) console.error("Failed to fetch ticket balance:", res.error);
         else setTicketBalance(res);
       });
@@ -282,25 +237,10 @@ const DashboardPage = () => {
     fetchSecondaryData();
   }, [token]);
 
-  const formattedLegs = treeData?.tree?.children.map((leg, index) => ({
-    id: `Leg ${index + 1}`,
-    head: {
-      id: leg.userId,
-      name: leg.fullName,
-      volumeLabel: `${(leg.packageUSD / 1000).toFixed(1)}K`,
-      active: leg.activityStatus === "Active",
-    },
-    children: leg.children?.map((child) => ({
-      id: child.userId,
-      name: child.fullName,
-      volumeLabel: `${(child.packageUSD / 1000).toFixed(1)}K`,
-      active: child.activityStatus === "Active",
-    })),
-  }));
-
   const progressPercentage = rankProgress?.progress?.requirements
     ? (() => {
-        const { directs, activeTeam, legRule, requires4x } = rankProgress.progress.requirements;
+        const { directs, activeTeam, legRule, requires4x } =
+          rankProgress.progress.requirements;
         const reqs: Array<{ current: number; required: number }> = [];
 
         if (directs) reqs.push({ current: directs.current, required: directs.required });
@@ -320,7 +260,6 @@ const DashboardPage = () => {
         }
 
         if (percentages.length === 0) return 100;
-
         return percentages.reduce((acc, p) => acc + p, 0) / percentages.length;
       })()
     : 0;
@@ -330,41 +269,110 @@ const DashboardPage = () => {
   const profile = dashboardData?.profile;
   const wallet = dashboardData?.wallet;
   const lifetimeRank = dashboardData?.rank ?? rankProgress?.rank;
-  const currentRank = rankProgress?.performanceRank ?? dashboardData?.performanceRank ?? lifetimeRank;
+  const currentRank =
+    rankProgress?.performanceRank ?? dashboardData?.performanceRank ?? lifetimeRank;
   const consecutiveMonthsMissed = lifetimeRank?.consecutiveMonthsMissed;
   const earningsMultiplierDeadline =
     profile?.earningsMultiplierDeadline ?? dashboardData?.earningsMultiplierDeadline ?? null;
 
+  const quickActions = [
+    {
+      href: "/salary",
+      icon: BadgeDollarSign,
+      title: "Salary",
+      subtitle: "Eligibility and monthly status",
+    },
+    {
+      href: "/rewards",
+      icon: Gift,
+      title: "Rewards",
+      subtitle: "Claim and manage benefits",
+    },
+    {
+      href: "/payouts",
+      icon: ArrowDownCircle,
+      title: "Payouts",
+      subtitle: "Withdrawals and history",
+    },
+    {
+      href: "/sgnx-gold",
+      icon: Gem,
+      title: "SGNX Gold",
+      subtitle: "Gold and cash plans",
+    },
+  ];
+
+  const financialCards = [
+    {
+      label: "Invested Principal",
+      value: financialSummary?.investedPrincipal,
+      icon: Wallet,
+    },
+    {
+      label: "Referral Earnings",
+      value: financialSummary?.referralEarnings,
+      icon: Users,
+    },
+    {
+      label: "Promotion Bonus",
+      value: financialSummary?.oneTimePromotionBonus,
+      icon: Gift,
+    },
+    {
+      label: "Monthly Incentive",
+      value: financialSummary?.monthlyIncentive,
+      icon: TrendingUp,
+    },
+  ];
+
+  const activeReferrals = referralSummary?.referrals?.filter((r) => r.activityStatus === "Active").length ?? 0;
+
   return (
-    <div className="bg-black text-white min-h-screen">
+    <AppShell
+      balance={wallet?.availableBalance}
+      userName={profile?.fullName}
+      userRank={currentRank?.name}
+      avatarUrl={profile?.profilePicture}
+    >
       {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
-      <DashboardUpdatesOverlay token={token} />
-      <Navbar userLevel={currentRank?.name} />
-      <main className="container mx-auto p-4 pt-24">
-        {showLoading ? (
-          <div className="flex items-center justify-center py-24 text-white/70">
-            Loading...
+
+      {showLoading ? (
+        <div className="p-6 space-y-4">
+          <Skeleton className="h-28 w-full rounded-2xl" />
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
+            <Skeleton className="h-24 w-full rounded-xl" />
           </div>
-        ) : showError ? (
-          <div className="flex items-center justify-center py-24 text-white/70">
-            Error: {error}
-          </div>
-        ) : (
-          <>
-            {/* Header */}
-            <div className="flex justify-between items-center mb-8">
+          <Skeleton className="h-72 w-full rounded-2xl" />
+        </div>
+      ) : showError ? (
+        <div className="flex items-center justify-center py-32 text-zinc-400">
+          Error: {error}
+        </div>
+      ) : (
+        <div className="p-6 space-y-5">
+          <section className="rounded-2xl border border-[#e8e8e8] bg-white p-5 shadow-sm">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <div>
-                <h1 className="text-3xl font-bold flex items-center">
-                  <Crown className="mr-2 text-yellow-400" />
-                  Sagenex Hub
+                <h1 className="text-3xl font-black tracking-tight text-[#0a0a0a]">
+                  Welcome back, {profile?.fullName?.split(" ")[0]}
                 </h1>
-                <p className="text-muted-foreground">
-                  Welcome back, {profile?.fullName}!
+                <p className="mt-1 text-sm text-zinc-500">
+                  {new Date().toLocaleDateString("en-IN", {
+                    weekday: "long",
+                    year: "numeric",
+                    month: "long",
+                    day: "numeric",
+                  })}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="text-sm text-muted-foreground">Available Balance</p>
-                <p className="text-2xl font-bold">
+              <div className="rounded-xl border border-[#e8e8e8] bg-[#fafafa] px-4 py-3 text-right">
+                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
+                  Available Balance
+                </p>
+                <p className="text-3xl font-black text-[#C41E3A]">
                   {wallet?.availableBalance?.toLocaleString("en-IN", {
                     style: "currency",
                     currency: "INR",
@@ -375,282 +383,245 @@ const DashboardPage = () => {
               </div>
             </div>
 
-            {/* Salary Alerts */}
-            {consecutiveMonthsMissed === 1 && (
-              <Alert
-                type="warning"
-                message="You have missed your performance target for 1 month. Your next salary will be reduced to 50%."
-              />
-            )}
-        {/* {consecutiveMonthsMissed && consecutiveMonthsMissed >= 2 && (
-          <Alert
-            type="danger"
-            message="Your salary is currently paused because you have missed your performance targets for 2 or more consecutive months."
-          />
-        )} */}
-
-        {/* Full-width Agent Overview */}
-            <div className="mb-6">
-              <AgentOverview
-                name={dashboardData?.profile.fullName}
-                avatarUrl={dashboardData?.profile.profilePicture}
-                currentLevel={currentRank?.name}
-                nextLevelLabel={rankProgress?.progress?.nextRankName ?? undefined}
-                progressPct={progressPercentage}
-                packageUSD={dashboardData?.package?.packageUSD}
-                earningsMultiplier={dashboardData?.earningsMultiplier}
-                earningsMultiplierDeadline={earningsMultiplierDeadline}
-                />
+            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
+              <div className="rounded-xl border border-[#e8e8e8] bg-[#fcfcfc] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Current Rank</p>
+                <p className="mt-1 text-xl font-bold text-[#0a0a0a]">{currentRank?.name ?? "Member"}</p>
+              </div>
+              <div className="rounded-xl border border-[#e8e8e8] bg-[#fcfcfc] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Rank Progress</p>
+                <p className="mt-1 text-xl font-bold text-[#0a0a0a]">{Math.round(progressPercentage)}%</p>
+              </div>
+              <div className="rounded-xl border border-[#e8e8e8] bg-[#fcfcfc] p-4">
+                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Package</p>
+                <p className="mt-1 text-xl font-bold text-[#0a0a0a]">{formatCurrency(dashboardData?.package?.packageUSD)}</p>
+              </div>
             </div>
 
-        {/* Quick Actions */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-white mb-3">Quick Actions</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Link href="/salary" className="group">
-              <Card className="relative overflow-hidden bg-linear-to-br from-emerald-500/10 via-black/20 to-black border border-emerald-500/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-emerald-400/50 group-hover:shadow-[0_18px_40px_rgba(16,185,129,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-emerald-300 via-emerald-500 to-emerald-300" />
-                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-emerald-400/15 blur-2xl" />
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-emerald-500/20 text-emerald-200 flex items-center justify-center ring-1 ring-emerald-400/30">
-                    <BadgeDollarSign className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Salary</CardTitle>
-                    <p className="text-sm text-gray-400">Eligibility and monthly status</p>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
-            <Link href="/rewards" className="group">
-              <Card className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-black/20 to-black border border-amber-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-amber-300/50 group-hover:shadow-[0_18px_40px_rgba(251,191,36,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-amber-300 via-amber-500 to-amber-300" />
-                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-amber-400/15 blur-2xl" />
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-amber-500/20 text-amber-200 flex items-center justify-center ring-1 ring-amber-400/30">
-                    <Gift className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Rewards</CardTitle>
-                    <p className="text-sm text-gray-400">Claim and manage rewards</p>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
-            <Link href="/payouts" className="group">
-              <Card className="relative overflow-hidden bg-gradient-to-br from-sky-500/10 via-black/20 to-black border border-sky-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-sky-300/50 group-hover:shadow-[0_18px_40px_rgba(56,189,248,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-sky-300 via-sky-500 to-sky-300" />
-                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-sky-400/15 blur-2xl" />
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-sky-500/20 text-sky-200 flex items-center justify-center ring-1 ring-sky-400/30">
-                    <ArrowDownCircle className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Payouts</CardTitle>
-                    <p className="text-sm text-gray-400">Withdrawals and history</p>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
-            <Link href="/sgnx-gold" className="group">
-              <Card className="relative overflow-hidden bg-gradient-to-br from-amber-500/10 via-black/20 to-black border border-amber-500/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-amber-400/50 group-hover:shadow-[0_18px_40px_rgba(245,158,11,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-r from-amber-300 via-amber-500 to-amber-300" />
-                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-amber-400/15 blur-2xl" />
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-amber-500/20 text-amber-200 flex items-center justify-center ring-1 ring-amber-400/30">
-                    <Gem className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">SGNX Gold</CardTitle>
-                    <p className="text-sm text-gray-400">Gold & cash investment plans</p>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link>
-            {/* <Link href="/tests/book" className="group">
-              <Card className="relative overflow-hidden bg-linear-to-br from-rose-500/10 via-black/20 to-black border border-rose-400/20 shadow-[0_10px_24px_rgba(0,0,0,0.35)] transition-all group-hover:-translate-y-0.5 group-hover:border-rose-300/50 group-hover:shadow-[0_18px_40px_rgba(244,63,94,0.18)]">
-                <div className="pointer-events-none absolute inset-x-0 top-0 h-1 bg-linear-to-br from-rose-300 via-rose-500 to-rose-300" />
-                <div className="pointer-events-none absolute -right-10 -top-10 h-24 w-24 rounded-full bg-rose-400/15 blur-2xl" />
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <div className="h-10 w-10 rounded-full bg-rose-500/20 text-rose-200 flex items-center justify-center ring-1 ring-rose-400/30">
-                    <CalendarCheck className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">Schedule Test</CardTitle>
-                    <p className="text-sm text-gray-400">Book your next exam slot</p>
-                  </div>
-                </CardHeader>
-              </Card>
-            </Link> */}
-            {/* Online Exam + Lottery are disabled */}
-          </div>
-        </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Main Content */}
-          <div className="lg:col-span-2 space-y-6">
-            {financialSummary ? (
-              <EarningsSummary data={financialSummary} />
-            ) : (
-              <Card>
-                <CardHeader><CardTitle>Earnings Summary</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  <Skeleton className="h-8 w-3/4" />
-                  <Skeleton className="h-4 w-1/2" />
-                  <Skeleton className="h-4 w-1/2" />
-                </CardContent>
-              </Card>
+            {rankProgress?.progress?.nextRankName && (
+              <div className="mt-4">
+                <div className="mb-2 flex items-center justify-between text-sm">
+                  <span className="font-medium text-zinc-600">Progress to {rankProgress.progress.nextRankName}</span>
+                  <span className="font-semibold text-[#C41E3A]">{Math.round(progressPercentage)}%</span>
+                </div>
+                <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200">
+                  <div
+                    className="h-full rounded-full bg-[#C41E3A] transition-all duration-300"
+                    style={{ width: `${Math.min(100, Math.max(0, progressPercentage))}%` }}
+                  />
+                </div>
+              </div>
             )}
-            
+          </section>
 
+          {consecutiveMonthsMissed === 1 && (
+            <Alert
+              type="warning"
+              message="You have missed your performance target for 1 month. Your next salary will be reduced to 50%."
+            />
+          )}
+          <section>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Quick Actions</p>
+            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+              {quickActions.map(({ href, icon: Icon, title, subtitle }) => (
+                <Link key={href} href={href} className="group">
+                  <Card className="h-full rounded-xl border-[#e8e8e8] bg-white shadow-sm transition-all group-hover:-translate-y-0.5 group-hover:border-[#C41E3A]/35 group-hover:shadow-md">
+                    <CardContent className="p-4">
+                      <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#C41E3A10]">
+                        <Icon className="h-5 w-5 text-[#C41E3A]" />
+                      </div>
+                      <p className="text-sm font-bold text-[#0a0a0a]">{title}</p>
+                      <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>
+                    </CardContent>
+                  </Card>
+                </Link>
+              ))}
+            </div>
+          </section>
 
-            {leaderboardData ? (
-              <Leaderboard
-                leaderboardData={leaderboardData}
-                currentUserId={profile?.userId ?? ""}
-              />
-            ) : (
-              <Card>
-                <CardHeader><CardTitle>Leaderboard</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                  <Skeleton className="h-10 w-full" />
-                </CardContent>
-              </Card>
-            )}
-
-            {referralSummary ? (
-              <ReferralGrowthTools
-                referralLink={referralLink}
-                onCopy={handleCopy}
-                totalReferrals={referralSummary.totalReferrals}
-                activeAgents={
-                  referralSummary.referrals.filter(
-                    (r) => r.activityStatus === "Active"
-                  ).length
-                }
-                investedAgents={referralSummary.investedCount}
-                downlineVolumeLabel={`${(
-                  referralSummary.totalDownlineVolume / 1000
-                ).toFixed(1)}K`}
-              />
-            ) : (
-              <Card>
-                <CardHeader><CardTitle>Referral & Growth Tools</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  <Skeleton className="h-10 w-full" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <Skeleton className="h-20 w-full" />
-                    <Skeleton className="h-20 w-full" />
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+            <div className="space-y-5 xl:col-span-2">
+              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg font-bold text-[#0a0a0a]">Earnings Snapshot</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+                    {financialCards.map(({ label, value, icon: Icon }) => (
+                      <div key={label} className="rounded-xl border border-[#e8e8e8] bg-[#fcfcfc] p-3">
+                        <div className="mb-2 flex items-center justify-between">
+                          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</p>
+                          <Icon className="h-4 w-4 text-zinc-400" />
+                        </div>
+                        <p className="text-lg font-bold text-[#0a0a0a]">{formatCurrency(value)}</p>
+                      </div>
+                    ))}
                   </div>
                 </CardContent>
               </Card>
-            )}
-          </div>
-          <>
-          </>
-          {/* Sidebar */}
-          <div className="space-y-6">
-            <SmartUpdates />
-            {ticketBalance && (
-              <Card className="bg-[#0b0b0b] border border-amber-900/40 rounded-2xl">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-400">
-                    Ticket Balance
-                  </CardTitle>
+
+              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg font-bold text-[#0a0a0a]">Top Performers</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {leaderboardData ? (
+                    <div className="space-y-2">
+                      {leaderboardData.slice(0, 6).map((entry) => (
+                        <div
+                          key={`${entry.rank}-${entry.userId ?? entry.fullName}`}
+                          className="flex items-center justify-between rounded-lg border border-[#ededed] bg-[#fcfcfc] px-3 py-2"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#C41E3A10] text-xs font-bold text-[#C41E3A]">
+                              {entry.rank}
+                            </span>
+                            <div>
+                              <p className="text-sm font-semibold text-[#0a0a0a]">{entry.fullName}</p>
+                              <p className="text-xs text-zinc-500">{entry.packagesSold} packages sold</p>
+                            </div>
+                          </div>
+                          <p className="text-sm font-bold text-[#00b386]">{formatCurrency(entry.earnings)}</p>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                      <Skeleton className="h-12 w-full" />
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="space-y-5">
+              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-bold text-[#0a0a0a]">Referral Tools</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div>
+                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">Referral Link</p>
+                    <div className="flex items-center gap-2">
+                      <input
+                        readOnly
+                        value={referralLink}
+                        className="w-full rounded-lg border border-[#e8e8e8] bg-[#fafafa] px-3 py-2 text-xs text-zinc-700"
+                      />
+                      <button
+                        onClick={handleCopy}
+                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#e8e8e8] bg-white text-zinc-600 transition hover:border-[#C41E3A]/50 hover:text-[#C41E3A]"
+                        aria-label="Copy referral link"
+                      >
+                        <Copy className="h-4 w-4" />
+                      </button>
+                    </div>
+                    {copied && <p className="mt-1 text-xs font-medium text-[#00b386]">Copied</p>}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className="rounded-lg border border-[#e8e8e8] bg-[#fcfcfc] p-3">
+                      <p className="text-[11px] uppercase tracking-wide text-zinc-500">Total Referrals</p>
+                      <p className="mt-1 text-lg font-bold text-[#0a0a0a]">{referralSummary?.totalReferrals ?? 0}</p>
+                    </div>
+                    <div className="rounded-lg border border-[#e8e8e8] bg-[#fcfcfc] p-3">
+                      <p className="text-[11px] uppercase tracking-wide text-zinc-500">Active Agents</p>
+                      <p className="mt-1 text-lg font-bold text-[#0a0a0a]">{activeReferrals}</p>
+                    </div>
+                    <div className="rounded-lg border border-[#e8e8e8] bg-[#fcfcfc] p-3">
+                      <p className="text-[11px] uppercase tracking-wide text-zinc-500">Invested</p>
+                      <p className="mt-1 text-lg font-bold text-[#0a0a0a]">{referralSummary?.investedCount ?? 0}</p>
+                    </div>
+                    <div className="rounded-lg border border-[#e8e8e8] bg-[#fcfcfc] p-3">
+                      <p className="text-[11px] uppercase tracking-wide text-zinc-500">Downline Volume</p>
+                      <p className="mt-1 text-lg font-bold text-[#0a0a0a]">{formatCurrency(referralSummary?.totalDownlineVolume)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-bold text-[#0a0a0a]">Wallet Summary</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Total tickets:</span>
-                    <span className="font-semibold text-amber-200">
-                      {ticketBalance.totalTickets}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500">Withdrawal cap</span>
+                    <span className="font-semibold text-[#0a0a0a]">{formatCurrency(wallet?.withdrawalCap)}</span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Total invested:</span>
-                    <span className="font-semibold text-white">
-                      {formatCurrency(ticketBalance.totalInvestedUSD)}
-                    </span>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500">Withdrawn</span>
+                    <span className="font-semibold text-[#0a0a0a]">{formatCurrency(wallet?.totalLifetimeWithdrawals)}</span>
                   </div>
-                  <div className="flex justify-between text-xs text-gray-500">
-                    <span>Last calculated:</span>
+                  <div className="flex items-center justify-between border-t border-[#f0f0f0] pt-2">
+                    <span className="text-zinc-500">Remaining limit</span>
+                    <span className="font-semibold text-[#00b386]">{formatCurrency(wallet?.remainingWithdrawalLimit)}</span>
+                  </div>
+                  {wallet?.earningsCapTotal !== undefined && (
+                    <>
+                      <div className="mt-2 flex items-center justify-between border-t border-[#f0f0f0] pt-2">
+                        <span className="text-zinc-500">Earnings cap</span>
+                        <span className="font-semibold text-[#0a0a0a]">{formatCurrency(wallet?.earningsCapTotal)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-500">Earned so far</span>
+                        <span className="font-semibold text-[#0a0a0a]">{formatCurrency(wallet?.earnedSinceBaseline)}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-zinc-500">Cap remaining</span>
+                        <span className="font-semibold text-[#00b386]">{formatCurrency(wallet?.remainingEarningsCap)}</span>
+                      </div>
+                    </>
+                  )}
+                </CardContent>
+              </Card>
+
+              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-base font-bold text-[#0a0a0a]">Ticket Balance</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500">Total tickets</span>
+                    <span className="font-semibold text-[#0a0a0a]">{ticketBalance?.totalTickets ?? 0}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-zinc-500">Total invested</span>
+                    <span className="font-semibold text-[#0a0a0a]">{formatCurrency(ticketBalance?.totalInvestedUSD)}</span>
+                  </div>
+                  <div className="flex items-center justify-between border-t border-[#f0f0f0] pt-2 text-xs text-zinc-500">
+                    <span>Last calculated</span>
                     <span>
-                      {ticketBalance.lastCalculatedAt
+                      {ticketBalance?.lastCalculatedAt
                         ? new Date(ticketBalance.lastCalculatedAt).toLocaleString()
                         : "N/A"}
                     </span>
                   </div>
                 </CardContent>
               </Card>
-            )}
-            {dashboardData?.wallet.withdrawalCap && (
-                <WithdrawalLimit
-                    withdrawalCap={dashboardData?.wallet.withdrawalCap}
-                    totalLifetimeWithdrawals={dashboardData?.wallet.totalLifetimeWithdrawals}
-                    remainingWithdrawalLimit={dashboardData?.wallet.remainingWithdrawalLimit}
-                />
-            )}
-            {dashboardData?.wallet.earningsCapTotal !== undefined && (
-              <Card className="bg-[#0b0b0b] border border-emerald-900/40 rounded-2xl">
-                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-gray-400">
-                    Earnings Cap
-                  </CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Earnings cap:</span>
-                    <span className="font-semibold text-white">
-                      {formatCurrency(dashboardData?.wallet.earningsCapTotal)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-400">Earned so far:</span>
-                    <span className="font-semibold text-white">
-                      {formatCurrency(dashboardData?.wallet.earnedSinceBaseline)}
-                    </span>
-                  </div>
-                  <div className="flex justify-between border-t border-dashed border-gray-700 pt-2">
-                    <span className="text-gray-400">Remaining:</span>
-                    <span className="font-semibold text-emerald-300">
-                      {formatCurrency(dashboardData?.wallet.remainingEarningsCap)}
-                    </span>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            {dashboardData?.wallet.bonuses ? (
-              <LockedBonusesCard bonuses={dashboardData?.wallet.bonuses} />
-            ) : (
-              <Card>
-                <CardHeader><CardTitle>Locked Bonuses</CardTitle></CardHeader>
-                <CardContent className="space-y-4">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </CardContent>
-              </Card>
-            )}
-          </div>
-        </div>
 
-        {/* Full-width Binary Tree View */}
-            <div className="mt-6">
-              {formattedLegs ? (
-                <SixLegTreeView legs={formattedLegs} />
-              ) : (
-                <Card>
-                  <CardHeader><CardTitle>Team Structure</CardTitle></CardHeader>
+              {earningsMultiplierDeadline && (
+                <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-base font-bold text-[#0a0a0a]">Multiplier Window</CardTitle>
+                  </CardHeader>
                   <CardContent>
-                    <Skeleton className="h-64 w-full" />
+                    <p className="text-sm text-zinc-600">
+                      Qualification deadline: {new Date(earningsMultiplierDeadline).toLocaleString()}
+                    </p>
+                    <p className="mt-1 text-sm text-zinc-600">
+                      Current multiplier: <span className="font-semibold text-[#0a0a0a]">{dashboardData?.earningsMultiplier ?? 0}x</span>
+                    </p>
                   </CardContent>
                 </Card>
               )}
             </div>
-          </>
-        )}
-      </main>
-    </div>
+          </div>
+        </div>
+      )}
+    </AppShell>
   );
 };
 

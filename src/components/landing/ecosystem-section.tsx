@@ -1,296 +1,208 @@
 "use client";
-import { motion } from "framer-motion";
+
 import Image from "next/image";
-import React, { useRef } from "react";
-import { ExternalLink } from "lucide-react";
-import { gsap } from "gsap";
-import { useGSAP } from "@gsap/react";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
-import HeroButton from "../ui/hero-button";
+import Link from "next/link";
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 
-gsap.registerPlugin(useGSAP, ScrollTrigger);
-
-type EcosystemCard = {
-  name: string;
-  description: string;
-  url?: string;
-  image?: string;
-  gradient: string;
-  isMain?: boolean;
-};
-
-const mainCards: EcosystemCard[] = [
+const PLATFORMS = [
   {
+    num: "01",
     name: "SG Trading",
-    description: "Advanced trading platform for cryptocurrency and digital assets with professional-grade tools.",
+    tag: "Crypto Trading",
+    tagColor: "var(--crimson)",
     url: "https://sg5trader.sgxmeta.ai",
+    desc: "Professional-grade cryptocurrency and digital asset trading platform with advanced tooling.",
     image: "/sg5trader.png",
-    gradient: "from-orange-400/20 via-red-400/20 to-pink-400/20",
-    isMain: true,
   },
   {
+    num: "02",
     name: "SGChain",
-    description: "Experience the power of blockchain technology with SGChain - our revolutionary decentralized platform built for speed, security, and scalability.",
+    tag: "Blockchain",
+    tagColor: "var(--emerald)",
     url: "https://sgchain.sgxmeta.ai",
+    desc: "Decentralised blockchain infrastructure built for speed, security, and global scalability.",
     image: "/sgchain.png",
-    gradient: "from-purple-400/20 via-blue-400/20 to-indigo-400/20",
-    isMain: true,
   },
   {
+    num: "03",
     name: "SGGOLD",
-    description: "Loyalty rewards powered by SG Gold with eligibility codes and exclusive gold incentives.",
+    tag: "Gold Rewards",
+    tagColor: "#d97706",
     url: "https://sggold.sgxmeta.ai/",
-    image: "/globe-3d-gold.png",
-    gradient: "from-yellow-500/20 via-amber-400/20 to-yellow-300/20",
-    isMain: true,
+    desc: "Loyalty rewards ecosystem powered by SG Gold — eligibility codes and exclusive gold incentives.",
+    image: "/sggold.png",
   },
   {
+    num: "04",
     name: "SGBN",
-    description: "Business network connecting entrepreneurs and investors for collaborative growth and opportunities.",
+    tag: "Business Network",
+    tagColor: "#0ea5e9",
     url: "https://sgbn.sgxmeta.ai",
+    desc: "Business network connecting entrepreneurs and investors for collaborative, structured growth.",
     image: "/sgbn.png",
-    gradient: "from-blue-400/20 via-cyan-400/20 to-teal-400/20",
-    isMain: true,
   },
   {
+    num: "05",
     name: "SGSE",
-    description: "Securities exchange platform for tokenized assets and innovative investment opportunities.",
+    tag: "Securities",
+    tagColor: "var(--emerald)",
     url: "https://sgse.sgxmeta.ai",
+    desc: "Securities exchange platform for tokenised assets and innovative investment opportunities.",
     image: "/sgse1.png",
-    gradient: "from-emerald-500/20 via-teal-500/20 to-green-500/20",
-    isMain: true,
-  },
-];
-
-const secondaryCards: EcosystemCard[] = [
-  {
-    name: "Forex Trading",
-    description: "PROFESSIONALLY MANAGED STRATEGIES WITH RISK-CONTROLLED DEPLOYMENT.",
-    image: "/cards/forex.png",
-    gradient: "from-yellow-400/20 via-amber-400/20 to-orange-400/20",
-  },
-  {
-    name: "Int. Real Estate",
-    description: "STRATEGIC EXPOSURE TO OVERSEAS MARKETS FOCUSING ON ASSET VALUE",
-    image: "/cards/real-estate.png",
-    gradient: "from-slate-400/20 via-gray-400/20 to-zinc-400/20",
-  },
-  {
-    name: "Gold Mining",
-    description: "PHYSICAL ASSET-BACKED INDUSTRIES IN AFRICA AS A HEDGE AGAINST INFLATION.",
-    image: "/cards/gold.png",
-    gradient: "from-yellow-500/20 via-yellow-400/20 to-amber-400/20",
-  },
-  {
-    name: "Agriculture Yields",
-    description: "NON-CORRELATED PARTICIPATION IN FOOD SECURITY AND EXPORT MODELS.",
-    image: "/cards/agri.png",
-    gradient: "from-green-400/20 via-lime-400/20 to-emerald-400/20",
-  },
-  {
-    name: "SG Travels Club",
-    description: "UTILITY VERTICAL DESIGNED FOR LIFESTYLE AND COMMUNITY BENEFITS. (Coming Soon)",
-    image: "/cards/travel.png",
-    gradient: "from-pink-400/20 via-rose-400/20 to-red-400/20",
   },
 ];
 
 export default function EcosystemSection() {
-  const containerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+  const [previews, setPreviews] = useState<Array<{ id: number; name: string; image: string; x: number; y: number }>>([]);
+  const previewIdRef = useRef(0);
+  const previewTimersRef = useRef<number[]>([]);
+  const lastSpawnRef = useRef<{ name: string | null; x: number }>({ name: null, x: 0 });
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const headingY = useTransform(scrollYProgress, [0, 1], [70, -90]);
+  const eyebrowX = useTransform(scrollYProgress, [0, 1], [-22, 24]);
+  const copyY = useTransform(scrollYProgress, [0, 1], [40, -30]);
+  const bgWordX = useTransform(scrollYProgress, [0, 1], [-120, 120]);
 
-  useGSAP(() => {
-    if (!containerRef.current) return;
+  const spawnPreview = (name: string, image: string, x: number, y: number) => {
+    const id = ++previewIdRef.current;
+    setPreviews((prev) => [...prev, { id, name, image, x, y }].slice(-12));
 
-    // Heading animation
-    gsap.fromTo(
-      ".ecosystem-heading",
-      {
-        opacity: 0,
-        y: 50,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        duration: 0.8,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".ecosystem-heading",
-          start: "top 85%",
-          end: "top 65%",
-          scrub: 1,
-        },
-      }
-    );
+    const timerId = window.setTimeout(() => {
+      setPreviews((prev) => prev.filter((preview) => preview.id !== id));
+      previewTimersRef.current = previewTimersRef.current.filter((t) => t !== timerId);
+    }, 180);
 
-    // Cards stagger animation
-    gsap.fromTo(
-      ".ecosystem-card",
-      {
-        opacity: 0,
-        y: 80,
-        scale: 0.95,
-      },
-      {
-        opacity: 1,
-        y: 0,
-        scale: 1,
-        duration: 0.8,
-        stagger: 0.2,
-        ease: "power2.out",
-        scrollTrigger: {
-          trigger: ".ecosystem-grid",
-          start: "top 80%",
-          end: "top 50%",
-          scrub: 1,
-        },
-      }
-    );
-  }, { scope: containerRef });
+    previewTimersRef.current.push(timerId);
+  };
+
+  useEffect(() => {
+    return () => {
+      previewTimersRef.current.forEach((timerId) => window.clearTimeout(timerId));
+      previewTimersRef.current = [];
+    };
+  }, []);
 
   return (
-    <section
-      ref={containerRef}
-      id="ecosystem"
-      className="relative min-h-screen bg-black text-white py-20 md:py-32 overflow-hidden"
-    >
-      {/* Background decorative elements */}
-      <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-purple-500/10 rounded-full blur-[120px]" />
-        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px]" />
-      </div>
+    <section ref={sectionRef} id="ecosystem" className="w-full section-light py-24 md:py-32 relative overflow-hidden">
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute left-0 top-8 z-0 hidden whitespace-nowrap font-display text-[clamp(120px,14vw,240px)] font-extrabold tracking-[-0.05em] text-black/3 lg:block"
+        style={{ x: prefersReducedMotion ? 0 : bgWordX }}
+      >
+        SAGENEX ECOSYSTEM SAGENEX ECOSYSTEM
+      </motion.div>
 
-      <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
-        <div className="ecosystem-heading text-center mb-16 md:mb-24">
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 opacity-50"
+        style={{
+          background:
+            "radial-gradient(circle at 22% 18%, rgba(0,179,134,0.08) 0%, transparent 36%), radial-gradient(circle at 86% 82%, rgba(196,30,58,0.07) 0%, transparent 32%)",
+        }}
+      />
+
+      <AnimatePresence mode="sync">
+        {previews.map((preview) => (
           <motion.div
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
+            key={preview.id}
+            className="fixed pointer-events-none z-200 overflow-hidden rounded-xl shadow-2xl border border-(--border-light)"
+            style={{ left: preview.x + 28, top: preview.y - 150, width: 240, height: 160 }}
+            initial={{ clipPath: "inset(100% 0 0% 0%)", opacity: 1 }}
+            animate={{ clipPath: "inset(0% 0 0% 0%)", opacity: 1 }}
+            exit={{ clipPath: "inset(100% 0 0% 0%)", opacity: 0, transition: { duration: 0.08 } }}
+            transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
           >
-            <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-[#98d5c5] via-[#f5f5f5] to-[#98d5c5]">
-              Our Ecosystem
-            </h2>
-            <p className="text-lg md:text-xl text-white/75 max-w-3xl mx-auto">
-              Explore our innovative platforms designed to revolutionize your blockchain and trading experience
-            </p>
+            <Image src={preview.image} alt={preview.name} fill className="object-cover" sizes="240px" />
           </motion.div>
+        ))}
+      </AnimatePresence>
+
+      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 relative z-10">
+        <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8 mb-16">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6 }}
+            style={{ y: prefersReducedMotion ? 0 : headingY }}
+          >
+            <motion.p className="eyebrow mb-4 text-(--crimson)" style={{ x: prefersReducedMotion ? 0 : eyebrowX }}>
+              Our Platforms
+            </motion.p>
+            <h2 className="display-headline text-(--text-primary-light)">
+              One Ecosystem.<br />
+              <span className="text-(--emerald)">Infinite Possibilities.</span>
+            </h2>
+          </motion.div>
+          <motion.p
+            initial={{ opacity: 0, y: 16 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="text-(--text-muted-light) max-w-sm leading-relaxed lg:text-right"
+            style={{ y: prefersReducedMotion ? 0 : copyY }}
+          >
+            Innovative platforms designed to revolutionise blockchain, trading, and investment — all under one roof.
+          </motion.p>
         </div>
 
-        {/* Cards Grid */}
-        <div className="ecosystem-grid space-y-16">
-          {/* Main Cards Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12">
-            {mainCards.map((site) => (
-              <div
-                key={site.name}
-                className="ecosystem-card group relative"
+        <div className="border-t border-(--border-light)">
+          {PLATFORMS.map((p, i) => (
+            <motion.div
+              key={p.name}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-40px" }}
+              transition={{ duration: 0.5, delay: i * 0.07 }}
+              whileHover={prefersReducedMotion ? undefined : { x: 6 }}
+            >
+              <Link
+                href={p.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="feature-row group relative overflow-hidden"
+                onMouseEnter={(e) => {
+                  lastSpawnRef.current = { name: p.name, x: e.clientX };
+                  spawnPreview(p.name, p.image, e.clientX, e.clientY);
+                }}
+                onMouseMove={(e) => {
+                  if (lastSpawnRef.current.name !== p.name) {
+                    lastSpawnRef.current = { name: p.name, x: e.clientX };
+                    spawnPreview(p.name, p.image, e.clientX, e.clientY);
+                    return;
+                  }
+                  if (Math.abs(e.clientX - lastSpawnRef.current.x) >= 22) {
+                    lastSpawnRef.current = { name: p.name, x: e.clientX };
+                    spawnPreview(p.name, p.image, e.clientX, e.clientY);
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (lastSpawnRef.current.name === p.name) lastSpawnRef.current = { name: null, x: 0 };
+                }}
               >
-                {/* Card Container */}
-                <div className="relative overflow-hidden rounded-3xl border border-white/10 bg-white/5 backdrop-blur-md transition-all duration-500 hover:border-white/20 hover:bg-white/10">
-                  {/* Gradient overlay on hover */}
-                  <div className={`absolute inset-0 bg-gradient-to-br ${site.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                  
-                  {/* Image Preview */}
-                  <div className="relative h-64 md:h-80 overflow-hidden bg-gradient-to-br from-gray-900 to-black">
-                    {site.image && (
-                      <Image
-                        src={site.image}
-                        alt={`${site.name} Platform Preview`}
-                        fill
-                        className="object-cover transition-transform duration-500 group-hover:scale-110"
-                      />
-                    )}
-                    
-                    {/* Shine effect on hover */}
-                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000" />
-                  </div>
-
-                  {/* Content */}
-                  <div className="relative p-6 md:p-8">
-                    <h3 className="text-2xl md:text-3xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80">
-                      {site.name}
-                    </h3>
-                    <p className="text-white/75 mb-6 leading-relaxed">
-                      {site.description}
-                    </p>
-
-                    {/* Button */}
-                    {site.url && (
-                      <HeroButton 
-                        href={site.url}
-                        className="inline-flex items-center gap-2"
-                      >
-                        <span>Visit {site.name}</span>
-                        <ExternalLink className="h-4 w-4" />
-                      </HeroButton>
-                    )}
-                  </div>
-
-                  {/* Decorative corner accent */}
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                </div>
-
-                {/* Floating glow effect */}
-                <div className={`absolute -inset-1 bg-gradient-to-r ${site.gradient.replace(/\/20/g, '/30')} rounded-3xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-500 -z-10`} />
-              </div>
-            ))}
-          </div>
-
-          {/* Secondary Cards Grid */}
-          <div>
-            <h3 className="text-2xl md:text-3xl font-bold mb-8 text-center">Additional Investment Verticals</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {secondaryCards.map((card) => (
-                <div
-                  key={card.name}
-                  className="ecosystem-card group relative"
+                <span className="absolute inset-0 pointer-events-none opacity-0 transition-opacity duration-300 group-hover:opacity-100" style={{ background: `linear-gradient(90deg, ${p.tagColor}14 0%, transparent 65%)` }} />
+                <span className="feature-num">{p.num}</span>
+                <span className="feature-title text-(--text-primary-light)">{p.name}</span>
+                <span className="text-(--text-muted-light) hidden md:block max-w-sm pt-2 text-sm">{p.desc}</span>
+                <span
+                  className="hidden sm:inline-flex text-[11px] font-bold uppercase tracking-wider px-3 py-1 rounded-full self-center"
+                  style={{ background: `${p.tagColor}15`, color: p.tagColor }}
                 >
-                  {/* Card Container */}
-                  <div className="relative overflow-hidden rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md transition-all duration-500 hover:border-white/20 hover:bg-white/10 py-5 pt-10 h-full">
-                    {/* Gradient overlay on hover */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${card.gradient} opacity-0 group-hover:opacity-100 transition-opacity duration-500`} />
-                    
-                    {/* Image - Absolutely positioned in top left */}
-                    {card.image && (
-                      <div className="absolute top-4 right-4 w-16 h-16 md:w-20 md:h-20 z-0 opacity-30 group-hover:opacity-50 transition-opacity duration-500">
-                        <Image
-                          src={card.image}
-                          alt={`${card.name} Icon`}
-                          fill
-                          className="object-contain transition-transform duration-500 group-hover:scale-110"
-                        />
-                      </div>
-                    )}
-                    
-                    {/* Content */}
-                    <div className="relative z-10 p-6 md:p-8">
-                      <h4 className="text-lg md:text-xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-white to-white/80 flex items-center gap-2">
-                        {card.name}
-                        {card.name === "SG Travels Club" && (
-                          <span className="ml-2 px-2 py-0.5 rounded bg-blue-600 text-xs font-semibold text-white">Coming Soon</span>
-                        )}
-                      </h4>
-                      <p className="text-sm md:xs text-white/75 leading-relaxed">
-                        {card.description}
-                      </p>
-                    </div>
-
-                    {/* Decorative corner accent */}
-                    <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/5 to-transparent rounded-bl-full opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-                  </div>
-
-                  {/* Floating glow effect */}
-                  <div className={`absolute -inset-1 bg-gradient-to-r ${card.gradient.replace(/\/20/g, '/30')} rounded-2xl blur-xl opacity-0 group-hover:opacity-50 transition-opacity duration-500 -z-10`} />
-                </div>
-              ))}
-            </div>
-          </div>
+                  {p.tag}
+                </span>
+                <span className="ml-auto text-(--border-light) group-hover:text-(--crimson) transition-colors shrink-0 self-center">
+                  <svg width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                  </svg>
+                </span>
+              </Link>
+            </motion.div>
+          ))}
         </div>
       </div>
-
-      {/* Bottom gradient fade */}
-      <div className="absolute bottom-0 left-0 right-0 h-32 bg-gradient-to-t from-black to-transparent pointer-events-none" />
     </section>
   );
 }

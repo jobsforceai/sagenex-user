@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,6 +14,7 @@ import {
   getTransferRecipients,
   getProfileData,
   getKycStatus,
+  getDashboardData,
 } from "@/actions/user";
 import { Reward, Recipient, KycStatus, RewardProgram } from "@/types";
 import {
@@ -537,6 +538,9 @@ const RewardsPage = () => {
     null
   );
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
+  const [profileData, setProfileData] = useState<{ fullName?: string; profilePicture?: string; } | null>(null);
+  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
+  const [walletData, setWalletData] = useState<{ availableBalance?: number } | null>(null);
 
   // Active travel programs from backend, filtered to showcase IDs
   const activePrograms = TRAVEL_SHOWCASE_IDS.map(
@@ -548,13 +552,14 @@ const RewardsPage = () => {
   const fetchInitialData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const [rewardsData, programsData, recipientsData, , kycData] =
+      const [rewardsData, programsData, recipientsData, , kycData, dashboardData] =
         await Promise.all([
           getRewards(),
           getRewardPrograms(),
           getTransferRecipients(),
           getProfileData(),
           getKycStatus(),
+          getDashboardData(),
         ]);
 
       if (kycData && "error" in kycData) setError(kycData.error as string);
@@ -596,6 +601,19 @@ const RewardsPage = () => {
         console.error("Could not load recipients:", recipientsData.error);
       } else {
         setRecipients(recipientsData as Recipient[]);
+      }
+      
+      // Extract dashboard data for AppShell
+      if (dashboardData && !dashboardData.error) {
+        if (dashboardData.profile) {
+          setProfileData(dashboardData.profile);
+        }
+        if (dashboardData.rank || dashboardData.performanceRank) {
+          setRankData(dashboardData.rank || dashboardData.performanceRank);
+        }
+        if (dashboardData.wallet) {
+          setWalletData(dashboardData.wallet);
+        }
       }
     } catch (e) {
       setError("An unexpected error occurred while fetching data.");
@@ -658,16 +676,20 @@ const RewardsPage = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="bg-black text-white min-h-screen flex items-center justify-center">
+      <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin" />
       </div>
     );
   }
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      <Navbar />
-      <main className="container mx-auto p-4 sm:p-6 pt-32">
+    <AppShell
+      balance={walletData?.availableBalance}
+      userName={profileData?.fullName}
+      userRank={rankData?.name}
+      avatarUrl={profileData?.profilePicture}
+    >
+      <div className="dashboard-light-scope p-6 space-y-6">
         <Button asChild variant="outline" className="mb-4">
           <Link href="/dashboard">
             <ArrowLeft className="mr-2 h-4 w-4" />
@@ -721,7 +743,6 @@ const RewardsPage = () => {
             </p>
           )}
         </div>
-      </main>
 
       {/* ── Modals ───────────────────────────────────────────────────── */}
       {transferModalReward && (
@@ -740,7 +761,8 @@ const RewardsPage = () => {
           onRewardUpdate={handleRewardUpdate}
         />
       )}
-    </div>
+      </div>
+    </AppShell>
   );
 };
 

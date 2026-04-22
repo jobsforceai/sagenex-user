@@ -844,11 +844,11 @@ function Login() {
           value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
           required
-          className="bg-black border-gray-800 text-white pl-10"
+          className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl"
           disabled={isLoading}
         />
       </div>
-      <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+      <Button type="submit" className="w-full flex items-center gap-2 bg-[#C41E3A] hover:bg-[#a81831] text-white rounded-xl shadow-[0_2px_12px_rgba(196,30,58,0.25)]" disabled={isLoading}>
         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Continue <LogIn className="h-4 w-4" /></>}
       </Button>
     </form>
@@ -857,7 +857,7 @@ function Login() {
   const renderMainView = () => (
     <div className="space-y-3">
       {hasPasswordSet !== false && (
-        <Button onClick={() => changeView("password-login")} className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white">
+        <Button onClick={() => changeView("password-login")} className="w-full flex items-center gap-2 bg-[#C41E3A] hover:bg-[#a81831] text-white rounded-xl shadow-[0_2px_12px_rgba(196,30,58,0.25)]">
           <KeyRound className="h-4 w-4" /> Continue with Password
         </Button>
       )}
@@ -878,7 +878,7 @@ function Login() {
           value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
           required
-          className="bg-black border-gray-800 text-white pl-10"
+          className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl"
           disabled={isLoading}
         />
       </div>
@@ -891,11 +891,11 @@ function Login() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
-          className="bg-black border-gray-800 text-white pl-10"
+          className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl"
           disabled={isLoading}
         />
       </div>
-      <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+      <Button type="submit" className="w-full flex items-center gap-2 bg-[#C41E3A] hover:bg-[#a81831] text-white rounded-xl shadow-[0_2px_12px_rgba(196,30,58,0.25)]" disabled={isLoading}>
         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Login <LogIn className="h-4 w-4" /></>}
       </Button>
       {renderVerificationPrompt()}
@@ -913,11 +913,11 @@ function Login() {
           value={email}
           onChange={(e) => handleEmailChange(e.target.value)}
           required
-          className="bg-black border-gray-800 text-white pl-10"
+          className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl"
           disabled={isLoading}
         />
       </div>
-      <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+      <Button type="submit" className="w-full flex items-center gap-2 bg-[#C41E3A] hover:bg-[#a81831] text-white rounded-xl shadow-[0_2px_12px_rgba(196,30,58,0.25)]" disabled={isLoading}>
         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Send OTP <LogIn className="h-4 w-4" /></>}
       </Button>
       {renderVerificationPrompt()}
@@ -969,7 +969,7 @@ function Login() {
           value={nomineeUserId}
           onChange={(e) => setNomineeUserId(e.target.value)}
           required
-          className="bg-black border-gray-800 text-white pl-10"
+          className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl"
           disabled={isLoading}
         />
       </div>
@@ -982,11 +982,11 @@ function Login() {
           value={nomineePhrase}
           onChange={(e) => setNomineePhrase(e.target.value)}
           required
-          className="bg-black border-gray-800 text-white pl-10"
+          className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl"
           disabled={isLoading}
         />
       </div>
-      <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+      <Button type="submit" className="w-full flex items-center gap-2 bg-[#C41E3A] hover:bg-[#a81831] text-white rounded-xl shadow-[0_2px_12px_rgba(196,30,58,0.25)]" disabled={isLoading}>
         {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Login as Nominee <LogIn className="h-4 w-4" /></>}
       </Button>
     </form>
@@ -1001,7 +1001,7 @@ function Login() {
         </p>
       </div>
       <div className="relative overflow-hidden rounded-2xl border border-gray-800 bg-black">
-        <div className="relative w-full h-[50vh] min-h-[320px]">
+        <div className="relative w-full h-[50vh] min-h-80">
           <video
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover"
@@ -1063,7 +1063,7 @@ function Login() {
         <Button
           type="button"
           variant="outline"
-          className="w-full border-gray-700 text-gray-200 hover:bg-gray-900"
+          className="w-full border-[#e8e8e8] text-zinc-700 hover:bg-[#f5f5f5] rounded-xl"
           onClick={() => {
             setCameraError(null);
             loadFaceModels()
@@ -1076,7 +1076,7 @@ function Login() {
         </Button>
         <Button
           type="button"
-          className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+          className="w-full bg-[#C41E3A] hover:bg-[#a81831] text-white rounded-xl shadow-[0_2px_12px_rgba(196,30,58,0.25)]"
           onClick={handleFaceVerify}
           disabled={verifyingFace}
         >
@@ -1084,14 +1084,14 @@ function Login() {
         </Button>
       </div>
       <div className="rounded-lg border border-gray-800 bg-black/40 px-4 py-3 text-xs text-gray-300">
-        <p className="font-semibold text-gray-200">Camera not working?</p>
+        <p className="font-semibold text-zinc-700">Camera not working?</p>
         <p className="mt-1 text-gray-400">
           No worries. You can continue to login and we’ll log a camera bypass for now.
         </p>
         <Button
           type="button"
           variant="ghost"
-          className="mt-2 w-full justify-center text-gray-300 hover:text-white hover:bg-gray-900/60"
+          className="mt-2 w-full justify-center text-zinc-500 hover:text-[#C41E3A] hover:bg-[#f5f5f5]"
           onClick={handleFaceBypass}
         >
           Continue without camera
@@ -1104,29 +1104,29 @@ function Login() {
     <form onSubmit={handleSignUpSubmit} className="space-y-4">
         <div className="relative">
             <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Full Name" id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+            <Input placeholder="Full Name" id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} required className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl" disabled={isLoading} />
         </div>
         <div className="relative">
             <Mail className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Email" id="email-signup" type="email" value={email} onChange={(e) => handleEmailChange(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+            <Input placeholder="Email" id="email-signup" type="email" value={email} onChange={(e) => handleEmailChange(e.target.value)} required className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl" disabled={isLoading} />
         </div>
         <div className="relative">
             <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Password" id="password-signup" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+            <Input placeholder="Password" id="password-signup" type="password" value={password} onChange={(e) => setPassword(e.target.value)} required className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl" disabled={isLoading} />
         </div>
         <div className="relative">
             <ShieldCheck className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Confirm Password" id="confirmPassword-signup" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+            <Input placeholder="Confirm Password" id="confirmPassword-signup" type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} required className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl" disabled={isLoading} />
         </div>
         <div className="relative">
             <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Phone" id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+            <Input placeholder="Phone" id="phone" type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} required className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl" disabled={isLoading} />
         </div>
         <div className="relative">
             <UserPlus className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="Referral Code (Optional)" id="sponsorId-signup" value={sponsorId} onChange={(e) => setSponsorId(e.target.value)} className="bg-black border-gray-800 text-white pl-10" disabled={isLoading} />
+            <Input placeholder="Referral Code (Optional)" id="sponsorId-signup" value={sponsorId} onChange={(e) => setSponsorId(e.target.value)} className="bg-white border-[#e8e8e8] text-[#0a0a0a] pl-10 focus:border-[#C41E3A] rounded-xl" disabled={isLoading} />
         </div>
-        <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+        <Button type="submit" className="w-full flex items-center gap-2 bg-[#C41E3A] hover:bg-[#a81831] text-white rounded-xl shadow-[0_2px_12px_rgba(196,30,58,0.25)]" disabled={isLoading}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Create Account <UserPlus className="h-4 w-4" /></>}
         </Button>
     </form>
@@ -1136,9 +1136,9 @@ function Login() {
     <form onSubmit={handleOtpSubmit} className="space-y-4">
         <div className="relative">
             <KeyRound className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input placeholder="6-Digit OTP" id="otp" type="text" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} required className="bg-black border-gray-800 text-white text-center tracking-[0.5em] pl-10" disabled={isLoading} />
+            <Input placeholder="6-Digit OTP" id="otp" type="text" maxLength={6} value={otp} onChange={(e) => setOtp(e.target.value)} required className="bg-white border-[#e8e8e8] text-[#0a0a0a] text-center tracking-[0.5em] pl-10 focus:border-[#C41E3A] rounded-xl" disabled={isLoading} />
         </div>
-        <Button type="submit" className="w-full flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white" disabled={isLoading}>
+        <Button type="submit" className="w-full flex items-center gap-2 bg-[#C41E3A] hover:bg-[#a81831] text-white rounded-xl shadow-[0_2px_12px_rgba(196,30,58,0.25)]" disabled={isLoading}>
             {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <>Verify <ShieldCheck className="h-4 w-4" /></>}
         </Button>
     </form>
@@ -1221,23 +1221,23 @@ function Login() {
             <CardHeader className="text-center space-y-4">
                 <Image src="/logo5.png" alt="Sagenex Logo" width={60} height={60} className="mx-auto rounded-full" />
                 <div className="space-y-1">
-                    <CardTitle className="text-2xl font-bold tracking-tight">{title}</CardTitle>
-                    <CardDescription className="text-gray-400">{description}</CardDescription>
+                    <CardTitle className="text-2xl font-bold tracking-tight text-[#0a0a0a]">{title}</CardTitle>
+                    <CardDescription className="text-zinc-500">{description}</CardDescription>
                 </div>
             </CardHeader>
             <CardContent className="space-y-6">
                 {showBlockedNotice && (
-                  <div className="rounded-xl border border-red-500/30 bg-red-950/40 p-4 text-left">
+                  <div className="rounded-xl border border-[#C41E3A]/20 bg-[#C41E3A08] p-4 text-left">
                     <div className="flex items-start gap-3">
-                      <div className="rounded-full bg-red-500/15 p-2 text-red-300">
+                      <div className="rounded-full bg-[#C41E3A15] p-2 text-[#C41E3A]">
                         <ShieldAlert className="h-5 w-5" />
                       </div>
                       <div className="space-y-1">
-                        <p className="text-sm font-semibold text-red-100">Account blocked by admin</p>
-                        <p className="text-sm text-red-200/85">
+                        <p className="text-sm font-semibold text-[#0a0a0a]">Account blocked by admin</p>
+                        <p className="text-sm text-zinc-600">
                           This account is currently blocked. You cannot continue login until admin access is restored.
                         </p>
-                        <p className="text-xs text-red-200/70">
+                        <p className="text-xs text-zinc-400">
                           Please contact support or your admin team for the unblock status.
                         </p>
                       </div>
@@ -1248,7 +1248,7 @@ function Login() {
                 {(view === "identify" || view === "main") && (
                     <Button
                       variant="outline"
-                      className="w-full flex items-center gap-2 border-gray-700 text-gray-200 hover:bg-gray-900"
+                      className="w-full flex items-center gap-2 border-[#e8e8e8] text-zinc-700 hover:bg-[#f5f5f5] rounded-xl"
                       onClick={() => changeView("nominee-login")}
                       disabled={isLoading}
                     >
@@ -1256,16 +1256,16 @@ function Login() {
                     </Button>
                 )}
                 {(view !== 'identify' && view !== "face-stepup") && (
-                    <p className="text-center text-sm text-gray-400">
-                        <Button variant="link" className="p-0 flex items-center gap-2" onClick={handleBack} disabled={isLoading}>
+                    <p className="text-center text-sm text-zinc-500">
+                        <Button variant="link" className="p-0 flex items-center gap-2 text-[#C41E3A] hover:text-[#a81831]" onClick={handleBack} disabled={isLoading}>
                             <ArrowLeft className="h-4 w-4" /> Back
                         </Button>
                     </p>
                 )}
                 {(view === 'identify' || view === 'main') && (
-                    <p className="text-center text-sm text-gray-400">
+                    <p className="text-center text-sm text-zinc-500">
                         No account?{" "}
-                        <Button variant="link" className="p-0" onClick={() => changeView("email-signup")} disabled={isLoading}>
+                        <Button variant="link" className="p-0 text-[#C41E3A] hover:text-[#a81831]" onClick={() => changeView("email-signup")} disabled={isLoading}>
                         Sign up
                         </Button>
                     </p>
@@ -1278,10 +1278,33 @@ function Login() {
   };
 
   return (
-    <div className="bg-black text-white min-h-screen flex items-center justify-center p-4">
-      <Card className="w-full max-w-md bg-black border-gray-800 shadow-2xl shadow-blue-500/10">
-        {renderView()}
-      </Card>
+    <div className="flex min-h-screen">
+      {/* Left panel — crimson, desktop only */}
+      <div className="hidden md:flex w-1/2 flex-col items-center justify-center bg-[#C41E3A] px-12 text-white">
+        <Image
+          src="/sagenex.png"
+          alt="Sagenex emblem"
+          width={200}
+          height={200}
+          className="mb-8 h-auto w-[200px]"
+          style={{ filter: "drop-shadow(0 0 40px rgba(255,255,255,0.3))" }}
+        />
+        <p className="mb-4 text-center text-2xl font-bold leading-snug">
+          A Civilization of<br />Heritage &amp; Innovation
+        </p>
+        <p className="text-center text-sm text-white/70">
+          KYC Compliant · AI-Powered · Structured Returns
+        </p>
+      </div>
+
+      {/* Right panel — white */}
+      <div className="flex w-full flex-col items-center justify-center bg-white px-6 py-12 md:w-1/2">
+        <div className="w-full max-w-md">
+          <Card className="border-[#e8e8e8] bg-white shadow-[0_2px_16px_rgba(0,0,0,0.06)]">
+            {renderView()}
+          </Card>
+        </div>
+      </div>
     </div>
   );
 };
