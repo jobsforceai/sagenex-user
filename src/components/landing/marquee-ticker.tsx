@@ -14,18 +14,18 @@ const ITEMS = [
 ];
 
 export default function MarqueeTicker() {
-  const doubled = [...ITEMS, ...ITEMS];
+  const doubled = [...ITEMS, ...ITEMS, ...ITEMS]; // Tripled to ensure smooth infinite scroll on wide screens
 
   return (
-    <div className="w-full bg-[#0a0a0a] py-4 overflow-hidden border-y border-[#1a1a1a]">
+    <div className="w-full section-dark py-5 overflow-hidden border-y border-[var(--border-dark)] relative z-10">
       <div className="animate-marquee">
         {doubled.map((item, i) => (
-          <div key={i} className="flex items-center gap-4 mx-10 shrink-0">
-            <span className="h-1.5 w-1.5 rounded-full bg-[#00b386] shrink-0" />
-            <span className="text-[13px] font-semibold text-white/90 whitespace-nowrap tracking-wide">
+          <div key={i} className="flex items-center gap-4 mx-8 shrink-0">
+            <span className="h-2 w-2 rounded-full bg-[var(--crimson)] shrink-0" />
+            <span className="text-[14px] font-semibold text-[var(--text-primary-dark)] whitespace-nowrap tracking-wide font-display">
               {item.name}
             </span>
-            <span className="text-[11px] font-medium text-[#00b386]/80 whitespace-nowrap tracking-wider uppercase">
+            <span className="text-[11px] font-bold text-[var(--emerald)] whitespace-nowrap tracking-wider uppercase bg-[var(--emerald-glow)] px-2 py-0.5 rounded-full">
               {item.tag}
             </span>
           </div>

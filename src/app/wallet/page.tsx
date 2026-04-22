@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
 import { CompoundingProjectionModal } from "@/app/components/wallet/CompoundingProjectionModal";
 import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
@@ -157,6 +157,8 @@ const WalletPage = () => {
   const [walletLoading, setWalletLoading] = useState(true);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [cycleLoading, setCycleLoading] = useState(true);
+  const [profileData, setProfileData] = useState<{ fullName?: string; profilePicture?: string; } | null>(null);
+  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
   
   // Drawer states
 const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
@@ -241,6 +243,13 @@ const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
           }
           setWalletSummary(resolvedSummary);
         }
+        // Extract profile and rank for AppShell
+        if (dashboardRes?.profile) {
+          setProfileData(dashboardRes.profile);
+        }
+        if (dashboardRes?.rank || dashboardRes?.performanceRank) {
+          setRankData(dashboardRes.rank || dashboardRes.performanceRank);
+        }
       } else {
         setDashboardError("Unable to load dashboard summary.");
       }
@@ -288,7 +297,7 @@ const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
   }, [isAuthenticated, authLoading, router, fetchData]);
 
   if (authLoading) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   const remainingWithdrawalLimit = Math.max(0, walletSummary?.remainingWithdrawalLimit ?? 0);
@@ -310,9 +319,13 @@ const handleWithdrawSuccess = () => {
   };
 
   return (
-    <div className="bg-black text-white min-h-screen mt-10">
-      <Navbar />
-      <div className="container mx-auto px-4 sm:px-6 pt-20 sm:pt-24 pb-12 space-y-6">
+    <AppShell
+      balance={walletSummary?.availableBalance}
+      userName={profileData?.fullName}
+      userRank={rankData?.name}
+      avatarUrl={profileData?.profilePicture}
+    >
+      <div className="dashboard-light-scope p-6 space-y-6">
         {/* Header with Status Badges */}
         <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
@@ -458,7 +471,7 @@ onWithdrawClick={() => setWithdrawDrawerOpen(true)}
 
         <CompoundingProjectionModal />
       </div>
-    </div>
+    </AppShell>
   );
 };
 

@@ -4,10 +4,10 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { getPayouts, getCurrentPayoutProgress } from "@/actions/user";
+import { getPayouts, getCurrentPayoutProgress, getDashboardData } from "@/actions/user";
 import { ArrowLeft, DollarSign, CalendarDays, TrendingUp, Loader2, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
@@ -94,6 +94,9 @@ const PayoutsPage = () => {
   const [progressPercentage, setProgressPercentage] = useState(0);
   const [nextPayoutFormattedDate, setNextPayoutFormattedDate] = useState<string | null>(null);
   const [showFullSchedule, setShowFullSchedule] = useState(false);
+  const [profileData, setProfileData] = useState<{ fullName?: string; profilePicture?: string; } | null>(null);
+  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
+  const [walletData, setWalletData] = useState<{ availableBalance?: number } | null>(null);
 
   const observer = useRef<IntersectionObserver | null>(null);
 
@@ -134,9 +137,10 @@ const PayoutsPage = () => {
 
     const fetchInitialData = async () => {
       try {
-        const [currentData, historyData] = await Promise.all([
+        const [currentData, historyData, dashboardData] = await Promise.all([
             getCurrentPayoutProgress(),
-            getPayouts(1)
+            getPayouts(1),
+            getDashboardData()
         ]);
 
         if (currentData.error) setError(currentData.error);
@@ -146,6 +150,19 @@ const PayoutsPage = () => {
         else {
             setPayoutHistory(historyData.payouts);
             setPagination(historyData.pagination);
+        }
+        
+        // Extract profile and rank from dashboard
+        if (dashboardData && !dashboardData.error) {
+          if (dashboardData.profile) {
+            setProfileData(dashboardData.profile);
+          }
+          if (dashboardData.rank || dashboardData.performanceRank) {
+            setRankData(dashboardData.rank || dashboardData.performanceRank);
+          }
+          if (dashboardData.wallet) {
+            setWalletData(dashboardData.wallet);
+          }
         }
       } catch (err) {
         console.error("Failed to fetch initial payout data:", err);
@@ -230,17 +247,21 @@ const PayoutsPage = () => {
   }, [currentPayout]);
 
   if (initialLoading) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading Payouts...</div>;
+    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Loading Payouts...</div>;
   }
 
   if (error) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
+    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      <Navbar />
-      <main className="container mx-auto p-4 pt-24">
+    <AppShell
+      balance={walletData?.availableBalance}
+      userName={profileData?.fullName}
+      userRank={rankData?.name}
+      avatarUrl={profileData?.profilePicture}
+    >
+      <div className="dashboard-light-scope p-6 space-y-6">
         <header className="mb-8">
           <Button asChild variant="outline" className="mb-4">
             <Link href="/dashboard">
@@ -426,8 +447,8 @@ const PayoutsPage = () => {
                 </Card>
             </div>
         </div>
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 };
 

@@ -1,17 +1,14 @@
 "use client";
 
-import { motion, AnimatePresence } from "framer-motion";
-import { useState } from "react";
+import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from "framer-motion";
+import { useRef, useState } from "react";
 
 const FAQS = [
   { q: "What is Sagenex?", a: "Sagenex is a diversified global ecosystem combining business networking, technology, capital deployment, and community-driven growth across multiple sectors." },
   { q: "Is my money guaranteed or fixed?", a: "No. Sagenex does not offer fixed or guaranteed returns. All earnings are performance-based and depend on participation, leadership, and business conditions." },
   { q: "How is risk controlled?", a: "Through a multi-layered approach designed for long-term stability — earnings caps (2.5X / 3X / 4X), a 12-leg distributed structure, multi-sector & multi-geography diversification, and ongoing governance & compliance reviews." },
   { q: "Where is capital deployed?", a: "Across Forex, real estate, gold mining, agriculture, blockchain infrastructure, trading systems, business networks, and growth platforms." },
-  { q: "What role does SG Stocks play?", a: "SG Stocks acts as a business growth and credibility layer — enabling visibility, expansion, capital circulation, and hiring within the ecosystem." },
   { q: "What happens in slow market conditions?", a: "The system is designed to slow down safely, not collapse. Caps, carryforward rules, and diversification protect stability in adverse conditions." },
-  { q: "How does SGBN add safety?", a: "SGBN creates real-world value through business referrals, structured hiring (including a 30% community hiring rule), freelancer engagement, and capital circulation within the network." },
-  { q: "Can rules change?", a: "Yes — but only to protect sustainability. All changes are communicated transparently and made for long-term ecosystem health." },
   { q: "Why should I trust Sagenex long-term?", a: "Because it is Capped, Structured, Diversified, Governed, and Transparent. Short-term systems fail. Structured systems endure." },
 ];
 
@@ -21,28 +18,25 @@ function FAQRow({ faq, index, open, onToggle }: { faq: { q: string; a: string };
       initial={{ opacity: 0, y: 12 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
-      transition={{ duration: 0.38, delay: index * 0.04 }}
+      transition={{ duration: 0.4, delay: index * 0.05 }}
       className="faq-row"
+      whileHover={{ x: 4 }}
     >
       <button
-        className="faq-question w-full text-left"
+        className="faq-question py-2 text-(--text-primary-light) hover:text-(--crimson) transition-colors"
         onClick={onToggle}
         aria-expanded={open}
       >
-        <span className="flex items-center gap-4">
-          <span
-            className="text-[11px] font-semibold tabular-nums shrink-0"
-            style={{ color: "#bbb", letterSpacing: "0.06em" }}
-          >
+        <span className="flex items-center gap-6">
+          <span className="text-[11px] font-bold tracking-widest text-(--emerald) shrink-0">
             {String(index + 1).padStart(2, "0")}
           </span>
-          <span>{faq.q}</span>
+          <span className="font-display font-bold text-xl md:text-2xl">{faq.q}</span>
         </span>
         <motion.span
           animate={{ rotate: open ? 45 : 0 }}
-          transition={{ duration: 0.22 }}
-          className="shrink-0 text-[#ccc] block"
-          style={{ fontSize: 22, lineHeight: 1 }}
+          transition={{ duration: 0.2 }}
+          className="shrink-0 text-xl text-(--text-muted-light)"
         >
           +
         </motion.span>
@@ -55,10 +49,12 @@ function FAQRow({ faq, index, open, onToggle }: { faq: { q: string; a: string };
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <p className="faq-answer pl-8">{faq.a}</p>
+            <p className="pl-11 pr-8 pt-4 pb-2 text-(--text-muted-light) leading-relaxed text-lg">
+              {faq.a}
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -67,65 +63,58 @@ function FAQRow({ faq, index, open, onToggle }: { faq: { q: string; a: string };
 }
 
 export default function FAQSection() {
+  const sectionRef = useRef<HTMLElement | null>(null);
   const [open, setOpen] = useState<number | null>(null);
   const toggle = (i: number) => setOpen(open === i ? null : i);
+  const prefersReducedMotion = useReducedMotion();
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
+  const headingY = useTransform(scrollYProgress, [0, 1], [44, -24]);
 
   return (
-    <section className="w-full bg-[#fafafa] py-24 md:py-32">
+    <section ref={sectionRef} className="section-light w-full py-24 md:py-32 border-t border-(--border-light) relative overflow-hidden">
+      <motion.div
+        aria-hidden
+        className="pointer-events-none absolute left-0 right-0 top-0 h-[3px] origin-left bg-linear-to-r from-(--emerald) via-(--crimson) to-(--emerald)"
+        style={{ scaleX: prefersReducedMotion ? 1 : scrollYProgress }}
+      />
+
       <div className="mx-auto max-w-4xl px-6 sm:px-10 lg:px-16">
 
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-          className="mb-14"
+          className="mb-16 text-center"
+          style={{ y: prefersReducedMotion ? 0 : headingY }}
         >
           <p className="eyebrow mb-4">FAQ</p>
-          <h2
-            className="font-extrabold text-[#0a0a0a] leading-[0.95]"
-            style={{ fontSize: "clamp(36px, 5vw, 72px)", letterSpacing: "-0.03em" }}
-          >
+          <h2 className="display-headline text-(--text-primary-light)">
             Questions,<br />
-            <span className="text-[#00b386]">answered.</span>
+            <span className="text-(--emerald)">answered.</span>
           </h2>
         </motion.div>
 
-        {/* Accordion */}
-        <div>
+        <div className="border-t border-(--border-light)">
           {FAQS.map((faq, i) => (
-            <FAQRow
-              key={i}
-              faq={faq}
-              index={i}
-              open={open === i}
-              onToggle={() => toggle(i)}
-            />
+            <FAQRow key={i} faq={faq} index={i} open={open === i} onToggle={() => toggle(i)} />
           ))}
         </div>
 
-        {/* Closing statement */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.55 }}
-          className="mt-16 border-l-4 border-[#00b386] pl-6"
+          transition={{ delay: 0.3 }}
+          className="mt-20 flex flex-col items-center justify-center p-8 glass-card border-(--border-light) bg-white/50 text-center"
         >
-          <p
-            className="font-bold text-[#0a0a0a] leading-tight"
-            style={{ fontSize: "clamp(20px, 2.5vw, 30px)", letterSpacing: "-0.02em" }}
-          >
+          <h3 className="font-display font-extrabold text-2xl md:text-3xl text-(--text-primary-light) mb-2">
             Sagenex is not built for speed.
-          </p>
-          <p
-            className="font-bold text-[#00b386] leading-tight"
-            style={{ fontSize: "clamp(20px, 2.5vw, 30px)", letterSpacing: "-0.02em" }}
-          >
+          </h3>
+          <p className="text-(--emerald) font-bold text-xl md:text-2xl">
             Built for survival, stability, and scale.
           </p>
         </motion.div>
+
       </div>
     </section>
   );

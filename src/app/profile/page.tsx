@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import {
   Card,
   CardContent,
@@ -14,7 +14,7 @@ import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Copy, BadgeCheck, XCircle, ShieldCheck, ShieldAlert, ShieldClose, Edit } from "lucide-react";
-import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess, getBiometricsStatus, getTicketBalance } from "@/actions/user";
+import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess, getBiometricsStatus, getTicketBalance, getDashboardData } from "@/actions/user";
 import { KycStatus } from "@/types";
 
 interface UserProfile {
@@ -109,6 +109,8 @@ const ProfilePage = () => {
     totalInvestedUSD: number;
     lastCalculatedAt: string | null;
   } | null>(null);
+  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
+  const [walletData, setWalletData] = useState<{ availableBalance?: number } | null>(null);
 
   useEffect(() => {
     if (!loading && !isAuthenticated) {
@@ -118,12 +120,13 @@ const ProfilePage = () => {
 
     const fetchPageData = async () => {
         try {
-            const [profileData, kycData, nomineeData, biometricsData, ticketData] = await Promise.all([
+            const [profileData, kycData, nomineeData, biometricsData, ticketData, dashboardData] = await Promise.all([
                 getProfileData(),
                 getKycStatus(),
                 getNomineeStatus(),
                 getBiometricsStatus(),
                 getTicketBalance(),
+                getDashboardData(),
             ]);
             console.log("Fetched Profile Data:", profileData);
             if (profileData.error) {
@@ -141,6 +144,16 @@ const ProfilePage = () => {
                 console.error("Could not fetch KYC status:", kycData.error);
             } else {
                 setKycStatus(kycData);
+            }
+            
+            // Extract dashboard data for AppShell
+            if (dashboardData && !dashboardData.error) {
+                if (dashboardData.rank || dashboardData.performanceRank) {
+                    setRankData(dashboardData.rank || dashboardData.performanceRank);
+                }
+                if (dashboardData.wallet) {
+                    setWalletData(dashboardData.wallet);
+                }
             }
 
             if (!nomineeData?.error) {
@@ -277,24 +290,26 @@ const ProfilePage = () => {
   const formatBiometricDate = (value?: string | null) => (value ? new Date(value).toLocaleString() : "—");
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      <Navbar />
-      <main className="container mx-auto p-4 pt-24 space-y-8">
+    <AppShell
+      balance={walletData?.availableBalance}
+      userName={profile?.fullName}
+      userRank={rankData?.name}
+      avatarUrl={profile?.profilePicture}
+    >
+      <div className="dashboard-light-scope p-6 space-y-6">
         {/* Header */}
-        <section className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-emerald-500/15 via-black to-black p-6 md:p-8 shadow-[0_20px_60px_rgba(0,0,0,0.45)]">
-          <div className="pointer-events-none absolute -top-20 -right-16 h-48 w-48 rounded-full bg-emerald-400/20 blur-3xl" />
-          <div className="pointer-events-none absolute -bottom-16 -left-16 h-52 w-52 rounded-full bg-emerald-500/10 blur-3xl" />
+        <section className="relative overflow-hidden rounded-3xl border border-[#e8e8e8] bg-white p-6 md:p-8 shadow-sm">
           <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center">
             <div className="flex items-center gap-5">
-              <div className="rounded-full bg-emerald-500/20 p-1.5 ring-1 ring-emerald-400/40">
+              <div className="rounded-full bg-[#C41E3A]/10 p-1.5 ring-1 ring-[#C41E3A]/40">
                 <Avatar className="h-20 w-20 md:h-24 md:w-24">
                   <AvatarImage src={profile.profilePicture} alt={profile.fullName} />
                   <AvatarFallback>{profile.fullName.charAt(0)}</AvatarFallback>
                 </Avatar>
               </div>
               <div>
-                <p className="text-sm text-emerald-200/80">Profile</p>
-                <h1 className="text-3xl font-bold">{profile.fullName}</h1>
+                <p className="text-sm text-zinc-600">Profile</p>
+                <h1 className="text-3xl font-bold text-[#0a0a0a]">{profile.fullName}</h1>
                 <p className="text-sm text-gray-400">{profile.email}</p>
                 {isNominee && (
                   <div className="mt-2 inline-flex items-center gap-2 rounded-full border border-amber-400/40 bg-amber-500/10 px-3 py-1 text-xs font-semibold text-amber-200">
@@ -604,8 +619,8 @@ const ProfilePage = () => {
                 </div>
             </div>
         )}
-      </main>
-    </div>
+      </div>
+    </AppShell>
   );
 };
 

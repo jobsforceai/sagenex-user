@@ -1,23 +1,29 @@
 import HomePage from "@/components/landing/home-page";
-import SagenexAcademy from "@/components/landing/sagenex-academy";
+import MarqueeTicker from "@/components/landing/marquee-ticker";
+import AboutSection from "@/components/landing/about-section";
+import InvestmentPillars from "@/components/landing/investment-pillars";
 import EcosystemSection from "@/components/landing/ecosystem-section";
+import SagenexAcademy from "@/components/landing/sagenex-academy";
+import RoadmapSection from "@/components/landing/roadmap-section";
 import AppDownloadSection from "@/components/landing/app-download";
-import Navbar from "./components/Navbar";
 import FAQSection from "@/components/landing/faq-section";
 import Footer from "@/components/landing/footer";
-import MarqueeTicker from "@/components/landing/marquee-ticker";
+import Navbar from "./components/Navbar";
 
 export default function Home() {
   return (
-    <div className="bg-white">
+    <main className="bg-[var(--ink)] min-h-screen">
       <Navbar />
       <HomePage />
       <MarqueeTicker />
+      <AboutSection />
+      <InvestmentPillars />
       <EcosystemSection />
-      <SagenexAcademy />
+      {/* <SagenexAcademy /> */}
+      <RoadmapSection />
       <AppDownloadSection />
       <FAQSection />
       <Footer />
-    </div>
+    </main>
   );
 }

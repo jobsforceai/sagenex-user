@@ -107,6 +107,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
   }, [isAuthenticated, propUserLevel]);
 
   const links = isAuthenticated ? authLinks : guestLinks;
+  const isLandingGuest = !isAuthenticated && pathname === "/";
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);
@@ -114,9 +115,13 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
   const navItemClass = (href: string) =>
     [
       "relative px-2 py-1 text-sm md:text-[15px] transition",
-      scrolled ? "text-zinc-700 hover:text-zinc-900" : "text-zinc-800 hover:text-zinc-900",
+      isLandingGuest
+        ? "text-white/75 hover:text-white"
+        : scrolled
+          ? "text-zinc-700 hover:text-zinc-900"
+          : "text-zinc-800 hover:text-zinc-900",
       "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50 rounded-md",
-      isActive(href) && "text-[#00b386] font-semibold",
+      isActive(href) && (isLandingGuest ? "text-emerald-300 font-semibold" : "text-[#00b386] font-semibold"),
     ]
       .filter(Boolean)
       .join(" ");
@@ -266,7 +271,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
             </span>
             <button
               onClick={dismissTopBanner}
-              className="ml-2 flex-shrink-0 rounded p-1 hover:bg-amber-500/20 transition-colors"
+              className="ml-2 shrink-0 rounded p-1 hover:bg-amber-500/20 transition-colors"
               aria-label="Dismiss notification"
             >
               <X className="h-3.5 w-3.5" />
@@ -286,9 +291,13 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
         <div
           className={[
             "mt-3 rounded-2xl border transition-all duration-300",
-            scrolled
-              ? "border-[#e8e8e8] bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
-              : "border-white/10 bg-white/0 backdrop-blur-xl shadow-none",
+            isLandingGuest
+              ? scrolled
+                ? "border-white/25 bg-[#6f0011]/80 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.32)]"
+                : "border-white/20 bg-[#7b0012]/45 backdrop-blur-xl shadow-[0_12px_50px_rgba(0,0,0,0.25)]"
+              : scrolled
+                ? "border-(--border-light) bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
+                : "border-white/10 bg-white/0 backdrop-blur-xl shadow-none",
           ].join(" ")}
         >
           {/* Top row */}
@@ -309,7 +318,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   priority
                 />
               </span>
-              <span className="text-base font-semibold tracking-tight text-zinc-900 group-hover:opacity-90">
+              <span className={`text-base font-semibold tracking-tight group-hover:opacity-90 ${isLandingGuest ? "text-white" : "text-zinc-900"}`}>
                 Sagenex
               </span>
             </Link>
@@ -331,7 +340,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                       {l.label}
                       {/* Active underline */}
                       {isActive(l.href) && (
-                        <span className="absolute left-2 right-2 -bottom-1 h-px bg-[#00b386] rounded-full" />
+                        <span className={`absolute left-2 right-2 -bottom-1 h-px rounded-full ${isLandingGuest ? "bg-emerald-300" : "bg-[#00b386]"}`} />
                       )}
                     </Link>
                   );
@@ -353,7 +362,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                     onClick={handleSyncProfile}
                     disabled={cacheClearing}
                     className="px-3.5 py-2 rounded-lg text-sm font-medium text-emerald-100/90 hover:text-emerald-50
-                             bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500/95 hover:to-emerald-600/95
+                             bg-linear-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500/95 hover:to-emerald-600/95
                              shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_rgba(16,185,129,0.35)]
                              focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70
                              disabled:opacity-60 disabled:cursor-not-allowed"
@@ -363,7 +372,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   <button
                     onClick={logout}
                     className="px-3.5 py-2 rounded-lg text-sm font-medium text-white/90 hover:text-white
-                             bg-gradient-to-b from-red-500 to-red-600 hover:from-red-500/95 hover:to-red-600/95
+                             bg-linear-to-b from-red-500 to-red-600 hover:from-red-500/95 hover:to-red-600/95
                              shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_8px_20px_rgba(239,68,68,0.35)]
                              focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
                   >
@@ -371,14 +380,27 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   </button>
                 </>
               ) : (
-                <HeroButton href="/login">Login</HeroButton>
+                isLandingGuest ? (
+                  <Link
+                    href="/login"
+                    className="landing-nav-login-btn inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold text-white"
+                  >
+                    Login
+                  </Link>
+                ) : (
+                  <HeroButton href="/login">Login</HeroButton>
+                )
               )}
             </div>
 
             {/* Mobile toggle */}
             {variant === "full" && (
               <button
-                className="md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#e8e8e8] bg-white text-zinc-700 hover:bg-[#f7f8fa] focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50"
+                className={`md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50 ${
+                  isLandingGuest
+                    ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
+                    : "border-[#e8e8e8] bg-white text-zinc-700 hover:bg-[#f7f8fa]"
+                }`}
                 aria-label="Toggle navigation"
                 aria-expanded={open}
                 onClick={() => setOpen((v) => !v)}
@@ -406,7 +428,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
               initial={false}
               animate={open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className="md:hidden overflow-hidden bg-white rounded-b-2xl"
+              className={`md:hidden overflow-hidden rounded-b-2xl ${isLandingGuest ? "bg-[#3f0912]/95 border-t border-white/10" : "bg-white"}`}
             >
               <div className="px-4 pb-4 pt-1">
                 <nav className="flex flex-col">
@@ -421,9 +443,11 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                         onClick={() => setOpen(false)}
                         className={[
                           "flex items-center justify-between rounded-lg px-3 py-2 text-sm",
-                          "text-zinc-700 hover:text-zinc-900 hover:bg-[#f7f8fa]",
+                          isLandingGuest
+                            ? "text-white/80 hover:text-white hover:bg-white/10"
+                            : "text-zinc-700 hover:text-zinc-900 hover:bg-[#f7f8fa]",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70",
-                          isActive(l.href) && "bg-[#e6f7f3] text-[#00b386]",
+                          isActive(l.href) && (isLandingGuest ? "bg-white/12 text-emerald-300" : "bg-[#e6f7f3] text-[#00b386]"),
                         ]
                           .filter(Boolean)
                           .join(" ")}
@@ -448,7 +472,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                         }}
                         disabled={cacheClearing}
                         className="w-full px-3.5 py-2 rounded-lg text-sm font-medium text-emerald-100/90 hover:text-emerald-50
-                                 bg-gradient-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500/95 hover:to-emerald-600/95
+                                 bg-linear-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500/95 hover:to-emerald-600/95
                                  shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_rgba(16,185,129,0.35)]
                                  focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70
                                  disabled:opacity-60 disabled:cursor-not-allowed"
@@ -463,7 +487,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                           }}
                           disabled={stoppingImpersonation}
                           className="w-full px-3.5 py-2 rounded-lg text-sm font-medium text-sky-50 hover:text-white
-                                 bg-gradient-to-b from-sky-500 to-sky-600 hover:from-sky-500/95 hover:to-sky-600/95
+                                 bg-linear-to-b from-sky-500 to-sky-600 hover:from-sky-500/95 hover:to-sky-600/95
                                  shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_rgba(14,165,233,0.35)]
                                  focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-400/70
                                  disabled:opacity-60 disabled:cursor-not-allowed"
@@ -477,7 +501,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                           logout();
                         }}
                         className="w-full px-3.5 py-2 rounded-lg text-sm font-medium text-white/90 hover:text-white
-                                 bg-gradient-to-b from-red-500 to-red-600 hover:from-red-500/95 hover:to-red-600/95
+                                 bg-linear-to-b from-red-500 to-red-600 hover:from-red-500/95 hover:to-red-600/95
                                  shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_8px_20px_rgba(239,68,68,0.35)]
                                  focus:outline-none focus-visible:ring-2 focus-visible:ring-red-400/70"
                       >
@@ -485,9 +509,18 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                       </button>
                     </div>
                   ) : (
-                    <HeroButton className="w-full justify-center" href="/login">
-                      Login
-                    </HeroButton>
+                    isLandingGuest ? (
+                      <Link
+                        className="landing-nav-login-btn inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-sm font-semibold text-white"
+                        href="/login"
+                      >
+                        Login
+                      </Link>
+                    ) : (
+                      <HeroButton className="w-full justify-center" href="/login">
+                        Login
+                      </HeroButton>
+                    )
                   )}
                 </div>
               </div>
@@ -497,11 +530,10 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
       </div>
 
       </motion.header>
-      <div className={isImpersonated ? (showTopBanner ? "h-20" : "h-10") : "h-10"} aria-hidden="true" />
-
+      
       {/* Sync Progress Modal */}
       {showSyncModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
+        <div className="fixed inset-0 z-200 flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
           <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-zinc-900 p-6 shadow-2xl">
             <div className="mb-4 flex items-center gap-3">
               {!syncDone ? (

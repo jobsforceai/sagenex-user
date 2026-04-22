@@ -4,7 +4,7 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import TreeClient from "./TreeClient";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import PlacementQueue from "@/app/components/dashboard/PlacementQueue";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { UserNode, ParentNode, QueuedUser } from "@/types";
-import { getBonusRulesConfig, getTeamTree, getPlacementQueue } from "@/actions/user";
+import { getBonusRulesConfig, getTeamTree, getPlacementQueue, getDashboardData } from "@/actions/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { X } from "lucide-react";
 
@@ -84,14 +84,18 @@ const TeamPage = () => {
   const [bonusModalOpen, setBonusModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
+  const [profileData, setProfileData] = useState<{ fullName?: string; profilePicture?: string; } | null>(null);
+  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
+  const [walletData, setWalletData] = useState<{ availableBalance?: number } | null>(null);
 
   const fetchTeamData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const [treeResult, queueResult, bonusRulesResult] = await Promise.all([
+      const [treeResult, queueResult, bonusRulesResult, dashboardResult] = await Promise.all([
         getTeamTree(),
         getPlacementQueue(),
         getBonusRulesConfig(),
+        getDashboardData(),
       ]);
 
       if (treeResult.error) {
@@ -112,6 +116,19 @@ const TeamPage = () => {
       } else {
         setBonusRules(bonusRulesResult);
       }
+      
+      // Extract profile and rank from dashboard
+      if (dashboardResult && !dashboardResult.error) {
+        if (dashboardResult.profile) {
+          setProfileData(dashboardResult.profile);
+        }
+        if (dashboardResult.rank || dashboardResult.performanceRank) {
+          setRankData(dashboardResult.rank || dashboardResult.performanceRank);
+        }
+        if (dashboardResult.wallet) {
+          setWalletData(dashboardResult.wallet);
+        }
+      }
 
     } catch {
       setError("An error occurred while fetching team data");
@@ -131,25 +148,29 @@ const TeamPage = () => {
   }, [isAuthenticated, authLoading, router, fetchTeamData]);
 
   if (authLoading || dataLoading) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   if (error) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
+    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Error: {error}</div>;
   }
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      <Navbar />
-      <div className="container mx-auto p-4 pt-24">
-        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+    <AppShell
+      balance={walletData?.availableBalance}
+      userName={profileData?.fullName}
+      userRank={rankData?.name}
+      avatarUrl={profileData?.profilePicture}
+    >
+      <div className="dashboard-light-scope p-6 space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-semibold">My Team</h1>
-            <p className="text-sm text-white/50">View team structure and bonus rules.</p>
+            <h1 className="text-2xl font-semibold text-[#0a0a0a]">My Team</h1>
+            <p className="text-sm text-zinc-600">View team structure and bonus rules.</p>
           </div>
           <Button
             variant="outline"
-            className="border-blue-500/40 text-blue-200 hover:bg-blue-500/10"
+            className="border-[#C41E3A]/40 text-[#C41E3A] hover:bg-[#C41E3A]/10"
             onClick={() => setBonusModalOpen(true)}
           >
             Bonus Rules
@@ -168,11 +189,10 @@ const TeamPage = () => {
             )}
           </CardContent>
         </Card>
-      </div>
 
-      {bonusModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-          <div className="w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_25px_80px_rgba(0,0,0,0.55)] max-h-[85vh] overflow-hidden">
+        {bonusModalOpen && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
+            <div className="w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_25px_80px_rgba(0,0,0,0.55)] max-h-[85vh] overflow-hidden">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-semibold">Bonus Rules</h2>
@@ -356,10 +376,11 @@ const TeamPage = () => {
                 </TabsContent>
               </Tabs>
             </div>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </AppShell>
   );
 };
 

@@ -10,6 +10,14 @@ const frameAncestors = ["'self'", autoproctorOrigin].filter(Boolean).join(" ");
 const frameAncestorsPolicy = `frame-ancestors ${frameAncestors};`;
 
 const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "lh3.googleusercontent.com",
+      },
+    ],
+  },
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

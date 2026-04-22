@@ -4,10 +4,10 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import Navbar from "@/app/components/Navbar";
+import AppShell from "@/app/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { getAllCourses } from "@/actions/user";
+import { getAllCourses, getDashboardData } from "@/actions/user";
 import { CourseSummary } from "@/types";
 import { Lock, BookOpen, ArrowRight } from "lucide-react";
 import Image from "next/image";
@@ -254,6 +254,9 @@ const CoursesPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
   const [selectedCourseForUpgrade, setSelectedCourseForUpgrade] = useState<CourseSummary | null>(null);
+  const [profileData, setProfileData] = useState<{ fullName?: string; profilePicture?: string; } | null>(null);
+  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
+  const [walletData, setWalletData] = useState<{ availableBalance?: number } | null>(null);
 
   const handleUpgradeClick = (course: CourseSummary) => {
     setSelectedCourseForUpgrade(course);
@@ -271,11 +274,28 @@ const CoursesPage = () => {
 
     const fetchCourses = async () => {
       try {
-        const data = await getAllCourses();
-        if (data.error) {
-          setError(data.error);
+        const [coursesData, dashboardData] = await Promise.all([
+          getAllCourses(),
+          getDashboardData(),
+        ]);
+        
+        // Extract profile and rank from dashboard
+        if (dashboardData && !dashboardData.error) {
+          if (dashboardData.profile) {
+            setProfileData(dashboardData.profile);
+          }
+          if (dashboardData.rank || dashboardData.performanceRank) {
+            setRankData(dashboardData.rank || dashboardData.performanceRank);
+          }
+          if (dashboardData.wallet) {
+            setWalletData(dashboardData.wallet);
+          }
+        }
+        
+        if (coursesData.error) {
+          setError(coursesData.error);
         } else {
-          let coursesList = Array.isArray(data) ? data : (data?.data || []);
+          let coursesList = Array.isArray(coursesData) ? coursesData : (coursesData?.data || []);
           // WORKAROUND: If Starter Academy is 'next_locked', treat it as 'unlocked'.
           // This is to handle the case for new users who haven't purchased any package yet.
           coursesList = coursesList.map((course: CourseSummary) => {
@@ -303,18 +323,22 @@ const CoursesPage = () => {
   }, [courses]);
 
   if (authLoading) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
+    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Loading...</div>;
   }
 
   return (
-    <div className="bg-black text-white min-h-screen">
-      <Navbar />
-      <main className="container mx-auto p-4 pt-24">
+    <AppShell
+      balance={walletData?.availableBalance}
+      userName={profileData?.fullName}
+      userRank={rankData?.name}
+      avatarUrl={profileData?.profilePicture}
+    >
+      <div className="dashboard-light-scope p-6 space-y-6">
         <header className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">
+          <h1 className="text-4xl md:text-5xl font-bold mb-4 text-[#0a0a0a]">
             LEARN, EARN & LEAD
           </h1>
-          <p className="text-lg text-gray-400 max-w-3xl mx-auto">
+          <p className="text-lg text-zinc-600 max-w-3xl mx-auto">
             Unlock your potential with our expert-led courses on crypto, finance, and technology.
           </p>
         </header>
@@ -345,11 +369,11 @@ const CoursesPage = () => {
             ))}
           </div>
         )}
-      </main>
+      </div>
       {selectedCourseForUpgrade && (
         <UpgradeModal course={selectedCourseForUpgrade} onClose={handleCloseModal} />
       )}
-    </div>
+    </AppShell>
   );
 };
 
