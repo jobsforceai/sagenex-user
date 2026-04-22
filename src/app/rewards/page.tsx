@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import AppShell from "@/app/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -683,19 +682,14 @@ const RewardsPage = () => {
   }
 
   return (
-    <AppShell
-      balance={walletData?.availableBalance}
-      userName={profileData?.fullName}
-      userRank={rankData?.name}
-      avatarUrl={profileData?.profilePicture}
-    >
+    <>
       <div className="dashboard-light-scope p-6 space-y-6">
-        <Button asChild variant="outline" className="mb-4">
+        {/* <Button asChild variant="outline" className="mb-4">
           <Link href="/dashboard">
             <ArrowLeft className="mr-2 h-4 w-4" />
             Back to Dashboard
           </Link>
-        </Button>
+        </Button> */}
 
         <header className="text-center my-14">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-5 py-4 bg-linear-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
@@ -762,7 +756,7 @@ const RewardsPage = () => {
         />
       )}
       </div>
-    </AppShell>
+    </>
   );
 };
 

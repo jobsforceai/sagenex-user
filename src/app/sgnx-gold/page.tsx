@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
-import AppShell from "@/app/components/AppShell";
 import SgnxGoldHero from "@/app/components/sgnx-gold/SgnxGoldHero";
 import LivePriceCards from "@/app/components/sgnx-gold/LivePriceCards";
 import CityPricesGrid from "@/app/components/sgnx-gold/CityPricesGrid";
@@ -208,8 +207,8 @@ export default function SgnxGoldPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-[#0f1219] flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#D7AF35]" />
+      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
+        <Loader2 className="h-6 w-6 animate-spin text-[#C41E3A]" />
       </div>
     );
   }
@@ -223,13 +222,8 @@ export default function SgnxGoldPage() {
   };
 
   return (
-    <AppShell
-      balance={walletData?.availableBalance}
-      userName={profileData?.fullName}
-      userRank={rankData?.name}
-      avatarUrl={profileData?.profilePicture}
-    >
-      <div className="dashboard-light-scope p-6 space-y-6">
+    <>
+      <div className="dashboard-light-scope min-h-screen bg-[#f8f9fa] p-6 space-y-6">
 
         {/* Hero Portfolio - own loading */}
         {heroLoading ? <HeroSkeleton /> : (
@@ -299,6 +293,6 @@ export default function SgnxGoldPage() {
         onOpenChange={setEnrollModalOpen}
         onSuccess={handleEnrollSuccess}
       />
-    </AppShell>
+    </>
   );
 }

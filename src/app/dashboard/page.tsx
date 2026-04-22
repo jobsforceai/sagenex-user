@@ -13,11 +13,11 @@ import {
   getFinancialSummary,
   getTicketBalance,
 } from "@/actions/user";
-import AppShell from "@/app/components/AppShell";
 import {
   ArrowDownCircle,
   BadgeDollarSign,
   Copy,
+  Crown,
   Gem,
   Gift,
   TrendingUp,
@@ -25,10 +25,12 @@ import {
   Wallet,
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
+import { DashboardSkeleton } from "../components/dashboard/DashboardSkeletons";
+import DashboardVisualSection from "../components/dashboard/DashboardVisualSection";
 
-// --- INTERFACES ---
+// ─── Interfaces ────────────────────────────────────────────────────
+
 interface Profile {
   fullName: string;
   profilePicture: string;
@@ -39,7 +41,7 @@ interface Profile {
   earningsMultiplier?: number;
 }
 
-interface Wallet {
+interface WalletData {
   availableBalance: number;
   withdrawalCap: number;
   totalLifetimeWithdrawals: number;
@@ -75,7 +77,7 @@ interface RankSnapshot {
 
 interface DashboardData {
   profile: Profile;
-  wallet: Wallet;
+  wallet: WalletData;
   package: UserPackage;
   earningsMultiplier?: number;
   earningsMultiplierDeadline?: string | null;
@@ -125,16 +127,6 @@ interface RankProgress {
   };
 }
 
-const formatCurrency = (amount?: number) => {
-  if (amount === undefined || amount === null) return "N/A";
-  return amount.toLocaleString("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
-
 interface FinancialSummary {
   investedPrincipal: number;
   referralEarnings: number;
@@ -151,7 +143,74 @@ interface LeaderboardEntry {
   earnings: number;
 }
 
-// --- COMPONENT ---
+// ─── Helpers ───────────────────────────────────────────────────────
+
+const formatCurrency = (amount?: number) => {
+  if (amount === undefined || amount === null) return "N/A";
+  return amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+};
+
+const formatCurrencyCompact = (amount?: number) => {
+  if (amount === undefined || amount === null) return "N/A";
+  return amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
+const avatarStyle = (name: string) => {
+  const hue = (name.charCodeAt(0) * 37) % 360;
+  return {
+    background: `hsl(${hue}, 60%, 92%)`,
+    color: `hsl(${hue}, 55%, 38%)`,
+  };
+};
+
+// ─── KPI Card ──────────────────────────────────────────────────────
+
+const KPICard = ({
+  label,
+  value,
+  sub,
+  icon,
+  accentColor = "#C41E3A",
+}: {
+  label: string;
+  value: string | number;
+  sub?: string;
+  icon: React.ReactNode;
+  accentColor?: string;
+}) => (
+  <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.07em] text-zinc-400">
+          {label}
+        </p>
+        <p className="truncate text-[26px] font-extrabold leading-none tracking-tight text-[#111827]">
+          {value}
+        </p>
+        {sub && <p className="mt-1.5 text-[13px] text-zinc-500">{sub}</p>}
+      </div>
+      <div
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
+        style={{ background: accentColor + "18", color: accentColor }}
+      >
+        {icon}
+      </div>
+    </div>
+  </div>
+);
+
+// ─── Page Component ────────────────────────────────────────────────
+
 const DashboardPage = () => {
   const { token, isAuthenticated, loading, showSetPasswordModal, onPasswordSet } = useAuth();
   const router = useRouter();
@@ -274,6 +333,11 @@ const DashboardPage = () => {
   const consecutiveMonthsMissed = lifetimeRank?.consecutiveMonthsMissed;
   const earningsMultiplierDeadline =
     profile?.earningsMultiplierDeadline ?? dashboardData?.earningsMultiplierDeadline ?? null;
+  const earningsMultiplier =
+    dashboardData?.earningsMultiplier ?? profile?.earningsMultiplier;
+
+  const activeReferrals =
+    referralSummary?.referrals?.filter((r) => r.activityStatus === "Active").length ?? 0;
 
   const quickActions = [
     {
@@ -281,317 +345,398 @@ const DashboardPage = () => {
       icon: BadgeDollarSign,
       title: "Salary",
       subtitle: "Eligibility and monthly status",
+      color: "#C41E3A",
     },
     {
       href: "/rewards",
       icon: Gift,
       title: "Rewards",
       subtitle: "Claim and manage benefits",
+      color: "#7C3AED",
     },
     {
       href: "/payouts",
       icon: ArrowDownCircle,
       title: "Payouts",
       subtitle: "Withdrawals and history",
+      color: "#00b386",
     },
     {
       href: "/sgnx-gold",
       icon: Gem,
       title: "SGNX Gold",
       subtitle: "Gold and cash plans",
+      color: "#D4A017",
     },
   ];
 
   const financialCards = [
-    {
-      label: "Invested Principal",
-      value: financialSummary?.investedPrincipal,
-      icon: Wallet,
-    },
-    {
-      label: "Referral Earnings",
-      value: financialSummary?.referralEarnings,
-      icon: Users,
-    },
-    {
-      label: "Promotion Bonus",
-      value: financialSummary?.oneTimePromotionBonus,
-      icon: Gift,
-    },
-    {
-      label: "Monthly Incentive",
-      value: financialSummary?.monthlyIncentive,
-      icon: TrendingUp,
-    },
+    { label: "Invested Principal", value: financialSummary?.investedPrincipal, icon: Wallet },
+    { label: "Referral Earnings", value: financialSummary?.referralEarnings, icon: Users },
+    { label: "Promotion Bonus", value: financialSummary?.oneTimePromotionBonus, icon: Gift },
+    { label: "Monthly Incentive", value: financialSummary?.monthlyIncentive, icon: TrendingUp },
   ];
 
-  const activeReferrals = referralSummary?.referrals?.filter((r) => r.activityStatus === "Active").length ?? 0;
-
   return (
-    <AppShell
-      balance={wallet?.availableBalance}
-      userName={profile?.fullName}
-      userRank={currentRank?.name}
-      avatarUrl={profile?.profilePicture}
-    >
+    <>
       {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
 
       {showLoading ? (
-        <div className="p-6 space-y-4">
-          <Skeleton className="h-28 w-full rounded-2xl" />
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-24 w-full rounded-xl" />
-            <Skeleton className="h-24 w-full rounded-xl" />
-          </div>
-          <Skeleton className="h-72 w-full rounded-2xl" />
-        </div>
+        <DashboardSkeleton />
       ) : showError ? (
         <div className="flex items-center justify-center py-32 text-zinc-400">
           Error: {error}
         </div>
       ) : (
         <div className="p-6 space-y-5">
-          <section className="rounded-2xl border border-[#e8e8e8] bg-white p-5 shadow-sm">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+
+          {/* ── Hero Banner ─────────────────────────────────────── */}
+          <div
+            className="relative overflow-hidden rounded-[20px] p-7 text-white"
+            style={{ background: "linear-gradient(135deg, #C41E3A 0%, #A0152B 100%)" }}
+          >
+            <div
+              className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full"
+              style={{ background: "rgba(255,255,255,0.06)" }}
+            />
+            <div
+              className="pointer-events-none absolute right-14 -bottom-14 h-40 w-40 rounded-full"
+              style={{ background: "rgba(255,255,255,0.04)" }}
+            />
+            <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-[#0a0a0a]">
-                  Welcome back, {profile?.fullName?.split(" ")[0]}
+                <p className="mb-1 text-[13px] font-medium opacity-75">Welcome back 👋</p>
+                <h1 className="mb-1.5 text-[28px] font-extrabold leading-tight tracking-tight">
+                  {profile?.fullName}
                 </h1>
-                <p className="mt-1 text-sm text-zinc-500">
-                  {new Date().toLocaleDateString("en-IN", {
-                    weekday: "long",
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })}
-                </p>
-              </div>
-              <div className="rounded-xl border border-[#e8e8e8] bg-[#fafafa] px-4 py-3 text-right">
-                <p className="text-[11px] font-semibold uppercase tracking-widest text-zinc-500">
-                  Available Balance
-                </p>
-                <p className="text-3xl font-black text-[#C41E3A]">
-                  {wallet?.availableBalance?.toLocaleString("en-IN", {
-                    style: "currency",
-                    currency: "INR",
-                    minimumFractionDigits: 0,
-                    maximumFractionDigits: 0,
-                  })}
-                </p>
-              </div>
-            </div>
-
-            <div className="mt-5 grid grid-cols-1 gap-3 sm:grid-cols-3">
-              <div className="rounded-xl border border-[#e8e8e8] bg-[#fcfcfc] p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Current Rank</p>
-                <p className="mt-1 text-xl font-bold text-[#0a0a0a]">{currentRank?.name ?? "Member"}</p>
-              </div>
-              <div className="rounded-xl border border-[#e8e8e8] bg-[#fcfcfc] p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Rank Progress</p>
-                <p className="mt-1 text-xl font-bold text-[#0a0a0a]">{Math.round(progressPercentage)}%</p>
-              </div>
-              <div className="rounded-xl border border-[#e8e8e8] bg-[#fcfcfc] p-4">
-                <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Package</p>
-                <p className="mt-1 text-xl font-bold text-[#0a0a0a]">{formatCurrency(dashboardData?.package?.packageUSD)}</p>
-              </div>
-            </div>
-
-            {rankProgress?.progress?.nextRankName && (
-              <div className="mt-4">
-                <div className="mb-2 flex items-center justify-between text-sm">
-                  <span className="font-medium text-zinc-600">Progress to {rankProgress.progress.nextRankName}</span>
-                  <span className="font-semibold text-[#C41E3A]">{Math.round(progressPercentage)}%</span>
+                <div className="flex flex-wrap gap-2">
+                  {currentRank?.name && (
+                    <span
+                      className="rounded-full px-3 py-0.5 text-xs font-bold"
+                      style={{ background: "rgba(255,255,255,0.2)" }}
+                    >
+                      {currentRank.name}
+                    </span>
+                  )}
+                  {earningsMultiplier && earningsMultiplier > 0 && (
+                    <span
+                      className="rounded-full px-3 py-0.5 text-xs font-bold"
+                      style={{ background: "rgba(0,179,134,0.35)", color: "#adfce8" }}
+                    >
+                      ×{earningsMultiplier} Multiplier
+                    </span>
+                  )}
                 </div>
-                <div className="h-2.5 overflow-hidden rounded-full bg-zinc-200">
+              </div>
+              <div className="text-left sm:text-right">
+                <p className="mb-1 text-xs font-medium opacity-70">Available Balance</p>
+                <p className="text-[32px] font-black leading-none tracking-tighter">
+                  {formatCurrencyCompact(wallet?.availableBalance)}
+                </p>
+                {wallet?.withdrawalCap !== undefined && (
+                  <p className="mt-0.5 text-xs opacity-65">
+                    Cap: {formatCurrencyCompact(wallet.withdrawalCap)}
+                  </p>
+                )}
+              </div>
+            </div>
+            {rankProgress?.progress?.nextRankName && (
+              <div className="relative z-10 mt-5 border-t border-white/20 pt-4">
+                <div className="mb-1.5 flex items-center justify-between text-xs" style={{ opacity: 0.85 }}>
+                  <span className="font-medium">
+                    Progress to {rankProgress.progress.nextRankName}
+                  </span>
+                  <span className="font-bold">{Math.round(progressPercentage)}%</span>
+                </div>
+                <div
+                  className="h-1.5 overflow-hidden rounded-full"
+                  style={{ background: "rgba(255,255,255,0.25)" }}
+                >
                   <div
-                    className="h-full rounded-full bg-[#C41E3A] transition-all duration-300"
-                    style={{ width: `${Math.min(100, Math.max(0, progressPercentage))}%` }}
+                    className="h-full rounded-full transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, progressPercentage))}%`,
+                      background: "rgba(255,255,255,0.85)",
+                    }}
                   />
                 </div>
               </div>
             )}
-          </section>
+          </div>
 
+          {/* ── KPI Row ─────────────────────────────────────────── */}
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <KPICard
+              label="Current Rank"
+              value={currentRank?.name ?? "Member"}
+              sub={
+                lifetimeRank?.name && lifetimeRank.name !== currentRank?.name
+                  ? `Lifetime: ${lifetimeRank.name}`
+                  : undefined
+              }
+              icon={<Crown className="h-5 w-5" />}
+              accentColor="#C41E3A"
+            />
+            <KPICard
+              label="Rank Progress"
+              value={`${Math.round(progressPercentage)}%`}
+              sub={
+                rankProgress?.progress?.nextRankName
+                  ? `To ${rankProgress.progress.nextRankName}`
+                  : "Max rank reached"
+              }
+              icon={<TrendingUp className="h-5 w-5" />}
+              accentColor="#C41E3A"
+            />
+            <KPICard
+              label="Package Value"
+              value={formatCurrencyCompact(dashboardData?.package?.packageUSD)}
+              icon={<Wallet className="h-5 w-5" />}
+              accentColor="#00b386"
+            />
+            <KPICard
+              label="Tickets"
+              value={ticketBalance?.totalTickets ?? 0}
+              sub="Available"
+              icon={<Gift className="h-5 w-5" />}
+              accentColor="#7C3AED"
+            />
+          </div>
+
+          {/* ── Salary Alert ─────────────────────────────────────── */}
           {consecutiveMonthsMissed === 1 && (
             <Alert
               type="warning"
               message="You have missed your performance target for 1 month. Your next salary will be reduced to 50%."
             />
           )}
+
+          {/* ── Quick Actions ────────────────────────────────────── */}
           <section>
-            <p className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-zinc-500">Quick Actions</p>
+            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.07em] text-zinc-400">
+              Quick Actions
+            </p>
             <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {quickActions.map(({ href, icon: Icon, title, subtitle }) => (
+              {quickActions.map(({ href, icon: Icon, title, subtitle, color }) => (
                 <Link key={href} href={href} className="group">
-                  <Card className="h-full rounded-xl border-[#e8e8e8] bg-white shadow-sm transition-all group-hover:-translate-y-0.5 group-hover:border-[#C41E3A]/35 group-hover:shadow-md">
-                    <CardContent className="p-4">
-                      <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-[#C41E3A10]">
-                        <Icon className="h-5 w-5 text-[#C41E3A]" />
-                      </div>
-                      <p className="text-sm font-bold text-[#0a0a0a]">{title}</p>
-                      <p className="mt-1 text-xs text-zinc-500">{subtitle}</p>
-                    </CardContent>
-                  </Card>
+                  <div className="h-full rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm transition-all duration-150 group-hover:-translate-y-0.5 group-hover:shadow-md">
+                    <div
+                      className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-xl"
+                      style={{ background: color + "18", color }}
+                    >
+                      <Icon className="h-5 w-5" />
+                    </div>
+                    <p className="text-sm font-bold text-[#111827]">{title}</p>
+                    <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>
+                  </div>
                 </Link>
               ))}
             </div>
           </section>
 
+          {/* ── Visual Hub ─────────────────────────────────────── */}
+          <DashboardVisualSection />
+
+          {/* ── Main Grid ───────────────────────────────────────── */}
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
+
+            {/* Left column (2/3) */}
             <div className="space-y-5 xl:col-span-2">
-              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-bold text-[#0a0a0a]">Earnings Snapshot</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                    {financialCards.map(({ label, value, icon: Icon }) => (
-                      <div key={label} className="rounded-xl border border-[#e8e8e8] bg-[#fcfcfc] p-3">
-                        <div className="mb-2 flex items-center justify-between">
-                          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">{label}</p>
-                          <Icon className="h-4 w-4 text-zinc-400" />
+
+              {/* Earnings Snapshot */}
+              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+                <h2 className="mb-4 text-[18px] font-bold tracking-tight text-[#111827]">
+                  Earnings Snapshot
+                </h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {financialCards.map(({ label, value, icon: Icon }) => (
+                    <div
+                      key={label}
+                      className="rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] p-4"
+                    >
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-zinc-400">
+                          {label}
+                        </p>
+                        <Icon className="h-4 w-4 text-zinc-300" />
+                      </div>
+                      <p className="text-lg font-extrabold text-[#111827]">
+                        {formatCurrency(value)}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Top Performers */}
+              <div className="overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">
+                <div className="border-b border-[#E8E8E8] px-5 py-4">
+                  <h2 className="text-[18px] font-bold tracking-tight text-[#111827]">
+                    Top Performers
+                  </h2>
+                  <p className="mt-0.5 text-[13px] text-zinc-500">This month&apos;s leaderboard</p>
+                </div>
+                {leaderboardData ? (
+                  <div>
+                    {leaderboardData.slice(0, 6).map((entry, i) => (
+                      <div
+                        key={`${entry.rank}-${entry.userId ?? entry.fullName}`}
+                        className="flex items-center gap-3 border-b border-[#E8E8E8] px-5 py-3.5 last:border-0"
+                      >
+                        <div
+                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold ${
+                            i === 0 ? "bg-amber-50 text-amber-500" : "bg-zinc-100 text-zinc-400"
+                          }`}
+                        >
+                          {entry.rank}
                         </div>
-                        <p className="text-lg font-bold text-[#0a0a0a]">{formatCurrency(value)}</p>
+                        <div
+                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-extrabold"
+                          style={avatarStyle(entry.fullName)}
+                        >
+                          {entry.fullName
+                            .split(" ")
+                            .map((n) => n[0])
+                            .join("")
+                            .slice(0, 2)
+                            .toUpperCase()}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate text-[14px] font-semibold text-[#111827]">
+                            {entry.fullName}
+                          </p>
+                          <p className="text-xs text-zinc-500">{entry.packagesSold} packages sold</p>
+                        </div>
+                        <p className="shrink-0 text-[14px] font-bold text-[#111827]">
+                          {formatCurrency(entry.earnings)}
+                        </p>
                       </div>
                     ))}
                   </div>
-                </CardContent>
-              </Card>
-
-              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg font-bold text-[#0a0a0a]">Top Performers</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {leaderboardData ? (
-                    <div className="space-y-2">
-                      {leaderboardData.slice(0, 6).map((entry) => (
-                        <div
-                          key={`${entry.rank}-${entry.userId ?? entry.fullName}`}
-                          className="flex items-center justify-between rounded-lg border border-[#ededed] bg-[#fcfcfc] px-3 py-2"
-                        >
-                          <div className="flex items-center gap-3">
-                            <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#C41E3A10] text-xs font-bold text-[#C41E3A]">
-                              {entry.rank}
-                            </span>
-                            <div>
-                              <p className="text-sm font-semibold text-[#0a0a0a]">{entry.fullName}</p>
-                              <p className="text-xs text-zinc-500">{entry.packagesSold} packages sold</p>
-                            </div>
-                          </div>
-                          <p className="text-sm font-bold text-[#00b386]">{formatCurrency(entry.earnings)}</p>
-                        </div>
-                      ))}
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                      <Skeleton className="h-12 w-full" />
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
+                ) : (
+                  <div className="space-y-px p-5">
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                    <Skeleton className="h-12 w-full" />
+                  </div>
+                )}
+              </div>
             </div>
 
+            {/* Right column (1/3) */}
             <div className="space-y-5">
-              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-bold text-[#0a0a0a]">Referral Tools</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-3">
-                  <div>
-                    <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-zinc-500">Referral Link</p>
-                    <div className="flex items-center gap-2">
-                      <input
-                        readOnly
-                        value={referralLink}
-                        className="w-full rounded-lg border border-[#e8e8e8] bg-[#fafafa] px-3 py-2 text-xs text-zinc-700"
-                      />
-                      <button
-                        onClick={handleCopy}
-                        className="inline-flex h-9 w-9 items-center justify-center rounded-lg border border-[#e8e8e8] bg-white text-zinc-600 transition hover:border-[#C41E3A]/50 hover:text-[#C41E3A]"
-                        aria-label="Copy referral link"
-                      >
-                        <Copy className="h-4 w-4" />
-                      </button>
-                    </div>
-                    {copied && <p className="mt-1 text-xs font-medium text-[#00b386]">Copied</p>}
-                  </div>
 
-                  <div className="grid grid-cols-2 gap-2">
-                    <div className="rounded-lg border border-[#e8e8e8] bg-[#fcfcfc] p-3">
-                      <p className="text-[11px] uppercase tracking-wide text-zinc-500">Total Referrals</p>
-                      <p className="mt-1 text-lg font-bold text-[#0a0a0a]">{referralSummary?.totalReferrals ?? 0}</p>
-                    </div>
-                    <div className="rounded-lg border border-[#e8e8e8] bg-[#fcfcfc] p-3">
-                      <p className="text-[11px] uppercase tracking-wide text-zinc-500">Active Agents</p>
-                      <p className="mt-1 text-lg font-bold text-[#0a0a0a]">{activeReferrals}</p>
-                    </div>
-                    <div className="rounded-lg border border-[#e8e8e8] bg-[#fcfcfc] p-3">
-                      <p className="text-[11px] uppercase tracking-wide text-zinc-500">Invested</p>
-                      <p className="mt-1 text-lg font-bold text-[#0a0a0a]">{referralSummary?.investedCount ?? 0}</p>
-                    </div>
-                    <div className="rounded-lg border border-[#e8e8e8] bg-[#fcfcfc] p-3">
-                      <p className="text-[11px] uppercase tracking-wide text-zinc-500">Downline Volume</p>
-                      <p className="mt-1 text-lg font-bold text-[#0a0a0a]">{formatCurrency(referralSummary?.totalDownlineVolume)}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+              {/* Referral Link */}
+              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+                <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
+                  Referral Link
+                </h2>
+                <div className="mb-3 break-all rounded-xl bg-[#F8F9FA] px-3 py-2.5 font-mono text-[12px] text-zinc-500">
+                  {referralLink || "—"}
+                </div>
+                <button
+                  onClick={handleCopy}
+                  className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white transition-colors"
+                  style={{ background: copied ? "#00b386" : "#C41E3A" }}
+                >
+                  <Copy className="h-4 w-4" />
+                  {copied ? "Copied!" : "Copy Link"}
+                </button>
+              </div>
 
-              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-bold text-[#0a0a0a]">Wallet Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
+              {/* Referral Stats */}
+              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+                <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
+                  Referral Stats
+                </h2>
+                <div className="grid grid-cols-2 gap-2.5">
+                  {[
+                    { label: "Total Referrals", value: referralSummary?.totalReferrals ?? 0 },
+                    { label: "Active Agents", value: activeReferrals },
+                    { label: "Invested", value: referralSummary?.investedCount ?? 0 },
+                    {
+                      label: "Downline Vol.",
+                      value: formatCurrency(referralSummary?.totalDownlineVolume),
+                    },
+                  ].map(({ label, value }) => (
+                    <div key={label} className="rounded-xl bg-[#F8F9FA] p-3">
+                      <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.05em] text-zinc-400">
+                        {label}
+                      </p>
+                      <p className="text-[18px] font-extrabold text-[#111827]">{value}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Wallet Summary */}
+              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+                <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
+                  Wallet Summary
+                </h2>
+                <div className="space-y-2.5 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-500">Withdrawal cap</span>
-                    <span className="font-semibold text-[#0a0a0a]">{formatCurrency(wallet?.withdrawalCap)}</span>
+                    <span className="font-semibold text-[#111827]">
+                      {formatCurrency(wallet?.withdrawalCap)}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-500">Withdrawn</span>
-                    <span className="font-semibold text-[#0a0a0a]">{formatCurrency(wallet?.totalLifetimeWithdrawals)}</span>
+                    <span className="font-semibold text-[#111827]">
+                      {formatCurrency(wallet?.totalLifetimeWithdrawals)}
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-[#f0f0f0] pt-2">
+                  <div className="flex items-center justify-between border-t border-[#F0F0F0] pt-2.5">
                     <span className="text-zinc-500">Remaining limit</span>
-                    <span className="font-semibold text-[#00b386]">{formatCurrency(wallet?.remainingWithdrawalLimit)}</span>
+                    <span className="font-semibold text-[#00b386]">
+                      {formatCurrency(wallet?.remainingWithdrawalLimit)}
+                    </span>
                   </div>
                   {wallet?.earningsCapTotal !== undefined && (
                     <>
-                      <div className="mt-2 flex items-center justify-between border-t border-[#f0f0f0] pt-2">
+                      <div className="flex items-center justify-between border-t border-[#F0F0F0] pt-2.5">
                         <span className="text-zinc-500">Earnings cap</span>
-                        <span className="font-semibold text-[#0a0a0a]">{formatCurrency(wallet?.earningsCapTotal)}</span>
+                        <span className="font-semibold text-[#111827]">
+                          {formatCurrency(wallet?.earningsCapTotal)}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-zinc-500">Earned so far</span>
-                        <span className="font-semibold text-[#0a0a0a]">{formatCurrency(wallet?.earnedSinceBaseline)}</span>
+                        <span className="font-semibold text-[#111827]">
+                          {formatCurrency(wallet?.earnedSinceBaseline)}
+                        </span>
                       </div>
                       <div className="flex items-center justify-between">
                         <span className="text-zinc-500">Cap remaining</span>
-                        <span className="font-semibold text-[#00b386]">{formatCurrency(wallet?.remainingEarningsCap)}</span>
+                        <span className="font-semibold text-[#00b386]">
+                          {formatCurrency(wallet?.remainingEarningsCap)}
+                        </span>
                       </div>
                     </>
                   )}
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
-              <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-base font-bold text-[#0a0a0a]">Ticket Balance</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-2 text-sm">
+              {/* Ticket Balance */}
+              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+                <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
+                  Ticket Balance
+                </h2>
+                <div className="space-y-2.5 text-sm">
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-500">Total tickets</span>
-                    <span className="font-semibold text-[#0a0a0a]">{ticketBalance?.totalTickets ?? 0}</span>
+                    <span className="font-semibold text-[#111827]">
+                      {ticketBalance?.totalTickets ?? 0}
+                    </span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span className="text-zinc-500">Total invested</span>
-                    <span className="font-semibold text-[#0a0a0a]">{formatCurrency(ticketBalance?.totalInvestedUSD)}</span>
+                    <span className="font-semibold text-[#111827]">
+                      {formatCurrency(ticketBalance?.totalInvestedUSD)}
+                    </span>
                   </div>
-                  <div className="flex items-center justify-between border-t border-[#f0f0f0] pt-2 text-xs text-zinc-500">
+                  <div className="flex items-center justify-between border-t border-[#F0F0F0] pt-2.5 text-xs text-zinc-400">
                     <span>Last calculated</span>
                     <span>
                       {ticketBalance?.lastCalculatedAt
@@ -599,29 +744,34 @@ const DashboardPage = () => {
                         : "N/A"}
                     </span>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
+              {/* Multiplier Window (conditional) */}
               {earningsMultiplierDeadline && (
-                <Card className="rounded-2xl border-[#e8e8e8] bg-white shadow-sm">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-bold text-[#0a0a0a]">Multiplier Window</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-zinc-600">
-                      Qualification deadline: {new Date(earningsMultiplierDeadline).toLocaleString()}
-                    </p>
-                    <p className="mt-1 text-sm text-zinc-600">
-                      Current multiplier: <span className="font-semibold text-[#0a0a0a]">{dashboardData?.earningsMultiplier ?? 0}x</span>
-                    </p>
-                  </CardContent>
-                </Card>
+                <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+                  <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
+                    Multiplier Window
+                  </h2>
+                  <div className="space-y-2.5 text-sm">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-500">Current multiplier</span>
+                      <span className="font-bold text-[#111827]">{earningsMultiplier ?? 0}×</span>
+                    </div>
+                    <div className="border-t border-[#F0F0F0] pt-2.5">
+                      <p className="text-xs text-zinc-400">Qualification deadline</p>
+                      <p className="mt-0.5 font-semibold text-[#111827]">
+                        {new Date(earningsMultiplierDeadline).toLocaleString()}
+                      </p>
+                    </div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
         </div>
       )}
-    </AppShell>
+    </>
   );
 };
 

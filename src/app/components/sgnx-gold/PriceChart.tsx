@@ -112,22 +112,22 @@ export default function PriceChart({ metal }: PriceChartProps) {
   const isUp = liveChange >= 0;
 
   return (
-    <section className="rounded-2xl border border-[#3c4256] bg-[#1B1F2D] p-6 shadow-card">
+    <section className="rounded-2xl border border-[#E8E8E8] bg-white p-6 shadow-sm">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8B92AA]">Price Studio</p>
-          <h3 className="mt-1 text-lg font-bold text-[#ECEFF8]">{metalLabel} trend intelligence</h3>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-400">Price Studio</p>
+          <h3 className="mt-1 text-lg font-bold text-[#111827]">{metalLabel} trend intelligence</h3>
         </div>
         <div className="flex flex-wrap gap-1.5">
           <button
             onClick={() => {/* metal toggle handled by parent */}}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${metal === "gold" ? "bg-[#D7AF35]/15 text-[#F8DF8A]" : "bg-[#252A3A] text-[#B2B7CB]"}`}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${metal === "gold" ? "bg-[#D7AF35]/15 text-[#8b6b1f]" : "bg-[#F8F9FA] text-zinc-500"}`}
           >
             Gold
           </button>
           <button
             onClick={() => {/* metal toggle handled by parent */}}
-            className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${metal === "silver" ? "bg-[#9CA3AF]/15 text-[#D7DEEE]" : "bg-[#252A3A] text-[#B2B7CB]"}`}
+            className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${metal === "silver" ? "bg-[#9CA3AF]/15 text-[#4b5563]" : "bg-[#F8F9FA] text-zinc-500"}`}
           >
             Silver
           </button>
@@ -142,8 +142,8 @@ export default function PriceChart({ metal }: PriceChartProps) {
             onClick={() => setCurrency(c)}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
               currency === c
-                ? "bg-[#725eb5]/25 text-[#eceff8]"
-                : "bg-[#252A3A] text-[#B2B7CB] hover:text-[#ECEFF8]"
+                ? "bg-[#C41E3A]/10 text-[#C41E3A]"
+                : "bg-[#F8F9FA] text-zinc-500 hover:text-[#111827]"
             }`}
           >
             {c}
@@ -159,8 +159,8 @@ export default function PriceChart({ metal }: PriceChartProps) {
             onClick={() => setRange(r)}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${
               range === r
-                ? "bg-[#D7AF35]/15 text-[#F8DF8A]"
-                : "bg-[#252A3A] text-[#B2B7CB] hover:text-[#ECEFF8]"
+                ? "bg-[#C41E3A]/10 text-[#C41E3A]"
+                : "bg-[#F8F9FA] text-zinc-500 hover:text-[#111827]"
             }`}
           >
             {r}
@@ -171,10 +171,10 @@ export default function PriceChart({ metal }: PriceChartProps) {
       {/* Chart */}
       {loading ? (
         <div className="flex items-center justify-center h-64 md:h-72">
-          <Loader2 className="h-5 w-5 animate-spin text-[#8B92AA]" />
+          <Loader2 className="h-5 w-5 animate-spin text-zinc-400" />
         </div>
       ) : chartData.length === 0 ? (
-        <div className="flex items-center justify-center h-64 md:h-72 text-sm text-[#8B92AA]">
+        <div className="flex items-center justify-center h-64 md:h-72 text-sm text-zinc-400">
           No data available for this range.
         </div>
       ) : (
@@ -187,13 +187,13 @@ export default function PriceChart({ metal }: PriceChartProps) {
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
                 minTickGap={28}
                 interval="preserveStartEnd"
-                stroke="#2a2a2a"
+                stroke="#E8E8E8"
               />
               <YAxis
                 tickFormatter={(v) => `${Math.round(v as number)}`}
                 tick={{ fontSize: 11, fill: "#9ca3af" }}
                 width={60}
-                stroke="#2a2a2a"
+                stroke="#E8E8E8"
                 domain={yDomain}
               />
               <Tooltip
@@ -205,10 +205,10 @@ export default function PriceChart({ metal }: PriceChartProps) {
                     : d.toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" });
                 }}
                 contentStyle={{
-                  backgroundColor: "#1a1a1a",
-                  border: "1px solid #2a2a2a",
+                  backgroundColor: "#ffffff",
+                  border: "1px solid #E8E8E8",
                   borderRadius: "8px",
-                  color: "#f5f5f5",
+                  color: "#111827",
                 }}
               />
               <Line type="monotone" dataKey="price" stroke={lineColor} strokeWidth={2.2} dot={false} />
@@ -219,16 +219,16 @@ export default function PriceChart({ metal }: PriceChartProps) {
 
       {/* Current asset summary */}
       {lastPoint && (
-        <div className="mt-5 rounded-xl border border-[#3c4256] bg-[#252A3A]/80 p-4">
-          <p className="text-[11px] uppercase tracking-[0.16em] text-[#8B92AA]">Current Selected Asset</p>
+        <div className="mt-5 rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
+          <p className="text-[11px] uppercase tracking-[0.16em] text-zinc-400">Current Selected Asset</p>
           <div className="mt-1 flex flex-wrap items-center gap-3">
-            <span className="text-2xl font-black text-[#ECEFF8]">
+            <span className="text-2xl font-black text-[#111827]">
               {formatCurrencyValue(displayPrice, currency)}
             </span>
-            <span className={`inline-flex items-center gap-1 text-sm font-semibold ${isUp ? "text-emerald-300" : "text-red-300"}`}>
+            <span className={`inline-flex items-center gap-1 text-sm font-semibold ${isUp ? "text-emerald-600" : "text-red-500"}`}>
               {isUp ? "▲" : "▼"} {formatCurrencyValue(Math.abs(liveChange), currency)} ({isUp ? "+" : ""}{livePct.toFixed(2)}%)
             </span>
-            <span className="text-xs text-[#8B92AA]">{metal === "gold" ? "Per 10 gm" : "Per 1 kg"}</span>
+            <span className="text-xs text-zinc-400">{metal === "gold" ? "Per 10 gm" : "Per 1 kg"}</span>
           </div>
         </div>
       )}

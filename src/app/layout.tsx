@@ -6,7 +6,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "sonner";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import ChatbotWidget from "@/app/components/ChatbotWidget";
-import CursorFollower from "@/components/landing/cursor-follower";
+import AuthenticatedShell from "@/app/components/AuthenticatedShell";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display" });
@@ -34,10 +34,9 @@ export default function RootLayout({
               enableSystem
               disableTransitionOnChange
             >
-              {children}
+              <AuthenticatedShell>{children}</AuthenticatedShell>
               <ChatbotWidget />
               <Toaster />
-              <CursorFollower />
             </NextThemesProvider>
           </AuthProvider>
         </GoogleOAuthProvider>

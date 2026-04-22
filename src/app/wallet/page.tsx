@@ -3,8 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
-import AppShell from "@/app/components/AppShell";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
 import { CompoundingProjectionModal } from "@/app/components/wallet/CompoundingProjectionModal";
 import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
@@ -14,22 +12,23 @@ import { RewardsTab } from "@/app/components/wallet/tabs/RewardsTab";
 import { HistoryTab } from "@/app/components/wallet/tabs/HistoryTab";
 import { LiquidityProviderTab } from "@/app/components/wallet/tabs/LiquidityProviderTab";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Drawer,
-  DrawerClose,
   DrawerContent,
   DrawerDescription,
-  DrawerFooter,
   DrawerHeader,
   DrawerTitle,
 } from "@/components/ui/drawer";
-import { getWalletData, getDashboardData, getKycStatus, getWalletCurrentCycleHistory } from "@/actions/user";
+import {
+  getWalletData,
+  getDashboardData,
+  getKycStatus,
+  getWalletCurrentCycleHistory,
+} from "@/actions/user";
 import { KycStatus } from "@/types";
-import { X, AlertCircle } from "lucide-react";
+import { AlertCircle, ArrowUp, BadgeDollarSign, Wallet as WalletIcon } from "lucide-react";
 
-// Interfaces for wallet page data
 interface WalletTransaction {
   _id: string;
   userId: string;
@@ -49,7 +48,15 @@ interface WalletTransaction {
   meta: {
     unlockedLevel?: number;
     rule?: string;
-    progressAtUnlock?: number | { team?: number; directs?: number; activeLegs?: number; activeTeam?: number; testQualified?: number };
+    progressAtUnlock?:
+      | number
+      | {
+          team?: number;
+          directs?: number;
+          activeLegs?: number;
+          activeTeam?: number;
+          testQualified?: number;
+        };
     senderId?: string;
     senderName?: string;
     recipientId?: string;
@@ -62,21 +69,21 @@ interface WalletTransaction {
     reference?: string;
     currencyCode?: string;
     amountLocal?: number;
-    [key: string]: unknown; // Allow other meta fields
+    [key: string]: unknown;
   };
 }
 
 interface LockedBonus {
-    level: number;
-    name: string;
-    lockedAmount: number;
-    isUnlocked: boolean;
-    unlockRequirement: string;
-    progress: {
-        activeLegs?: { current: number; required: number; depth?: number };
-        activeTeam?: { current: number; required: number };
-        testQualified?: { current: number; required: number };
-    };
+  level: number;
+  name: string;
+  lockedAmount: number;
+  isUnlocked: boolean;
+  unlockRequirement: string;
+  progress: {
+    activeLegs?: { current: number; required: number; depth?: number };
+    activeTeam?: { current: number; required: number };
+    testQualified?: { current: number; required: number };
+  };
 }
 
 interface WalletSummary {
@@ -135,13 +142,6 @@ interface CurrentCycleHistory {
 const formatCurrency = (amount: number) =>
   amount.toLocaleString("en-IN", { style: "currency", currency: "INR" });
 
-const formatOptionalCurrency = (amount?: number | null) =>
-  amount === undefined || amount === null ? "N/A" : formatCurrency(amount);
-
-const formatDate = (value?: string | null) =>
-  value ? new Date(value).toLocaleDateString() : "N/A";
-
-
 const WalletPage = () => {
   const { isAuthenticated, loading: authLoading, user } = useAuth();
   const router = useRouter();
@@ -153,16 +153,12 @@ const WalletPage = () => {
   const [cycleOpen, setCycleOpen] = useState(false);
   const [walletError, setWalletError] = useState<string | null>(null);
   const [dashboardError, setDashboardError] = useState<string | null>(null);
-  const [kycError, setKycError] = useState<string | null>(null);
   const [cycleError, setCycleError] = useState<string | null>(null);
   const [walletLoading, setWalletLoading] = useState(true);
   const [dashboardLoading, setDashboardLoading] = useState(true);
   const [cycleLoading, setCycleLoading] = useState(true);
-  const [profileData, setProfileData] = useState<{ fullName?: string; profilePicture?: string; } | null>(null);
-  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
-  
-  // Drawer states
-const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
+
+  const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
   const [transferDrawerOpen, setTransferDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
 
@@ -172,8 +168,8 @@ const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
     setCycleLoading(true);
     setWalletError(null);
     setDashboardError(null);
-    setKycError(null);
     setCycleError(null);
+
     try {
       let resolvedSummary: WalletSummary | null = null;
       const [walletResult, dashboardResult, kycResult, cycleResult] =
@@ -190,23 +186,22 @@ const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
           setWalletError(walletRes.error);
           setTransactions([]);
         } else {
-          console.log("Wallet API response:", walletRes);
           const walletPayload = walletRes as WalletLedgerResponse | WalletTransaction[];
           if (Array.isArray(walletPayload)) {
             setTransactions(walletPayload);
           } else {
             setTransactions(walletPayload.ledger || []);
           }
+
           if (!Array.isArray(walletPayload)) {
-            // Try summary nested, then root-level, then data-wrapped
             const raw = walletPayload as Record<string, unknown>;
             const summaryFromPayload =
               walletPayload.summary ??
               ((walletPayload as WalletSummary).availableBalance !== undefined
                 ? (walletPayload as WalletSummary)
                 : null);
+
             if (summaryFromPayload) {
-              // Extract sgchainStakingBalance from summary, root, or data-wrapped response
               const summaryAny = summaryFromPayload as unknown as Record<string, unknown>;
               const stakingBalance =
                 summaryAny.sgchainStakingBalance ??
@@ -237,19 +232,10 @@ const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
             resolvedSummary = {
               ...dashWallet,
               sgchainStakingBalance:
-                dashWallet.sgchainStakingBalance ??
-                dashboardRes.sgchainStakingBalance ??
-                0,
+                dashWallet.sgchainStakingBalance ?? dashboardRes.sgchainStakingBalance ?? 0,
             };
           }
           setWalletSummary(resolvedSummary);
-        }
-        // Extract profile and rank for AppShell
-        if (dashboardRes?.profile) {
-          setProfileData(dashboardRes.profile);
-        }
-        if (dashboardRes?.rank || dashboardRes?.performanceRank) {
-          setRankData(dashboardRes.rank || dashboardRes.performanceRank);
         }
       } else {
         setDashboardError("Unable to load dashboard summary.");
@@ -258,13 +244,9 @@ const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
 
       if (kycResult.status === "fulfilled") {
         const kycData = kycResult.value;
-        if (kycData?.error) {
-          setKycError(kycData.error);
-        } else {
+        if (!kycData?.error) {
           setKycStatus(kycData);
         }
-      } else {
-        setKycError("Unable to load KYC status.");
       }
 
       if (cycleResult.status === "fulfilled") {
@@ -282,7 +264,6 @@ const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
     } catch (err) {
       const message = err instanceof Error ? err.message : "An unknown error occurred";
       setWalletError(message);
-    } finally {
     }
   }, []);
 
@@ -298,190 +279,240 @@ const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
   }, [isAuthenticated, authLoading, router, fetchData]);
 
   if (authLoading) {
-    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#f8f9fa] text-[#0a0a0a]">
+        Loading...
+      </div>
+    );
   }
 
   const remainingWithdrawalLimit = Math.max(0, walletSummary?.remainingWithdrawalLimit ?? 0);
-  const cyclesList = cycleHistory?.cycles ?? [];
-  const cycleSummary = cycleHistory?.summary;
-  const cycleLedger = cycleHistory?.ledger ?? [];
-  const showCycleNote = (cycleSummary?.delta ?? 0) > 0.01;
   const summaryLoading = walletLoading && dashboardLoading;
-  const canShowActions = Boolean(walletSummary) && !walletError && !dashboardError;
-
-const handleWithdrawSuccess = () => {
-    setWithdrawDrawerOpen(false);
-    fetchData();
-  };
-
-  const handleTransferSuccess = () => {
-    setTransferDrawerOpen(false);
-    fetchData();
-  };
+  const usedWithdrawal = Math.max(
+    0,
+    (walletSummary?.withdrawalCap ?? 0) - (walletSummary?.remainingWithdrawalLimit ?? 0),
+  );
+  const capUsedPct = walletSummary?.withdrawalCap
+    ? Math.min(100, Math.round((usedWithdrawal / walletSummary.withdrawalCap) * 100))
+    : 0;
 
   return (
-    <AppShell
-      balance={walletSummary?.availableBalance}
-      userName={profileData?.fullName}
-      userRank={rankData?.name}
-      avatarUrl={profileData?.profilePicture}
-    >
-      <div className="dashboard-light-scope p-6 space-y-6">
-        {/* Header with Status Badges */}
-        <header className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white">My Wallet</h1>
-            <p className="text-gray-400 mt-1">Manage your funds, view transactions, and upgrade your plan.</p>
+    <div className="dashboard-light-scope space-y-5 p-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h1 className="text-4xl font-extrabold tracking-tight text-[#111827]">Wallet</h1>
+          <p className="mt-1 text-[17px] text-zinc-500">
+            Manage your balance, transfers and history
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2.5">
+          {kycStatus && (
+            <button
+              type="button"
+              onClick={() => router.push("/kyc")}
+              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] transition ${
+                kycStatus.status === "VERIFIED"
+                  ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
+                  : "bg-amber-50 text-amber-600 hover:bg-amber-100"
+              }`}
+            >
+              <span
+                className={`h-1.5 w-1.5 rounded-full ${
+                  kycStatus.status === "VERIFIED" ? "bg-emerald-500" : "bg-amber-500"
+                }`}
+              />
+              {kycStatus.status === "VERIFIED" ? "KYC Verified" : "KYC Pending"}
+            </button>
+          )}
+          <Button
+            onClick={() => setWithdrawDrawerOpen(true)}
+            className="rounded-xl bg-[#C41E3A] px-5 text-white hover:bg-[#ad1b34]"
+            disabled={!walletSummary}
+          >
+            <ArrowUp className="mr-1.5 h-4 w-4" /> Withdraw
+          </Button>
+        </div>
+      </header>
+
+      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">
+              Available Balance
+            </p>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C41E3A]/10 text-[#C41E3A]">
+              <WalletIcon className="h-4 w-4" />
+            </div>
           </div>
-          <div className="flex flex-wrap gap-2">
-            {kycStatus && (
-              <Badge
-                variant={kycStatus.status === "VERIFIED" ? "success" : "warning"}
-                className="cursor-pointer"
-                onClick={() => router.push("/kyc")}
-              >
-                KYC: {kycStatus.status === "VERIFIED" ? "Verified" : "Not Verified"}
-              </Badge>
-            )}
-            <Badge variant="outline" className="border-gray-700 text-gray-300">
-              Withdrawal Limit: {formatCurrency(remainingWithdrawalLimit)}
-            </Badge>
+          <p className="text-[42px] font-black leading-none tracking-tight text-[#111827]">
+            {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
+          </p>
+          <p className="mt-2 text-sm font-semibold text-emerald-600">{capUsedPct}% cap used</p>
+        </div>
+
+        <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">
+              Withdrawal Cap
+            </p>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
+              <BadgeDollarSign className="h-4 w-4" />
+            </div>
           </div>
-        </header>
+          <p className="text-[42px] font-black leading-none tracking-tight text-[#111827]">
+            {summaryLoading ? "—" : formatCurrency(walletSummary?.withdrawalCap ?? 0)}
+          </p>
+          <p className="mt-2 text-sm text-zinc-500">Total limit</p>
+        </div>
 
-        {/* Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <div className="flex justify-center">
-            <TabsList className="grid w-full grid-cols-5 max-w-xl bg-gray-900/40 border border-gray-800 rounded-2xl p-1">
-              <TabsTrigger value="overview">Overview</TabsTrigger>
-              <TabsTrigger value="transfer">SGChain</TabsTrigger>
-              <TabsTrigger value="rewards">Rewards</TabsTrigger>
-              <TabsTrigger value="history">History</TabsTrigger>
-              <TabsTrigger value="lp">LP Pool</TabsTrigger>
-            </TabsList>
+        <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+          <div className="mb-3 flex items-center justify-between">
+            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">
+              Total Withdrawn
+            </p>
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
+              <ArrowUp className="h-4 w-4" />
+            </div>
           </div>
+          <p className="text-[42px] font-black leading-none tracking-tight text-[#111827]">
+            {summaryLoading ? "—" : formatCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
+          </p>
+          <p className="mt-2 text-sm text-zinc-500">
+            {formatCurrency(remainingWithdrawalLimit)} remaining
+          </p>
+        </div>
+      </section>
 
-          {/* Overview Tab */}
-          <TabsContent value="overview">
-            <OverviewTab
-              walletSummary={walletSummary}
-              transactions={transactions}
-              cycleHistory={cycleHistory}
-              selectedCycleId={selectedCycleId}
-              setSelectedCycleId={setSelectedCycleId}
-              cycleOpen={cycleOpen}
-              setCycleOpen={setCycleOpen}
-              walletError={walletError}
-              dashboardError={dashboardError}
-              cycleError={cycleError}
-              summaryLoading={summaryLoading}
-              walletLoading={walletLoading}
-              cycleLoading={cycleLoading}
-              setCycleLoading={setCycleLoading}
-              setCycleError={setCycleError}
-              setCycleHistory={setCycleHistory}
-              remainingWithdrawalLimit={remainingWithdrawalLimit}
-onWithdrawClick={() => setWithdrawDrawerOpen(true)}
-              onTransferClick={() => setTransferDrawerOpen(true)}
-              onViewAllTransactions={() => setActiveTab("history")}
-            />
-          </TabsContent>
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <div className="rounded-2xl border border-[#E8E8E8] bg-white px-4 pt-3 shadow-sm">
+          <TabsList className="h-auto w-full justify-start gap-6 overflow-x-auto rounded-none border-b border-[#E8E8E8] bg-transparent p-0">
+            <TabsTrigger
+              value="overview"
+              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+            >
+              Overview
+            </TabsTrigger>
+            <TabsTrigger
+              value="transfer"
+              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+            >
+              SGChain
+            </TabsTrigger>
+            <TabsTrigger
+              value="rewards"
+              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+            >
+              Rewards
+            </TabsTrigger>
+            <TabsTrigger
+              value="history"
+              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+            >
+              History
+            </TabsTrigger>
+            <TabsTrigger
+              value="lp"
+              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+            >
+              LP Pool
+            </TabsTrigger>
+          </TabsList>
+        </div>
 
-          {/* Transfer Tab */}
-          <TabsContent value="transfer">
-            <TransferTab
-              currentBalance={walletSummary?.availableBalance ?? 0}
-              onSuccess={fetchData}
-            />
-          </TabsContent>
+        <TabsContent value="overview" className="mt-4">
+          <OverviewTab
+            walletSummary={walletSummary}
+            transactions={transactions}
+            cycleHistory={cycleHistory}
+            selectedCycleId={selectedCycleId}
+            setSelectedCycleId={setSelectedCycleId}
+            cycleOpen={cycleOpen}
+            setCycleOpen={setCycleOpen}
+            walletError={walletError}
+            dashboardError={dashboardError}
+            cycleError={cycleError}
+            summaryLoading={summaryLoading}
+            walletLoading={walletLoading}
+            cycleLoading={cycleLoading}
+            setCycleLoading={setCycleLoading}
+            setCycleError={setCycleError}
+            setCycleHistory={setCycleHistory}
+            remainingWithdrawalLimit={remainingWithdrawalLimit}
+            onWithdrawClick={() => setWithdrawDrawerOpen(true)}
+            onTransferClick={() => setTransferDrawerOpen(true)}
+            onViewAllTransactions={() => setActiveTab("history")}
+          />
+        </TabsContent>
 
-          {/* Rewards Tab */}
-          <TabsContent value="rewards">
-            <RewardsTab
-              bonuses={walletSummary?.bonuses}
-              loading={summaryLoading}
-              userId={user?.userId}
-            />
-          </TabsContent>
+        <TabsContent value="transfer" className="mt-4">
+          <TransferTab currentBalance={walletSummary?.availableBalance ?? 0} onSuccess={fetchData} />
+        </TabsContent>
 
-          {/* History Tab */}
-          <TabsContent value="history">
-            <HistoryTab
-              transactions={transactions}
-              loading={walletLoading}
-              error={walletError}
-            />
-          </TabsContent>
+        <TabsContent value="rewards" className="mt-4">
+          <RewardsTab bonuses={walletSummary?.bonuses} loading={summaryLoading} userId={user?.userId} />
+        </TabsContent>
 
-          {/* LP Pool Tab */}
-          <TabsContent value="lp">
-            <LiquidityProviderTab
-              availableBalance={walletSummary?.availableBalance ?? 0}
-              onSuccess={fetchData}
-            />
-          </TabsContent>
-        </Tabs>
+        <TabsContent value="history" className="mt-4">
+          <HistoryTab transactions={transactions} loading={walletLoading} error={walletError} />
+        </TabsContent>
 
-        {/* Drawers for Actions */}
-<Drawer open={withdrawDrawerOpen} onOpenChange={setWithdrawDrawerOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>Withdraw Funds</DrawerTitle>
-              <DrawerDescription>
-                Request a withdrawal from your available balance
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="px-6 py-4 overflow-y-auto max-h-[calc(100vh-200px)]">
-              {kycStatus?.status !== "VERIFIED" && (
-                <div className="mb-4 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3 flex items-start gap-3">
-                  <AlertCircle className="h-5 w-5 text-amber-400 shrink-0 mt-0.5" />
-                  <div>
-                    <p className="text-sm text-amber-200 font-medium">KYC Verification Required</p>
-                    <p className="text-xs text-amber-200/80 mt-1">
-                      You must complete KYC verification before withdrawing funds.
-                    </p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="mt-3 border-amber-400/40 text-amber-200 hover:bg-amber-500/10"
-                      onClick={() => router.push("/kyc")}
-                    >
-                      Complete KYC
-                    </Button>
-                  </div>
+        <TabsContent value="lp" className="mt-4">
+          <LiquidityProviderTab availableBalance={walletSummary?.availableBalance ?? 0} onSuccess={fetchData} />
+        </TabsContent>
+      </Tabs>
+
+      <Drawer open={withdrawDrawerOpen} onOpenChange={setWithdrawDrawerOpen}>
+        <DrawerContent className="border-[#E8E8E8] bg-white">
+          <DrawerHeader>
+            <DrawerTitle className="text-[#111827]">Withdraw Funds</DrawerTitle>
+            <DrawerDescription>Request a withdrawal from your available balance</DrawerDescription>
+          </DrawerHeader>
+          <div className="max-h-[calc(100vh-200px)] overflow-y-auto px-6 py-4">
+            {kycStatus?.status !== "VERIFIED" && (
+              <div className="mb-4 flex items-start gap-3 rounded-xl border border-amber-500/30 bg-amber-500/10 px-4 py-3">
+                <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
+                <div>
+                  <p className="text-sm font-medium text-amber-700">KYC Verification Required</p>
+                  <p className="mt-1 text-xs text-amber-700/90">
+                    You must complete KYC verification before withdrawing funds.
+                  </p>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="mt-3 border-amber-400/50 text-amber-700 hover:bg-amber-50"
+                    onClick={() => router.push("/kyc")}
+                  >
+                    Complete KYC
+                  </Button>
                 </div>
-              )}
-              <WithdrawalRequest
-                currentBalance={walletSummary?.availableBalance ?? 0}
-                kycStatus={kycStatus?.status}
-                remainingWithdrawalLimit={remainingWithdrawalLimit}
-              />
-            </div>
-          </DrawerContent>
-        </Drawer>
+              </div>
+            )}
+            <WithdrawalRequest
+              currentBalance={walletSummary?.availableBalance ?? 0}
+              kycStatus={kycStatus?.status}
+              remainingWithdrawalLimit={remainingWithdrawalLimit}
+            />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
-        <Drawer open={transferDrawerOpen} onOpenChange={setTransferDrawerOpen}>
-          <DrawerContent>
-            <DrawerHeader>
-              <DrawerTitle>Transfer Funds</DrawerTitle>
-              <DrawerDescription>
-                Send funds to another user in your network
-              </DrawerDescription>
-            </DrawerHeader>
-            <div className="px-6 py-4 overflow-y-auto max-h-[calc(100vh-200px)]">
-              <p className="text-xs text-gray-400 mb-4">
-                Available Balance: {formatCurrency(walletSummary?.availableBalance ?? 0)}
-              </p>
-              <FundTransfer
-                currentBalance={walletSummary?.availableBalance ?? 0}
-              />
-            </div>
-          </DrawerContent>
-        </Drawer>
+      <Drawer open={transferDrawerOpen} onOpenChange={setTransferDrawerOpen}>
+        <DrawerContent className="border-[#E8E8E8] bg-white">
+          <DrawerHeader>
+            <DrawerTitle className="text-[#111827]">Transfer Funds</DrawerTitle>
+            <DrawerDescription>Send funds to another user in your network</DrawerDescription>
+          </DrawerHeader>
+          <div className="max-h-[calc(100vh-200px)] overflow-y-auto px-6 py-4">
+            <p className="mb-4 text-xs text-zinc-500">
+              Available Balance: {formatCurrency(walletSummary?.availableBalance ?? 0)}
+            </p>
+            <FundTransfer currentBalance={walletSummary?.availableBalance ?? 0} />
+          </div>
+        </DrawerContent>
+      </Drawer>
 
-        <CompoundingProjectionModal />
-      </div>
-    </AppShell>
+      <CompoundingProjectionModal />
+    </div>
   );
 };
 

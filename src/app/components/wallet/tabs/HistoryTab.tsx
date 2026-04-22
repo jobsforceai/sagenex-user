@@ -151,13 +151,13 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
 
   return (
     <div className="mt-6">
-      <Card className="bg-gray-900/40 border-gray-800 rounded-2xl">
+      <Card className="rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">
         <CardHeader>
-          <CardTitle>Wallet History</CardTitle>
+          <CardTitle className="text-[#111827]">Wallet History</CardTitle>
         </CardHeader>
         <CardContent>
           {error && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200 mb-4">
+            <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {error}
             </div>
           )}
@@ -169,10 +169,10 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
             </div>
           ) : transactions.length === 0 ? (
             <div className="text-center py-12">
-              <p className="text-gray-500 mb-4">No transactions found</p>
+              <p className="mb-4 text-zinc-500">No transactions found</p>
               <Button
                 onClick={() => window.location.reload()}
-                className="bg-emerald-500 hover:bg-emerald-600 text-black"
+                className="bg-[#C41E3A] text-white hover:bg-[#ad1b34]"
               >
                 Refresh
               </Button>
@@ -181,12 +181,12 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
             <div className="overflow-x-auto">
               <Table>
                 <TableHeader>
-                  <TableRow className="border-gray-700">
-                    <TableHead className="text-white">Details</TableHead>
-                    <TableHead className="text-white">Amount</TableHead>
-                    <TableHead className="text-white">Status</TableHead>
-                    <TableHead className="text-white">Date &amp; Time</TableHead>
-                    <TableHead className="text-white text-right">More</TableHead>
+                  <TableRow className="border-[#E8E8E8]">
+                    <TableHead className="text-zinc-500">Details</TableHead>
+                    <TableHead className="text-zinc-500">Amount</TableHead>
+                    <TableHead className="text-zinc-500">Status</TableHead>
+                    <TableHead className="text-zinc-500">Date &amp; Time</TableHead>
+                    <TableHead className="text-right text-zinc-500">More</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -217,7 +217,7 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
                     const rows = [
                       <TableRow
                         key={tx._id}
-                        className="border-gray-800 cursor-pointer hover:bg-gray-900/40"
+                        className="cursor-pointer border-[#E8E8E8] hover:bg-zinc-50"
                         onClick={() => setExpandedTxId(isExpanded ? null : tx._id)}
                         onKeyDown={(event) => {
                           if (event.key === "Enter" || event.key === " ") {
@@ -231,31 +231,31 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
                       >
                         <TableCell className="font-medium">
                           <div className="space-y-1">
-                            <div>{getTransactionTitle(tx)}</div>
-                            <span className="text-gray-500 text-xs block">
+                            <div className="font-medium text-[#111827]">{getTransactionTitle(tx)}</div>
+                            <span className="block text-xs text-zinc-500">
                               Type: {getTransactionTypeLabel(tx)}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className={tx.amount > 0 ? "text-green-400" : "text-red-400"}>
+                        <TableCell className={tx.amount > 0 ? "text-emerald-600" : "text-[#C41E3A]"}>
                           <div className="font-semibold">
                             {tx.amount > 0 ? "+" : ""}
                             {tx.amount.toFixed(2)} {tx.currency || "USDT"}
                           </div>
                           {tx.meta.amountLocal && tx.meta.currencyCode && (
-                            <div className="text-xs text-gray-400">
+                            <div className="text-xs text-zinc-400">
                               {tx.meta.amountLocal} {tx.meta.currencyCode}
                             </div>
                           )}
                         </TableCell>
                         <TableCell>
-                          <div>{tx.status}</div>
+                          <div className="text-[#111827]">{tx.status}</div>
                           {tx.method && (
-                            <div className="text-xs text-gray-400">{tx.method}</div>
+                            <div className="text-xs text-zinc-400">{tx.method}</div>
                           )}
                         </TableCell>
-                        <TableCell>{new Date(tx.createdAt).toLocaleString()}</TableCell>
-                        <TableCell className="text-right text-gray-400">
+                        <TableCell className="text-zinc-500">{new Date(tx.createdAt).toLocaleString()}</TableCell>
+                        <TableCell className="text-right text-zinc-400">
                           {isExpanded ? (
                             <ChevronUp className="inline h-4 w-4" />
                           ) : (
@@ -267,37 +267,37 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
 
                     if (isExpanded) {
                       rows.push(
-                        <TableRow key={`${tx._id}-expanded`} className="border-gray-800 bg-black/30">
+                        <TableRow key={`${tx._id}-expanded`} className="border-[#E8E8E8] bg-[#F8F9FA]">
                           <TableCell colSpan={5} className="py-4">
                             <div className="space-y-4">
                               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                                 {detailItems.map(([label, value]) => (
                                   <div
                                     key={label}
-                                    className="rounded-lg border border-gray-800 bg-gray-900/40 px-3 py-2"
+                                    className="rounded-lg border border-[#E8E8E8] bg-white px-3 py-2"
                                   >
-                                    <p className="text-xs uppercase tracking-wide text-gray-500">
+                                    <p className="text-xs uppercase tracking-wide text-zinc-400">
                                       {label}
                                     </p>
-                                    <p className="text-gray-200 break-all">{value}</p>
+                                    <p className="break-all text-[#111827]">{value}</p>
                                   </div>
                                 ))}
                               </div>
                               {metaEntries.length > 0 && (
-                                <div className="border-t border-gray-800 pt-4">
-                                  <p className="text-xs uppercase tracking-wide text-gray-500 mb-2">
+                                <div className="border-t border-[#E8E8E8] pt-4">
+                                  <p className="mb-2 text-xs uppercase tracking-wide text-zinc-400">
                                     Meta
                                   </p>
                                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-sm">
                                     {metaEntries.map(([label, value]) => (
                                       <div
                                         key={label}
-                                        className="rounded-lg border border-gray-800 bg-gray-900/40 px-3 py-2"
+                                        className="rounded-lg border border-[#E8E8E8] bg-white px-3 py-2"
                                       >
-                                        <p className="text-xs uppercase tracking-wide text-gray-500">
+                                        <p className="text-xs uppercase tracking-wide text-zinc-400">
                                           {label}
                                         </p>
-                                        <div className="mt-1 text-gray-200 break-all">
+                                        <div className="mt-1 break-all text-[#111827]">
                                           {renderMetaValue(value)}
                                         </div>
                                       </div>

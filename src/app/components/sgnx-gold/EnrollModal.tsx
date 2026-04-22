@@ -86,58 +86,58 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="border-[#3c4256] bg-[#1B1F2D] text-[#ECEFF8] sm:max-w-lg">
+      <DialogContent className="border-[#E8E8E8] bg-white text-[#111827] sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle className="text-lg font-black text-[#ECEFF8]">New SGNX Gold Investment</DialogTitle>
-          <DialogDescription className="text-[#8B92AA]">
+          <DialogTitle className="text-lg font-black text-[#111827]">New SGNX Gold Investment</DialogTitle>
+          <DialogDescription className="text-zinc-500">
             Choose a plan, pick a slab, and start your 11-month investment.
           </DialogDescription>
         </DialogHeader>
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <Loader2 className="h-6 w-6 animate-spin text-[#D7AF35]" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#C41E3A]" />
           </div>
         ) : (
           <div className="space-y-5 pt-2">
             {/* Wallet Balance */}
-            <div className="flex items-center justify-between rounded-2xl border border-emerald-400/20 bg-[#252A3A]/90 px-4 py-3">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8B92AA]">Sagenex Wallet</span>
-              <span className="text-lg font-extrabold text-emerald-300">{fmtUSD(walletBalance)}</span>
+            <div className="flex items-center justify-between rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA] px-4 py-3">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Sagenex Wallet</span>
+              <span className="text-lg font-extrabold text-[#111827]">{fmtUSD(walletBalance)}</span>
             </div>
 
             {/* Plan Type */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8B92AA]">Plan Type</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Plan Type</p>
               <div className="grid grid-cols-2 gap-3">
                 <button
                   onClick={() => setPlanType("gold")}
                   className={`rounded-2xl border p-4 text-left transition ${
                     planType === "gold"
-                      ? "border-[#D7AF35]/50 bg-[#D7AF35]/10"
-                      : "border-[#3c4256] bg-[#252A3A] hover:border-[#D7AF35]/30"
+                      ? "border-[#D7AF35]/40 bg-[#F8F9FA]"
+                      : "border-[#E8E8E8] bg-white hover:border-[#D7AF35]/30"
                   }`}
                 >
-                  <p className={`text-sm font-extrabold ${planType === "gold" ? "text-[#F8DF8A]" : "text-[#ECEFF8]"}`}>Gold Plan</p>
-                  <p className="text-xs text-[#8B92AA] mt-0.5">{config ? `${config.goldBonusMultiplier}x gold bonus` : ""}</p>
+                  <p className={`text-sm font-extrabold ${planType === "gold" ? "text-[#111827]" : "text-[#111827]"}`}>Gold Plan</p>
+                  <p className="mt-0.5 text-xs text-zinc-400">{config ? `${config.goldBonusMultiplier}x gold bonus` : ""}</p>
                 </button>
                 <button
                   onClick={() => setPlanType("cash")}
                   className={`rounded-2xl border p-4 text-left transition ${
                     planType === "cash"
-                      ? "border-[#8a77c8]/50 bg-[#8a77c8]/10"
-                      : "border-[#3c4256] bg-[#252A3A] hover:border-[#8a77c8]/30"
+                      ? "border-[#E8E8E8] bg-[#F8F9FA]"
+                      : "border-[#E8E8E8] bg-white hover:border-[#E8E8E8]"
                   }`}
                 >
-                  <p className={`text-sm font-extrabold ${planType === "cash" ? "text-[#c8b8f0]" : "text-[#ECEFF8]"}`}>Cash Plan</p>
-                  <p className="text-xs text-[#8B92AA] mt-0.5">{config ? `${config.cashBonusMultiplier}x cash bonus` : ""}</p>
+                  <p className={`text-sm font-extrabold ${planType === "cash" ? "text-[#111827]" : "text-[#111827]"}`}>Cash Plan</p>
+                  <p className="mt-0.5 text-xs text-zinc-400">{config ? `${config.cashBonusMultiplier}x cash bonus` : ""}</p>
                 </button>
               </div>
             </div>
 
             {/* Slab Picker */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8B92AA]">Monthly Investment</p>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Monthly Investment</p>
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {config?.slabs.map((slab) => {
                   const isSelected = selectedSlab?.amountInr === slab.amountInr;
@@ -149,17 +149,17 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
                       disabled={!canAfford}
                       className={`relative rounded-xl border px-3 py-3 text-center transition-all ${
                         isSelected
-                          ? "border-[#D7AF35]/60 bg-[#D7AF35]/12 ring-1 ring-[#D7AF35]/30"
+                          ? "border-[#D7AF35]/40 bg-[#F8F9FA] ring-1 ring-[#D7AF35]/20"
                           : canAfford
-                            ? "border-[#3c4256] bg-[#252A3A] hover:border-[#D7AF35]/30"
-                            : "border-[#3c4256] bg-[#252A3A]/50 opacity-40 cursor-not-allowed"
+                            ? "border-[#E8E8E8] bg-white hover:border-[#D7AF35]/30"
+                            : "border-[#E8E8E8] bg-[#F8F9FA] opacity-40 cursor-not-allowed"
                       }`}
                     >
                       {isSelected && (
-                        <CheckCircle2 className="absolute top-1.5 right-1.5 h-3.5 w-3.5 text-[#D7AF35]" />
+                        <CheckCircle2 className="absolute top-1.5 right-1.5 h-3.5 w-3.5 text-[#C41E3A]" />
                       )}
-                      <p className="text-sm font-extrabold text-[#ECEFF8]">{fmtINR(slab.amountInr)}</p>
-                      <p className="text-[11px] text-[#8B92AA]">{fmtUSD(slab.amountUsd)}/mo</p>
+                      <p className="text-sm font-extrabold text-[#111827]">{fmtINR(slab.amountInr)}</p>
+                      <p className="text-[11px] text-zinc-400">{fmtUSD(slab.amountUsd)}/mo</p>
                     </button>
                   );
                 })}
@@ -168,21 +168,21 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
 
             {/* Bonus Preview */}
             {selectedSlab && (
-              <div className="rounded-xl border border-[#D7AF35]/25 bg-[#D7AF35]/8 px-4 py-3 text-sm font-semibold text-[#F8DF8A]">
+              <div className="rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] px-4 py-3 text-sm font-semibold text-[#111827]">
                 {bonusLabel} &bull; {config?.totalMonths} months
               </div>
             )}
 
             {/* Referral Code */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#8B92AA]">
-                Referral Code <span className="text-[#3c4256]">(optional)</span>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">
+                Referral Code <span className="text-zinc-500">(optional)</span>
               </p>
               <input
                 value={referralCode}
                 onChange={(e) => setReferralCode(e.target.value)}
                 placeholder="Enter sponsor's referral code"
-                className="w-full rounded-xl border border-[#3c4256] bg-[#252A3A] px-4 py-2.5 text-sm text-[#ECEFF8] placeholder:text-[#4a5068] outline-none focus:border-[#D7AF35]/40 transition"
+                className="w-full rounded-xl border border-[#E8E8E8] bg-white px-4 py-2.5 text-sm text-[#111827] placeholder:text-zinc-400 outline-none focus:border-[#D7AF35]/40 transition"
               />
             </div>
 
@@ -190,7 +190,7 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
             <button
               onClick={handleEnroll}
               disabled={!selectedSlab || submitting}
-              className="w-full rounded-xl bg-[#D7AF35] px-5 py-3 text-sm font-extrabold text-[#171B27] transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full rounded-xl bg-[#C41E3A] px-5 py-3 text-sm font-extrabold text-white transition hover:brightness-110 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {submitting ? (
                 <span className="flex items-center justify-center gap-2">

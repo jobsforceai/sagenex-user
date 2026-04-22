@@ -155,16 +155,16 @@ export const OverviewTab = ({
 
       {/* Error Messages */}
       {(walletError || dashboardError) && (
-        <Card className="bg-red-500/10 border border-red-500/30">
+        <Card className="border border-red-200 bg-red-50">
           <CardContent className="py-4 flex items-start gap-3">
-            <AlertCircle className="h-5 w-5 text-red-400 shrink-0 mt-0.5" />
-            <p className="text-sm text-red-200">{walletError || dashboardError}</p>
+            <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-red-500" />
+            <p className="text-sm text-red-700">{walletError || dashboardError}</p>
           </CardContent>
         </Card>
       )}
 
       {/* Helper Text */}
-      <p className="text-xs text-gray-500 px-1">
+      <p className="px-1 text-xs text-zinc-500">
         Locked earnings are released when you reinvest and count toward your new cap.
       </p>
 
@@ -176,34 +176,34 @@ export const OverviewTab = ({
       />
 
       {/* Current Cycle Earnings */}
-      <Card className="bg-gray-900/40 border-gray-800 rounded-2xl">
-        <CardHeader className="space-y-4 border-b border-gray-800">
+      <Card className="rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">
+        <CardHeader className="space-y-4 border-b border-[#E8E8E8]">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="space-y-1">
-              <CardTitle>Earnings This Cycle</CardTitle>
-              <p className="text-xs text-gray-500">
+              <CardTitle className="text-[#111827]">Earnings This Cycle</CardTitle>
+              <p className="text-xs text-zinc-500">
                 {formatDate(cycleSummary?.cycleStart)} - {formatDate(cycleSummary?.cycleEnd)}
               </p>
             </div>
             <button
               type="button"
               onClick={() => setCycleOpen(!cycleOpen)}
-              className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-4 py-2 text-xs font-semibold text-emerald-200 transition hover:border-emerald-400/60 hover:text-emerald-100"
+              className="inline-flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 py-2 text-xs font-semibold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100"
             >
               {cycleOpen ? "Hide details" : "Show details"}
               {cycleOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
           </div>
           <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_260px]">
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-5 py-4 text-sm text-gray-200">
-              <p className="text-[11px] uppercase tracking-[0.3em] text-emerald-200/70">Earned so far</p>
-              <p className="mt-2 text-2xl font-semibold text-white">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-5 py-4 text-sm text-zinc-700">
+              <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-emerald-700">Earned so far</p>
+              <p className="mt-2 text-2xl font-black text-[#111827]">
                 {cycleLoading ? "—" : formatOptionalCurrency(cycleSummary?.currentCycleEarnings)}
               </p>
             </div>
             {cyclesList.length > 0 && (
               <div className="flex flex-col gap-2">
-                <label htmlFor="cycleSelect" className="text-xs uppercase tracking-[0.25em] text-gray-500">
+                <label htmlFor="cycleSelect" className="text-xs font-bold uppercase tracking-[0.08em] text-zinc-400">
                   Cycle
                 </label>
                 <div className="relative">
@@ -230,7 +230,7 @@ export const OverviewTab = ({
                         .catch(() => setCycleError("Unable to load cycle earnings."))
                         .finally(() => setCycleLoading(false));
                     }}
-                    className="w-full appearance-none rounded-xl border border-gray-700 bg-black/40 px-4 py-3 text-sm text-gray-200 focus:border-emerald-400/60 focus:outline-none"
+                    className="w-full appearance-none rounded-xl border border-[#E8E8E8] bg-white px-4 py-3 text-sm text-[#111827] focus:border-emerald-500 focus:outline-none"
                   >
                     <option value="current">Current cycle</option>
                     {cyclesList.map((cycle) => (
@@ -239,7 +239,7 @@ export const OverviewTab = ({
                       </option>
                     ))}
                   </select>
-                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400" />
                 </div>
               </div>
             )}
@@ -248,12 +248,12 @@ export const OverviewTab = ({
         {cycleOpen && (
           <CardContent className="space-y-4">
             {cycleError && (
-              <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-200">
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-xs text-red-700">
                 {cycleError}
               </div>
             )}
             {showCycleNote && (
-              <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-xs text-emerald-200">
+              <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs text-emerald-700">
                 Includes locked earnings released after reinvestment.
               </div>
             )}
@@ -264,25 +264,25 @@ export const OverviewTab = ({
                 <Skeleton className="h-16 w-full" />
               </div>
             ) : cycleLedger.length === 0 ? (
-              <p className="rounded-xl border border-gray-800 bg-black/20 px-4 py-3 text-sm text-gray-500">
+              <p className="rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] px-4 py-3 text-sm text-zinc-500">
                 No earnings recorded for this cycle yet.
               </p>
             ) : (
-              <div className="divide-y divide-gray-800 rounded-2xl border border-gray-800 bg-black/30">
+              <div className="divide-y divide-[#E8E8E8] rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA]">
                 {cycleLedger.map((entry) => (
                   <div key={entry._id} className="flex flex-col gap-2 px-4 py-4 text-sm sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <p className="font-medium text-white">{entry.type}</p>
-                      <p className="text-xs text-gray-500">
+                      <p className="font-semibold text-[#111827]">{entry.type}</p>
+                      <p className="text-xs text-zinc-500">
                         {new Date(entry.createdAt).toLocaleString()}
                       </p>
                     </div>
                     <div className="text-left sm:text-right">
-                      <p className={entry.amount >= 0 ? "text-emerald-300" : "text-red-300"}>
+                      <p className={entry.amount >= 0 ? "text-emerald-600" : "text-[#C41E3A]"}>
                         {entry.amount >= 0 ? "+" : ""}
                         {formatCurrency(entry.amount)}
                       </p>
-                      <p className="text-xs text-gray-500">{entry.status}</p>
+                      <p className="text-xs text-zinc-500">{entry.status}</p>
                     </div>
                   </div>
                 ))}

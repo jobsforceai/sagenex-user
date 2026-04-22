@@ -5,7 +5,6 @@ import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import HeroButton from "../../components/ui/hero-button";
 import { useAuth } from "../context/AuthContext";
 import { getRankProgress } from "@/actions/user";
 import { stopImpersonation } from "@/actions/auth";
@@ -106,8 +105,8 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
     }
   }, [isAuthenticated, propUserLevel]);
 
-  const links = isAuthenticated ? authLinks : guestLinks;
-  const isLandingGuest = !isAuthenticated && pathname === "/";
+  const isLandingNavbar = pathname === "/";
+  const links = isLandingNavbar ? guestLinks : isAuthenticated ? authLinks : guestLinks;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname?.startsWith(href);
@@ -115,13 +114,13 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
   const navItemClass = (href: string) =>
     [
       "relative px-2 py-1 text-sm md:text-[15px] transition",
-      isLandingGuest
+      isLandingNavbar
         ? "text-white/75 hover:text-white"
         : scrolled
           ? "text-zinc-700 hover:text-zinc-900"
           : "text-zinc-800 hover:text-zinc-900",
       "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50 rounded-md",
-      isActive(href) && (isLandingGuest ? "text-emerald-300 font-semibold" : "text-[#00b386] font-semibold"),
+      isActive(href) && (isLandingNavbar ? "text-emerald-300 font-semibold" : "text-[#00b386] font-semibold"),
     ]
       .filter(Boolean)
       .join(" ");
@@ -291,7 +290,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
         <div
           className={[
             "mt-3 rounded-2xl border transition-all duration-300",
-            isLandingGuest
+            isLandingNavbar
               ? scrolled
                 ? "border-white/25 bg-[#6f0011]/80 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.32)]"
                 : "border-white/20 bg-[#7b0012]/45 backdrop-blur-xl shadow-[0_12px_50px_rgba(0,0,0,0.25)]"
@@ -318,7 +317,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   priority
                 />
               </span>
-              <span className={`text-base font-semibold tracking-tight group-hover:opacity-90 ${isLandingGuest ? "text-white" : "text-zinc-900"}`}>
+              <span className={`text-base font-semibold tracking-tight group-hover:opacity-90 ${isLandingNavbar ? "text-white" : "text-zinc-900"}`}>
                 Sagenex
               </span>
             </Link>
@@ -340,7 +339,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                       {l.label}
                       {/* Active underline */}
                       {isActive(l.href) && (
-                        <span className={`absolute left-2 right-2 -bottom-1 h-px rounded-full ${isLandingGuest ? "bg-emerald-300" : "bg-[#00b386]"}`} />
+                        <span className={`absolute left-2 right-2 -bottom-1 h-px rounded-full ${isLandingNavbar ? "bg-emerald-300" : "bg-[#00b386]"}`} />
                       )}
                     </Link>
                   );
@@ -350,7 +349,14 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
 
             {/* Right actions */}
             <div className="hidden md:flex items-center gap-4">
-              {isAuthenticated ? (
+              {isLandingNavbar ? (
+                <Link
+                  href={isAuthenticated ? "/dashboard" : "/login"}
+                  className="landing-nav-login-btn inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold text-white"
+                >
+                  {isAuthenticated ? "Dashboard" : "Login"}
+                </Link>
+              ) : isAuthenticated ? (
                 <>
                   {userLevel && variant === "full" && (
                     <div className="flex items-center gap-2 rounded-full bg-emerald-500/20 px-3 py-1.5 text-sm font-semibold text-emerald-300 border border-emerald-600/50">
@@ -361,10 +367,10 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   <button
                     onClick={handleSyncProfile}
                     disabled={cacheClearing}
-                    className="px-3.5 py-2 rounded-lg text-sm font-medium text-emerald-100/90 hover:text-emerald-50
-                             bg-linear-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500/95 hover:to-emerald-600/95
-                             shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_rgba(16,185,129,0.35)]
-                             focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70
+                    className="px-3.5 py-2 rounded-lg text-sm font-medium text-[#5a4527] hover:text-[#4b391f]
+                               bg-linear-to-b from-[#efe3cf] to-[#e1d0b5] hover:from-[#f3e8d8] hover:to-[#e7d8bf]
+                               shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_20px_rgba(131,108,73,0.16)]
+                               focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d9c49f]/70
                              disabled:opacity-60 disabled:cursor-not-allowed"
                   >
                     {cacheClearing ? "Syncing..." : "Sync Profile"}
@@ -380,16 +386,12 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   </button>
                 </>
               ) : (
-                isLandingGuest ? (
-                  <Link
-                    href="/login"
-                    className="landing-nav-login-btn inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold text-white"
-                  >
-                    Login
-                  </Link>
-                ) : (
-                  <HeroButton href="/login">Login</HeroButton>
-                )
+                <Link
+                  href="/login"
+                  className="landing-nav-login-btn inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold"
+                >
+                  Login
+                </Link>
               )}
             </div>
 
@@ -397,7 +399,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
             {variant === "full" && (
               <button
                 className={`md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50 ${
-                  isLandingGuest
+                  isLandingNavbar
                     ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
                     : "border-[#e8e8e8] bg-white text-zinc-700 hover:bg-[#f7f8fa]"
                 }`}
@@ -428,7 +430,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
               initial={false}
               animate={open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`md:hidden overflow-hidden rounded-b-2xl ${isLandingGuest ? "bg-[#3f0912]/95 border-t border-white/10" : "bg-white"}`}
+              className={`md:hidden overflow-hidden rounded-b-2xl ${isLandingNavbar ? "bg-[#3f0912]/95 border-t border-white/10" : "bg-white"}`}
             >
               <div className="px-4 pb-4 pt-1">
                 <nav className="flex flex-col">
@@ -443,11 +445,11 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                         onClick={() => setOpen(false)}
                         className={[
                           "flex items-center justify-between rounded-lg px-3 py-2 text-sm",
-                          isLandingGuest
+                          isLandingNavbar
                             ? "text-white/80 hover:text-white hover:bg-white/10"
                             : "text-zinc-700 hover:text-zinc-900 hover:bg-[#f7f8fa]",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70",
-                          isActive(l.href) && (isLandingGuest ? "bg-white/12 text-emerald-300" : "bg-[#e6f7f3] text-[#00b386]"),
+                          isActive(l.href) && (isLandingNavbar ? "bg-white/12 text-emerald-300" : "bg-[#e6f7f3] text-[#00b386]"),
                         ]
                           .filter(Boolean)
                           .join(" ")}
@@ -463,7 +465,15 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                 </nav>
 
                 <div className="mt-3">
-                  {isAuthenticated ? (
+                  {isLandingNavbar ? (
+                    <Link
+                      className="landing-nav-login-btn inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-sm font-semibold text-white"
+                      href={isAuthenticated ? "/dashboard" : "/login"}
+                      onClick={() => setOpen(false)}
+                    >
+                      {isAuthenticated ? "Dashboard" : "Login"}
+                    </Link>
+                  ) : isAuthenticated ? (
                     <div className="flex flex-col gap-2">
                       <button
                         onClick={() => {
@@ -471,10 +481,10 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                           handleSyncProfile();
                         }}
                         disabled={cacheClearing}
-                        className="w-full px-3.5 py-2 rounded-lg text-sm font-medium text-emerald-100/90 hover:text-emerald-50
-                                 bg-linear-to-b from-emerald-500 to-emerald-600 hover:from-emerald-500/95 hover:to-emerald-600/95
-                                 shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_8px_20px_rgba(16,185,129,0.35)]
-                                 focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70
+                          className="w-full px-3.5 py-2 rounded-lg text-sm font-medium text-[#5a4527] hover:text-[#4b391f]
+                                   bg-linear-to-b from-[#efe3cf] to-[#e1d0b5] hover:from-[#f3e8d8] hover:to-[#e7d8bf]
+                                   shadow-[inset_0_1px_0_rgba(255,255,255,0.7),0_8px_20px_rgba(131,108,73,0.16)]
+                                   focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d9c49f]/70
                                  disabled:opacity-60 disabled:cursor-not-allowed"
                       >
                         {cacheClearing ? "Syncing..." : "Sync Profile"}
@@ -509,18 +519,13 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                       </button>
                     </div>
                   ) : (
-                    isLandingGuest ? (
-                      <Link
-                        className="landing-nav-login-btn inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-sm font-semibold text-white"
-                        href="/login"
-                      >
-                        Login
-                      </Link>
-                    ) : (
-                      <HeroButton className="w-full justify-center" href="/login">
-                        Login
-                      </HeroButton>
-                    )
+                    <Link
+                      className="landing-nav-login-btn inline-flex w-full items-center justify-center rounded-full px-5 py-2 text-sm font-semibold"
+                      href="/login"
+                      onClick={() => setOpen(false)}
+                    >
+                      Login
+                    </Link>
                   )}
                 </div>
               </div>

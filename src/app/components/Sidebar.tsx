@@ -101,16 +101,14 @@ export default function Sidebar({ balance, userName, userRank, avatarUrl }: Side
             <Link
               key={href}
               href={href}
-              className={`flex h-9 items-center gap-3 rounded-lg px-3 text-sm transition-colors duration-150 ${
+              className={`flex h-9 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors duration-150 ${
                 active
-                  ? "bg-[#C41E3A08] font-medium text-[#C41E3A] border-l-[3px] border-[#C41E3A] rounded-l-none"
-                  : "text-zinc-500 hover:bg-[#f5f5f5] hover:text-zinc-700"
+                  ? "bg-[#C41E3A] text-white"
+                  : "text-zinc-500 hover:bg-[#C41E3A08] hover:text-zinc-700"
               }`}
             >
               <Icon
-                className={`h-4 w-4 shrink-0 ${
-                  active ? "text-[#C41E3A]" : "opacity-60"
-                }`}
+                className={`h-4 w-4 shrink-0 ${active ? "text-white" : "opacity-60"}`}
               />
               {label}
             </Link>
@@ -121,11 +119,11 @@ export default function Sidebar({ balance, userName, userRank, avatarUrl }: Side
       {/* Bottom: balance + logout */}
       <div className="shrink-0 border-t border-[#e8e8e8] p-4 space-y-2.5">
         {formattedBalance !== null && (
-          <div className="rounded-xl border border-[#e8e8e8] bg-[#f8f9fa] px-4 py-2.5">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">
+          <div className="rounded-xl bg-[#FFF0F2] px-4 py-2.5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-[#C41E3A] opacity-70">
               Available Balance
             </p>
-            <p className="mt-0.5 text-base font-bold text-[#00b386]">{formattedBalance}</p>
+            <p className="mt-0.5 text-[18px] font-black text-[#C41E3A]">{formattedBalance}</p>
           </div>
         )}
         <button

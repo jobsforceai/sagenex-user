@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import TreeClient from "./TreeClient";
-import AppShell from "@/app/components/AppShell";
 import PlacementQueue from "@/app/components/dashboard/PlacementQueue";
 import { Button } from "@/components/ui/button";
 import {
@@ -156,12 +155,7 @@ const TeamPage = () => {
   }
 
   return (
-    <AppShell
-      balance={walletData?.availableBalance}
-      userName={profileData?.fullName}
-      userRank={rankData?.name}
-      avatarUrl={profileData?.profilePicture}
-    >
+    <>
       <div className="dashboard-light-scope p-6 space-y-6">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -380,7 +374,7 @@ const TeamPage = () => {
           </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 };
 

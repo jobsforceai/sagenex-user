@@ -19,7 +19,7 @@ export default function Footer() {
           
           <div className="md:col-span-5 lg:col-span-4">
             <Link href="/" className="inline-block mb-6">
-              <span className="font-display font-extrabold text-3xl tracking-tight text-white">
+              <span className="font-display font-extrabold text-3xl tracking-tight text-black">
                 SAGE<span className="text-[var(--crimson)]">NEX</span>
               </span>
             </Link>

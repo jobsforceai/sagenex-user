@@ -336,16 +336,16 @@ const WithdrawalRequest = ({
 
   if (kycStatus !== "VERIFIED") {
     return (
-      <Card className={`bg-gray-900 border-gray-800 flex flex-col ${className ?? ''}`}>
+      <Card className={`flex flex-col border border-[#E8E8E8] bg-white ${className ?? ''}`}>
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-[#111827]">
             <DollarSign className="w-5 h-5" />
             Request Withdrawal
           </CardTitle>
         </CardHeader>
         <CardContent className="flex-1">
-          <div className="flex items-center gap-3 bg-yellow-900/50 text-yellow-300 p-4 rounded-md">
-            <AlertCircle className="w-5 h-5" />
+          <div className="flex items-center gap-3 rounded-md border border-amber-200 bg-amber-50 p-4 text-amber-700">
+            <AlertCircle className="h-5 w-5" />
             <p className="text-sm font-medium">Your KYC must be verified before you can make a withdrawal.</p>
           </div>
         </CardContent>
@@ -354,10 +354,10 @@ const WithdrawalRequest = ({
   }
 
   return (
-    <Card className={`bg-gray-900 border-gray-800 relative overflow-hidden flex flex-col ${className ?? ''}`}>
+    <Card className={`relative flex flex-col overflow-hidden border border-[#E8E8E8] bg-white ${className ?? ''}`}>
       {showConfetti && <Confetti />}
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
+        <CardTitle className="flex items-center gap-2 text-[#111827]">
           <DollarSign className="w-5 h-5" />
           Request Withdrawal
         </CardTitle>
@@ -368,7 +368,7 @@ const WithdrawalRequest = ({
           <select
             value={withdrawalType}
             onChange={(e) => setWithdrawalType(e.target.value as WithdrawalType)}
-            className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+            className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
           >
             <option value="crypto">Crypto</option>
             <option value="upi">UPI</option>
@@ -376,17 +376,17 @@ const WithdrawalRequest = ({
             <option value="cash">Cash</option>
           </select>
         </div>
-        <div className="hidden sm:flex gap-2 mb-4 border-b border-gray-700">
-          <Button variant={withdrawalType === "crypto" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("crypto")}>
+        <div className="mb-4 hidden gap-2 border-b border-[#E8E8E8] sm:flex">
+          <Button variant={withdrawalType === "crypto" ? "secondary" : "ghost"} className="text-[#111827]" onClick={() => setWithdrawalType("crypto")}>
             Crypto
           </Button>
-          <Button variant={withdrawalType === "upi" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("upi")}>
+          <Button variant={withdrawalType === "upi" ? "secondary" : "ghost"} className="text-[#111827]" onClick={() => setWithdrawalType("upi")}>
             UPI
           </Button>
-          <Button variant={withdrawalType === "bank" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("bank")}>
+          <Button variant={withdrawalType === "bank" ? "secondary" : "ghost"} className="text-[#111827]" onClick={() => setWithdrawalType("bank")}>
             Bank
           </Button>
-          <Button variant={withdrawalType === "cash" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("cash")} className="flex items-center gap-1">
+          <Button variant={withdrawalType === "cash" ? "secondary" : "ghost"} onClick={() => setWithdrawalType("cash")} className="flex items-center gap-1 text-[#111827]">
             <Banknote className="h-3.5 w-3.5" />
             Cash
           </Button>
@@ -396,37 +396,37 @@ const WithdrawalRequest = ({
             {/* Request form */}
             <form onSubmit={handleCashWithdrawal} className="space-y-3">
               <div>
-                <label className="block text-sm font-medium text-gray-400 mb-2">Amount (INR)</label>
+                <label className="mb-2 block text-sm font-medium text-zinc-600">Amount (INR)</label>
                 <Input
                   type="number"
                   value={cashAmount}
                   onChange={(e) => setCashAmount(e.target.value)}
                   placeholder={`Available: ₹${currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                  className="bg-gray-800 border-gray-600 text-white"
+                  className="border-[#E8E8E8] bg-white text-[#111827]"
                   min="0.01"
                   step="0.01"
                 />
-                <p className="text-xs text-gray-500 mt-1">
+                <p className="mt-1 text-xs text-zinc-500">
                   Amount is held immediately. Admin will contact you with pickup details.
                 </p>
               </div>
-              <Button type="submit" disabled={cashLoading} className="w-full bg-emerald-600 hover:bg-emerald-500">
+              <Button type="submit" disabled={cashLoading} className="w-full bg-[#C41E3A] text-white hover:bg-[#ad1b34]">
                 {cashLoading ? "Requesting..." : "Request Cash Withdrawal"}
               </Button>
             </form>
 
             {/* Existing cash withdrawal requests */}
             <div className="space-y-2 mt-2">
-              {cashWithdrawalsLoading && <p className="text-xs text-gray-400">Loading requests...</p>}
+              {cashWithdrawalsLoading && <p className="text-xs text-zinc-500">Loading requests...</p>}
               {cashWithdrawals.map((cw) => (
                 <div key={cw._id} className={`rounded-xl border p-3 space-y-2 text-sm ${
                   cw.status === 'CANCELLED' ? 'border-red-500/20 bg-red-500/5' :
                   cw.status === 'DELIVERED' ? 'border-emerald-500/20 bg-emerald-500/5' :
                   cw.status === 'SCHEDULED' ? 'border-blue-500/20 bg-blue-500/5' :
-                  'border-gray-700 bg-gray-800/40'
+                  'border-[#E8E8E8] bg-[#F8F9FA]'
                 }`}>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-white">₹{cw.amount.toLocaleString('en-IN')}</span>
+                    <span className="font-semibold text-[#111827]">₹{cw.amount.toLocaleString('en-IN')}</span>
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                       cw.status === 'CANCELLED' ? 'bg-red-500/20 text-red-300' :
                       cw.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-300' :
@@ -436,7 +436,7 @@ const WithdrawalRequest = ({
                   </div>
 
                   {cw.status === 'SCHEDULED' && (
-                    <div className="space-y-1 text-xs text-gray-300">
+                    <div className="space-y-1 text-xs text-zinc-600">
                       {cw.location && <div className="flex items-center gap-1.5"><MapPin className="h-3 w-3 text-blue-400" />{cw.location}</div>}
                       {cw.scheduledAt && <div className="flex items-center gap-1.5"><Calendar className="h-3 w-3 text-blue-400" />{new Date(cw.scheduledAt).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</div>}
                       {cw.contactName && <div className="flex items-center gap-1.5"><User className="h-3 w-3 text-blue-400" />{cw.contactName}</div>}
@@ -462,7 +462,7 @@ const WithdrawalRequest = ({
                     <Button
                       variant="outline"
                       size="sm"
-                      className="w-full border-red-500/30 text-red-300 hover:bg-red-500/10 text-xs"
+                      className="w-full border-red-300 text-red-700 hover:bg-red-50 text-xs"
                       disabled={cancellingId === cw._id}
                       onClick={() => handleCancelCash(cw._id)}
                     >
@@ -478,7 +478,7 @@ const WithdrawalRequest = ({
         {withdrawalType !== "cash" && step === 1 && (
           <form onSubmit={handleProceedToVerification} className="flex flex-col gap-4 flex-1">
             <div>
-              <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
+              <label htmlFor="amount" className="mb-2 block text-sm font-medium text-zinc-600">
                 Amount (INR)
               </label>
               <Input
@@ -488,13 +488,13 @@ const WithdrawalRequest = ({
                 value={amount}
                 onChange={handleAmountChange}
                 placeholder={`Available: ₹${maxWithdrawable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
-                className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                 required
                 min="0.01"
                 step="0.01"
               />
               {safeRemainingLimit !== null && (
-                <p className="text-xs text-gray-500 mt-2">
+                <p className="mt-2 text-xs text-zinc-500">
                   Remaining withdrawal limit: ${maxWithdrawable.toFixed(2)}
                 </p>
               )}
@@ -506,7 +506,7 @@ const WithdrawalRequest = ({
 
             {withdrawalType === "crypto" && (
               <div>
-                <label htmlFor="withdrawalAddress" className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="withdrawalAddress" className="mb-2 block text-sm font-medium text-zinc-600">
                   USDT (TRC20) Withdrawal Address
                 </label>
                 <Input
@@ -516,16 +516,16 @@ const WithdrawalRequest = ({
                   value={withdrawalAddress}
                   onChange={(e) => setWithdrawalAddress(e.target.value)}
                   placeholder="Enter your withdrawal address"
-                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                  className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                   required
                 />
-                <p className="text-xs text-gray-500 mt-1">This is pre-filled from your profile settings.</p>
+                <p className="mt-1 text-xs text-zinc-500">This is pre-filled from your profile settings.</p>
               </div>
             )}
 
             {withdrawalType === "upi" && (
               <div>
-                <label htmlFor="upiId" className="block text-sm font-medium text-gray-400 mb-2">
+                <label htmlFor="upiId" className="mb-2 block text-sm font-medium text-zinc-600">
                   UPI ID
                 </label>
                 <Input
@@ -535,7 +535,7 @@ const WithdrawalRequest = ({
                   value={upiId}
                   onChange={(e) => setUpiId(e.target.value)}
                   placeholder="yourname@oksbi"
-                  className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                  className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                   required
                 />
               </div>
@@ -544,7 +544,7 @@ const WithdrawalRequest = ({
             {withdrawalType === "bank" && (
               <div className="space-y-4">
                 <div>
-                  <label htmlFor="holderName" className="block text-sm font-medium text-gray-400 mb-2">
+                  <label htmlFor="holderName" className="mb-2 block text-sm font-medium text-zinc-600">
                     Account Holder Name
                   </label>
                   <Input
@@ -555,11 +555,11 @@ const WithdrawalRequest = ({
                     onChange={handleBankDetailsChange}
                     placeholder="John Doe"
                     required
-                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                   />
                 </div>
                 <div>
-                  <label htmlFor="accountNumber" className="block text-sm font-medium text-gray-400 mb-2">
+                  <label htmlFor="accountNumber" className="mb-2 block text-sm font-medium text-zinc-600">
                     Account Number
                   </label>
                   <Input
@@ -570,11 +570,11 @@ const WithdrawalRequest = ({
                     onChange={handleBankDetailsChange}
                     placeholder="1234567890"
                     required
-                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                   />
                 </div>
                 <div>
-                  <label htmlFor="ifscCode" className="block text-sm font-medium text-gray-400 mb-2">
+                  <label htmlFor="ifscCode" className="mb-2 block text-sm font-medium text-zinc-600">
                     IFSC Code
                   </label>
                   <Input
@@ -585,11 +585,11 @@ const WithdrawalRequest = ({
                     onChange={handleBankDetailsChange}
                     placeholder="SBIN0001234"
                     required
-                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                   />
                 </div>
                 <div>
-                  <label htmlFor="bankName" className="block text-sm font-medium text-gray-400 mb-2">
+                  <label htmlFor="bankName" className="mb-2 block text-sm font-medium text-zinc-600">
                     Bank Name
                   </label>
                   <Input
@@ -600,14 +600,14 @@ const WithdrawalRequest = ({
                     onChange={handleBankDetailsChange}
                     placeholder="State Bank of India"
                     required
-                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                   />
                 </div>
               </div>
             )}
 
             <div className="mt-auto pt-4">
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full bg-[#C41E3A] text-white hover:bg-[#ad1b34]">
                 Proceed to Verification
               </Button>
             </div>
@@ -616,8 +616,8 @@ const WithdrawalRequest = ({
 
         {withdrawalType !== "cash" && step === 2 && (
           <form onSubmit={handleWithdrawalRequest} className="flex flex-col gap-4 flex-1">
-            <div className="rounded-xl border border-gray-700/60 bg-gray-900/60 p-4 space-y-3">
-              <p className="text-xs uppercase tracking-[0.25em] text-gray-400">Verification</p>
+            <div className="space-y-3 rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
+              <p className="text-xs font-bold uppercase tracking-[0.08em] text-zinc-500">Verification</p>
               {!faceEnrolled && (
                 <div className="rounded-lg border border-emerald-500/20 bg-emerald-500/10 px-3 py-2 text-xs text-emerald-200">
                   Enable face verification for extra security.
@@ -636,7 +636,7 @@ const WithdrawalRequest = ({
                 </div>
               )}
               <div
-                className={`grid gap-2 rounded-lg bg-gray-800/50 p-1 ${
+                className={`grid gap-2 rounded-lg border border-[#E8E8E8] bg-white p-1 ${
                   faceApproved ? "sm:grid-cols-3" : "sm:grid-cols-2"
                 }`}
               >
@@ -646,8 +646,8 @@ const WithdrawalRequest = ({
                     onClick={() => setVerificationMethod("face")}
                     className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
                       verificationMethod === "face"
-                        ? "bg-emerald-600 text-white"
-                        : "text-gray-300 hover:bg-gray-700"
+                        ? "bg-[#C41E3A] text-white"
+                        : "text-zinc-600 hover:bg-zinc-100"
                     }`}
                   >
                     Use Face
@@ -659,8 +659,8 @@ const WithdrawalRequest = ({
                     onClick={() => setVerificationMethod("password")}
                     className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
                       verificationMethod === "password"
-                        ? "bg-emerald-600 text-white"
-                        : "text-gray-300 hover:bg-gray-700"
+                        ? "bg-[#C41E3A] text-white"
+                        : "text-zinc-600 hover:bg-zinc-100"
                     }`}
                   >
                     Use Password
@@ -671,8 +671,8 @@ const WithdrawalRequest = ({
                   onClick={() => setVerificationMethod("otp")}
                   className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
                     verificationMethod === "otp"
-                      ? "bg-emerald-600 text-white"
-                      : "text-gray-300 hover:bg-gray-700"
+                      ? "bg-[#C41E3A] text-white"
+                      : "text-zinc-600 hover:bg-zinc-100"
                   }`}
                 >
                   Use OTP
@@ -690,7 +690,7 @@ const WithdrawalRequest = ({
               )}
               {verificationMethod === "password" ? (
                 <div>
-                  <label htmlFor="withdrawal-password" className="block text-sm font-medium text-gray-300 mb-1">
+                  <label htmlFor="withdrawal-password" className="mb-1 block text-sm font-medium text-zinc-600">
                     Enter Password
                   </label>
                   <Input
@@ -699,13 +699,13 @@ const WithdrawalRequest = ({
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Your password"
-                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                    className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                     required
                   />
                 </div>
               ) : verificationMethod === "otp" ? (
                 <div className="space-y-2">
-                  <label htmlFor="withdrawal-otp" className="block text-sm font-medium text-gray-300 mb-1">
+                  <label htmlFor="withdrawal-otp" className="mb-1 block text-sm font-medium text-zinc-600">
                     Enter OTP
                   </label>
                   <div className="flex flex-col sm:flex-row gap-2">
@@ -715,7 +715,7 @@ const WithdrawalRequest = ({
                       value={otp}
                       onChange={(e) => setOtp(e.target.value)}
                       placeholder="123456"
-                      className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"
+                      className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                       required
                       maxLength={6}
                     />
@@ -723,7 +723,7 @@ const WithdrawalRequest = ({
                       type="button"
                       onClick={handleRequestOtp}
                       disabled={isSendingOtp || otpCooldown > 0}
-                      className="sm:w-48"
+                      className="sm:w-48 border-[#E8E8E8] text-[#111827] hover:bg-zinc-100"
                       variant="outline"
                     >
                       {isSendingOtp
@@ -741,7 +741,7 @@ const WithdrawalRequest = ({
               <Button type="button" variant="outline" onClick={() => setStep(1)} className="w-full">
                 Back
               </Button>
-              <Button type="submit" disabled={isLoading} className="w-full">
+              <Button type="submit" disabled={isLoading} className="w-full bg-[#C41E3A] text-white hover:bg-[#ad1b34]">
                 {isLoading ? "Submitting Request..." : "Request Withdrawal"}
               </Button>
             </div>
