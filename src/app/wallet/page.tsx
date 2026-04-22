@@ -12,6 +12,7 @@ import { OverviewTab } from "@/app/components/wallet/tabs/OverviewTab";
 import { TransferTab } from "@/app/components/wallet/tabs/TransferTab";
 import { RewardsTab } from "@/app/components/wallet/tabs/RewardsTab";
 import { HistoryTab } from "@/app/components/wallet/tabs/HistoryTab";
+import { LiquidityProviderTab } from "@/app/components/wallet/tabs/LiquidityProviderTab";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -351,11 +352,12 @@ const handleWithdrawSuccess = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <div className="flex justify-center">
-            <TabsList className="grid w-full grid-cols-4 max-w-md bg-gray-900/40 border border-gray-800 rounded-2xl p-1">
+            <TabsList className="grid w-full grid-cols-5 max-w-xl bg-gray-900/40 border border-gray-800 rounded-2xl p-1">
               <TabsTrigger value="overview">Overview</TabsTrigger>
               <TabsTrigger value="transfer">SGChain</TabsTrigger>
               <TabsTrigger value="rewards">Rewards</TabsTrigger>
               <TabsTrigger value="history">History</TabsTrigger>
+              <TabsTrigger value="lp">LP Pool</TabsTrigger>
             </TabsList>
           </div>
 
@@ -408,6 +410,14 @@ onWithdrawClick={() => setWithdrawDrawerOpen(true)}
               transactions={transactions}
               loading={walletLoading}
               error={walletError}
+            />
+          </TabsContent>
+
+          {/* LP Pool Tab */}
+          <TabsContent value="lp">
+            <LiquidityProviderTab
+              availableBalance={walletSummary?.availableBalance ?? 0}
+              onSuccess={fetchData}
             />
           </TabsContent>
         </Tabs>

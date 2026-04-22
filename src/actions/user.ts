@@ -940,3 +940,38 @@ export async function cancelUserCashWithdrawal(id: string) {
   });
   return handleApiResponse(res);
 }
+
+export async function getUserLP() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/lp/me`, {
+    headers: await getAuthHeaders(),
+    cache: 'no-store',
+  });
+  return handleApiResponse(res);
+}
+
+export async function depositToLP(amount: number, credentials: { type: 'OTP' | 'PASSWORD'; value: string }) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/lp/deposit`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ amount, credentials }),
+  });
+  return handleApiResponse(res);
+}
+
+export async function transferLPToUser(recipientId: string, amount: number, credentials: { type: 'OTP' | 'PASSWORD'; value: string }) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/lp/transfer`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ recipientId, amount, credentials }),
+  });
+  return handleApiResponse(res);
+}
+
+export async function withdrawFromLP(amount: number, credentials: { type: 'OTP' | 'PASSWORD'; value: string }) {
+  const res = await fetch(`${API_BASE_URL}/api/v1/lp/withdraw`, {
+    method: 'POST',
+    headers: await getAuthHeaders(),
+    body: JSON.stringify({ amount, credentials }),
+  });
+  return handleApiResponse(res);
+}
