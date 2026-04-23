@@ -4,7 +4,6 @@ import { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import AppShell from "@/app/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getAllCourses, getDashboardData } from "@/actions/user";
@@ -327,12 +326,7 @@ const CoursesPage = () => {
   }
 
   return (
-    <AppShell
-      balance={walletData?.availableBalance}
-      userName={profileData?.fullName}
-      userRank={rankData?.name}
-      avatarUrl={profileData?.profilePicture}
-    >
+    <>
       <div className="dashboard-light-scope p-6 space-y-6">
         <header className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-4 text-[#0a0a0a]">
@@ -373,7 +367,7 @@ const CoursesPage = () => {
       {selectedCourseForUpgrade && (
         <UpgradeModal course={selectedCourseForUpgrade} onClose={handleCloseModal} />
       )}
-    </AppShell>
+    </>
   );
 };
 

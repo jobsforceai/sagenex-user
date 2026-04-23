@@ -106,7 +106,7 @@ export default function RoadmapSection() {
             >
               <div className="timeline-dot" />
               <h3 className="timeline-year">{phase.year}</h3>
-              <h4 className="text-white font-bold text-lg mb-4">{phase.title}</h4>
+              <h4 className="text-black font-bold text-lg mb-4">{phase.title}</h4>
               <ul className="space-y-3">
                 {phase.items.map((item, i) => (
                   <li key={i} className="text-sm text-[var(--text-muted-dark)] leading-relaxed">

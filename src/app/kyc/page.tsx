@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { CheckCircle, Clock, AlertTriangle, CheckCircle2, FileText } from 'lucide-react';
-import AppShell from '../components/AppShell';
 import { getKycStatus, uploadKycDocument, submitKycForReview } from '@/actions/user';
 import { KycStatus } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -123,11 +122,11 @@ export default function KycPage() {
 
     if (loading) {
         return (
-            <AppShell>
+            <>
                 <div className="dashboard-light-scope min-h-screen flex items-center justify-center">
                     <div>Loading KYC status...</div>
                 </div>
-            </AppShell>
+            </>
         )
     }
 
@@ -213,7 +212,7 @@ export default function KycPage() {
     };
 
     return (
-        <AppShell>
+        <>
             <div className="dashboard-light-scope p-6">
 
             {kycStatus && kycStatus.status !== 'NOT_SUBMITTED' && kycStatus.status !== 'REJECTED' ? (
@@ -327,6 +326,6 @@ export default function KycPage() {
                 </div>
             )}
             </div>
-        </AppShell>
+        </>
     );
 }

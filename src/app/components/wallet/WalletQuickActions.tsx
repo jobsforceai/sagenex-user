@@ -13,20 +13,21 @@ export const WalletQuickActions = ({
   onTransfer,
 }: WalletQuickActionsProps) => {
   return (
-    <Card className="bg-gray-900/40 border-gray-800 rounded-2xl h-full">
-      <CardContent className="pt-6 space-y-3">
-        <p className="text-xs uppercase tracking-[0.3em] text-gray-500 mb-4">
+    <Card className="h-full rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">
+      <CardContent className="space-y-3 pt-6">
+        <p className="mb-4 text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">
           Quick Actions
         </p>
         <Button
           onClick={onWithdraw}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
+          className="w-full bg-[#C41E3A] font-semibold text-white hover:bg-[#ad1b34]"
         >
           Withdraw
         </Button>
         <Button
           onClick={onTransfer}
-          className="w-full bg-emerald-500 hover:bg-emerald-600 text-black font-semibold"
+          variant="outline"
+          className="w-full border-[#E8E8E8] font-semibold text-[#111827] hover:bg-zinc-50"
         >
           Transfer
         </Button>

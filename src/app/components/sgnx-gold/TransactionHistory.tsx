@@ -32,23 +32,23 @@ const formatUSD = (v: number) =>
 const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US");
 
 const statusBadgeClass: Record<string, string> = {
-  ACTIVE: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
-  PAUSED: "border-yellow-500/30 bg-yellow-500/10 text-yellow-200",
-  FAILED: "border-red-500/30 bg-red-500/10 text-red-200",
-  COMPLETED: "border-blue-500/30 bg-blue-500/10 text-blue-200",
-  MATURED: "border-purple-500/30 bg-purple-500/10 text-purple-200",
+  ACTIVE: "border-[#E8E8E8] bg-[#F8F9FA] text-zinc-600",
+  PAUSED: "border-[#E8E8E8] bg-[#F8F9FA] text-zinc-600",
+  FAILED: "border-[#E8E8E8] bg-[#F8F9FA] text-zinc-600",
+  COMPLETED: "border-[#E8E8E8] bg-[#F8F9FA] text-zinc-600",
+  MATURED: "border-[#E8E8E8] bg-[#F8F9FA] text-zinc-600",
 };
 
 const planBadgeClass: Record<string, string> = {
-  gold: "border-amber-500/30 bg-amber-500/10 text-amber-200",
-  cash: "border-emerald-500/30 bg-emerald-500/10 text-emerald-200",
+  gold: "border-[#E8E8E8] bg-[#F8F9FA] text-zinc-600",
+  cash: "border-[#E8E8E8] bg-[#F8F9FA] text-zinc-600",
 };
 
 export default function TransactionHistory({ enrollments }: TransactionHistoryProps) {
   if (!enrollments.length) {
     return (
-      <Card className="bg-gray-900/40 border-gray-800 rounded-2xl">
-        <CardContent className="pt-6 pb-6 text-center text-gray-500">
+      <Card className="bg-white border-[#E8E8E8] rounded-2xl">
+        <CardContent className="pt-6 pb-6 text-center text-zinc-500">
           No enrollments found. Create your first SGNX Gold enrollment!
         </CardContent>
       </Card>
@@ -56,23 +56,23 @@ export default function TransactionHistory({ enrollments }: TransactionHistoryPr
   }
 
   return (
-    <Card className="bg-gray-900/40 border-gray-800 rounded-2xl">
+    <Card className="bg-white border-[#E8E8E8] rounded-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-white">
-          <History className="h-5 w-5 text-blue-400" />
+        <CardTitle className="flex items-center gap-2 text-[#111827]">
+          <History className="h-5 w-5 text-[#C41E3A]" />
           Enrollment History
         </CardTitle>
       </CardHeader>
       <CardContent>
         <Table>
           <TableHeader>
-            <TableRow className="border-gray-800 hover:bg-transparent">
-              <TableHead className="text-gray-400">Date</TableHead>
-              <TableHead className="text-gray-400">Plan</TableHead>
-              <TableHead className="text-gray-400">Monthly Amt</TableHead>
-              <TableHead className="text-gray-400">Progress</TableHead>
-              <TableHead className="text-gray-400">Status</TableHead>
-              <TableHead className="text-gray-400">Bonus</TableHead>
+            <TableRow className="border-[#E8E8E8] hover:bg-transparent">
+              <TableHead className="text-zinc-400">Date</TableHead>
+              <TableHead className="text-zinc-400">Plan</TableHead>
+              <TableHead className="text-zinc-400">Monthly Amt</TableHead>
+              <TableHead className="text-zinc-400">Progress</TableHead>
+              <TableHead className="text-zinc-400">Status</TableHead>
+              <TableHead className="text-zinc-400">Bonus</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -85,9 +85,9 @@ export default function TransactionHistory({ enrollments }: TransactionHistoryPr
               return (
                 <TableRow
                   key={enrollment._id}
-                  className="border-gray-800 hover:bg-gray-800/30"
+                  className="border-[#E8E8E8] hover:bg-[#F8F9FA]"
                 >
-                  <TableCell className="text-gray-300">
+                  <TableCell className="text-zinc-600">
                     {formatDate(enrollment.createdAt)}
                   </TableCell>
                   <TableCell>
@@ -95,14 +95,14 @@ export default function TransactionHistory({ enrollments }: TransactionHistoryPr
                       {enrollment.planType === "gold" ? "Gold" : "Cash"}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-gray-300">
+                  <TableCell className="text-zinc-600">
                     {formatUSD(enrollment.monthlyAmountUsd)}
                   </TableCell>
-                  <TableCell className="text-gray-300">
-                    <span className="text-emerald-400 font-medium">
+                  <TableCell className="text-zinc-600">
+                    <span className="font-medium text-[#C41E3A]">
                       {enrollment.completedMonths}
                     </span>
-                    <span className="text-gray-500"> / {enrollment.totalMonths}</span>
+                    <span className="text-zinc-400"> / {enrollment.totalMonths}</span>
                   </TableCell>
                   <TableCell>
                     <Badge
@@ -114,7 +114,7 @@ export default function TransactionHistory({ enrollments }: TransactionHistoryPr
                       {enrollment.status}
                     </Badge>
                   </TableCell>
-                  <TableCell className="text-gray-300">
+                  <TableCell className="text-zinc-600">
                     {isGold
                       ? `${(enrollment.bonusGoldQuantityGrams ?? 0).toFixed(4)} g`
                       : formatUSD(bonusValue)}

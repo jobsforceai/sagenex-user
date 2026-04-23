@@ -24,10 +24,10 @@ const NODE_H = 100;
 
 function statusColor(status: string | null): string {
   switch (status) {
-    case "ACTIVE": return "#34d399";
-    case "COMPLETED": case "MATURED": return "#D7AF35";
-    case "PAUSED": return "#fbbf24";
-    case "FAILED": return "#f87171";
+    case "ACTIVE": return "#C41E3A";
+    case "COMPLETED": case "MATURED": return "#8b6b1f";
+    case "PAUSED": return "#6b7280";
+    case "FAILED": return "#6b7280";
     default: return "#6b7280";
   }
 }
@@ -78,7 +78,7 @@ function transformTree(tree: GoldTreeNode): { nodes: Node[]; edges: Edge[] } {
         label: (
           <div className="p-2.5 text-left">
             <div className="flex items-center justify-between">
-              <strong className="text-[13px] text-[#ECEFF8] truncate">{user.fullName}</strong>
+              <strong className="truncate text-[13px] text-[#111827]">{user.fullName}</strong>
               {user.enrollmentStatus && (
                 <span
                   className="ml-1.5 shrink-0 rounded-full px-1.5 py-0.5 text-[9px] font-bold uppercase"
@@ -88,15 +88,15 @@ function transformTree(tree: GoldTreeNode): { nodes: Node[]; edges: Edge[] } {
                 </span>
               )}
             </div>
-            <div className="mt-1 text-[11px] text-[#8B92AA]">ID: {user.userId}</div>
+            <div className="mt-1 text-[11px] text-zinc-400">ID: {user.userId}</div>
             {user.planType && (
-              <div className="mt-0.5 text-[11px] text-[#8B92AA]">
+              <div className="mt-0.5 text-[11px] text-zinc-400">
                 {user.planType === "gold" ? "Gold" : "Cash"} Plan
                 {user.monthlyAmountUsd ? ` \u00b7 $${user.monthlyAmountUsd}/mo` : ""}
               </div>
             )}
             {user.completedMonths != null && user.totalMonths != null && (
-              <div className="mt-1 h-1 w-full rounded-full bg-[#3c4256] overflow-hidden">
+              <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-[#E8E8E8]">
                 <div
                   className="h-full rounded-full"
                   style={{
@@ -110,9 +110,9 @@ function transformTree(tree: GoldTreeNode): { nodes: Node[]; edges: Edge[] } {
         ),
       },
       style: {
-        border: isRoot ? "1.5px solid #D7AF35" : "1px solid #3c4256",
+        border: isRoot ? "1.5px solid #C41E3A" : "1px solid #E8E8E8",
         borderRadius: 14,
-        background: isRoot ? "#D7AF35" + "10" : "#1B1F2D",
+        background: isRoot ? "#C41E3A10" : "#ffffff",
         width: NODE_W,
       },
     });
@@ -125,8 +125,8 @@ function transformTree(tree: GoldTreeNode): { nodes: Node[]; edges: Edge[] } {
       source: edge.v,
       target: edge.w,
       type: "smoothstep",
-      markerEnd: { type: MarkerType.ArrowClosed, color: "#D7AF35" },
-      style: { stroke: "#D7AF35", strokeWidth: 1.5, opacity: 0.5 },
+      markerEnd: { type: MarkerType.ArrowClosed, color: "#C41E3A" },
+      style: { stroke: "#C41E3A", strokeWidth: 1.5, opacity: 0.45 },
     });
   });
 
@@ -174,28 +174,28 @@ export default function SgnxGoldTree() {
 
   return (
     <div ref={sentinelRef}>
-      <div className="rounded-[20px] border border-[#3c4256] bg-[#1B1F2D] overflow-hidden">
+      <div className="rounded-[20px] border border-[#E8E8E8] bg-white overflow-hidden">
         {/* Header */}
-        <div className="flex items-center gap-2.5 border-b border-[#3c4256] px-5 py-4">
-          <GitBranch className="h-4.5 w-4.5 text-[#D7AF35]" />
-          <span className="text-sm font-bold text-[#ECEFF8]">SGNX Gold Referral Tree</span>
+        <div className="flex items-center gap-2.5 border-b border-[#E8E8E8] px-5 py-4">
+          <GitBranch className="h-4.5 w-4.5 text-[#C41E3A]" />
+          <span className="text-sm font-bold text-[#111827]">SGNX Gold Referral Tree</span>
         </div>
 
         {/* Content */}
         {loading && (
           <div className="flex items-center justify-center py-16">
-            <Loader2 className="h-6 w-6 animate-spin text-[#D7AF35]" />
+            <Loader2 className="h-6 w-6 animate-spin text-[#C41E3A]" />
           </div>
         )}
 
         {error && (
-          <div className="px-5 py-10 text-center text-sm text-[#8B92AA]">{error}</div>
+          <div className="px-5 py-10 text-center text-sm text-zinc-500">{error}</div>
         )}
 
         {!loading && !error && tree && !hasChildren && (
           <div className="px-5 py-10 text-center">
-            <p className="text-sm text-[#8B92AA]">No referrals yet in your SGNX Gold tree.</p>
-            <p className="mt-1 text-xs text-[#4a5068]">Share your referral code to build your network.</p>
+            <p className="text-sm text-zinc-500">No referrals yet in your SGNX Gold tree.</p>
+            <p className="mt-1 text-xs text-zinc-400">Share your referral code to build your network.</p>
           </div>
         )}
 
@@ -210,16 +210,16 @@ export default function SgnxGoldTree() {
               proOptions={{ hideAttribution: true }}
             >
               <Controls
-                style={{ background: "#252A3A", borderColor: "#3c4256", borderRadius: 10 }}
+                style={{ background: "#ffffff", borderColor: "#E8E8E8", borderRadius: 10 }}
               />
-              <Background color="#3c4256" gap={20} />
+              <Background color="#E8E8E8" gap={20} />
             </ReactFlow>
           </div>
         )}
 
         {!visible && (
           <div className="flex items-center justify-center py-16">
-            <div className="h-6 w-6 rounded-full bg-[#252A3A] animate-pulse" />
+            <div className="h-6 w-6 rounded-full bg-[#E8E8E8] animate-pulse" />
           </div>
         )}
       </div>

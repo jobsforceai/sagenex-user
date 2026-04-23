@@ -5,7 +5,6 @@ import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { getRankProgress } from "@/actions/user";
-import AppShell from "@/app/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -116,25 +115,25 @@ const RANKS = [
 ];
 
 const RANK_COLORS: Record<string, string> = {
-  Member: "text-gray-400",
-  Starter: "text-green-400",
-  Builder: "text-blue-400",
-  Leader: "text-purple-400",
-  Manager: "text-yellow-400",
-  Director: "text-orange-400",
-  "Elite Director": "text-red-400",
-  "Crown Elite": "text-amber-300",
+  Member: "text-[#111827]",
+  Starter: "text-[#111827]",
+  Builder: "text-[#111827]",
+  Leader: "text-[#111827]",
+  Manager: "text-[#111827]",
+  Director: "text-[#111827]",
+  "Elite Director": "text-[#111827]",
+  "Crown Elite": "text-[#111827]",
 };
 
 const RANK_BG: Record<string, string> = {
-  Member: "border-gray-700 bg-gray-900/40",
-  Starter: "border-green-700/40 bg-green-900/10",
-  Builder: "border-blue-700/40 bg-blue-900/10",
-  Leader: "border-purple-700/40 bg-purple-900/10",
-  Manager: "border-yellow-700/40 bg-yellow-900/10",
-  Director: "border-orange-700/40 bg-orange-900/10",
-  "Elite Director": "border-red-700/40 bg-red-900/10",
-  "Crown Elite": "border-amber-500/40 bg-amber-900/10",
+  Member: "border-[#E8E8E8] bg-white",
+  Starter: "border-[#E8E8E8] bg-white",
+  Builder: "border-[#E8E8E8] bg-white",
+  Leader: "border-[#E8E8E8] bg-white",
+  Manager: "border-[#E8E8E8] bg-white",
+  Director: "border-[#E8E8E8] bg-white",
+  "Elite Director": "border-[#E8E8E8] bg-white",
+  "Crown Elite": "border-[#E8E8E8] bg-white",
 };
 
 const SalaryPage = () => {
@@ -189,12 +188,12 @@ const SalaryPage = () => {
     const fv = (v: number) => isCurrency ? fmt(v) : v.toLocaleString("en-IN");
     return (
       <div>
-        <div className="flex justify-between mb-1 text-sm text-neutral-300">
+        <div className="mb-1 flex justify-between text-sm text-zinc-600">
           <span>{label}</span>
           <span className="font-semibold">{fv(current)} / {fv(required)}</span>
         </div>
-        <div className="w-full bg-neutral-700 rounded-full h-2">
-          <div className="bg-green-500 h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
+        <div className="h-2 w-full rounded-full bg-zinc-100">
+          <div className="h-2 rounded-full bg-[#C41E3A] transition-all" style={{ width: `${pct}%` }} />
         </div>
       </div>
     );
@@ -202,26 +201,26 @@ const SalaryPage = () => {
 
   if (loading || dataLoading) {
     return (
-      <AppShell>
+      <>
         <main className="dashboard-light-scope p-6 space-y-6">
           <Skeleton className="h-10 w-48" />
           <Skeleton className="h-32 w-full" />
           <Skeleton className="h-48 w-full" />
         </main>
-      </AppShell>
+      </>
     );
   }
 
   if (error) {
     return (
-      <AppShell>
+      <>
         <div className="dashboard-light-scope min-h-screen flex items-center justify-center">
           <div className="text-center space-y-3">
             <p className="text-red-500">{error}</p>
             <Button variant="outline" onClick={() => window.location.reload()}>Retry</Button>
           </div>
         </div>
-      </AppShell>
+      </>
     );
   }
 
@@ -231,19 +230,29 @@ const SalaryPage = () => {
   const graceMultiplier = rank.consecutiveMonthsMissed === 1 ? 0.5 : 1;
 
   return (
-    <AppShell userRank={performanceRank?.name ?? rank.name}>
+    <>
       <main className="dashboard-light-scope p-6 space-y-6">
-        <Button asChild variant="outline" className="mb-2">
-          <Link href="/dashboard"><ArrowLeft className="mr-2 h-4 w-4" />Back to Dashboard</Link>
-        </Button>
-
-        <h1 className="text-3xl font-bold">Salary & Rank</h1>
+        <div className="flex flex-col gap-4 border-b border-[#E8E8E8] pb-5 sm:flex-row sm:items-end sm:justify-between">
+          <div className="space-y-2">
+            {/* <Button asChild variant="outline" className="inline-flex w-fit border-[#E8E8E8] bg-white text-zinc-600 hover:bg-[#F8F9FA]">
+              <Link href="/dashboard">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Dashboard
+              </Link>
+            </Button> */}
+            <div>
+              <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-zinc-400">Salary</p>
+              <h1 className="mt-1 text-3xl font-bold tracking-tight text-[#111827]">Salary & Rank</h1>
+              <p className="mt-1 text-sm text-zinc-500">A clean view of your current rank, payout status, and qualification requirements.</p>
+            </div>
+          </div>
+        </div>
 
         {/* ─── This Month's Performance ─── */}
-        <Card className="bg-neutral-900 border-neutral-800">
+        <Card className="bg-white border-[#E8E8E8]">
           <CardHeader>
             <CardTitle className="text-xl flex items-center gap-3">
-              <Star className="text-yellow-400 w-5 h-5" />This Month's Performance
+              <Star className="w-5 h-5 text-[#C41E3A]" />This Month's Performance
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -251,43 +260,43 @@ const SalaryPage = () => {
               <div className="space-y-3">
                 <div className="flex justify-between items-start flex-wrap gap-4">
                   <div>
-                    <p className="text-sm text-green-400 font-medium uppercase tracking-wide">Eligible Salary</p>
-                    <p className="text-3xl font-bold text-white mt-1">{performanceRank.name}</p>
-                    <p className="text-xl font-semibold text-green-400 mt-1">
+                    <p className="text-sm font-medium uppercase tracking-wide text-zinc-400">Eligible Salary</p>
+                    <p className="mt-1 text-3xl font-bold text-[#111827]">{performanceRank.name}</p>
+                    <p className="mt-1 text-xl font-semibold text-[#C41E3A]">
                       {fmt(Math.round(performanceRank.salary * graceMultiplier))} – {fmt(Math.round(salaryMax * graceMultiplier))}
                     </p>
-                    <p className="text-xs text-neutral-500 mt-1">
+                    <p className="text-xs text-zinc-500 mt-1">
                       Base {fmt(performanceRank.salary)} + achiever bonuses up to {fmt(salaryMax)}
                       {graceMultiplier < 1 ? " — 50% grace period applied" : ""}
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-xs text-gray-400 uppercase tracking-wide">Salary Credits In</p>
-                    <p className="text-2xl font-bold text-white mt-1">{countdown}</p>
+                    <p className="text-xs uppercase tracking-wide text-zinc-400">Salary Credits In</p>
+                    <p className="mt-1 text-2xl font-bold text-[#111827]">{countdown}</p>
                   </div>
                 </div>
-                <div className="w-full bg-gray-700 rounded-full h-2">
-                  <div className="bg-emerald-500 h-2 rounded-full" style={{ width: `${progressPercentage}%` }} />
+                <div className="w-full bg-zinc-100 rounded-full h-2">
+                  <div className="bg-[#C41E3A] h-2 rounded-full" style={{ width: `${progressPercentage}%` }} />
                 </div>
-                <p className="text-xs text-gray-400 text-center">{progressPercentage.toFixed(1)}% of cycle completed</p>
+                <p className="text-xs text-zinc-400 text-center">{progressPercentage.toFixed(1)}% of cycle completed</p>
                 {rank.consecutiveMonthsMissed === 1 && (
-                  <p className="text-sm text-amber-400 bg-amber-900/20 border border-amber-700/30 rounded p-2">
+                  <p className="text-sm text-zinc-600 bg-zinc-50 border border-[#E8E8E8] rounded p-2">
                     Grace period active — payout will be 50% of base salary this month.
                   </p>
                 )}
               </div>
             ) : (
               <div className="space-y-3">
-                <p className="text-yellow-400 text-sm">
+                <p className="text-sm text-zinc-600">
                   You have not yet met this month's performance requirements. Current performance: <strong>{performanceRank.name}</strong>.
                 </p>
                 {rank.consecutiveMonthsMissed === 1 && (
-                  <p className="text-sm text-amber-400 bg-amber-900/20 border border-amber-700/30 rounded p-2">
+                  <p className="text-sm text-zinc-600 bg-zinc-50 border border-[#E8E8E8] rounded p-2">
                     Warning: You missed last month's targets. Miss again this month → salary paused.
                   </p>
                 )}
                 {rank.consecutiveMonthsMissed >= 2 && (
-                  <p className="text-sm text-red-400 bg-red-900/20 border border-red-700/30 rounded p-2">
+                  <p className="text-sm text-zinc-600 bg-zinc-50 border border-[#E8E8E8] rounded p-2">
                     Salary Paused — 2+ consecutive months missed.
                   </p>
                 )}
@@ -298,11 +307,11 @@ const SalaryPage = () => {
 
         {/* ─── Progress Towards Next Rank ─── */}
         {progress?.nextRankName && (
-          <Card className="bg-neutral-900 border-neutral-800">
+          <Card className="bg-white border-[#E8E8E8]">
             <CardHeader>
               <CardTitle className="text-xl flex items-center gap-3">
-                <TrendingUp className="text-purple-400 w-5 h-5" />
-                Progress Towards <span className={`ml-1 ${RANK_COLORS[progress.nextRankName] ?? "text-white"}`}>{progress.nextRankName}</span>
+                <TrendingUp className="w-5 h-5 text-[#C41E3A]" />
+                Progress Towards <span className="ml-1 text-[#111827]">{progress.nextRankName}</span>
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -311,24 +320,24 @@ const SalaryPage = () => {
                   {progress.requirements.directs && renderBar(progress.requirements.directs.current, progress.requirements.directs.required, "Direct Referrals")}
                   {progress.requirements.direct3X && renderBar(progress.requirements.direct3X.current, progress.requirements.direct3X.required, "Direct 3X Achievers")}
                   {progress.requirements.orCondition && (
-                    <div className="rounded-lg border border-neutral-700 bg-neutral-800/50 p-3 space-y-3">
-                      <p className="text-xs text-neutral-400 uppercase tracking-wide">— OR qualify with mixed achievers —</p>
+                    <div className="space-y-3 rounded-lg border border-[#E8E8E8] bg-zinc-50 p-3">
+                      <p className="text-xs uppercase tracking-wide text-zinc-400">Or qualify with mixed achievers</p>
                       {renderBar(progress.requirements.orCondition.direct3X.current, progress.requirements.orCondition.direct3X.required, "Pure 3X Achievers")}
                       {renderBar(progress.requirements.orCondition.direct4X.current, progress.requirements.orCondition.direct4X.required, "4X Achievers")}
                     </div>
                   )}
                 </>
               ) : (
-                <p className="text-neutral-400">No requirements specified.</p>
+                <p className="text-zinc-400">No requirements specified.</p>
               )}
             </CardContent>
           </Card>
         )}
 
         {!progress?.nextRankName && (
-          <Card className="bg-neutral-900 border-neutral-800">
+          <Card className="bg-white border-[#E8E8E8]">
             <CardContent className="p-6 text-center">
-              <Trophy className="w-10 h-10 text-amber-400 mx-auto mb-2" />
+              <Trophy className="mx-auto mb-2 h-10 w-10 text-[#C41E3A]" />
               <p className="text-xl font-semibold">You have reached the highest rank!</p>
             </CardContent>
           </Card>
@@ -336,24 +345,24 @@ const SalaryPage = () => {
 
         {/* ─── Leg Details ─── */}
         {rankProgress!.legDetails?.length > 0 && (
-          <Card className="bg-neutral-900 border-neutral-800">
+          <Card className="bg-white border-[#E8E8E8]">
             <CardHeader><CardTitle className="text-lg">Leg Details (This Month)</CardTitle></CardHeader>
             <CardContent>
               <div className="overflow-x-auto">
                 <table className="min-w-full text-sm">
                   <thead>
-                    <tr className="text-neutral-400 text-xs uppercase border-b border-neutral-800">
+                    <tr className="text-zinc-400 text-xs uppercase border-b border-[#E8E8E8]">
                       <th className="px-3 py-2 text-left">Leg (User ID)</th>
                       <th className="px-3 py-2 text-right">Monthly Business</th>
                       <th className="px-3 py-2 text-right">Active Team</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-neutral-800">
+                  <tbody className="divide-y divide-[#E8E8E8]">
                     {rankProgress!.legDetails.map((leg) => (
                       <tr key={leg.userId}>
                         <td className="px-3 py-2 font-medium text-white">{leg.userId}</td>
-                        <td className="px-3 py-2 text-right text-neutral-300">{fmt(leg.monthlyBusiness)}</td>
-                        <td className="px-3 py-2 text-right text-neutral-300">{leg.activeTeam.toLocaleString("en-IN")}</td>
+                        <td className="px-3 py-2 text-right text-zinc-600">{fmt(leg.monthlyBusiness)}</td>
+                        <td className="px-3 py-2 text-right text-zinc-600">{leg.activeTeam.toLocaleString("en-IN")}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -365,10 +374,10 @@ const SalaryPage = () => {
 
         {/* ─── Achiever Bonus (This Month) ─── */}
         {rankProgress!.achieverBonus && (
-          <Card className="bg-neutral-900 border-neutral-800">
+          <Card className="bg-white border-[#E8E8E8]">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <Zap className="w-5 h-5 text-yellow-400" />Achiever Bonus — This Month
+                <Zap className="w-5 h-5 text-[#C41E3A]" />Achiever Bonus — This Month
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
@@ -380,36 +389,36 @@ const SalaryPage = () => {
                 return (
                   <>
                     <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-sm">
-                      <div className="bg-black/30 rounded p-3 text-center">
-                        <p className="text-xs text-neutral-400 mb-1">3x Directs</p>
-                        <p className="text-2xl font-bold text-blue-300">{ab.direct3X}</p>
-                        <p className="text-xs text-neutral-500">(incl. 4x)</p>
+                      <div className="bg-[#F8F9FA] rounded p-3 text-center">
+                        <p className="text-xs text-zinc-400 mb-1">3x Directs</p>
+                        <p className="text-2xl font-bold text-[#111827]">{ab.direct3X}</p>
+                        <p className="text-xs text-zinc-500">(incl. 4x)</p>
                       </div>
-                      <div className="bg-black/30 rounded p-3 text-center">
-                        <p className="text-xs text-neutral-400 mb-1">4x Directs</p>
-                        <p className="text-2xl font-bold text-amber-300">{ab.direct4X}</p>
-                        <p className="text-xs text-neutral-500">counts double</p>
+                      <div className="bg-[#F8F9FA] rounded p-3 text-center">
+                        <p className="text-xs text-zinc-400 mb-1">4x Directs</p>
+                        <p className="text-2xl font-bold text-[#111827]">{ab.direct4X}</p>
+                        <p className="text-xs text-zinc-500">counts double</p>
                       </div>
-                      <div className="bg-black/30 rounded p-3 text-center">
-                        <p className="text-xs text-neutral-400 mb-1">Base Required</p>
-                        <p className={`text-2xl font-bold ${hasBase ? "text-green-400" : "text-red-400"}`}>{ab.base3X}</p>
-                        <p className="text-xs text-neutral-500">{hasBase ? "met ✓" : "not met"}</p>
+                      <div className="bg-[#F8F9FA] rounded p-3 text-center">
+                        <p className="text-xs text-zinc-400 mb-1">Base Required</p>
+                        <p className="text-2xl font-bold text-[#111827]">{ab.base3X}</p>
+                        <p className="text-xs text-zinc-500">{hasBase ? "met ✓" : "not met"}</p>
                       </div>
-                      <div className="bg-black/30 rounded p-3 text-center">
-                        <p className="text-xs text-neutral-400 mb-1">Projected Bonus</p>
-                        <p className="text-2xl font-bold text-emerald-400">{fmt(ab.projectedBonus)}</p>
-                        <p className="text-xs text-neutral-500">added to salary</p>
+                      <div className="bg-[#F8F9FA] rounded p-3 text-center">
+                        <p className="text-xs text-zinc-400 mb-1">Projected Bonus</p>
+                        <p className="text-2xl font-bold text-[#C41E3A]">{fmt(ab.projectedBonus)}</p>
+                        <p className="text-xs text-zinc-500">added to salary</p>
                       </div>
                     </div>
 
-                    <div className="text-xs text-neutral-400 space-y-1 bg-black/20 rounded p-3">
-                      <p>Each extra <span className="text-blue-300 font-medium">3x direct</span> beyond {ab.base3X} base = <span className="text-white font-semibold">{fmt(ab.extra3X)}</span></p>
-                      <p>Each extra <span className="text-amber-300 font-medium">4x direct</span> beyond base = <span className="text-white font-semibold">{fmt(ab.extra4X)}</span> (4x counts as 2 base slots)</p>
-                      <p className="text-neutral-500 pt-1">Recalculated every month at salary time. 4x directs earn higher rates.</p>
+                    <div className="text-xs text-zinc-400 space-y-1 bg-[#F8F9FA] rounded p-3">
+                      <p>Each extra <span className="font-medium text-[#111827]">3x direct</span> beyond {ab.base3X} base = <span className="font-semibold text-[#111827]">{fmt(ab.extra3X)}</span></p>
+                      <p>Each extra <span className="font-medium text-[#111827]">4x direct</span> beyond base = <span className="font-semibold text-[#111827]">{fmt(ab.extra4X)}</span> (4x counts as 2 base slots)</p>
+                      <p className="text-zinc-500 pt-1">Recalculated every month at salary time. 4x directs earn higher rates.</p>
                     </div>
 
                     {!hasBase && (
-                      <p className="text-xs text-amber-400 bg-amber-900/10 border border-amber-700/20 rounded p-2">
+                      <p className="text-xs text-zinc-600 bg-zinc-50 border border-[#E8E8E8] rounded p-2">
                         You need {ab.base3X} base 3x-equivalent directs to start earning the achiever bonus. Currently at {total3xEq} ({pure3X} pure 3x + {ab.direct4X} 4x × 2).
                       </p>
                     )}
@@ -424,12 +433,12 @@ const SalaryPage = () => {
         {/* ─── FULL RANK & RULES REFERENCE ─────────────────────── */}
         {/* ─────────────────────────────────────────────────────── */}
 
-        <div className="pt-4 border-t border-neutral-800">
+        <div className="pt-4 border-t border-[#E8E8E8]">
           <div className="flex items-center gap-2 mb-4">
-            <Info className="w-5 h-5 text-blue-400" />
+            <Info className="w-5 h-5 text-zinc-400" />
             <h2 className="text-xl font-bold">Rank Qualification Rules</h2>
           </div>
-          <p className="text-sm text-neutral-400 mb-6">
+          <p className="text-sm text-zinc-400 mb-6">
             Requirements are evaluated every month. You must meet all criteria in the current calendar month to earn your rank's salary. Missing for 1 month triggers a 50% grace payout; missing 2+ months pauses your salary.
           </p>
 
@@ -441,24 +450,24 @@ const SalaryPage = () => {
               return (
                 <div
                   key={r.name}
-                  className={`rounded-xl border p-4 ${RANK_BG[r.name] ?? "border-neutral-800 bg-neutral-900/40"} ${isCurrentRank ? "ring-1 ring-white/20" : ""}`}
+                  className={`rounded-xl border p-4 ${RANK_BG[r.name] ?? "border-[#E8E8E8] bg-zinc-50"} ${isCurrentRank ? "ring-2 ring-[#C41E3A]/20" : ""}`}
                 >
                   <div className="flex flex-wrap items-start justify-between gap-2 mb-3">
                     <div className="flex items-center gap-2">
-                      <span className={`text-lg font-bold ${RANK_COLORS[r.name] ?? "text-white"}`}>{r.name}</span>
-                      {isCurrentRank && <Badge variant="outline" className="text-xs border-white/30 text-white">Your Rank</Badge>}
-                      {isPerformanceRank && !isCurrentRank && <Badge variant="outline" className="text-xs border-green-500/40 text-green-300">This Month</Badge>}
+                      <span className={`text-lg font-bold ${RANK_COLORS[r.name] ?? "text-[#111827]"}`}>{r.name}</span>
+                      {isCurrentRank && <Badge variant="outline" className="text-xs border-[#E8E8E8] text-zinc-600">Your Rank</Badge>}
+                      {isPerformanceRank && !isCurrentRank && <Badge variant="outline" className="text-xs border-[#E8E8E8] text-zinc-600">This Month</Badge>}
                     </div>
                     <div className="text-right">
                       {r.salary > 0 ? (
                         <>
-                          <p className="text-xs text-neutral-400 uppercase tracking-wide">Monthly Salary</p>
-                          <p className={`text-xl font-bold ${RANK_COLORS[r.name] ?? "text-white"}`}>
+                          <p className="text-xs text-zinc-400 uppercase tracking-wide">Monthly Salary</p>
+                          <p className={`text-xl font-bold ${RANK_COLORS[r.name] ?? "text-[#111827]"}`}>
                             {fmt(r.salary)}{r.salaryMax > r.salary ? ` – ${fmt(r.salaryMax)}` : ""}
                           </p>
                         </>
                       ) : (
-                        <p className="text-xs text-neutral-500">No salary</p>
+                        <p className="text-xs text-zinc-500">No salary</p>
                       )}
                     </div>
                   </div>
@@ -467,27 +476,27 @@ const SalaryPage = () => {
                   {r.requirements && (
                     <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs mb-3">
                       {"directs" in r.requirements && (
-                        <div className="bg-black/30 rounded p-2">
-                          <p className="text-neutral-400">Direct Referrals</p>
-                          <p className="font-semibold text-white">{r.requirements.directs}</p>
+                        <div className="bg-[#F8F9FA] rounded p-2">
+                          <p className="text-zinc-400">Direct Referrals</p>
+                          <p className="font-semibold text-[#111827]">{r.requirements.directs}</p>
                         </div>
                       )}
                       {"note" in r.requirements && (
-                        <div className="bg-black/30 rounded p-2 col-span-2">
-                          <p className="text-neutral-400">Condition</p>
-                          <p className="font-semibold text-white">{(r.requirements as { note: string }).note}</p>
+                        <div className="bg-[#F8F9FA] rounded p-2 col-span-2">
+                          <p className="text-zinc-400">Condition</p>
+                          <p className="font-semibold text-[#111827]">{(r.requirements as { note: string }).note}</p>
                         </div>
                       )}
                       {"direct3X" in r.requirements && (
-                        <div className="bg-blue-900/20 border border-blue-700/30 rounded p-2 col-span-2 sm:col-span-3">
-                          <p className="text-blue-300 font-semibold text-sm">
+                        <div className="rounded border border-[#E8E8E8] bg-white p-2 col-span-2 sm:col-span-3">
+                          <p className="text-sm font-semibold text-[#111827]">
                             {r.requirements.direct3X}× Direct 3X Achievers
-                            <span className="text-neutral-400 font-normal ml-2">OR</span>
-                            <span className="text-amber-300 font-semibold ml-2">
+                            <span className="ml-2 font-normal text-zinc-400">OR</span>
+                            <span className="ml-2 font-semibold text-zinc-600">
                               {(r.requirements.orCondition as { direct3X: number; direct4X: number }).direct3X}×3X + {(r.requirements.orCondition as { direct3X: number; direct4X: number }).direct4X}×4X
                             </span>
                           </p>
-                          <p className="text-neutral-500 text-xs mt-1">Directs with earningsMultiplier ≥ 3 (3X) or ≥ 4 (4X)</p>
+                          <p className="mt-1 text-xs text-zinc-500">Directs with earningsMultiplier ≥ 3 (3X) or ≥ 4 (4X)</p>
                         </div>
                       )}
                     </div>
@@ -495,24 +504,24 @@ const SalaryPage = () => {
 
                   {/* Achiever bonus */}
                   {r.achieverBonus && (
-                    <div className="bg-black/20 border border-neutral-700/30 rounded p-2 text-xs space-y-1.5">
-                      <p className="text-neutral-400 font-medium">Achiever Bonus — requalify every month</p>
+                    <div className="bg-[#F8F9FA] border border-[#E8E8E8] rounded p-2 text-xs space-y-1.5">
+                      <p className="text-zinc-400 font-medium">Achiever Bonus — requalify every month</p>
                       {'isSpecial' in r.achieverBonus && r.achieverBonus.isSpecial ? (
-                        <div className="text-white space-y-0.5">
+                        <div className="text-[#111827] space-y-0.5">
                           <p>Qualify: <strong>{r.achieverBonus.base3X}×3X</strong> OR <strong>{r.achieverBonus.orConditionLabel}</strong></p>
-                          <p className="text-amber-300">+ Leadership Bonus Pool + Global Team Overrides (Performance Based)</p>
+                          <p className="text-zinc-500">+ Leadership Bonus Pool + Global Team Overrides (Performance Based)</p>
                         </div>
                       ) : (
                         <div className="space-y-0.5">
-                          <p className="text-white">
+                          <p className="text-[#111827]">
                             Qualify: <strong>{r.achieverBonus.base3X}×3X Achievers</strong>
-                            <span className="text-neutral-400"> OR </span>
+                            <span className="text-zinc-400"> OR </span>
                             <strong>{r.achieverBonus.orConditionLabel}</strong>
                           </p>
-                          <div className="flex flex-wrap gap-3 text-white pt-0.5">
-                            <span>Each extra 3X: <strong className="text-blue-300">+{fmt(r.achieverBonus.extra3X)}</strong></span>
-                            <span>Each extra 4X: <strong className="text-amber-300">+{fmt(r.achieverBonus.extra4X)}</strong></span>
-                            <span className="text-neutral-500">(Max cap applies)</span>
+                          <div className="flex flex-wrap gap-3 text-[#111827] pt-0.5">
+                            <span>Each extra 3X: <strong className="text-[#C41E3A]">+{fmt(r.achieverBonus.extra3X)}</strong></span>
+                            <span>Each extra 4X: <strong className="text-[#C41E3A]">+{fmt(r.achieverBonus.extra4X)}</strong></span>
+                            <span className="text-zinc-500">(Max cap applies)</span>
                           </div>
                         </div>
                       )}
@@ -525,31 +534,31 @@ const SalaryPage = () => {
         </div>
 
         {/* ─── Earnings Multiplier (3x / 4x) Rules ─── */}
-        <Card className="bg-neutral-900 border-neutral-800">
+        <Card className="bg-white border-[#E8E8E8]">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Zap className="w-5 h-5 text-yellow-400" />Earnings Multiplier — Monthly Qualification
+              <Zap className="w-5 h-5 text-[#C41E3A]" />Earnings Multiplier — Monthly Qualification
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 text-sm">
-            <p className="text-neutral-400">
-              Multiplier eligibility is rechecked <strong className="text-white">every month</strong> based on your last 30 days of team activity. You can gain or lose 3x/4x each cycle.
+            <p className="text-zinc-400">
+              Multiplier eligibility is rechecked <strong className="text-[#111827]">every month</strong> based on your last 30 days of team activity. You can gain or lose 3x/4x each cycle.
             </p>
 
             <div className="grid sm:grid-cols-2 gap-3">
               {/* 3x */}
-              <div className="rounded-lg border border-blue-700/30 bg-blue-900/10 p-3 space-y-2">
-                <p className="font-bold text-blue-300 text-base">3x Multiplier</p>
-                <ul className="text-neutral-300 space-y-1 text-xs list-disc list-inside">
+              <div className="rounded-lg border border-[#E8E8E8] bg-zinc-50 p-3 space-y-2">
+                <p className="font-bold text-[#111827] text-base">3x Multiplier</p>
+                <ul className="text-zinc-600 space-y-1 text-xs list-disc list-inside">
                   <li>Minimum <strong>3 active legs</strong></li>
                   <li>Each qualifying leg ≥ <strong>₹1.5L</strong> monthly business</li>
                   <li>Total team business ≥ <strong>₹5L</strong> (last 30 days)</li>
                 </ul>
               </div>
               {/* 4x */}
-              <div className="rounded-lg border border-amber-700/30 bg-amber-900/10 p-3 space-y-2">
-                <p className="font-bold text-amber-300 text-base">4x Multiplier</p>
-                <ul className="text-neutral-300 space-y-1 text-xs list-disc list-inside">
+              <div className="rounded-lg border border-[#E8E8E8] bg-zinc-50 p-3 space-y-2">
+                <p className="font-bold text-[#111827] text-base">4x Multiplier</p>
+                <ul className="text-zinc-600 space-y-1 text-xs list-disc list-inside">
                   <li>Minimum <strong>4 active legs</strong></li>
                   <li>Each qualifying leg ≥ <strong>₹2L</strong> monthly business</li>
                   <li>Total team business ≥ <strong>₹10L</strong> (last 30 days)</li>
@@ -558,7 +567,7 @@ const SalaryPage = () => {
               </div>
             </div>
 
-            <div className="text-xs text-neutral-500 flex items-center gap-1.5">
+            <div className="text-xs text-zinc-500 flex items-center gap-1.5">
               <RefreshCw className="w-3.5 h-3.5" />
               Multiplier is recalculated at the start of every calendar month. If you no longer qualify, you drop back to 2.5x.
             </div>
@@ -566,67 +575,67 @@ const SalaryPage = () => {
         </Card>
 
         {/* ─── Grace Period & Salary Rules ─── */}
-        <Card className="bg-neutral-900 border-neutral-800 mb-8">
+        <Card className="bg-white border-[#E8E8E8] mb-8">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Info className="w-5 h-5 text-blue-400" />Salary Grace Period Rules
+              <Info className="w-5 h-5 text-zinc-400" />Salary Grace Period Rules
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-3">
             <div className="grid sm:grid-cols-3 gap-3">
-              <div className="rounded-lg border border-green-700/30 bg-green-900/10 p-3">
-                <p className="font-semibold text-green-300 mb-1">Met targets ✓</p>
-                <p className="text-neutral-300 text-xs">Receive 100% of your rank's monthly salary.</p>
+              <div className="rounded-lg border border-[#E8E8E8] bg-zinc-50 p-3">
+                <p className="font-semibold text-[#111827] mb-1">Met targets</p>
+                <p className="text-zinc-600 text-xs">Receive 100% of your rank's monthly salary.</p>
               </div>
-              <div className="rounded-lg border border-amber-700/30 bg-amber-900/10 p-3">
-                <p className="font-semibold text-amber-300 mb-1">Missed 1 month</p>
-                <p className="text-neutral-300 text-xs">Grace period — you receive 50% salary this month. Meet targets next month to return to full.</p>
+              <div className="rounded-lg border border-[#E8E8E8] bg-zinc-50 p-3">
+                <p className="font-semibold text-[#111827] mb-1">Missed 1 month</p>
+                <p className="text-zinc-600 text-xs">Grace period — you receive 50% salary this month. Meet targets next month to return to full.</p>
               </div>
-              <div className="rounded-lg border border-red-700/30 bg-red-900/10 p-3">
-                <p className="font-semibold text-red-300 mb-1">Missed 2+ months</p>
-                <p className="text-neutral-300 text-xs">Salary paused. Resume only after meeting performance targets again.</p>
+              <div className="rounded-lg border border-[#E8E8E8] bg-zinc-50 p-3">
+                <p className="font-semibold text-[#111827] mb-1">Missed 2+ months</p>
+                <p className="text-zinc-600 text-xs">Salary paused. Resume only after meeting performance targets again.</p>
               </div>
             </div>
-            <p className="text-xs text-neutral-500">
+            <p className="text-xs text-zinc-500">
               Salary is credited at the end of each calendar month after admin review. Actual amounts may vary within the published range.
             </p>
           </CardContent>
         </Card>
 
         {/* ─── Important Conditions ─── */}
-        <Card className="bg-neutral-900 border-amber-700/20 mb-8">
+        <Card className="bg-white border-[#E8E8E8] mb-8">
           <CardHeader>
             <CardTitle className="text-lg flex items-center gap-2">
-              <Info className="w-5 h-5 text-amber-400" />Important Conditions
+              <Info className="w-5 h-5 text-zinc-400" />Important Conditions
             </CardTitle>
           </CardHeader>
           <CardContent className="text-sm space-y-2">
-            <ul className="space-y-2 text-neutral-300">
+            <ul className="space-y-2 text-zinc-600">
               <li className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span>Achievers must be <strong className="text-white">active</strong> (active package required)</span>
+                <span className="mt-0.5 text-zinc-400">•</span>
+                <span>Achievers must be <strong className="text-[#111827]">active</strong> (active package required)</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span><strong className="text-white">Max 50% achievers from one leg</strong> — must come from multiple teams</span>
+                <span className="mt-0.5 text-zinc-400">•</span>
+                <span><strong className="text-[#111827]">Max 50% achievers from one leg</strong> — must come from multiple teams</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
-                <span>Achiever bonus is recalculated <strong className="text-white">every month</strong> — you must requalify each cycle</span>
+                <span className="mt-0.5 text-zinc-400">•</span>
+                <span>Achiever bonus is recalculated <strong className="text-[#111827]">every month</strong> — you must requalify each cycle</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-green-400 mt-0.5">✓</span>
+                <span className="mt-0.5 text-zinc-400">•</span>
                 <span>4X Achievers (Advanced) count higher than 3X (Standard) and earn you more per achiever</span>
               </li>
               <li className="flex items-start gap-2">
-                <span className="text-amber-400 mt-0.5">!</span>
-                <span className="text-neutral-400">Company's terms & conditions apply. Max cap on achiever bonuses applies at each rank.</span>
+                <span className="mt-0.5 text-zinc-400">•</span>
+                <span className="text-zinc-400">Company's terms & conditions apply. Max cap on achiever bonuses applies at each rank.</span>
               </li>
             </ul>
           </CardContent>
         </Card>
       </main>
-    </AppShell>
+    </>
   );
 };
 

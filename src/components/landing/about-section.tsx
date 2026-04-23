@@ -50,7 +50,7 @@ export default function AboutSection() {
             <div className="glass-card p-8 flex flex-col justify-center items-center text-center col-span-2 relative overflow-hidden">
               <div className="absolute inset-0 bg-gradient-to-br from-[var(--crimson-glow)] to-transparent opacity-20 pointer-events-none" />
               <h3 className="display-headline text-4xl mb-3" style={{ fontSize: '2.5rem' }}>Certified</h3>
-              <p className="text-white/80 font-medium text-sm">Physical Gold Bullion Reserves</p>
+              <p className="text-black/80 font-medium text-sm">Physical Gold Bullion Reserves</p>
             </div>
           </motion.div>
           

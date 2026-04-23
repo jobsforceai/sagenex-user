@@ -28,13 +28,13 @@ const SGBN_PLANS = [
     label: "Business",
     planType: "BUSINESS" as const,
     amountUsd: 120,
-    buttonClass: "border-amber-400/50 text-amber-200 hover:bg-amber-500/10",
+    buttonClass: "border-amber-300 text-amber-700 hover:bg-amber-50",
   },
   {
     label: "Freelancer",
     planType: "FREELANCER" as const,
     amountUsd: 60,
-    buttonClass: "border-emerald-400/50 text-emerald-200 hover:bg-emerald-500/10",
+    buttonClass: "border-emerald-300 text-emerald-700 hover:bg-emerald-50",
   },
 ];
 
@@ -110,12 +110,12 @@ export const TransferTab = ({ currentBalance, onSuccess }: TransferTabProps) => 
       </div>
 
       {/* SGBN Coupons */}
-      <Card className="bg-gray-900/40 border-gray-800 rounded-2xl">
+      <Card className="rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">
         <CardHeader>
-          <CardTitle>SGBN Coupons</CardTitle>
+          <CardTitle className="text-[#111827]">SGBN Coupons</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-400">
+          <p className="text-sm text-zinc-500">
             Create a coupon for SGBN plans. Coupons are valid for 10 minutes (USD only).
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -124,8 +124,8 @@ export const TransferTab = ({ currentBalance, onSuccess }: TransferTabProps) => 
                 key={plan.planType}
                 type="button"
                 variant="outline"
-                className={`border-gray-700 ${plan.buttonClass} ${
-                  selectedPlan === plan.planType ? "bg-white/5" : ""
+                className={`border-[#E8E8E8] ${plan.buttonClass} ${
+                  selectedPlan === plan.planType ? "bg-zinc-50" : ""
                 }`}
                 onClick={() => {
                   setSelectedPlan(plan.planType);
@@ -139,12 +139,12 @@ export const TransferTab = ({ currentBalance, onSuccess }: TransferTabProps) => 
             ))}
           </div>
           {selectedPlan && (
-            <div className="rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-sm text-gray-300 space-y-3">
+            <div className="space-y-3 rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] px-4 py-3 text-sm text-zinc-600">
               <p>Generate a {selectedPlan} coupon? It will be valid for 10 minutes.</p>
               <div className="flex flex-wrap gap-2">
                 <Button
                   type="button"
-                  className="bg-emerald-500 text-black hover:bg-emerald-400"
+                  className="bg-[#C41E3A] text-white hover:bg-[#ad1b34]"
                   onClick={() => handleCreateCoupon(selectedPlan)}
                   disabled={couponLoading !== null}
                 >
@@ -153,7 +153,7 @@ export const TransferTab = ({ currentBalance, onSuccess }: TransferTabProps) => 
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-gray-700 text-gray-200 hover:bg-white/5"
+                  className="border-[#E8E8E8] text-[#111827] hover:bg-zinc-50"
                   onClick={() => setSelectedPlan(null)}
                   disabled={couponLoading !== null}
                 >
@@ -164,52 +164,52 @@ export const TransferTab = ({ currentBalance, onSuccess }: TransferTabProps) => 
           )}
 
           {couponError && (
-            <div className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2 text-sm text-red-200">
+            <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
               {couponError}
             </div>
           )}
           {couponMessage && (
-            <div className="rounded-xl border border-emerald-400/30 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-200">
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700">
               {couponMessage}
             </div>
           )}
 
           {coupon && (
-            <div className="rounded-2xl border border-white/10 bg-black/40 p-4 space-y-3">
+            <div className="space-y-3 rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
               <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-emerald-300">
+                  <p className="text-xs font-bold uppercase tracking-[0.08em] text-zinc-400">
                     Coupon Code
                   </p>
-                  <p className="mt-2 font-mono text-sm text-emerald-200 break-all">
+                  <p className="mt-2 break-all font-mono text-sm text-[#111827]">
                     {coupon.code}
                   </p>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
-                  className="border-emerald-400/40 text-emerald-200 hover:bg-emerald-500/10"
+                  className="border-[#E8E8E8] text-[#111827] hover:bg-zinc-100"
                   onClick={handleCopyCode}
                 >
                   Copy
                 </Button>
               </div>
-              <div className="grid grid-cols-2 gap-3 text-sm text-gray-300">
+              <div className="grid grid-cols-2 gap-3 text-sm text-zinc-600">
                 <div>
-                  <p className="text-xs text-gray-500">Plan</p>
-                  <p>{coupon.planType}</p>
+                  <p className="text-xs text-zinc-400">Plan</p>
+                  <p className="font-semibold text-[#111827]">{coupon.planType}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Amount</p>
-                  <p>{formatCurrency(coupon.amountUsd)}</p>
+                  <p className="text-xs text-zinc-400">Amount</p>
+                  <p className="font-semibold text-[#111827]">{formatCurrency(coupon.amountUsd)}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Status</p>
-                  <p>{isCouponExpired ? "EXPIRED" : coupon.status}</p>
+                  <p className="text-xs text-zinc-400">Status</p>
+                  <p className="font-semibold text-[#111827]">{isCouponExpired ? "EXPIRED" : coupon.status}</p>
                 </div>
                 <div>
-                  <p className="text-xs text-gray-500">Expires In</p>
-                  <p>{timeRemaining || "—"}</p>
+                  <p className="text-xs text-zinc-400">Expires In</p>
+                  <p className="font-semibold text-[#111827]">{timeRemaining || "—"}</p>
                 </div>
               </div>
             </div>

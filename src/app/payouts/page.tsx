@@ -4,12 +4,12 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import AppShell from "@/app/components/AppShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { getPayouts, getCurrentPayoutProgress, getDashboardData } from "@/actions/user";
 import { ArrowLeft, DollarSign, CalendarDays, TrendingUp, Loader2, Calendar, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import DashboardVisualSection from "../components/dashboard/DashboardVisualSection";
 
 // --- INTERFACES ---
 interface Payout {
@@ -52,24 +52,26 @@ interface PayoutHistoryResponse {
 
 // --- HELPER COMPONENTS ---
 const StatCard = ({ title, value, icon: Icon }: { title: string; value: string; icon: React.ElementType }) => (
-  <Card className="bg-gray-900/50 border-gray-800">
-    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-gray-400">{title}</CardTitle>
-      <Icon className="h-4 w-4 text-gray-500" />
-    </CardHeader>
-    <CardContent>
-      <div className="text-2xl font-bold text-white">{value}</div>
-    </CardContent>
-  </Card>
+  <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
+    <div className="flex items-start justify-between gap-3">
+      <div className="min-w-0 flex-1">
+        <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.07em] text-zinc-400">{title}</p>
+        <p className="text-[26px] font-extrabold leading-none tracking-tight text-[#111827]">{value}</p>
+      </div>
+      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ background: "#C41E3A18", color: "#C41E3A" }}>
+        <Icon className="h-5 w-5" />
+      </div>
+    </div>
+  </div>
 );
 
 const PayoutDetailRow = ({ label, value, icon: Icon }: { label: string; value: number; icon: React.ElementType }) => (
-    <div className="flex items-center justify-between py-3 border-b border-gray-800 last:border-b-0">
+    <div className="flex items-center justify-between py-3 border-b border-[#E8E8E8] last:border-b-0">
         <div className="flex items-center gap-3">
-            <Icon className="w-4 h-4 text-gray-500" />
-            <span className="text-sm text-gray-400">{label}</span>
+            <Icon className="w-4 h-4 text-zinc-400" />
+            <span className="text-sm text-zinc-500">{label}</span>
         </div>
-        <span className="font-medium text-white">{formatCurrency(value)}</span>
+        <span className="font-medium text-[#111827]">{formatCurrency(value)}</span>
     </div>
 );
 
@@ -255,12 +257,7 @@ const PayoutsPage = () => {
   }
 
   return (
-    <AppShell
-      balance={walletData?.availableBalance}
-      userName={profileData?.fullName}
-      userRank={rankData?.name}
-      avatarUrl={profileData?.profilePicture}
-    >
+    <>
       <div className="dashboard-light-scope p-6 space-y-6">
         <header className="mb-8">
           <Button asChild variant="outline" className="mb-4">
@@ -269,21 +266,25 @@ const PayoutsPage = () => {
               Back to Dashboard
             </Link>
           </Button>
-          <h1 className="text-4xl font-bold text-white">Payouts</h1>
-          <p className="text-gray-400 mt-2">Track your current earnings and review your payout history, including your special bonuses.</p>
+          <h1 className="text-4xl font-bold text-[#111827]">Payouts</h1>
+          <p className="text-zinc-500 mt-2">Track your current earnings and review your payout history, including your special bonuses.</p>
         </header>
+
+        <div className="mb-8">
+          <DashboardVisualSection compact />
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             <StatCard title="Current Estimated Payout" value={formatCurrency(currentPayout?.estimatedPayout ?? 0)} icon={DollarSign} />
-            <Card className="bg-gray-900/50 border-gray-800 lg:col-span-2">
+            <Card className="bg-white border-[#E8E8E8] lg:col-span-2">
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium text-gray-400">Next Payout Countdown</CardTitle>
-                    <CalendarDays className="h-4 w-4 text-gray-500" />
+                    <CardTitle className="text-sm font-medium text-zinc-500">Next Payout Countdown</CardTitle>
+                    <CalendarDays className="h-4 w-4 text-zinc-400" />
                 </CardHeader>
                 <CardContent>
-                    <div className="text-2xl font-bold text-white mb-2">{countdown}</div>
+                    <div className="text-2xl font-bold text-[#111827] mb-2">{countdown}</div>
                     {currentPayout?.isCapReached ? (
-                      <div className="mt-3 rounded-lg border border-amber-500/30 bg-amber-500/10 px-3 py-2 text-xs text-amber-200">
+                      <div className="mt-3 rounded-lg border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-700">
                         ROI stopped, reinvest to continue.
                         <Link href="/wallet" className="ml-2 underline">
                           Reinvest now
@@ -291,20 +292,20 @@ const PayoutsPage = () => {
                       </div>
                     ) : (
                       nextPayoutFormattedDate && (
-                        <p className="text-sm text-gray-400 mb-2">
+                        <p className="text-sm text-zinc-500 mb-2">
                           Estimated Payout Date: {nextPayoutFormattedDate}
                         </p>
                       )
                     )}
-                    <div className="w-full bg-gray-700 rounded-full h-2.5">
-                        <div 
+                    <div className="w-full bg-zinc-100 rounded-full h-2.5">
+                        <div
                             className="bg-emerald-500 h-2.5 rounded-full transition-all duration-500 ease-out"
                             style={{ width: `${progressPercentage}%` }}
                         ></div>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">{progressPercentage.toFixed(1)}% of current cycle completed</p>
+                    <p className="text-xs text-zinc-400 mt-1">{progressPercentage.toFixed(1)}% of current cycle completed</p>
                     {!currentPayout?.isCapReached && (
-                      <p className="text-xs text-gray-400 mt-2">
+                      <p className="text-xs text-zinc-400 mt-2">
                         You will receive your next payout once this countdown ends and the progress bar completes.
                       </p>
                     )}
@@ -313,34 +314,34 @@ const PayoutsPage = () => {
         </div>
 
         {payoutSchedule.length > 0 && (
-          <Card className="bg-gray-900/40 border-gray-800 mb-8">
+          <Card className="bg-white border-[#E8E8E8] mb-8">
             <CardHeader className="flex flex-col gap-2 lg:flex-row lg:items-center lg:justify-between">
               <div className="space-y-1">
                 <CardTitle>Upcoming ROI Schedule</CardTitle>
-                <p className="text-xs text-gray-500">Approximate dates (every 30 days).</p>
+                <p className="text-xs text-zinc-400">Approximate dates (every 30 days).</p>
               </div>
-              <div className="flex items-center gap-2 text-xs text-gray-400">
-                <Clock className="h-4 w-4 text-emerald-300" />
+              <div className="flex items-center gap-2 text-xs text-zinc-500">
+                <Clock className="h-4 w-4 text-emerald-500" />
                 <span>{`~${payoutSchedule.length} payouts remaining`}</span>
               </div>
             </CardHeader>
-            <CardContent className="space-y-4 text-sm text-gray-300">
+            <CardContent className="space-y-4 text-sm text-zinc-600">
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
                 {(showFullSchedule ? payoutSchedule : payoutSchedule.slice(0, 6)).map((row, index) => (
                   <div
                     key={`${row.date}-${index}`}
-                    className="flex items-center justify-between rounded-xl border border-gray-800/70 bg-black/30 px-4 py-3"
+                    className="flex items-center justify-between rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] px-4 py-3"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="rounded-full border border-emerald-500/30 bg-emerald-500/10 p-2">
-                        <Calendar className="h-4 w-4 text-emerald-300" />
+                      <div className="rounded-full border border-emerald-200 bg-emerald-50 p-2">
+                        <Calendar className="h-4 w-4 text-emerald-600" />
                       </div>
                       <div>
-                        <p className="text-xs uppercase tracking-[0.2em] text-gray-500">Payout</p>
-                        <p className="text-sm text-gray-200">{row.date}</p>
+                        <p className="text-xs uppercase tracking-[0.2em] text-zinc-400">Payout</p>
+                        <p className="text-sm text-[#111827]">{row.date}</p>
                       </div>
                     </div>
-                    <span className="font-semibold text-white">{formatCurrency(row.amount)}</span>
+                    <span className="font-semibold text-[#111827]">{formatCurrency(row.amount)}</span>
                   </div>
                 ))}
               </div>
@@ -348,7 +349,7 @@ const PayoutsPage = () => {
                 <Button
                   type="button"
                   variant="outline"
-                  className="w-full border-gray-800 text-gray-200 hover:bg-white/5"
+                  className="w-full border-[#E8E8E8] text-zinc-600 hover:bg-[#F8F9FA]"
                   onClick={() => setShowFullSchedule((prev) => !prev)}
                 >
                   {showFullSchedule ? "Show less" : "Show more"}
@@ -360,54 +361,54 @@ const PayoutsPage = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-1 space-y-6">
-                <Card className="bg-gray-900/40 border-gray-800">
+                <Card className="bg-white border-[#E8E8E8]">
                     <CardHeader><CardTitle>Current Earnings Breakdown</CardTitle></CardHeader>
                     <CardContent>
                         {currentPayout ? (
                             <>
                                 <PayoutDetailRow label="Special Bonus Payout" value={currentPayout.earningsBreakdown.roiPayout} icon={TrendingUp} /> {/* Frontend display change: 'Special Bonus Payout' is displayed, corresponding to the backend's 'roiPayout' field. */}
                             </>
-                        ) : <p className="text-gray-500">No current earnings data.</p>}
+                        ) : <p className="text-zinc-400">No current earnings data.</p>}
                     </CardContent>
                 </Card>
                 {currentPayout && (
-                  <Card className="bg-gray-900/40 border-gray-800">
+                  <Card className="bg-white border-[#E8E8E8]">
                     <CardHeader><CardTitle>ROI Projection</CardTitle></CardHeader>
-                    <CardContent className="space-y-2 text-sm text-gray-300">
+                    <CardContent className="space-y-2 text-sm text-zinc-600">
                       <div className="flex items-center justify-between">
-                        <span className="text-gray-400">Estimated payout</span>
-                        <span className="font-semibold text-white">{formatCurrency(currentPayout.estimatedPayout ?? 0)}</span>
+                        <span className="text-zinc-500">Estimated payout</span>
+                        <span className="font-semibold text-[#111827]">{formatCurrency(currentPayout.estimatedPayout ?? 0)}</span>
                       </div>
                       {currentPayout.roiRate !== undefined && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400">ROI rate</span>
-                          <span className="font-semibold text-white">{(currentPayout.roiRate * 100).toFixed(2)}%</span>
+                          <span className="text-zinc-500">ROI rate</span>
+                          <span className="font-semibold text-[#111827]">{(currentPayout.roiRate * 100).toFixed(2)}%</span>
                         </div>
                       )}
                       {currentPayout.potentialRoiPerCycle !== undefined && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400">Potential per cycle</span>
-                          <span className="font-semibold text-white">{formatCurrency(currentPayout.potentialRoiPerCycle)}</span>
+                          <span className="text-zinc-500">Potential per cycle</span>
+                          <span className="font-semibold text-[#111827]">{formatCurrency(currentPayout.potentialRoiPerCycle)}</span>
                         </div>
                       )}
                       {currentPayout.maxRemainingRoiPayouts !== undefined && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400">~Payouts left</span>
-                          <span className="font-semibold text-white">{currentPayout.maxRemainingRoiPayouts}</span>
+                          <span className="text-zinc-500">~Payouts left</span>
+                          <span className="font-semibold text-[#111827]">{currentPayout.maxRemainingRoiPayouts}</span>
                         </div>
                       )}
                       {currentPayout.estimatedCapDate && (
                         <div className="flex items-center justify-between">
-                          <span className="text-gray-400">Approx cap date</span>
-                          <span className="font-semibold text-white">
+                          <span className="text-zinc-500">Approx cap date</span>
+                          <span className="font-semibold text-[#111827]">
                             {new Date(currentPayout.estimatedCapDate).toLocaleDateString()}
                           </span>
                         </div>
                       )}
                       {currentPayout.remainingEarningsCap !== undefined && (
-                        <div className="flex items-center justify-between border-t border-gray-800 pt-2">
-                          <span className="text-gray-400">Remaining cap</span>
-                          <span className="font-semibold text-emerald-300">{formatCurrency(currentPayout.remainingEarningsCap)}</span>
+                        <div className="flex items-center justify-between border-t border-[#E8E8E8] pt-2">
+                          <span className="text-zinc-500">Remaining cap</span>
+                          <span className="font-semibold text-emerald-600">{formatCurrency(currentPayout.remainingEarningsCap)}</span>
                         </div>
                       )}
                     </CardContent>
@@ -415,22 +416,22 @@ const PayoutsPage = () => {
                 )}
             </div>
             <div className="lg:col-span-2">
-                <Card className="bg-gray-900/40 border-gray-800">
+                <Card className="bg-white border-[#E8E8E8]">
                     <CardHeader><CardTitle>Payout History</CardTitle></CardHeader>
                     <CardContent>
                         {payoutHistory.length === 0 ? (
-                        <p className="text-gray-500 text-center py-8">No payout history found.</p>
+                        <p className="text-zinc-400 text-center py-8">No payout history found.</p>
                         ) : (
                         <Accordion type="single" collapsible className="w-full">
                             {payoutHistory.map((payout, index) => (
-                            <AccordionItem key={payout.month} value={payout.month} className="border-b-gray-800" ref={index === payoutHistory.length - 1 ? lastPayoutElementRef : null}>
+                            <AccordionItem key={payout.month} value={payout.month} className="border-b-[#E8E8E8]" ref={index === payoutHistory.length - 1 ? lastPayoutElementRef : null}>
                                 <AccordionTrigger className="hover:no-underline">
                                 <div className="flex justify-between items-center w-full pr-4">
-                                    <span className="font-semibold text-lg text-white">{payout.month}</span>
-                                    <span className="text-lg font-bold text-emerald-400">{formatCurrency(payout.totalMonthlyIncome)}</span>
+                                    <span className="font-semibold text-lg text-[#111827]">{payout.month}</span>
+                                    <span className="text-lg font-bold text-emerald-600">{formatCurrency(payout.totalMonthlyIncome)}</span>
                                 </div>
                                 </AccordionTrigger>
-                                <AccordionContent className="bg-black/20 p-4 rounded-b-md">
+                                <AccordionContent className="bg-[#F8F9FA] p-4 rounded-b-md">
                                     <PayoutDetailRow label="Special Bonus Payout" value={payout.roiPayout} icon={TrendingUp} /> {/* Frontend display change: 'Special Bonus Payout' is displayed, corresponding to the backend's 'roiPayout' field. */}
                                 </AccordionContent>
                             </AccordionItem>
@@ -439,8 +440,8 @@ const PayoutsPage = () => {
                         )}
                         {historyLoading && (
                             <div className="flex justify-center items-center py-4">
-                                <Loader2 className="w-6 h-6 text-gray-500 animate-spin" />
-                                <span className="ml-2 text-gray-500">Loading more...</span>
+                                <Loader2 className="w-6 h-6 text-zinc-400 animate-spin" />
+                                <span className="ml-2 text-zinc-400">Loading more...</span>
                             </div>
                         )}
                     </CardContent>
@@ -448,7 +449,7 @@ const PayoutsPage = () => {
             </div>
         </div>
       </div>
-    </AppShell>
+    </>
   );
 };
 

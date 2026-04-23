@@ -131,16 +131,16 @@ export const transformDataToFlow = (
       position: { x: graphNode.x - nodeWidth / 2, y: graphNode.y - nodeHeight / 2 },
       data: {
         label: (
-          <div className="p-2 text-left text-white">
-            <strong>{user.fullName}</strong>
+          <div className="p-2 text-left text-[#111827]">
+            <strong className="text-base font-bold tracking-tight">{user.fullName}</strong>
             <br />
-            <small className="text-gray-400">ID: {user.userId}</small>
+            <small className="text-zinc-500">ID: {user.userId}</small>
             <br />
-            <small className="text-gray-400">Package: ${Number(user.packageUSD || 0).toLocaleString()}</small>
+            <small className="text-zinc-500">Package: ${Number(user.packageUSD || 0).toLocaleString()}</small>
             {user.isSplitSponsor && (
               <>
                 <br />
-                <small className="text-amber-400 font-semibold">
+                <small className="font-semibold text-amber-600">
                   Sponsor: {user.originalSponsorId}
                 </small>
               </>
@@ -149,10 +149,11 @@ export const transformDataToFlow = (
         ),
       },
       style: {
-        border: '1px solid #4a5568', // gray-600
+        border: '1px solid #E8E8E8',
         padding: 10,
-        borderRadius: 5,
-        background: '#2d3748', // gray-800
+        borderRadius: 12,
+        background: '#ffffff',
+        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
         width: nodeWidth,
       },
     });

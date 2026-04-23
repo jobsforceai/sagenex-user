@@ -3,7 +3,6 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
-import AppShell from "@/app/components/AppShell";
 import {
   Card,
   CardContent,
@@ -290,12 +289,7 @@ const ProfilePage = () => {
   const formatBiometricDate = (value?: string | null) => (value ? new Date(value).toLocaleString() : "—");
 
   return (
-    <AppShell
-      balance={walletData?.availableBalance}
-      userName={profile?.fullName}
-      userRank={rankData?.name}
-      avatarUrl={profile?.profilePicture}
-    >
+    <>
       <div className="dashboard-light-scope p-6 space-y-6">
         {/* Header */}
         <section className="relative overflow-hidden rounded-3xl border border-[#e8e8e8] bg-white p-6 md:p-8 shadow-sm">
@@ -620,7 +614,7 @@ const ProfilePage = () => {
             </div>
         )}
       </div>
-    </AppShell>
+    </>
   );
 };
 

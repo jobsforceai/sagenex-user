@@ -43,15 +43,15 @@ export default function LivePriceCards({
         onClick={() => onMetalChange("gold")}
         className={`relative w-full overflow-hidden rounded-2xl border p-6 text-left transition ${
           activeMetal === "gold"
-            ? "border-[#D7AF35]/50 bg-[#232838]"
-            : "border-[#3c4256] bg-[#1B1F2D] hover:border-[#D7AF35]/35"
+            ? "border-[#D7AF35]/40 bg-white"
+            : "border-[#E8E8E8] bg-white hover:border-[#D7AF35]/35"
         }`}
       >
-        <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#D7AF35]/12 blur-2xl" />
+        <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#D7AF35]/10 blur-2xl" />
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8B92AA]">Live Rate</p>
-            <h3 className="mt-1 text-xl font-bold text-[#ECEFF8]">Gold 24K</h3>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Live Rate</p>
+            <h3 className="mt-1 text-xl font-bold text-[#111827]">Gold 24K</h3>
           </div>
           {gold && (
             <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isGoldUp ? "bg-emerald-500/15 text-emerald-300" : "bg-red-500/15 text-red-300"}`}>
@@ -59,10 +59,10 @@ export default function LivePriceCards({
             </span>
           )}
         </div>
-        <p className="mt-3 text-4xl font-black tracking-tight text-[#EFCB57]">
+        <p className="mt-3 text-4xl font-black tracking-tight text-[#C41E3A]">
           {gold ? formatINR(goldPrice10g) : "—"}
         </p>
-        <p className="mt-1 text-xs text-[#8B92AA]">Per 10 grams</p>
+        <p className="mt-1 text-xs text-zinc-400">Per 10 grams</p>
       </button>
 
       {/* Silver */}
@@ -70,15 +70,15 @@ export default function LivePriceCards({
         onClick={() => onMetalChange("silver")}
         className={`relative w-full overflow-hidden rounded-2xl border p-6 text-left transition ${
           activeMetal === "silver"
-            ? "border-[#b3bdd4]/45 bg-[#232838]"
-            : "border-[#3c4256] bg-[#1B1F2D] hover:border-[#b3bdd4]/35"
+            ? "border-[#E8E8E8] bg-white"
+            : "border-[#E8E8E8] bg-white hover:border-[#E8E8E8]"
         }`}
       >
-        <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#9ca3af]/12 blur-2xl" />
+        <div className="pointer-events-none absolute -right-8 -top-8 h-24 w-24 rounded-full bg-[#9ca3af]/10 blur-2xl" />
         <div className="flex items-center justify-between">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[#8B92AA]">Live Rate</p>
-            <h3 className="mt-1 text-xl font-bold text-[#ECEFF8]">Silver</h3>
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-400">Live Rate</p>
+            <h3 className="mt-1 text-xl font-bold text-[#111827]">Silver</h3>
           </div>
           {silver && (
             <span className={`rounded-full px-2.5 py-1 text-xs font-bold ${isSilverUp ? "bg-emerald-500/15 text-emerald-300" : "bg-red-500/15 text-red-300"}`}>
@@ -86,10 +86,10 @@ export default function LivePriceCards({
             </span>
           )}
         </div>
-        <p className="mt-3 text-4xl font-black tracking-tight text-[#cdd5e9]">
+        <p className="mt-3 text-4xl font-black tracking-tight text-[#111827]">
           {silver ? formatINR(silverPrice1kg) : "—"}
         </p>
-        <p className="mt-1 text-xs text-[#8B92AA]">Per 1 kilogram</p>
+        <p className="mt-1 text-xs text-zinc-400">Per 1 kilogram</p>
       </button>
     </section>
   );

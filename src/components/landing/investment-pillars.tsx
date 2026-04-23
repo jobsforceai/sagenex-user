@@ -80,7 +80,7 @@ export default function InvestmentPillars() {
                 {pillar.tag}
               </span>
               
-              <h3 className="text-2xl font-bold font-display mb-4 text-white leading-tight">
+              <h3 className="text-2xl font-bold font-display mb-4 text-[var(--crimson)] leading-tight">
                 {pillar.title}
               </h3>
               
@@ -91,8 +91,8 @@ export default function InvestmentPillars() {
               <ul className="space-y-4">
                 {pillar.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-3 text-sm text-white/80">
-                    <span className="mt-1 flex-shrink-0 text-[var(--emerald)]">✓</span>
-                    <span className="leading-relaxed">{feature}</span>
+                    <span className="mt-1 flex-shrink-0 text-black">✓</span>
+                    <span className="leading-relaxed text-black">{feature}</span>
                   </li>
                 ))}
               </ul>

@@ -45,28 +45,28 @@ export const CompoundingToggle = () => {
   if (!isPackageActive) return null;
 
   return (
-    <Card className="bg-gray-900/40 border border-gray-800">
-      <CardContent className="py-4 px-5 flex items-start justify-between gap-4">
+    <Card className="rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">
+      <CardContent className="flex items-start justify-between gap-4 px-5 py-4">
         <div className="flex items-start gap-3">
-          <div className="mt-0.5 p-2 rounded-lg bg-green-500/10">
-            <TrendingUp className="h-4 w-4 text-green-400" />
+          <div className="mt-0.5 rounded-lg bg-emerald-500/10 p-2">
+            <TrendingUp className="h-4 w-4 text-emerald-600" />
           </div>
           <div>
-            <p className="text-sm font-medium text-white">Auto-Compounding</p>
-            <p className="text-xs text-gray-400 mt-0.5">
+            <p className="text-sm font-semibold text-[#111827]">Auto-Compounding</p>
+            <p className="mt-0.5 text-xs text-zinc-500">
               {enabled
                 ? "Your monthly ROI is automatically reinvested into your package."
                 : "Enable to auto-reinvest monthly ROI into your package for compounding growth."}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 mt-1">
-          {toggling && <Loader2 className="h-4 w-4 text-gray-400 animate-spin" />}
+        <div className="mt-1 flex shrink-0 items-center gap-2">
+          {toggling && <Loader2 className="h-4 w-4 animate-spin text-zinc-400" />}
           <Switch
             checked={enabled}
             onCheckedChange={handleToggle}
             disabled={toggling}
-            className="data-[state=checked]:bg-green-500"
+            className="data-[state=checked]:bg-emerald-500"
           />
         </div>
       </CardContent>

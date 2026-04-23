@@ -339,7 +339,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     }
 
     return (
-        <div className={`bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 relative overflow-hidden flex flex-col ${className ?? ''}`}>
+        <div className={`relative flex flex-col overflow-hidden rounded-3xl border border-[#E8E8E8] bg-white p-6 sm:p-8 ${className ?? ''}`}>
             {showConfetti && <Confetti width={500} height={500} />}
             {transferCooldown > 0 && (
                 <div className="mb-4 rounded-2xl border border-amber-500/40 bg-amber-500/15 px-4 py-3 text-sm text-amber-100 sm:text-xs">
@@ -352,26 +352,26 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                     </p>
                 </div>
             )}
-            <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
+            <h2 className="mb-4 flex items-center gap-2 text-2xl font-bold text-[#111827]">
                 {/* <Send className="text-emerald-400" /> */}
                 Transfer Funds
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="mb-6 text-zinc-500">
                 Securely send funds to another user. Your transaction will be verified for security.
             </p>
 
             {step === 1 && (
                 <form onSubmit={handleInitiateTransfer} className="space-y-4">
-                    <div className="p-4 rounded-lg bg-gray-800/50 flex justify-between items-center">
+                    <div className="flex items-center justify-between rounded-lg border border-[#E8E8E8] bg-[#F8F9FA] p-4">
                         <div className="flex items-center gap-2">
-                            <Wallet size={16} className="text-gray-400" />
-                            <span className="text-sm font-medium text-gray-300">Available Balance:</span>
+                            <Wallet size={16} className="text-zinc-500" />
+                            <span className="text-sm font-medium text-zinc-600">Available Balance:</span>
                         </div>
-                        <span className="font-semibold text-white">₹{currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
+                        <span className="font-semibold text-[#111827]">₹{currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span>
                     </div>
 
                     <div className="relative" ref={dropdownRef}>
-                        <label htmlFor="recipient-search" className="block text-sm font-medium text-gray-300 mb-1">Recipient</label>
+                        <label htmlFor="recipient-search" className="mb-1 block text-sm font-medium text-zinc-600">Recipient</label>
                         <input
                             id="recipient-search"
                             type="text"
@@ -379,16 +379,16 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             onChange={handleSearchChange}
                             onFocus={() => setIsDropdownVisible(true)}
                             placeholder="Search by name or user ID"
-                            className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                            className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C41E3A]"
                             autoComplete="off"
                         />
                         {isDropdownVisible && filteredRecipients.length > 0 && (
-                            <ul className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                            <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-[#E8E8E8] bg-white shadow-lg">
                                 {filteredRecipients.map(r => (
                                     <li
                                         key={r.userId}
                                         onClick={() => handleRecipientSelect(r)}
-                                        className="px-4 py-2 text-white hover:bg-emerald-600 cursor-pointer"
+                                        className="cursor-pointer px-4 py-2 text-[#111827] hover:bg-zinc-50"
                                     >
                                         {r.fullName} ({r.userId}){r.userId === user?.userId ? " • You" : ""}
                                     </li>
@@ -398,21 +398,21 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                     </div>
 
                     <div>
-                        <label htmlFor="amount" className="block text-sm font-medium text-gray-300 mb-1">Amount (INR)</label>
+                        <label htmlFor="amount" className="mb-1 block text-sm font-medium text-zinc-600">Amount (INR)</label>
                         <input
                             id="amount"
                             type="number"
                             value={amount}
                             onChange={(e) => setAmount(e.target.value)}
                             placeholder="0.00"
-                            className={`w-full px-4 py-2 rounded-md bg-gray-800 border ${isAmountInvalid ? 'border-red-500' : 'border-gray-600'} text-white focus:outline-none focus:ring-2 ${isAmountInvalid ? 'focus:ring-red-500' : 'focus:ring-emerald-500'}`}
+                            className={`w-full rounded-md border bg-white px-4 py-2 text-[#111827] ${isAmountInvalid ? 'border-red-400' : 'border-[#E8E8E8]'} focus:outline-none focus:ring-2 ${isAmountInvalid ? 'focus:ring-red-400' : 'focus:ring-[#C41E3A]'}`}
                             required
                             min="0.01"
                             step="0.01"
                         />
-                        <div className="text-xs text-gray-400 mt-1 min-h-5">
+                        <div className="mt-1 min-h-5 text-xs text-zinc-500">
                             {transferType === 'TO_PACKAGE' && (
-                                <span className="text-gray-500">Minimum ${minPackageAmount} for package transfers.</span>
+                                <span className="text-zinc-500">Minimum ${minPackageAmount} for package transfers.</span>
                             )}
                             {numericAmount > 0 && !isAmountInvalid && !isBelowPackageMinimum && (
                                 <span>Remaining Balance: ${remainingBalance.toFixed(2)}</span>
@@ -425,7 +425,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-gray-300 mb-2">Transfer Destination</label>
+                        <label className="mb-2 block text-sm font-medium text-zinc-600">Transfer Destination</label>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div
                                 onClick={() => {
@@ -435,27 +435,27 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                     }
                                     setTransferType('TO_AVAILABLE_BALANCE');
                                 }}
-                                className={`flex flex-col items-center justify-center p-1 rounded-lg cursor-pointer transition-all duration-200 text-white
+                                className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 p-1 transition-all duration-200 text-[#111827]
                                     ${transferType === 'TO_AVAILABLE_BALANCE'
-                                        ? 'bg-gray-700 border-gray-500'
-                                        : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 hover:border-gray-600'}
-                                    border-2`}
+                                        ? 'border-[#C41E3A] bg-[#C41E3A]/5'
+                                        : 'border-[#E8E8E8] bg-white hover:bg-zinc-50'}
+                                    `}
                             >
                                 <Wallet className="mb-2 h-6 w-6" />
                                 <span className="font-semibold text-base">To Balance</span>
-                                <span className="text-xs text-center mt-1 text-gray-400">For withdrawals & spending</span>
+                                <span className="mt-1 text-center text-xs text-zinc-500">For withdrawals & spending</span>
                             </div>
                             <div
                                 onClick={() => setTransferType('TO_PACKAGE')}
-                                className={`flex flex-col items-center justify-center p-1 rounded-lg cursor-pointer transition-all duration-200 text-white
+                                className={`flex cursor-pointer flex-col items-center justify-center rounded-lg border-2 p-1 transition-all duration-200 text-[#111827]
                                     ${transferType === 'TO_PACKAGE'
-                                        ? 'bg-gray-700 border-gray-500'
-                                        : 'bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 hover:border-gray-600'}
-                                    border-2`}
+                                        ? 'border-[#C41E3A] bg-[#C41E3A]/5'
+                                        : 'border-[#E8E8E8] bg-white hover:bg-zinc-50'}
+                                    `}
                             >
                                 <Briefcase className="mb-2 h-6 w-6" />
                                 <span className="font-semibold text-base">To Package</span>
-                                <span className="text-xs text-center mt-1 text-gray-400">For package upgrades</span>
+                                <span className="mt-1 text-center text-xs text-zinc-500">For package upgrades</span>
                             </div>
                         </div>
                         {isSelfRecipient && (
@@ -510,7 +510,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                     <button
                         type="submit"
                         disabled={isLoading || isAmountInvalid || isBelowPackageMinimum || numericAmount <= 0 || !selectedRecipient}
-                        className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#C41E3A] px-5 py-3 font-semibold text-white hover:bg-[#ad1b34] disabled:cursor-not-allowed disabled:opacity-50"
                     >
                         {isLoading ? 'Proceeding...' : 'Proceed to Verification'}
                         <ArrowRight size={16} />
@@ -520,9 +520,9 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
 
             {step === 2 && (
                 <div className="space-y-4">
-                    <div className="rounded-xl border border-gray-700/60 bg-gray-900/60 p-4 space-y-3">
-                        <p className="text-xs uppercase tracking-[0.25em] text-gray-400">Verification</p>
-                        <div className="flex justify-center gap-2 p-1 rounded-lg bg-gray-800/50">
+                    <div className="space-y-3 rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
+                        <p className="text-xs font-bold uppercase tracking-[0.08em] text-zinc-500">Verification</p>
+                        <div className="flex justify-center gap-2 rounded-lg border border-[#E8E8E8] bg-white p-1">
                             {faceApproved && (
                                 <button
                                     type="button"
@@ -531,7 +531,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                         setFaceModalOpen(true);
                                     }}
                                     className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
-                                        verificationMethod === 'face' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                                        verificationMethod === 'face' ? 'bg-[#C41E3A] text-white' : 'text-zinc-600 hover:bg-zinc-100'
                                     }`}
                                 >
                                     Use Face
@@ -546,7 +546,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                         setFaceModalOpen(false);
                                     }}
                                     className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
-                                        verificationMethod === 'password' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                                        verificationMethod === 'password' ? 'bg-[#C41E3A] text-white' : 'text-zinc-600 hover:bg-zinc-100'
                                     }`}
                                 >
                                     Use Password
@@ -560,7 +560,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                     setFaceModalOpen(false);
                                 }}
                                 className={`w-full py-2 px-4 rounded-md text-sm font-semibold transition-colors ${
-                                    verificationMethod === 'otp' ? 'bg-emerald-600 text-white' : 'text-gray-300 hover:bg-gray-700'
+                                    verificationMethod === 'otp' ? 'bg-[#C41E3A] text-white' : 'text-zinc-600 hover:bg-zinc-100'
                                 }`}
                             >
                                 Use OTP
@@ -626,7 +626,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                     value={password}
                                     onChange={(e) => setPassword(e.target.value)}
                                     placeholder="Your password"
-                                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                    className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C41E3A]"
                                     required
                                 />
                             </div>
@@ -640,7 +640,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                         value={otp}
                                         onChange={(e) => setOtp(e.target.value)}
                                         placeholder="123456"
-                                        className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                        className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C41E3A]"
                                         required
                                         maxLength={6}
                                     />
@@ -648,7 +648,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                         type="button"
                                         onClick={handleRequestOtp}
                                         disabled={isSendingOtp || otpCooldown > 0}
-                                        className="px-4 py-2 rounded-md bg-gray-600 hover:bg-gray-500 text-white font-semibold disabled:opacity-50 sm:w-48"
+                                        className="rounded-md border border-[#E8E8E8] bg-white px-4 py-2 font-semibold text-[#111827] hover:bg-zinc-100 disabled:opacity-50 sm:w-48"
                                     >
                                         {isSendingOtp ? 'Sending...' : (otpCooldown > 0 ? `Resend OTP in ${otpCooldown}s` : 'Send OTP')}
                                     </button>
@@ -659,14 +659,14 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             <button
                                 type="button"
                                 onClick={() => { setStep(1); setTransferIdempotencyKey(null); }}
-                                className="w-full px-5 py-3 rounded-xl bg-gray-600 hover:bg-gray-500 text-white font-semibold"
+                                className="w-full rounded-xl border border-[#E8E8E8] bg-white px-5 py-3 font-semibold text-[#111827] hover:bg-zinc-100"
                             >
                                 Back
                             </button>
                             <button
                                 type="submit"
                                 disabled={isLoading}
-                                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50"
+                                className="inline-flex w-full items-center justify-center gap-2 rounded-xl bg-[#C41E3A] px-5 py-3 font-semibold text-white hover:bg-[#ad1b34] disabled:opacity-50"
                             >
                                 {isLoading ? 'Transferring...' : 'Complete Transfer'}
                             </button>

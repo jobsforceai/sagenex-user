@@ -41,14 +41,14 @@ export default function CityPricesGrid({ prices }: CityPricesGridProps) {
   if (!prices || prices.length === 0) return null;
 
   return (
-    <section className="rounded-2xl border border-[#3c4256] bg-[#1B1F2D] p-6 shadow-card">
+    <section className="rounded-2xl border border-[#E8E8E8] bg-white p-6 shadow-sm">
       <div className="mb-4 flex items-center justify-between gap-2">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-[#8B92AA]">Regional Board</p>
-          <h3 className="mt-1 text-lg font-bold text-[#ECEFF8]">City Live Gold Prices</h3>
+          <p className="text-xs font-semibold uppercase tracking-[0.15em] text-zinc-400">Regional Board</p>
+          <h3 className="mt-1 text-lg font-bold text-[#111827]">City Live Gold Prices</h3>
         </div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-[11px] font-semibold text-emerald-300">
-          <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
+        <span className="inline-flex items-center gap-2 rounded-full border border-[#E8E8E8] bg-[#F8F9FA] px-3 py-1 text-[11px] font-semibold text-zinc-500">
+          <span className="h-2 w-2 animate-pulse rounded-full bg-[#C41E3A]" />
           Streaming
         </span>
       </div>
@@ -56,10 +56,10 @@ export default function CityPricesGrid({ prices }: CityPricesGridProps) {
         {rows.map((row) => (
           <div
             key={row.city}
-            className="flex items-center justify-between rounded-xl border border-[#3c4256]/60 bg-[#1B1F2D]/50 px-4 py-3"
+            className="flex items-center justify-between rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] px-4 py-3"
           >
-            <p className="text-sm font-medium text-[#B2B7CB]">{row.city}</p>
-            <p className="text-base font-bold text-[#D7AF35]">{formatINR(row.value)}</p>
+            <p className="text-sm font-medium text-zinc-600">{row.city}</p>
+            <p className="text-base font-bold text-[#111827]">{formatINR(row.value)}</p>
           </div>
         ))}
       </div>
