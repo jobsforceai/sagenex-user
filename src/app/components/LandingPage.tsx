@@ -217,7 +217,7 @@ function PlanSection() {
             <div className="grid grid-cols-3 text-xs uppercase tracking-wider text-zinc-400">
               <div className="px-4 py-2">Level</div>
               <div className="px-4 py-2">Bonus %</div>
-              <div className="px-4 py-2">$1,000 Example</div>
+              <div className="px-4 py-2">₹1,00,000 Example</div>
             </div>
             <div className="divide-y divide-white/10">
               {rows.map((r) => (
@@ -245,12 +245,12 @@ function PlanSection() {
           <h3 className="text-lg font-semibold">Example growth with six‑wide duplication</h3>
           <div className="mt-4 grid grid-cols-2 gap-4 text-sm">
             {[
-              { label: "Level 1", val: "$600" },
-              { label: "Level 2", val: "$2,160" },
-              { label: "Level 3", val: "$10,800" },
-              { label: "Level 4", val: "$51,840" },
-              { label: "Level 5", val: "$233,280" },
-              { label: "Level 6", val: "$933,120" },
+              { label: "Level 1", val: "₹60,000" },
+              { label: "Level 2", val: "₹2,16,000" },
+              { label: "Level 3", val: "₹10,80,000" },
+              { label: "Level 4", val: "₹51,84,000" },
+              { label: "Level 5", val: "₹2,33,28,000" },
+              { label: "Level 6", val: "₹9,33,12,000" },
             ].map((i) => (
               <div key={i.label} className="flex items-center justify-between rounded-xl bg-white/5 px-4 py-3 ring-1 ring-white/10">
                 <span className="text-zinc-300">{i.label}</span>

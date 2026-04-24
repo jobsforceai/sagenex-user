@@ -93,14 +93,14 @@ export default function LevelsEarnings() {
             Sagenex offers two earning paths: <strong className="text-white">Investor</strong> (passive) gains ROI from investment
             pools, capped at <strong className="text-white">2.5×</strong> capital—reinvest to continue. <strong className="text-white">Business Leader</strong>
             (active) earns ROI <em>plus</em> Direct Bonus and Unilevel incentives, with potential up to <strong className="text-white">4×</strong>
-            capital, sustained by team activity. Choose packages from <strong className="text-white">$50–$10,000</strong> with monthly ROI, daily
+            capital, sustained by team activity. Choose packages from <strong className="text-white">₹4,500–₹10,00,000</strong> with monthly ROI, daily
             caps, and reinvest options. Duplicate smartly to scale multi-level bonuses.
           </p> */}
           <p className="mt-6 sm:mt-8 max-w-4xl text-center md:text-right md:ml-auto text-[15px] sm:text-[17px] text-white/85">
             <span className="font-semibold text-emerald-300">SAGENEX</span> offers two earning paths: <strong className="text-white">Investor</strong> (passive) gains ROI from investment
             pools, capped at <strong className="text-white">2.5×</strong> capital—reinvest to continue. <strong className="text-white">Business Leader</strong>
             (active) earns ROI <em>plus</em> Direct Bonus and Unilevel incentives, with potential up to <strong className="text-white">4×</strong>
-            capital, sustained by team activity. Choose packages from <strong className="text-white">$50–$10,000</strong> with monthly ROI, daily
+            capital, sustained by team activity. Choose packages from <strong className="text-white">₹4,500–₹10,00,000</strong> with monthly ROI, daily
             caps, and reinvest options. Duplicate smartly to scale multi-level bonuses.
           </p>
 
@@ -171,13 +171,13 @@ export default function LevelsEarnings() {
                 >
                   <div className="font-semibold text-white">{r.level}</div>
                   <div className="text-right text-xs sm:text-base">{nf(r.members)}</div>
-                  <div className="text-right text-xs sm:text-base">${nf(r.packageValue)}</div>
+                  <div className="text-right text-xs sm:text-base">₹{nf(r.packageValue)}</div>
                   <div className="text-right">
                     <span className="text-white/80 hidden sm:inline">
                       {(r.rate * 100).toFixed(0)}%
                     </span>{" "}
                     <span className="ml-0 sm:ml-2 font-bold text-emerald-300 text-xs sm:text-base">
-                      ${nf(r.bonus)}
+                      ₹{nf(r.bonus)}
                     </span>
                   </div>
                 </motion.div>
@@ -188,9 +188,9 @@ export default function LevelsEarnings() {
             <div className="grid grid-cols-4 items-center bg-[#0b1220]/80 px-3 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm font-extrabold text-white sm:text-base">
               <div>TOTAL</div>
               <div className="text-right text-xs sm:text-base">{nf(totals.members)}</div>
-              <div className="text-right text-xs sm:text-base">${nf(totals.packageValue)}</div>
+              <div className="text-right text-xs sm:text-base">₹{nf(totals.packageValue)}</div>
               <div className="text-right text-lg sm:text-2xl text-[#f0d493]">
-                ${nf(totals.bonus)}
+                ₹{nf(totals.bonus)}
               </div>
             </div>
           </motion.div>

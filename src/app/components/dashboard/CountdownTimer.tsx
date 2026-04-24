@@ -82,8 +82,8 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
                             You have a fixed {QUALIFICATION_WINDOW_DAYS}-day window to qualify for higher multipliers.
                         </p>
                         <ul className="list-disc list-inside mt-2 text-xs space-y-1">
-                            <li>3.0x: 6 direct active members + $5,000 team business.</li>
-                            <li>4.0x: 12 direct active members + $10,000 team business.</li>
+                            <li>3.0x: 3 legs with ≥₹1,50,000 each + total team ≥₹5,00,000.</li>
+                            <li>4.0x: 4 legs with ≥₹2,00,000 each + total team ≥₹10,00,000 + KYC.</li>
                             <li>If the window ends without qualifying, your multiplier locks at 2.5x.</li>
                         </ul>
                     </TooltipContent>

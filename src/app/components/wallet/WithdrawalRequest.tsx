@@ -502,7 +502,7 @@ const WithdrawalRequest = ({
               />
               {safeRemainingLimit !== null && (
                 <p className="mt-2 text-xs text-zinc-500">
-                  Remaining withdrawal limit: ${maxWithdrawable.toFixed(2)}
+                  Remaining withdrawal limit: ₹{maxWithdrawable.toFixed(2)}
                 </p>
               )}
               {withdrawalType === "upi" && parseFloat(amount) > 500 && (

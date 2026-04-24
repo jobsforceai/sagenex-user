@@ -182,7 +182,7 @@ export function TestStep4ReviewConfirm({
         <div className="flex justify-between">
           <span className="text-white/70">Fee:</span>
           <span className="text-white font-semibold">
-            {test ? `$${test.priceUSD.toFixed(2)}` : '—'}
+            {test ? `₹${test.priceUSD.toFixed(2)}` : '—'}
           </span>
         </div>
         {test?.scheduledAt && (

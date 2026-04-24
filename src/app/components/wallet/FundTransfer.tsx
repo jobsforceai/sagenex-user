@@ -412,14 +412,14 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                         />
                         <div className="mt-1 min-h-5 text-xs text-zinc-500">
                             {transferType === 'TO_PACKAGE' && (
-                                <span className="text-zinc-500">Minimum ${minPackageAmount} for package transfers.</span>
+                                <span className="text-zinc-500">Minimum ₹{minPackageAmount} for package transfers.</span>
                             )}
                             {numericAmount > 0 && !isAmountInvalid && !isBelowPackageMinimum && (
-                                <span>Remaining Balance: ${remainingBalance.toFixed(2)}</span>
+                                <span>Remaining Balance: ₹{remainingBalance.toFixed(2)}</span>
                             )}
                             {isAmountInvalid && <span className="text-red-400">Amount exceeds available balance.</span>}
                             {isBelowPackageMinimum && (
-                                <span className="text-red-400">Amount must be at least ${minPackageAmount}.</span>
+                                <span className="text-red-400">Amount must be at least ₹{minPackageAmount}.</span>
                             )}
                         </div>
                         {transferType === 'TO_AVAILABLE_BALANCE' && numericAmount > 0 && !isAmountInvalid && (() => {

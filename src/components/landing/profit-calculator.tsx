@@ -141,7 +141,7 @@ export default function ProfitCalculator() {
                     <CartesianGrid stroke="#f0f0f0" vertical={false} />
                     <XAxis dataKey="name" tick={{ fill: "#555", fontSize: 11 }} />
                     <YAxis tick={{ fill: "#888", fontSize: 11 }} />
-                    <Tooltip formatter={(v: number) => [`$${v.toLocaleString()}`, "Value"]}
+                    <Tooltip formatter={(v: number) => [`₹${v.toLocaleString('en-IN')}`, "Value"]}
                       contentStyle={{ borderRadius: 8, border: "1px solid #e8e8e8", fontSize: 12 }} />
                     <Bar dataKey="Value" radius={[6, 6, 0, 0]} fill="#00b386" />
                   </BarChart>
@@ -173,9 +173,9 @@ export default function ProfitCalculator() {
                         </div>
                       </td>
                       <td className="py-2 text-[#555]">{d.rate.toFixed(1)}%</td>
-                      <td className="py-2 text-[#1a1a1a] font-medium">${d.final.toLocaleString(undefined, { maximumFractionDigits: 0 })}</td>
+                      <td className="py-2 text-[#1a1a1a] font-medium">₹{d.final.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
                       <td className="py-2 font-semibold" style={{ color: d.profit >= 0 ? "#00b386" : "#ef4444" }}>
-                        {d.profit >= 0 ? "+" : "-"}${Math.abs(d.profit).toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        {d.profit >= 0 ? "+" : "-"}₹{Math.abs(d.profit).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
                       </td>
                     </tr>
                   ))}

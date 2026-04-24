@@ -92,7 +92,7 @@ function transformTree(tree: GoldTreeNode): { nodes: Node[]; edges: Edge[] } {
             {user.planType && (
               <div className="mt-0.5 text-[11px] text-zinc-400">
                 {user.planType === "gold" ? "Gold" : "Cash"} Plan
-                {user.monthlyAmountUsd ? ` \u00b7 $${user.monthlyAmountUsd}/mo` : ""}
+                {user.monthlyAmountUsd ? ` \u00b7 \u20b9${user.monthlyAmountUsd}/mo` : ""}
               </div>
             )}
             {user.completedMonths != null && user.totalMonths != null && (

@@ -75,7 +75,7 @@ export const RewardsTab = ({ bonuses, loading, userId }: RewardsTabProps) => {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-gray-400">
-            Generate your eligibility code to enroll with SG Gold. Minimum package: $100.
+            Generate your eligibility code to enroll with SG Gold. Minimum package: ₹9,000.
           </p>
           {sggoldCode ? (
             <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 px-4 py-3">

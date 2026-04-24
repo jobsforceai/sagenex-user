@@ -97,7 +97,7 @@ const AcademyCard = ({ course, onUpgradeClick }: { course: CourseSummary, onUpgr
   const { accessStatus, isPublished, title, price, modules, goal, _id, whatYoullLearn } = course;
   const { ribbonBg, priceColor, ringColor, cardBg, walletBg, walletText, goalText, listItemText } = getTierTheme(title);
   const tierImage = tierImages[title];
-  const wallet = `$${fmt(price)}`;
+  const wallet = `₹${fmt(price)}`;
 
   const unlockedCard = (
     <motion.article
@@ -230,7 +230,7 @@ const UpgradeModal = ({ course, onClose }: { course: CourseSummary, onClose: () 
       <h3 className="text-2xl font-bold text-white mb-4">Unlock {course.title}</h3>
       <p className="text-gray-300 mb-6">
         To unlock this academy, your total investment must be at least{" "}
-        <span className="font-bold text-emerald-400">${course.price}</span>.
+        <span className="font-bold text-emerald-400">₹{course.price}</span>.
       </p>
       <div className="flex justify-evenly gap-4">
         <Button onClick={onClose} variant="outline" className="border-gray-600 text-gray-300 hover:bg-gray-800 hover:text-white">

@@ -74,7 +74,7 @@ export default function InvestorVsLeader() {
             <ul className="mt-4 space-y-2">
               <Bullet>Earns only through ROI from investment pools.</Bullet>
               <Bullet>Maximum Return capped at <span className="font-semibold">2.5×</span> of capital.</Bullet>
-              <Bullet>Example: <span className="font-semibold">$1,000 → $2,500</span></Bullet>
+              <Bullet>Example: <span className="font-semibold">₹1,00,000 → ₹2,50,000</span></Bullet>
               <Bullet>Must <span className="font-semibold">re-invest</span> to continue earning after cap is reached.</Bullet>
             </ul>
 
@@ -118,7 +118,7 @@ export default function InvestorVsLeader() {
                 Earns through ROI <span className="font-semibold">+ Direct Bonus + Unilevel + 8-Way Incentives</span>.
               </Bullet>
               <Bullet>Maximum Return capped at <span className="font-semibold">4×</span> of capital.</Bullet>
-              <Bullet>Example: <span className="font-semibold">$1,000 → $4,000</span></Bullet>
+              <Bullet>Example: <span className="font-semibold">₹1,00,000 → ₹4,00,000</span></Bullet>
               <Bullet>Must <span className="font-semibold">re-invest & maintain team activity</span> to continue.</Bullet>
             </ul>
 

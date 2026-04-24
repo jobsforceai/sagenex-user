@@ -44,7 +44,7 @@ export function Step4Confirmation({
         </div>
         <div className="flex justify-between items-center">
           <span className="text-white/70">Amount:</span>
-          <span className="text-white font-semibold">${amount}</span>
+          <span className="text-white font-semibold">₹{amount}</span>
         </div>
         <div className="flex justify-between items-center">
           <span className="text-white/70">Recipient:</span>

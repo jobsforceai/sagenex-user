@@ -343,7 +343,7 @@ const ProfilePage = () => {
                 <CardTitle className="text-xs uppercase tracking-wide text-gray-400">Package Value</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-semibold">${profile.packageUSD.toLocaleString()}</p>
+                <p className="text-2xl font-semibold">₹{profile.packageUSD.toLocaleString('en-IN')}</p>
               </CardContent>
             </Card>
             <Card className="bg-black/50 border-white/10">

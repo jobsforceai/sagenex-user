@@ -37,14 +37,14 @@ export function TestStep3RequestOtp({
 
   const formattedPrice = useMemo(() => {
     if (typeof priceUSD === 'number') {
-      return `$${priceUSD.toFixed(2)}`;
+      return `₹${priceUSD.toFixed(2)}`;
     }
     return 'Test fee';
   }, [priceUSD]);
 
   const formattedBalance = useMemo(() => {
     if (typeof availableBalance === 'number') {
-      return `$${availableBalance.toFixed(2)}`;
+      return `₹${availableBalance.toFixed(2)}`;
     }
     return null;
   }, [availableBalance]);
@@ -149,7 +149,7 @@ export function TestStep3RequestOtp({
         <div className="p-4 rounded-lg bg-red-500/10 border border-red-400/30 text-sm text-red-200 flex items-start gap-3">
           <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
           <p>
-            Insufficient wallet balance. You need {formattedPrice}, but have {formattedBalance || '$0.00'}.
+            Insufficient wallet balance. You need {formattedPrice}, but have {formattedBalance || '₹0.00'}.
           </p>
         </div>
       )}

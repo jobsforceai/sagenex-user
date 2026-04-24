@@ -75,7 +75,7 @@ const LockedBonusesCard = ({ bonuses }: { bonuses: LockedBonus[] | undefined }) 
                                             <p className="text-gray-200 font-semibold">{displayName}</p>
                                         </div>
                                         <span className={`font-bold text-xl ${bonus.isUnlocked ? 'text-emerald-400' : 'text-amber-400'}`}>
-                                            ${bonus.lockedAmount.toFixed(2)}
+                                            ₹{bonus.lockedAmount.toFixed(2)}
                                         </span>
                                     </div>
                                     <div className="mt-4 space-y-3">

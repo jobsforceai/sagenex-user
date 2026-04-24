@@ -268,7 +268,7 @@ const RewardCard = ({
         </div>
         <p className="text-gray-400 flex items-center gap-2 pt-1">
           <Gift className="w-4 h-4 text-emerald-400" />
-          Target: ${reward.rewardSnapshot.valueUSD.toLocaleString()}
+          Target: ₹{reward.rewardSnapshot.valueUSD.toLocaleString('en-IN')}
         </p>
       </CardHeader>
       <CardContent className="p-6 space-y-4 flex-grow flex flex-col justify-between">
@@ -276,7 +276,7 @@ const RewardCard = ({
           <div className="flex justify-between items-center mb-2 text-sm">
             <span className="text-gray-300">Progress</span>
             <span className="font-semibold text-white">
-              ${current.toLocaleString()} / ${total.toLocaleString()}
+              ₹{current.toLocaleString('en-IN')} / ₹{total.toLocaleString('en-IN')}
             </span>
           </div>
           <div className="w-full bg-gray-700 rounded-full h-2.5">

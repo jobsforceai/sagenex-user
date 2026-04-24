@@ -148,7 +148,7 @@ export function ExistingBookingStatus({ booking, onNewBooking }: ExistingBooking
           <div>
             <p className="text-white/70 text-sm mb-1">Test Fee</p>
             <p className="text-white font-semibold">
-              {booking.priceUSD !== undefined ? `$${booking.priceUSD.toFixed(2)}` : '—'}
+              {booking.priceUSD !== undefined ? `₹${booking.priceUSD.toFixed(2)}` : '—'}
             </p>
           </div>
 

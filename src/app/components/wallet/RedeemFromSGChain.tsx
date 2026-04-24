@@ -34,7 +34,7 @@ const RedeemFromSGChain = ({ onSuccess, className }: RedeemFromSGChainProps) => 
       } else {
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 5000);
-        toast.success(`Successfully deposited $${result.creditedAmountUsd.toFixed(2)}!`);
+        toast.success(`Successfully deposited ₹${result.creditedAmountUsd.toFixed(2)}!`);
         setCode("");
         onSuccess(); // This will trigger the data refresh in the parent
       }

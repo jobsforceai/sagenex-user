@@ -55,7 +55,7 @@ export function Step3ExecuteTransfer({
         </div>
         <div className="flex justify-between">
           <span className="text-white/70">Amount:</span>
-          <span className="text-white font-medium">${amount}</span>
+          <span className="text-white font-medium">₹{amount}</span>
         </div>
         <p className="text-xs text-white/50 mt-2">Use OTP or password to authorize (one only).</p>
       </div>

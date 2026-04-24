@@ -18,10 +18,10 @@ const PILLARS = [
     tag: "Structured Returns",
     desc: "Risk-controlled portfolio allocation with structured monthly yields.",
     features: [
-      "Trail ($50-$999): 6% Monthly Yield",
-      "Standard ($1,000-$4,999): 7% Monthly Yield",
-      "Advanced ($5,000-$9,999): 8% Monthly Yield",
-      "Elite ($10,000+): 10% Monthly Yield"
+      "Trail (₹5,000-₹99,999): 6% Monthly Yield",
+      "Standard (₹1,00,000-₹4,99,999): 7% Monthly Yield",
+      "Advanced (₹5,00,000-₹9,99,999): 8% Monthly Yield",
+      "Elite (₹10,00,000+): 10% Monthly Yield"
     ],
     color: "var(--emerald)"
   },

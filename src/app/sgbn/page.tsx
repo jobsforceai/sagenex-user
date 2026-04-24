@@ -79,7 +79,7 @@ const pillars: Pillar[] = [
 const membershipTiers: MembershipTier[] = [
   {
     name: "Business Membership",
-    price: "$120",
+    price: "₹12,000",
     period: "/year",
     benefits: [
       "Category lock protection",
@@ -93,7 +93,7 @@ const membershipTiers: MembershipTier[] = [
   },
   {
     name: "Freelancer Membership",
-    price: "$60",
+    price: "₹6,000",
     period: "/year",
     benefits: [
       "Work leads & opportunities",

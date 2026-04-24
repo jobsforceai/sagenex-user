@@ -186,7 +186,7 @@ export function TestStep2Location({ onNext, onBack, initialData }: TestStep2Prop
                       <p className="text-xs text-white/50 mt-2">{test.description}</p>
                     </div>
                     <div className="text-sm text-white/80 sm:text-right">
-                      <p className="font-semibold">${test.priceUSD.toFixed(2)}</p>
+                      <p className="font-semibold">₹{test.priceUSD.toFixed(2)}</p>
                       <p className="text-xs text-white/50">{test.durationMinutes} min</p>
                       <p className="text-xs text-white/50 mt-2">
                         {new Date(test.scheduledAt).toLocaleString()}

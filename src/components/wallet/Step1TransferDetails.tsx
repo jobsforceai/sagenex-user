@@ -105,7 +105,7 @@ export function Step1TransferDetails({ onNext, initialData }: Step1Props) {
       {/* Info Box */}
       <div className="p-4 rounded-lg bg-emerald-500/10 border border-emerald-400/30 text-sm text-emerald-200">
         <p>
-          You're about to transfer <strong>${amount}</strong> to <strong>{watch('recipientId')}</strong>.
+          You're about to transfer <strong>₹{amount}</strong> to <strong>{watch('recipientId')}</strong>.
         </p>
       </div>
 

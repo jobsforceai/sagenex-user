@@ -66,7 +66,7 @@ export function TestStep5Confirmation({
         <div className="flex justify-between items-center">
           <span className="text-white/70">Fee:</span>
           <span className="text-white font-semibold">
-            {fee ? `$${fee.toFixed(2)}` : '—'}
+            {fee ? `₹${fee.toFixed(2)}` : '—'}
           </span>
         </div>
       </div>

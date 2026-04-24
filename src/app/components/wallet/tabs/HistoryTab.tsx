@@ -244,7 +244,7 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
                         <TableCell className={tx.amount > 0 ? "text-emerald-600" : "text-[#C41E3A]"}>
                           <div className="font-semibold">
                             {tx.amount > 0 ? "+" : ""}
-                            {tx.amount.toFixed(2)} {tx.currency || "INR"}
+                            {tx.amount.toFixed(2)} INR
                           </div>
                           {tx.meta.amountLocal && tx.meta.currencyCode && (
                             <div className="text-xs text-zinc-400">
