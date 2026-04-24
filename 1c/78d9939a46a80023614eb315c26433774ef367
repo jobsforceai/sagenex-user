@@ -1,0 +1,71 @@
+src/app/sgbn/page.tsx
+  964e0d3fba450c9c 82,96
+src/app/components/dashboard/LockedBonusesCard.tsx
+  964e0d3fba450c9c 78
+src/app/components/wallet/RedeemFromSGChain.tsx
+  964e0d3fba450c9c 37
+src/app/courses/page.tsx
+  964e0d3fba450c9c 100,233
+src/components/tests/TestStep5Confirmation.tsx
+  964e0d3fba450c9c 69
+src/components/wallet/Step1TransferDetails.tsx
+  964e0d3fba450c9c 108
+src/components/tests/ExistingBookingStatus.tsx
+  964e0d3fba450c9c 151
+src/components/landing/investment-pillars.tsx
+  964e0d3fba450c9c 21-24
+src/app/profile/page.tsx
+  964e0d3fba450c9c 346
+src/app/components/LandingPage.tsx
+  964e0d3fba450c9c 220,248-253
+src/app/components/sgnx-gold/SgnxGoldTree.tsx
+  964e0d3fba450c9c 95
+src/app/components/dashboard/CountdownTimer.tsx
+  964e0d3fba450c9c 85-86
+src/components/tests/TestStep4ReviewConfirm.tsx
+  964e0d3fba450c9c 185
+src/components/wallet/Step4Confirmation.tsx
+  964e0d3fba450c9c 47
+src/components/tests/TestStep3RequestOtp.tsx
+  964e0d3fba450c9c 40,47,152
+src/app/rewards/page.tsx
+  964e0d3fba450c9c 271,279
+src/app/components/wallet/tabs/RewardsTab.tsx
+  964e0d3fba450c9c 78
+src/app/components/wallet/tabs/HistoryTab.tsx
+  964e0d3fba450c9c 247
+src/app/components/wallet/FundTransfer.tsx
+  964e0d3fba450c9c 415,418,422
+src/app/components/wallet/WithdrawalRequest.tsx
+  964e0d3fba450c9c 505
+src/components/wallet/Step3ExecuteTransfer.tsx
+  964e0d3fba450c9c 58
+src/components/tests/TestStep2Location.tsx
+  964e0d3fba450c9c 189
+src/components/landing/level-earning.tsx
+  964e0d3fba450c9c 96,103,174,180,191,193
+src/components/landing/profit-calculator.tsx
+  964e0d3fba450c9c 144,176,178
+src/components/landing/investor-leader.tsx
+  964e0d3fba450c9c 77,121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "1c78d9939a46a80023614eb315c26433774ef367",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 57,
+      "total_deletions": 49,
+      "accepted_lines": 197,
+      "overriden_lines": 0
+    }
+  }
+}
