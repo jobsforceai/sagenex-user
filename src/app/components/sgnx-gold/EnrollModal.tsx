@@ -34,7 +34,6 @@ interface EnrollModalProps {
 type PlanType = "gold" | "cash";
 
 function fmtINR(v: number) { return "₹" + v.toLocaleString("en-IN"); }
-function fmtUSD(v: number) { return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
 
 export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollModalProps) {
   const [config, setConfig] = useState<SlabConfig | null>(null);
@@ -63,12 +62,12 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
 
   const handleEnroll = async () => {
     if (!selectedSlab) { toast.error("Please select an investment slab."); return; }
-    if (selectedSlab.amountUsd > walletBalance) { toast.error("Insufficient wallet balance."); return; }
+    if (selectedSlab.amountInr > walletBalance) { toast.error("Insufficient wallet balance."); return; }
 
     setSubmitting(true);
     try {
       const result = await enrollFromWallet({
-        amountUsd: selectedSlab.amountUsd,
+        amountUsd: selectedSlab.amountInr, // wallet is INR — send INR amount (param name is legacy)
         planType,
         referralCode: referralCode.trim() || undefined,
       });
@@ -80,8 +79,8 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
 
   const bonusLabel = config && selectedSlab
     ? planType === "gold"
-      ? `${config.goldBonusMultiplier}x gold bonus = ${fmtUSD(selectedSlab.amountUsd * config.goldBonusMultiplier)}`
-      : `${config.cashBonusMultiplier}x cash bonus = ${fmtUSD(selectedSlab.amountUsd * config.cashBonusMultiplier)}`
+      ? `${config.goldBonusMultiplier}x gold bonus = ${fmtINR(selectedSlab.amountInr * config.goldBonusMultiplier)}`
+      : `${config.cashBonusMultiplier}x cash bonus = ${fmtINR(selectedSlab.amountInr * config.cashBonusMultiplier)}`
     : "";
 
   return (
@@ -103,7 +102,7 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
             {/* Wallet Balance */}
             <div className="flex items-center justify-between rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA] px-4 py-3">
               <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Sagenex Wallet</span>
-              <span className="text-lg font-extrabold text-[#111827]">{fmtUSD(walletBalance)}</span>
+              <span className="text-lg font-extrabold text-[#111827]">{fmtINR(walletBalance)}</span>
             </div>
 
             {/* Plan Type */}
@@ -141,7 +140,7 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                 {config?.slabs.map((slab) => {
                   const isSelected = selectedSlab?.amountInr === slab.amountInr;
-                  const canAfford = walletBalance >= slab.amountUsd;
+                  const canAfford = walletBalance >= slab.amountInr;
                   return (
                     <button
                       key={slab.amountInr}
@@ -159,7 +158,7 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
                         <CheckCircle2 className="absolute top-1.5 right-1.5 h-3.5 w-3.5 text-[#C41E3A]" />
                       )}
                       <p className="text-sm font-extrabold text-[#111827]">{fmtINR(slab.amountInr)}</p>
-                      <p className="text-[11px] text-zinc-400">{fmtUSD(slab.amountUsd)}/mo</p>
+                      <p className="text-[11px] text-zinc-400">per month</p>
                     </button>
                   );
                 })}

@@ -25,8 +25,9 @@ interface VaultSectionProps {
   goldRate: GoldRate | null;
 }
 
+// Wallet migrated to INR — *Usd fields now carry INR values (legacy name)
 const formatUSD = (v: number) =>
-  v.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  "₹" + v.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 
 export default function VaultSection({ vault, planType, goldRate }: VaultSectionProps) {
@@ -46,7 +47,7 @@ export default function VaultSection({ vault, planType, goldRate }: VaultSection
     const totalGrams = vault.totalGoldQuantityGrams ?? 0;
     const lockedValue = vault.totalGoldValueLockedUsd ?? 0;
     const liveValue =
-      goldRate ? totalGrams * goldRate.pricePerGramUsd : lockedValue;
+      goldRate ? totalGrams * goldRate.pricePerGram : lockedValue;
 
     return (
       <Card className="bg-gray-900/40 border-gray-800 rounded-2xl">
@@ -87,7 +88,7 @@ export default function VaultSection({ vault, planType, goldRate }: VaultSection
               <VaultRow
                 icon={<DollarSign className="h-4 w-4 text-cyan-400" />}
                 label="Live Rate"
-                value={`${formatUSD(goldRate.pricePerGramUsd)}/g`}
+                value={`${formatUSD(goldRate.pricePerGram)}/g`}
               />
             )}
           </div>

@@ -39,8 +39,9 @@ interface OverviewCardsProps {
   goldRate: GoldRate | null;
 }
 
+// Wallet migrated to INR — *Usd fields now carry INR values (legacy name)
 const formatUSD = (v: number) =>
-  v.toLocaleString("en-US", { style: "currency", currency: "USD" });
+  "₹" + v.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US");
 
 export default function OverviewCards({ enrollment, goldRate }: OverviewCardsProps) {
@@ -57,7 +58,7 @@ export default function OverviewCards({ enrollment, goldRate }: OverviewCardsPro
 
   const liveGoldValue =
     isGold && enrollment.bonusGoldQuantityGrams && goldRate
-      ? enrollment.bonusGoldQuantityGrams * goldRate.pricePerGramUsd
+      ? enrollment.bonusGoldQuantityGrams * goldRate.pricePerGram
       : null;
 
   const cards = [
