@@ -180,8 +180,10 @@ const WithdrawalRequest = ({
     const withdrawalAmount = parseFloat(newAmount);
     if (!isNaN(withdrawalAmount) && withdrawalAmount > maxWithdrawable) {
       setError("Withdrawal amount cannot exceed your remaining withdrawal limit.");
-    } else if (withdrawalType === "upi" && !isNaN(withdrawalAmount) && withdrawalAmount > 5000) {
-      setError("UPI withdrawal amount cannot exceed ₹5,000.");
+    } else if (withdrawalType === "upi" && !isNaN(withdrawalAmount) && withdrawalAmount > 500) {
+      setError("UPI withdrawal amount cannot exceed ₹500.");
+    } else if (withdrawalType === "bank" && !isNaN(withdrawalAmount) && withdrawalAmount > 0 && withdrawalAmount < 5000) {
+      setError("Bank withdrawal amount must be at least ₹5,000.");
     }
   };
 
@@ -202,8 +204,13 @@ const WithdrawalRequest = ({
       return null;
     }
 
-    if (withdrawalType === "upi" && withdrawalAmount > 5000) {
-      toast.error("UPI withdrawal amount cannot exceed ₹5,000.");
+    if (withdrawalType === "upi" && withdrawalAmount > 500) {
+      toast.error("UPI withdrawal amount cannot exceed ₹500.");
+      return null;
+    }
+
+    if (withdrawalType === "bank" && withdrawalAmount < 5000) {
+      toast.error("Bank withdrawal amount must be at least ₹5,000.");
       return null;
     }
 
@@ -498,9 +505,21 @@ const WithdrawalRequest = ({
                   Remaining withdrawal limit: ${maxWithdrawable.toFixed(2)}
                 </p>
               )}
-              {withdrawalType === "upi" && parseFloat(amount) > 5000 && (
-                <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed ₹5,000.</p>
+              {withdrawalType === "upi" && parseFloat(amount) > 500 && (
+                <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed ₹500.</p>
               )}
+              {(() => {
+                const a = parseFloat(amount);
+                if (!isFinite(a) || a <= 0) return null;
+                const tax = Math.round(a * 0.05 * 100) / 100;
+                const net = Math.round((a - tax) * 100) / 100;
+                return (
+                  <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                    <p>5% tax (3% GST + 2% CGST): <span className="font-semibold">−₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                    <p className="mt-0.5">You will receive: <span className="font-bold text-amber-900">₹{net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                  </div>
+                );
+              })()}
               {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
             </div>
 
