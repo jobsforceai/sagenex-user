@@ -1,0 +1,25 @@
+src/app/components/wallet/WithdrawalRequest.tsx
+  964e0d3fba450c9c 183-186,207-213,508-509,511-522
+src/app/components/wallet/FundTransfer.tsx
+  964e0d3fba450c9c 425-434
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "23cffa91288c9278ed859c078d290c10be69cc5c",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 35,
+      "total_deletions": 6,
+      "accepted_lines": 175,
+      "overriden_lines": 0
+    }
+  }
+}
