@@ -72,7 +72,16 @@ export const LiquidityProviderTab = ({ availableBalance, onSuccess }: LPTabProps
     if (res?.error) {
       setError(res.error);
     } else {
-      setData({ pool: res.pool ?? null, transactions: res.transactions ?? [] });
+      // Backend returns flat shape: { availableBalance, deployedBalance, totalDeposited, totalEarned, history, ... }
+      // Older code path also supported a wrapped shape; tolerate both.
+      const pool = res?.pool ?? {
+        availableBalance: res?.availableBalance ?? 0,
+        deployedBalance: res?.deployedBalance ?? 0,
+        totalDeposited: res?.totalDeposited ?? 0,
+        totalEarned: res?.totalEarned ?? 0,
+      };
+      const transactions = res?.transactions ?? res?.history ?? [];
+      setData({ pool, transactions });
     }
     setLoading(false);
   }, []);
