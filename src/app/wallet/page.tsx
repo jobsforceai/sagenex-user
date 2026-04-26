@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
@@ -27,7 +28,15 @@ import {
   getWalletCurrentCycleHistory,
 } from "@/actions/user";
 import { KycStatus } from "@/types";
-import { AlertCircle, ArrowUp, BadgeDollarSign, Wallet as WalletIcon } from "lucide-react";
+import {
+  AlertCircle,
+  ArrowUp,
+  Bell,
+  Eye,
+  LockKeyhole,
+  TrendingUp,
+  Wallet as WalletIcon,
+} from "lucide-react";
 
 interface WalletTransaction {
   _id: string;
@@ -141,6 +150,20 @@ interface CurrentCycleHistory {
 
 const formatCurrency = (amount: number) =>
   amount.toLocaleString("en-IN", { style: "currency", currency: "INR" });
+
+const formatCompactCurrency = (amount: number) =>
+  amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+
+const walletAsset = {
+  heroWave: "/wallet/red_wave_no_background.png",
+  goldCard: "/wallet/gold-card.png",
+  moneyBag: "/wallet/money-bag-rupee.png",
+} as const;
 
 const WalletPage = () => {
   const { isAuthenticated, loading: authLoading, user } = useAuth();
@@ -297,23 +320,31 @@ const WalletPage = () => {
     : 0;
 
   return (
-    <div className="dashboard-light-scope space-y-5 p-6">
+    <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold tracking-tight text-[#111827]">Wallet</h1>
-          <p className="mt-1 text-[17px] text-zinc-500">
+          <h1 className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl">Wallet</h1>
+          <p className="mt-1 text-sm text-[#64748B] sm:text-base">
             Manage your balance, transfers and history
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
+          <button
+            type="button"
+            aria-label="Notifications"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-500 shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30"
+          >
+            <Bell className="h-4 w-4" />
+          </button>
           {kycStatus && (
             <button
               type="button"
               onClick={() => router.push("/kyc")}
-              className={`inline-flex items-center gap-2 rounded-full px-4 py-2 text-xs font-bold uppercase tracking-[0.08em] transition ${
+              className={`inline-flex h-11 items-center gap-2 rounded-full px-4 text-xs font-bold uppercase tracking-[0.08em] shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 ${
                 kycStatus.status === "VERIFIED"
-                  ? "bg-emerald-50 text-emerald-600 hover:bg-emerald-100"
-                  : "bg-amber-50 text-amber-600 hover:bg-amber-100"
+                  ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
+                  : "bg-amber-50 text-amber-700 hover:bg-amber-100"
               }`}
             >
               <span
@@ -321,12 +352,12 @@ const WalletPage = () => {
                   kycStatus.status === "VERIFIED" ? "bg-emerald-500" : "bg-amber-500"
                 }`}
               />
-              {kycStatus.status === "VERIFIED" ? "KYC Verified" : "KYC Pending"}
+              {kycStatus.status === "VERIFIED" ? "KYC VERIFIED" : "KYC PENDING"}
             </button>
           )}
           <Button
             onClick={() => setWithdrawDrawerOpen(true)}
-            className="rounded-xl bg-[#C41E3A] px-5 text-white hover:bg-[#ad1b34]"
+            className="wallet-red-control h-11 rounded-xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-5 font-bold text-white shadow-[0_14px_30px_rgba(200,16,62,0.24)] hover:from-[#C8103E] hover:to-[#68001A] focus:ring-2 focus:ring-[#C8103E]/30"
             disabled={!walletSummary}
           >
             <ArrowUp className="mr-1.5 h-4 w-4" /> Withdraw
@@ -334,85 +365,145 @@ const WalletPage = () => {
         </div>
       </header>
 
-      <section className="grid grid-cols-1 gap-4 lg:grid-cols-3">
-        <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">
-              Available Balance
-            </p>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#C41E3A]/10 text-[#C41E3A]">
-              <WalletIcon className="h-4 w-4" />
+      <section className="wallet-red-surface relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_55%,#430010_100%)] p-5 text-white shadow-[0_22px_55px_rgba(122,0,31,0.25)] sm:p-7 lg:p-8">
+        <Image
+          src={walletAsset.heroWave}
+          alt=""
+          width={760}
+          height={520}
+          className="pointer-events-none absolute -bottom-28 right-0 h-[80%] w-auto max-w-none opacity-45"
+          priority
+        />
+        <div className="absolute right-8 top-8 h-48 w-48 rounded-full bg-[#F59E0B]/25 blur-3xl" />
+        <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+          <div className="space-y-7">
+            <div>
+              <div className="wallet-red-muted flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.18em] text-white/70">
+                Available Balance
+                <Eye className="h-4 w-4 text-white/60" aria-hidden="true" />
+              </div>
+              <div className="mt-3 text-4xl font-black leading-none tracking-tight text-white sm:text-5xl lg:text-6xl">
+                {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
+              </div>
+              <div className="wallet-red-soft mt-4 inline-flex items-center gap-2 rounded-full border border-white/15 bg-emerald-400/15 px-3 py-1.5 text-xs font-bold text-emerald-100">
+                <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
+                {capUsedPct}% cap used
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              {[
+                { label: "Locked", value: walletSummary?.capLockedBalance ?? 0, icon: LockKeyhole },
+                { label: "Can Withdraw", value: remainingWithdrawalLimit, icon: WalletIcon },
+                { label: "Withdrawn", value: walletSummary?.totalLifetimeWithdrawals ?? 0, icon: ArrowUp },
+                { label: "Cap Used", value: capUsedPct, suffix: "%", icon: TrendingUp },
+              ].map(({ label, value, suffix, icon: Icon }) => (
+                <div key={label} className="rounded-2xl border border-white/10 bg-white/10 p-3 backdrop-blur">
+                  <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-full bg-white/15">
+                    <Icon className="h-4 w-4 text-white" />
+                  </div>
+                  <p className="wallet-red-muted text-[11px] font-bold uppercase tracking-[0.08em] text-white/60">{label}</p>
+                  <p className="mt-1 truncate text-sm font-black text-white">
+                    {summaryLoading ? "—" : suffix ? `${value}${suffix}` : formatCompactCurrency(Number(value))}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
-          <p className="text-[42px] font-black leading-none tracking-tight text-[#111827]">
-            {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
-          </p>
-          <p className="mt-2 text-sm font-semibold text-emerald-600">{capUsedPct}% cap used</p>
+          <div className="relative min-h-48 lg:min-h-64">
+            <Image
+              src={walletAsset.goldCard}
+              alt="SAGENEX gold wallet card"
+              width={480}
+              height={330}
+              className="absolute right-0 top-1/2 w-64 -translate-y-1/2 rotate-[-5deg] drop-shadow-2xl sm:w-80 lg:w-[360px]"
+              priority
+            />
+          </div>
+        </div>
+      </section>
+
+      <section className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
+        <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#64748B]">Withdrawal Cap</p>
+              <p className="mt-2 text-3xl font-black tracking-tight text-[#0F172A]">
+                {summaryLoading ? "—" : formatCompactCurrency(walletSummary?.withdrawalCap ?? 0)}
+              </p>
+              <p className="mt-1 text-sm text-[#64748B]">Total limit</p>
+            </div>
+            <Image src={walletAsset.moneyBag} alt="" width={58} height={58} className="h-14 w-14 object-contain" />
+          </div>
+          <div className="mt-5 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full rounded-full bg-emerald-500" style={{ width: `${capUsedPct}%` }} />
+          </div>
         </div>
 
-        <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">
-              Withdrawal Cap
-            </p>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-emerald-500/10 text-emerald-600">
-              <BadgeDollarSign className="h-4 w-4" />
+        <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <div className="flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#64748B]">Total Withdrawn</p>
+              <p className="mt-2 text-3xl font-black tracking-tight text-[#0F172A]">
+                {summaryLoading ? "—" : formatCompactCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
+              </p>
+              <p className="mt-1 text-sm text-[#64748B]">{formatCompactCurrency(remainingWithdrawalLimit)} remaining</p>
+            </div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
+              <ArrowUp className="h-6 w-6" />
             </div>
           </div>
-          <p className="text-[42px] font-black leading-none tracking-tight text-[#111827]">
-            {summaryLoading ? "—" : formatCurrency(walletSummary?.withdrawalCap ?? 0)}
-          </p>
-          <p className="mt-2 text-sm text-zinc-500">Total limit</p>
         </div>
 
-        <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-zinc-400">
-              Total Withdrawn
-            </p>
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600">
-              <ArrowUp className="h-4 w-4" />
+        <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:col-span-2 xl:col-span-1">
+          <div className="absolute -bottom-8 right-0 h-24 w-40 rounded-full bg-violet-100 blur-2xl" />
+          <div className="relative flex items-start justify-between gap-4">
+            <div>
+              <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#64748B]">Earnings This Cycle</p>
+              <p className="mt-2 text-3xl font-black tracking-tight text-[#0F172A]">
+                {cycleLoading ? "—" : formatCompactCurrency(cycleHistory?.summary?.currentCycleEarnings ?? 0)}
+              </p>
+              <p className="mt-1 text-sm text-[#64748B]">Current performance</p>
+            </div>
+            <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-violet-50 text-violet-600">
+              <TrendingUp className="h-6 w-6" />
             </div>
           </div>
-          <p className="text-[42px] font-black leading-none tracking-tight text-[#111827]">
-            {summaryLoading ? "—" : formatCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
-          </p>
-          <p className="mt-2 text-sm text-zinc-500">
-            {formatCurrency(remainingWithdrawalLimit)} remaining
-          </p>
+          <svg className="relative mt-5 h-10 w-full text-violet-500" viewBox="0 0 280 48" fill="none" aria-hidden="true">
+            <path d="M2 38C35 12 61 25 88 18C121 9 135 6 164 23C193 40 220 39 278 8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
+          </svg>
         </div>
       </section>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="rounded-2xl border border-[#E8E8E8] bg-white px-4 pt-3 shadow-sm">
-          <TabsList className="h-auto w-full justify-start gap-6 overflow-x-auto rounded-none border-b border-[#E8E8E8] bg-transparent p-0">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <TabsList className="h-auto w-max min-w-full justify-start gap-2 rounded-none bg-transparent p-0">
             <TabsTrigger
               value="overview"
-              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+              className="wallet-red-tab rounded-full px-5 py-2.5 text-sm font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="transfer"
-              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+              className="wallet-red-tab rounded-full px-5 py-2.5 text-sm font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none"
             >
               SGChain
             </TabsTrigger>
             <TabsTrigger
               value="rewards"
-              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+              className="wallet-red-tab rounded-full px-5 py-2.5 text-sm font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none"
             >
               Rewards
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+              className="wallet-red-tab rounded-full px-5 py-2.5 text-sm font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none"
             >
               History
             </TabsTrigger>
             <TabsTrigger
               value="lp"
-              className="rounded-none border-b-2 border-transparent bg-transparent px-1 pb-2.5 pt-0 text-sm font-semibold text-zinc-500 shadow-none data-[state=active]:border-[#C41E3A] data-[state=active]:bg-transparent data-[state=active]:text-[#C41E3A] data-[state=active]:shadow-none"
+              className="wallet-red-tab rounded-full px-5 py-2.5 text-sm font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none"
             >
               LP Pool
             </TabsTrigger>
@@ -512,6 +603,7 @@ const WalletPage = () => {
       </Drawer>
 
       <CompoundingProjectionModal />
+      </div>
     </div>
   );
 };

@@ -239,6 +239,36 @@
   box-shadow: 0 24px 80px rgba(15, 23, 42, 0.08);
 }
 
+.dashboard-light-scope .wallet-red-surface,
+.dashboard-light-scope .wallet-red-surface * {
+  color: #fff7ed !important;
+}
+
+.dashboard-light-scope .wallet-red-surface .wallet-red-muted,
+.dashboard-light-scope .wallet-red-surface .wallet-red-muted * {
+  color: rgba(255, 247, 237, 0.74) !important;
+}
+
+.dashboard-light-scope .wallet-red-surface .wallet-red-soft,
+.dashboard-light-scope .wallet-red-surface .wallet-red-soft * {
+  color: rgba(255, 247, 237, 0.88) !important;
+}
+
+.dashboard-light-scope .wallet-red-surface .border-white\/10,
+.dashboard-light-scope .wallet-red-surface [class*="border-white"] {
+  border-color: rgba(255, 247, 237, 0.28) !important;
+}
+
+.dashboard-light-scope .wallet-red-control,
+.dashboard-light-scope .wallet-red-control * {
+  color: #fff7ed !important;
+}
+
+.dashboard-light-scope .wallet-red-tab[data-state="active"],
+.dashboard-light-scope .wallet-red-tab[data-state="active"] * {
+  color: #fff7ed !important;
+}
+
 .hero-crimson-stage {
   background: #2a0008;
 }
@@ -425,4 +455,24 @@
   font-size: 18px;
   font-weight: 600;
   cursor: pointer;
+}
+
+.dashboard-light-scope .salary-dark-rank,
+.dashboard-light-scope .salary-dark-rank summary,
+.dashboard-light-scope .salary-dark-rank div,
+.dashboard-light-scope .salary-dark-rank p,
+.dashboard-light-scope .salary-dark-rank h3,
+.dashboard-light-scope .salary-dark-rank span,
+.dashboard-light-scope .salary-dark-rank svg {
+  color: #fff7ed !important;
+}
+
+.dashboard-light-scope .salary-dark-rank .salary-dark-muted,
+.dashboard-light-scope .salary-dark-rank .salary-dark-muted * {
+  color: rgba(255, 247, 237, 0.78) !important;
+}
+
+.dashboard-light-scope .salary-dark-rank .salary-dark-gold,
+.dashboard-light-scope .salary-dark-rank .salary-dark-gold * {
+  color: #fde68a !important;
 }

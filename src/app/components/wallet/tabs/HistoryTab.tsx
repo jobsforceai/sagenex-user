@@ -149,10 +149,6 @@ const renderMetaValue = (value: unknown, depth = 0): React.ReactNode => {
 export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) => {
   const [expandedTxId, setExpandedTxId] = useState<string | null>(null);
 
-  if (transactions.length > 0) {
-    console.log('[HistoryTab] first tx currency field:', transactions[0].currency, '| full tx:', transactions[0]);
-  }
-
   return (
     <div className="mt-6">
       <Card className="rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">
