@@ -422,16 +422,6 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                 <span className="text-red-400">Amount must be at least ₹{minPackageAmount}.</span>
                             )}
                         </div>
-                        {transferType === 'TO_AVAILABLE_BALANCE' && numericAmount > 0 && !isAmountInvalid && (() => {
-                          const tax = Math.round(numericAmount * 0.05 * 100) / 100;
-                          const net = Math.round((numericAmount - tax) * 100) / 100;
-                          return (
-                            <div className="mt-2 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-                              <p>5% tax (3% GST + 2% CGST): <span className="font-semibold">−₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-                              <p className="mt-0.5">Recipient will receive: <span className="font-bold text-amber-900">₹{net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-                            </div>
-                          );
-                        })()}
                     </div>
 
                     <div>
