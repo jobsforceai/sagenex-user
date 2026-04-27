@@ -182,8 +182,8 @@ const WithdrawalRequest = ({
       setError("Withdrawal amount cannot exceed your remaining withdrawal limit.");
     } else if (withdrawalType === "upi" && !isNaN(withdrawalAmount) && withdrawalAmount > 500) {
       setError("UPI withdrawal amount cannot exceed ₹500.");
-    } else if (withdrawalType === "bank" && !isNaN(withdrawalAmount) && withdrawalAmount > 0 && withdrawalAmount < 5000) {
-      setError("Bank withdrawal amount must be at least ₹5,000.");
+    } else if (withdrawalType === "bank" && !isNaN(withdrawalAmount) && withdrawalAmount > 0 && withdrawalAmount < 500) {
+      setError("Bank withdrawal amount must be at least ₹500.");
     }
   };
 
@@ -209,8 +209,8 @@ const WithdrawalRequest = ({
       return null;
     }
 
-    if (withdrawalType === "bank" && withdrawalAmount < 5000) {
-      toast.error("Bank withdrawal amount must be at least ₹5,000.");
+    if (withdrawalType === "bank" && withdrawalAmount < 500) {
+      toast.error("Bank withdrawal amount must be at least ₹500.");
       return null;
     }
 
