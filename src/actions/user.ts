@@ -254,10 +254,11 @@ export async function getRankProgress() {
   return handleApiResponse(res);
 }
 
-export async function getLeaderboard() {
-  const res = await fetch(`${API_BASE_URL}/api/v1/user/leaderboard`, {
-    headers: await getAuthHeaders(),
-  });
+export async function getLeaderboard(scope: 'global' | 'team' = 'global') {
+  const url = scope === 'team'
+    ? `${API_BASE_URL}/api/v1/user/leaderboard?scope=team`
+    : `${API_BASE_URL}/api/v1/user/leaderboard`;
+  const res = await fetch(url, { headers: await getAuthHeaders() });
   return handleApiResponse(res);
 }
 

@@ -72,6 +72,10 @@ interface ReferralSummary {
   referrals?: Referral[];
   investedCount?: number;
   totalDownlineVolume?: number;
+  // Full-downline counts (full team, not just direct referrals)
+  totalDownlineCount?: number;
+  activeDownlineCount?: number;
+  inactiveDownlineCount?: number;
 }
 
 interface LeaderboardEntry {
@@ -194,7 +198,7 @@ const TeamPage = () => {
         getBonusRulesConfig(),
         getDashboardData(),
         getReferralSummary(),
-        getLeaderboard(),
+        getLeaderboard('team'),
         getFinancialSummary(),
       ]);
 
@@ -285,12 +289,11 @@ const TeamPage = () => {
     );
   }
 
-  const totalTeam = referralSummary?.totalReferrals ?? countMembers(treeData?.tree);
-  const activeTeam =
-    referralSummary?.referrals?.filter((referral) => referral.activityStatus === "Active").length ??
-    referralSummary?.investedCount ??
-    countActiveMembers(treeData?.tree);
-  const inactiveTeam = Math.max(0, totalTeam - activeTeam);
+  // Full downline (entire tree under this user) — prefer backend's downline counts.
+  const totalTeam = referralSummary?.totalDownlineCount ?? countMembers(treeData?.tree);
+  // Active = isPackageActive && packageUSD > 0, computed across the full downline.
+  const activeTeam = referralSummary?.activeDownlineCount ?? countActiveMembers(treeData?.tree);
+  const inactiveTeam = referralSummary?.inactiveDownlineCount ?? Math.max(0, totalTeam - activeTeam);
   const leftTeam = 0;
   const teamBonus = financialSummary?.referralEarnings ?? financialSummary?.monthlyIncentive ?? 0;
   const topPerformers = leaderboardData.slice(0, 3);
