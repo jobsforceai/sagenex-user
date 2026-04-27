@@ -14,6 +14,8 @@ import {
   getProfileData,
   getKycStatus,
   getDashboardData,
+  getLeaderboard,
+  getReferralSummary,
 } from "@/actions/user";
 import { Reward, Recipient, KycStatus, RewardProgram } from "@/types";
 import {
@@ -27,16 +29,13 @@ import {
   Lock,
   Bell,
   Calendar,
-  Check,
   ChevronRight,
   Clock,
-  Crown,
   Medal,
   Ship,
   Plane,
   ShieldCheck,
   Sparkles,
-  Target,
   TrendingUp,
   Trophy,
   Users,
@@ -65,7 +64,7 @@ const TRAVEL_PROMO: Record<
     subtitle: "Paris, Amsterdam, Zurich, Rome and Switzerland",
     image: "/rewards/europe-trip-bg.png",
     cta: "View Progress",
-    lastDate: "April 10",
+    lastDate: "April 30",
     details: [
       { label: "Destinations", value: "Paris, Amsterdam, Zurich, Rome, Switzerland" },
       { label: "Single Ticket", value: "₹20 Lakhs business" },
@@ -77,7 +76,7 @@ const TRAVEL_PROMO: Record<
     subtitle: "Vizag to Pondicherry to Chennai",
     image: "/rewards/cruise-trip-bg.png",
     cta: "View Progress",
-    lastDate: "April 10",
+    lastDate: "April 30",
     details: [
       { label: "Travel Dates", value: "8th July to 11th July" },
       { label: "Duration", value: "3 Nights / 4 Days" },
@@ -94,48 +93,8 @@ const PROGRAM_ICONS: Record<string, React.ReactNode> = {
 
 const REWARD_ASSETS = {
   hero: "/rewards/hero-travel-collage.png",
-  global: "/rewards/global-rewards-collage.png",
-  tech: "/rewards/luxury-tech-reward.png",
-  bike: "/rewards/bike-travel-reward.png",
-  officeCar: "/rewards/office-car-reward.png",
-  crown: "/rewards/crown-tier-reward.png",
   trophy: "/rewards/trophy-motivation.png",
 } as const;
-
-const tierCards = [
-  {
-    name: "Starter Tier",
-    threshold: "₹1L+ business",
-    image: REWARD_ASSETS.tech,
-    accent: "from-slate-50 to-rose-50",
-    reward: "Luxury tech rewards",
-    text: "Start strong with practical upgrades for daily momentum.",
-  },
-  {
-    name: "Mid Tier",
-    threshold: "₹3L+ business",
-    image: REWARD_ASSETS.bike,
-    accent: "from-emerald-50 to-white",
-    reward: "Bike and travel perks",
-    text: "Build consistency and unlock lifestyle-level milestones.",
-  },
-  {
-    name: "Elite Tier",
-    threshold: "₹10L+ business",
-    image: REWARD_ASSETS.officeCar,
-    accent: "from-amber-50 to-white",
-    reward: "Office and car rewards",
-    text: "For leaders creating repeatable team performance.",
-  },
-  {
-    name: "Crown Tier",
-    threshold: "₹30L+ business",
-    image: REWARD_ASSETS.crown,
-    accent: "from-[#FFF7ED] to-[#FFF1F4]",
-    reward: "Crown luxury rewards",
-    text: "The highest recognition for elite SAGENEX builders.",
-  },
-];
 
 const benefitItems = [
   { icon: Trophy, label: "Performance Based Rewards" },
@@ -483,9 +442,6 @@ const RewardsHeader = ({ onRulesClick }: { onRulesClick: () => void }) => (
         className="relative inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C81E4A]/20"
       >
         <Bell className="h-5 w-5" />
-        <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C81E4A] px-1 text-[10px] font-black text-white">
-          3
-        </span>
       </button>
     </div>
   </header>
@@ -566,106 +522,6 @@ const RewardsHeroBanner = ({
   </motion.section>
 );
 
-const QualificationPathSection = ({
-  directProgress,
-  teamProgress,
-}: {
-  directProgress: ReturnType<typeof getRewardProgress>;
-  teamProgress: ReturnType<typeof getRewardProgress>;
-}) => (
-  <section>
-    <div className="mb-4 flex items-end justify-between gap-3">
-      <div>
-        <h2 className="text-2xl font-black text-[#0F172A]">Choose your path to earn rewards</h2>
-        <p className="mt-1 text-sm text-[#64748B]">Qualify through direct performance, team growth, or both.</p>
-      </div>
-    </div>
-    <div className="grid gap-5 lg:grid-cols-3">
-      <div className="rounded-3xl border border-emerald-100 bg-[#ECFDF5] p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-        <Target className="h-8 w-8 text-emerald-600" />
-        <p className="mt-4 text-sm font-black uppercase tracking-[0.12em] text-emerald-700">Direct Business</p>
-        <h3 className="mt-2 text-3xl font-black text-[#0F172A]">
-          {directProgress.target ? formatCurrency(directProgress.target) : "Build direct volume"}
-        </h3>
-        <ul className="mt-5 space-y-3 text-sm text-[#475569]">
-          {["Personal business contribution", "Eligible active package volume", "Progress updates from backend rewards"].map((item) => (
-            <li key={item} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 text-emerald-600" />{item}</li>
-          ))}
-        </ul>
-      </div>
-      <div className="rounded-3xl border border-rose-100 bg-[#FFF1F4] p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-        <Users className="h-8 w-8 text-[#C81E4A]" />
-        <p className="mt-4 text-sm font-black uppercase tracking-[0.12em] text-[#C81E4A]">Team Business</p>
-        <h3 className="mt-2 text-3xl font-black text-[#0F172A]">
-          {teamProgress.target ? formatCurrency(teamProgress.target) : "Grow team volume"}
-        </h3>
-        <ul className="mt-5 space-y-3 text-sm text-[#475569]">
-          {["Build active legs sustainably", "Reward volume can include eligible team business", "Keep leadership activity consistent"].map((item) => (
-            <li key={item} className="flex gap-2"><Check className="mt-0.5 h-4 w-4 text-[#C81E4A]" />{item}</li>
-          ))}
-        </ul>
-      </div>
-      <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-        <div className="relative h-40">
-          <Image src={REWARD_ASSETS.global} alt="Next reward preview" fill className="object-cover" sizes="(min-width: 1024px) 33vw, 100vw" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-        </div>
-        <div className="p-6">
-          <p className="text-sm font-black uppercase tracking-[0.12em] text-[#64748B]">Next Reward Preview</p>
-          <h3 className="mt-2 text-2xl font-black text-[#0F172A]">Global Experience</h3>
-          <p className="mt-2 text-sm text-[#64748B]">
-            {directProgress.target
-              ? `${formatCurrency(Math.max(0, directProgress.target - directProgress.current))} remaining`
-              : "Keep progressing toward your next milestone"}
-          </p>
-          <Button className="wallet-red-control mt-5 rounded-2xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] text-white hover:from-[#C81E4A] hover:to-[#68001A]">
-            Keep Going 🚀
-          </Button>
-        </div>
-      </div>
-    </div>
-  </section>
-);
-
-const RewardTierCard = ({
-  tier,
-  index,
-}: {
-  tier: (typeof tierCards)[number];
-  index: number;
-}) => (
-  <motion.div
-    whileHover={{ y: -5 }}
-    transition={{ duration: 0.2 }}
-    className={`overflow-hidden rounded-3xl border border-slate-200/70 bg-gradient-to-br ${tier.accent} shadow-[0_10px_30px_rgba(15,23,42,0.06)]`}
-  >
-    <div className="relative h-44 overflow-hidden">
-      <Image
-        src={tier.image}
-        alt={tier.reward}
-        fill
-        className="object-cover transition duration-700 hover:scale-105"
-        sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw"
-      />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/44 to-transparent" />
-      <span className="absolute left-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-2xl bg-white/92 text-sm font-black text-[#C81E4A] shadow">
-        {index + 1}
-      </span>
-    </div>
-    <div className="p-5">
-      <div className="flex items-start justify-between gap-3">
-        <div>
-          <h3 className="text-lg font-black text-[#0F172A]">{tier.name}</h3>
-          <p className="mt-1 text-sm font-bold text-amber-600">{tier.threshold}</p>
-        </div>
-        {(index === 2 || index === 3) && <Crown className="h-5 w-5 text-amber-500" />}
-      </div>
-      <p className="mt-4 text-sm font-bold text-[#0F172A]">{tier.reward}</p>
-      <p className="mt-2 text-sm leading-6 text-[#64748B]">{tier.text}</p>
-    </div>
-  </motion.div>
-);
-
 const BenefitsStrip = () => (
   <div className="grid gap-3 rounded-3xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:grid-cols-2 lg:grid-cols-5">
     {benefitItems.map(({ icon: Icon, label }) => (
@@ -677,43 +533,51 @@ const BenefitsStrip = () => (
   </div>
 );
 
-const TopPerformersCard = ({ rewards }: { rewards: Reward[] }) => {
-  const performers = rewards
-    .slice()
-    .sort((a, b) => (b.currentValueUSD ?? 0) - (a.currentValueUSD ?? 0))
-    .slice(0, 4);
+type LeaderboardEntry = {
+  rank: number;
+  userId: string;
+  fullName: string;
+  profilePicture: string | null;
+  packagesSold: number;
+  teamVolume: number;
+  earnings: number;
+};
+
+const TopPerformersCard = ({ leaders }: { leaders: LeaderboardEntry[] }) => {
+  const performers = leaders.slice(0, 4);
 
   return (
     <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <div className="flex items-center justify-between gap-3">
         <h3 className="text-lg font-black text-[#0F172A]">Top Performers This Month</h3>
-        <button className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-bold text-[#0F172A] hover:bg-slate-50">
-          View All
-        </button>
       </div>
       <div className="mt-5 space-y-4">
         {performers.length > 0 ? (
-          performers.map((reward, index) => (
-            <div key={reward._id} className="flex items-center justify-between gap-3">
+          performers.map((leader) => (
+            <div key={leader.userId} className="flex items-center justify-between gap-3">
               <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600">
-                  <Medal className="h-5 w-5" />
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 overflow-hidden">
+                  {leader.profilePicture ? (
+                    <Image src={leader.profilePicture} alt={leader.fullName} width={40} height={40} className="h-10 w-10 rounded-2xl object-cover" />
+                  ) : (
+                    <Medal className="h-5 w-5" />
+                  )}
                 </span>
                 <div className="min-w-0">
                   <p className="truncate text-sm font-black text-[#0F172A]">
-                    {maskName(`Sagenex Leader ${index + 1}`)}
+                    {maskName(leader.fullName)}
                   </p>
-                  <p className="text-xs text-[#64748B]">{reward.rewardSnapshot.reward}</p>
+                  <p className="text-xs text-[#64748B]">{leader.packagesSold} packages · Rank #{leader.rank}</p>
                 </div>
               </div>
               <p className="shrink-0 text-sm font-black text-emerald-600">
-                +{formatCurrency(reward.currentValueUSD ?? 0)}
+                +{formatCurrency(leader.teamVolume)}
               </p>
             </div>
           ))
         ) : (
           <p className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-sm text-[#64748B]">
-            Performer data will appear once reward progress starts.
+            No team activity yet this month.
           </p>
         )}
       </div>
@@ -721,33 +585,44 @@ const TopPerformersCard = ({ rewards }: { rewards: Reward[] }) => {
   );
 };
 
-const AchievementsCard = ({ directProgress, teamProgress }: {
-  directProgress: ReturnType<typeof getRewardProgress>;
-  teamProgress: ReturnType<typeof getRewardProgress>;
-}) => (
-  <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-    <h3 className="text-lg font-black text-[#0F172A]">Achievements / Status</h3>
-    <div className="mt-5 space-y-3">
-      {[
-        { icon: Users, label: "Active Legs", value: teamProgress.percent > 0 ? "In progress" : "Build volume" },
-        { icon: Calendar, label: "Eligibility Cycle", value: "Monthly" },
-        { icon: Clock, label: "Days Remaining", value: "Based on program" },
-      ].map(({ icon: Icon, label, value }) => (
-        <div key={label} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-          <div className="flex items-center gap-3">
-            <Icon className="h-5 w-5 text-[#C81E4A]" />
-            <span className="text-sm font-bold text-[#64748B]">{label}</span>
+const getDaysRemainingInMonth = () => {
+  const now = new Date();
+  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+  const diff = Math.ceil((lastDay.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  return Math.max(0, diff);
+};
+
+const getCurrentCycleLabel = () => {
+  const now = new Date();
+  return now.toLocaleString("en-IN", { month: "long", year: "numeric" });
+};
+
+const AchievementsCard = ({ activeLegs }: { activeLegs: number }) => {
+  const requiredLegs = 5;
+  const days = getDaysRemainingInMonth();
+  const cycleLabel = getCurrentCycleLabel();
+
+  return (
+    <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+      <h3 className="text-lg font-black text-[#0F172A]">Achievements / Status</h3>
+      <div className="mt-5 space-y-3">
+        {[
+          { icon: Users, label: "Active Legs", value: `${activeLegs}/${requiredLegs}` },
+          { icon: Calendar, label: "Eligibility Cycle", value: cycleLabel },
+          { icon: Clock, label: "Days Remaining", value: `${days} Days` },
+        ].map(({ icon: Icon, label, value }) => (
+          <div key={label} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+            <div className="flex items-center gap-3">
+              <Icon className="h-5 w-5 text-[#C81E4A]" />
+              <span className="text-sm font-bold text-[#64748B]">{label}</span>
+            </div>
+            <span className="text-sm font-black text-[#0F172A]">{value}</span>
           </div>
-          <span className="text-sm font-black text-[#0F172A]">{value}</span>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
-    <div className="mt-5 rounded-2xl bg-[#ECFDF5] p-4">
-      <p className="text-sm font-bold text-emerald-700">Direct progress: {directProgress.percent}%</p>
-      <p className="mt-1 text-sm font-bold text-emerald-700">Team progress: {teamProgress.percent}%</p>
-    </div>
-  </div>
-);
+  );
+};
 
 const MotivationCard = () => (
   <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-[#0F172A] p-5 text-white shadow-[0_10px_30px_rgba(15,23,42,0.12)]">
@@ -999,6 +874,8 @@ const RewardsPage = () => {
     null
   );
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
+  const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
+  const [activeLegs, setActiveLegs] = useState<number>(0);
 
   // Active travel programs from backend, filtered to showcase IDs
   const activePrograms = TRAVEL_SHOWCASE_IDS.map(
@@ -1022,7 +899,7 @@ const RewardsPage = () => {
   const fetchInitialData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const [rewardsData, programsData, recipientsData, , kycData, dashboardData] =
+      const [rewardsData, programsData, recipientsData, , kycData, dashboardData, leaderboardData, summaryData] =
         await Promise.all([
           getRewards(),
           getRewardPrograms(),
@@ -1030,7 +907,20 @@ const RewardsPage = () => {
           getProfileData(),
           getKycStatus(),
           getDashboardData(),
+          getLeaderboard('team'),
+          getReferralSummary(),
         ]);
+
+      if (Array.isArray(leaderboardData)) {
+        setLeaders(leaderboardData as LeaderboardEntry[]);
+      } else if (leaderboardData && typeof leaderboardData === 'object' && 'leaderboard' in leaderboardData) {
+        setLeaders((leaderboardData as { leaderboard: LeaderboardEntry[] }).leaderboard ?? []);
+      }
+
+      if (summaryData && !('error' in summaryData)) {
+        const directs = (summaryData as { directs?: Array<{ activityStatus?: string }> }).directs ?? [];
+        setActiveLegs(directs.filter((d) => d.activityStatus === 'Active').length);
+      }
 
       if (kycData && "error" in kycData) setError(kycData.error as string);
       else setKycStatus(kycData as KycStatus);
@@ -1174,27 +1064,11 @@ const RewardsPage = () => {
             ))}
           </section>
 
-          <QualificationPathSection directProgress={directProgress} teamProgress={teamProgress} />
-
-          <section>
-            <div className="mb-4">
-              <h2 className="text-2xl font-black text-[#0F172A]">Luxury Reward Tiers</h2>
-              <p className="mt-1 text-sm text-[#64748B]">
-                Bigger business milestones unlock richer SAGENEX experiences.
-              </p>
-            </div>
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-              {tierCards.map((tier, index) => (
-                <RewardTierCard key={tier.name} tier={tier} index={index} />
-              ))}
-            </div>
-          </section>
-
           <BenefitsStrip />
 
           <section className="grid gap-5 lg:grid-cols-3">
-            <TopPerformersCard rewards={allVisibleRewards} />
-            <AchievementsCard directProgress={directProgress} teamProgress={teamProgress} />
+            <TopPerformersCard leaders={leaders} />
+            <AchievementsCard activeLegs={activeLegs} />
             <MotivationCard />
           </section>
 
