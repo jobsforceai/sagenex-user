@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import Alert from "../components/dashboard/Alert";
 import { useAuth } from "@/app/context/AuthContext";
@@ -15,19 +16,20 @@ import {
 } from "@/actions/user";
 import {
   ArrowDownCircle,
+  ArrowRight,
   BadgeDollarSign,
+  Calendar,
   Copy,
   Crown,
   Gem,
   Gift,
+  Sparkles,
   TrendingUp,
   Users,
   Wallet,
 } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeletons";
-import DashboardVisualSection from "../components/dashboard/DashboardVisualSection";
 
 // ─── Interfaces ────────────────────────────────────────────────────
 
@@ -145,21 +147,21 @@ interface LeaderboardEntry {
 
 // ─── Helpers ───────────────────────────────────────────────────────
 
-const formatCurrency = (amount?: number) => {
-  if (amount === undefined || amount === null) return "N/A";
-  return amount.toLocaleString("en-IN", {
-    style: "currency",
-    currency: "INR",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
-};
-
 const formatCurrencyCompact = (amount?: number) => {
   if (amount === undefined || amount === null) return "N/A";
   return amount.toLocaleString("en-IN", {
     style: "currency",
     currency: "INR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
+const formatUsdCompact = (amount?: number) => {
+  if (amount === undefined || amount === null) return "N/A";
+  return amount.toLocaleString("en-US", {
+    style: "currency",
+    currency: "USD",
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
@@ -172,42 +174,6 @@ const avatarStyle = (name: string) => {
     color: `hsl(${hue}, 55%, 38%)`,
   };
 };
-
-// ─── KPI Card ──────────────────────────────────────────────────────
-
-const KPICard = ({
-  label,
-  value,
-  sub,
-  icon,
-  accentColor = "#C41E3A",
-}: {
-  label: string;
-  value: string | number;
-  sub?: string;
-  icon: React.ReactNode;
-  accentColor?: string;
-}) => (
-  <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0 flex-1">
-        <p className="mb-2.5 text-[11px] font-bold uppercase tracking-[0.07em] text-zinc-400">
-          {label}
-        </p>
-        <p className="truncate text-[26px] font-extrabold leading-none tracking-tight text-[#111827]">
-          {value}
-        </p>
-        {sub && <p className="mt-1.5 text-[13px] text-zinc-500">{sub}</p>}
-      </div>
-      <div
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl"
-        style={{ background: accentColor + "18", color: accentColor }}
-      >
-        {icon}
-      </div>
-    </div>
-  </div>
-);
 
 // ─── Page Component ────────────────────────────────────────────────
 
@@ -371,11 +337,24 @@ const DashboardPage = () => {
   ];
 
   const financialCards = [
-    { label: "Invested Principal", value: financialSummary?.investedPrincipal, icon: Wallet },
-    { label: "Referral Earnings", value: financialSummary?.referralEarnings, icon: Users },
-    { label: "Promotion Bonus", value: financialSummary?.oneTimePromotionBonus, icon: Gift },
-    { label: "Monthly Incentive", value: financialSummary?.monthlyIncentive, icon: TrendingUp },
+    { label: "Invested Principal", value: financialSummary?.investedPrincipal, icon: Wallet, color: "#00b386" },
+    { label: "Referral Earnings", value: financialSummary?.referralEarnings, icon: Users, color: "#C41E3A" },
+    { label: "Salary Earned", value: financialSummary?.monthlyIncentive, icon: BadgeDollarSign, color: "#7C3AED" },
   ];
+
+  const rankRequirements = rankProgress?.progress?.requirements;
+  const usedWithdrawalLimit = Math.max(
+    0,
+    (wallet?.withdrawalCap ?? 0) - (wallet?.remainingWithdrawalLimit ?? 0),
+  );
+  const withdrawalUsedPct = wallet?.withdrawalCap
+    ? Math.min(100, Math.round((usedWithdrawalLimit / wallet.withdrawalCap) * 100))
+    : 0;
+
+  const earningsUsedPct =
+    wallet?.earningsCapTotal && wallet.earningsCapTotal > 0
+      ? Math.min(100, Math.round(((wallet.earnedSinceBaseline ?? 0) / wallet.earningsCapTotal) * 100))
+      : 0;
 
   return (
     <>
@@ -388,122 +367,122 @@ const DashboardPage = () => {
           Error: {error}
         </div>
       ) : (
-        <div className="p-6 space-y-5">
+        <div className="min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl space-y-6">
+          <section className="relative overflow-hidden rounded-3xl bg-[#0F172A] text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)]">
+            <Image
+              src="/dashboard/dashboard-hero-figurine.png"
+              alt=""
+              width={420}
+              height={420}
+              className="pointer-events-none absolute -right-12 bottom-0 hidden w-[360px] opacity-95 lg:block"
+              priority
+            />
+            <Image
+              src="/wallet/red_wave_no_background.png"
+              alt=""
+              width={760}
+              height={360}
+              className="pointer-events-none absolute inset-y-0 right-0 h-full w-auto opacity-25"
+              priority
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(196,30,58,0.95)_0%,rgba(122,0,31,0.78)_42%,rgba(15,23,42,0.96)_100%)]" />
+            <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
+              <div className="space-y-7">
+                <div>
+                  <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/12 px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-white/80 backdrop-blur">
+                    <Sparkles className="h-4 w-4 text-amber-200" />
+                    Command center
+                  </span>
+                  <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight text-white sm:text-5xl">
+                    {profile?.fullName || "Welcome back"}
+                  </h1>
+                  <div className="mt-4 flex flex-wrap gap-2">
+                    <span className="rounded-full bg-white/14 px-3 py-1 text-xs font-bold text-white">
+                      {currentRank?.name ?? "Member"}
+                    </span>
+                    {lifetimeRank?.name && lifetimeRank.name !== currentRank?.name && (
+                      <span className="rounded-full bg-white/14 px-3 py-1 text-xs font-bold text-white/80">
+                        Lifetime: {lifetimeRank.name}
+                      </span>
+                    )}
+                    {earningsMultiplier && earningsMultiplier > 0 && (
+                      <span className="rounded-full bg-emerald-400/18 px-3 py-1 text-xs font-bold text-emerald-100">
+                        {earningsMultiplier}x multiplier
+                      </span>
+                    )}
+                  </div>
+                </div>
 
-          {/* ── Hero Banner ─────────────────────────────────────── */}
-          <div
-            className="relative overflow-hidden rounded-[20px] p-7 text-white"
-            style={{ background: "linear-gradient(135deg, #C41E3A 0%, #A0152B 100%)" }}
-          >
-            <div
-              className="pointer-events-none absolute -right-10 -top-10 h-48 w-48 rounded-full"
-              style={{ background: "rgba(255,255,255,0.06)" }}
-            />
-            <div
-              className="pointer-events-none absolute right-14 -bottom-14 h-40 w-40 rounded-full"
-              style={{ background: "rgba(255,255,255,0.04)" }}
-            />
-            <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="mb-1 text-[13px] font-medium opacity-75">Welcome back 👋</p>
-                <h1 className="mb-1.5 text-[28px] font-extrabold leading-tight tracking-tight">
-                  {profile?.fullName}
-                </h1>
-                <div className="flex flex-wrap gap-2">
-                  {currentRank?.name && (
-                    <span
-                      className="rounded-full px-3 py-0.5 text-xs font-bold"
-                      style={{ background: "rgba(255,255,255,0.2)" }}
-                    >
-                      {currentRank.name}
-                    </span>
-                  )}
-                  {earningsMultiplier && earningsMultiplier > 0 && (
-                    <span
-                      className="rounded-full px-3 py-0.5 text-xs font-bold"
-                      style={{ background: "rgba(0,179,134,0.35)", color: "#adfce8" }}
-                    >
-                      ×{earningsMultiplier} Multiplier
-                    </span>
-                  )}
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {[
+                    { label: "Available Balance", value: formatCurrencyCompact(wallet?.availableBalance), icon: Wallet },
+                    { label: "Rank Progress", value: `${Math.round(progressPercentage)}%`, icon: TrendingUp },
+                    { label: "Tickets", value: ticketBalance?.totalTickets ?? 0, icon: Gift },
+                  ].map(({ label, value, icon: Icon }) => (
+                    <div key={label} className="rounded-2xl border border-white/12 bg-white/12 p-4 backdrop-blur">
+                      <Icon className="h-5 w-5 text-amber-100" />
+                      <p className="mt-3 text-[11px] font-black uppercase tracking-[0.08em] text-white/58">{label}</p>
+                      <p className="mt-1 truncate text-2xl font-black text-white">{value}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
-              <div className="text-left sm:text-right">
-                <p className="mb-1 text-xs font-medium opacity-70">Available Balance</p>
-                <p className="text-[32px] font-black leading-none tracking-tighter">
-                  {formatCurrencyCompact(wallet?.availableBalance)}
-                </p>
-                {wallet?.withdrawalCap !== undefined && (
-                  <p className="mt-0.5 text-xs opacity-65">
-                    Cap: {formatCurrencyCompact(wallet.withdrawalCap)}
-                  </p>
-                )}
+
+              <div className="rounded-3xl border border-white/15 bg-white/14 p-5 backdrop-blur-md">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.12em] text-white/60">Next rank</p>
+                    <p className="mt-1 text-2xl font-black text-white">
+                      {rankProgress?.progress?.nextRankName ?? "Max rank"}
+                    </p>
+                  </div>
+                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-[#C41E3A]">
+                    <Crown className="h-8 w-8" />
+                  </div>
+                </div>
+                <div className="mt-6">
+                  <div className="mb-2 flex items-center justify-between text-sm font-bold text-white/80">
+                    <span>Completion</span>
+                    <span>{Math.round(progressPercentage)}%</span>
+                  </div>
+                  <div className="h-3 overflow-hidden rounded-full bg-white/18">
+                    <div
+                      className="h-full rounded-full bg-emerald-400"
+                      style={{ width: `${Math.min(100, Math.max(0, progressPercentage))}%` }}
+                    />
+                  </div>
+                </div>
+                <div className="mt-5 grid gap-2 text-sm">
+                  {rankRequirements?.directs && (
+                    <div className="flex justify-between rounded-2xl bg-black/18 px-3 py-2">
+                      <span className="text-white/65">Directs</span>
+                      <span className="font-black text-white">
+                        {rankRequirements.directs.current}/{rankRequirements.directs.required}
+                      </span>
+                    </div>
+                  )}
+                  {rankRequirements?.activeTeam && (
+                    <div className="flex justify-between rounded-2xl bg-black/18 px-3 py-2">
+                      <span className="text-white/65">Active team</span>
+                      <span className="font-black text-white">
+                        {rankRequirements.activeTeam.current}/{rankRequirements.activeTeam.required}
+                      </span>
+                    </div>
+                  )}
+                  {rankRequirements?.legRule && (
+                    <div className="flex justify-between rounded-2xl bg-black/18 px-3 py-2">
+                      <span className="text-white/65">Qualified legs</span>
+                      <span className="font-black text-white">
+                        {rankRequirements.legRule.current}/{rankRequirements.legRule.required}
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-            {rankProgress?.progress?.nextRankName && (
-              <div className="relative z-10 mt-5 border-t border-white/20 pt-4">
-                <div className="mb-1.5 flex items-center justify-between text-xs" style={{ opacity: 0.85 }}>
-                  <span className="font-medium">
-                    Progress to {rankProgress.progress.nextRankName}
-                  </span>
-                  <span className="font-bold">{Math.round(progressPercentage)}%</span>
-                </div>
-                <div
-                  className="h-1.5 overflow-hidden rounded-full"
-                  style={{ background: "rgba(255,255,255,0.25)" }}
-                >
-                  <div
-                    className="h-full rounded-full transition-all duration-300"
-                    style={{
-                      width: `${Math.min(100, Math.max(0, progressPercentage))}%`,
-                      background: "rgba(255,255,255,0.85)",
-                    }}
-                  />
-                </div>
-              </div>
-            )}
-          </div>
+          </section>
 
-          {/* ── KPI Row ─────────────────────────────────────────── */}
-          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-            <KPICard
-              label="Current Rank"
-              value={currentRank?.name ?? "Member"}
-              sub={
-                lifetimeRank?.name && lifetimeRank.name !== currentRank?.name
-                  ? `Lifetime: ${lifetimeRank.name}`
-                  : undefined
-              }
-              icon={<Crown className="h-5 w-5" />}
-              accentColor="#C41E3A"
-            />
-            <KPICard
-              label="Rank Progress"
-              value={`${Math.round(progressPercentage)}%`}
-              sub={
-                rankProgress?.progress?.nextRankName
-                  ? `To ${rankProgress.progress.nextRankName}`
-                  : "Max rank reached"
-              }
-              icon={<TrendingUp className="h-5 w-5" />}
-              accentColor="#C41E3A"
-            />
-            <KPICard
-              label="Package Value"
-              value={formatCurrencyCompact(dashboardData?.package?.packageUSD)}
-              icon={<Wallet className="h-5 w-5" />}
-              accentColor="#00b386"
-            />
-            <KPICard
-              label="Tickets"
-              value={ticketBalance?.totalTickets ?? 0}
-              sub="Available"
-              icon={<Gift className="h-5 w-5" />}
-              accentColor="#7C3AED"
-            />
-          </div>
-
-          {/* ── Salary Alert ─────────────────────────────────────── */}
           {consecutiveMonthsMissed === 1 && (
             <Alert
               type="warning"
@@ -511,263 +490,287 @@ const DashboardPage = () => {
             />
           )}
 
-          {/* ── Quick Actions ────────────────────────────────────── */}
-          <section>
-            <p className="mb-3 text-[11px] font-bold uppercase tracking-[0.07em] text-zinc-400">
-              Quick Actions
-            </p>
-            <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-              {quickActions.map(({ href, icon: Icon, title, subtitle, color }) => (
-                <Link key={href} href={href} className="group">
-                  <div className="h-full rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm transition-all duration-150 group-hover:-translate-y-0.5 group-hover:shadow-md">
+          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            {quickActions.map(({ href, icon: Icon, title, subtitle, color }) => (
+              <Link key={href} href={href} className="group">
+                <div className="flex h-full items-center justify-between gap-4 rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)]">
+                  <div className="min-w-0">
                     <div
-                      className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-xl"
+                      className="mb-4 flex h-12 w-12 items-center justify-center rounded-2xl"
                       style={{ background: color + "18", color }}
                     >
-                      <Icon className="h-5 w-5" />
+                      <Icon className="h-6 w-6" />
                     </div>
-                    <p className="text-sm font-bold text-[#111827]">{title}</p>
-                    <p className="mt-0.5 text-xs text-zinc-500">{subtitle}</p>
+                    <p className="text-base font-black text-[#0F172A]">{title}</p>
+                    <p className="mt-1 text-sm text-[#64748B]">{subtitle}</p>
                   </div>
-                </Link>
-              ))}
-            </div>
+                  <ArrowRight className="h-5 w-5 shrink-0 text-slate-300 transition group-hover:translate-x-1 group-hover:text-[#C41E3A]" />
+                </div>
+              </Link>
+            ))}
           </section>
 
-          {/* ── Visual Hub ─────────────────────────────────────── */}
-          <DashboardVisualSection />
-
-          {/* ── Main Grid ───────────────────────────────────────── */}
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-3">
-
-            {/* Left column (2/3) */}
-            <div className="space-y-5 xl:col-span-2">
-
-              {/* Earnings Snapshot */}
-              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-                <h2 className="mb-4 text-[18px] font-bold tracking-tight text-[#111827]">
-                  Earnings Snapshot
-                </h2>
-                <div className="grid grid-cols-2 gap-3">
-                  {financialCards.map(({ label, value, icon: Icon }) => (
-                    <div
-                      key={label}
-                      className="rounded-xl border border-[#E8E8E8] bg-[#F8F9FA] p-4"
-                    >
-                      <div className="mb-2 flex items-center justify-between">
-                        <p className="text-[11px] font-bold uppercase tracking-[0.07em] text-zinc-400">
-                          {label}
-                        </p>
-                        <Icon className="h-4 w-4 text-zinc-300" />
-                      </div>
-                      <p className="text-lg font-extrabold text-[#111827]">
-                        {formatCurrency(value)}
-                      </p>
+          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
+            <div className="space-y-5">
+              <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Money flow</p>
+                    <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Earnings Snapshot</h2>
+                  </div>
+                  <Link href="/wallet" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-bold text-[#0F172A] hover:bg-slate-50">
+                    Open wallet <ArrowRight className="h-4 w-4" />
+                  </Link>
+                </div>
+                <div className="grid gap-3 md:grid-cols-3">
+                  {financialCards.map(({ label, value, icon: Icon, color }) => (
+                    <div key={label} className="relative overflow-hidden rounded-3xl border border-slate-100 bg-[#F8FAFC] p-5">
+                      <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10" style={{ background: color }} />
+                      <Icon className="h-6 w-6" style={{ color }} />
+                      <p className="mt-5 text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">{label}</p>
+                      <p className="mt-2 truncate text-2xl font-black text-[#0F172A]">{formatCurrencyCompact(value)}</p>
                     </div>
                   ))}
                 </div>
-              </div>
+              </section>
 
-              {/* Top Performers */}
-              <div className="overflow-hidden rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">
-                <div className="border-b border-[#E8E8E8] px-5 py-4">
-                  <h2 className="text-[18px] font-bold tracking-tight text-[#111827]">
-                    Top Performers
-                  </h2>
-                  <p className="mt-0.5 text-[13px] text-zinc-500">This month&apos;s leaderboard</p>
+              <section className="grid gap-5 lg:grid-cols-2">
+                <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Team engine</p>
+                      <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Referral Pulse</h2>
+                    </div>
+                    <Image src="/teams/icon-active-team-mint.png" alt="" width={56} height={56} className="h-14 w-14 object-contain" />
+                  </div>
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    {[
+                      { label: "Direct referrals", value: referralSummary?.totalReferrals ?? 0 },
+                      { label: "Invested", value: referralSummary?.investedCount ?? 0 },
+                      { label: "Active agents", value: activeReferrals },
+                      { label: "Downline volume", value: formatCurrencyCompact(referralSummary?.totalDownlineVolume) },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="rounded-2xl bg-slate-50 p-4">
+                        <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">{label}</p>
+                        <p className="mt-2 truncate text-xl font-black text-[#0F172A]">{value}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Rank path</p>
+                      <h2 className="mt-1 text-2xl font-black text-[#0F172A]">What Matters Next</h2>
+                    </div>
+                    <Image src="/salary/rank-elite-director-crown.png" alt="" width={60} height={60} className="h-14 w-14 object-contain" />
+                  </div>
+                  <div className="mt-6 space-y-3">
+                    {[
+                      rankRequirements?.directs
+                        ? { label: "Directs", current: rankRequirements.directs.current, required: rankRequirements.directs.required }
+                        : null,
+                      rankRequirements?.activeTeam
+                        ? { label: "Active team", current: rankRequirements.activeTeam.current, required: rankRequirements.activeTeam.required }
+                        : null,
+                      rankRequirements?.legRule
+                        ? { label: "Leg rule", current: rankRequirements.legRule.current, required: rankRequirements.legRule.required }
+                        : null,
+                    ].filter(Boolean).map((item) => {
+                      const row = item as { label: string; current: number; required: number };
+                      const pct = row.required > 0 ? Math.min(100, Math.round((row.current / row.required) * 100)) : 100;
+                      return (
+                        <div key={row.label}>
+                          <div className="mb-1 flex justify-between text-sm">
+                            <span className="font-bold text-[#64748B]">{row.label}</span>
+                            <span className="font-black text-[#0F172A]">{row.current}/{row.required}</span>
+                          </div>
+                          <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                            <div className="h-full rounded-full bg-[#C41E3A]" style={{ width: `${pct}%` }} />
+                          </div>
+                        </div>
+                      );
+                    })}
+                    {!rankRequirements && (
+                      <p className="rounded-2xl bg-slate-50 px-4 py-5 text-sm font-semibold text-[#64748B]">
+                        Rank requirements will appear when the next milestone is available.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </section>
+
+              <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Leaderboard</p>
+                    <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Top Performers</h2>
+                  </div>
+                  <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.08em] text-amber-700">
+                    This month
+                  </span>
                 </div>
                 {leaderboardData ? (
-                  <div>
-                    {leaderboardData.slice(0, 6).map((entry, i) => (
+                  <div className="grid divide-y divide-slate-100">
+                    {leaderboardData.slice(0, 6).map((entry, index) => (
                       <div
                         key={`${entry.rank}-${entry.userId ?? entry.fullName}`}
-                        className="flex items-center gap-3 border-b border-[#E8E8E8] px-5 py-3.5 last:border-0"
+                        className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 transition hover:bg-slate-50 sm:px-6"
                       >
                         <div
-                          className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full text-[11px] font-extrabold ${
-                            i === 0 ? "bg-amber-50 text-amber-500" : "bg-zinc-100 text-zinc-400"
+                          className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black ${
+                            index === 0
+                              ? "bg-amber-50 text-amber-600"
+                              : index === 1
+                                ? "bg-slate-100 text-slate-500"
+                                : index === 2
+                                  ? "bg-orange-50 text-orange-600"
+                                  : "bg-[#FFF1F4] text-[#C41E3A]"
                           }`}
                         >
                           {entry.rank}
                         </div>
-                        <div
-                          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xs font-extrabold"
-                          style={avatarStyle(entry.fullName)}
-                        >
-                          {entry.fullName
-                            .split(" ")
-                            .map((n) => n[0])
-                            .join("")
-                            .slice(0, 2)
-                            .toUpperCase()}
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div
+                            className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-xs font-black"
+                            style={avatarStyle(entry.fullName)}
+                          >
+                            {entry.fullName
+                              .split(" ")
+                              .map((namePart) => namePart[0])
+                              .join("")
+                              .slice(0, 2)
+                              .toUpperCase()}
+                          </div>
+                          <div className="min-w-0">
+                            <p className="truncate text-sm font-black text-[#0F172A]">{entry.fullName}</p>
+                            <p className="text-xs font-semibold text-[#64748B]">
+                              {entry.packagesSold.toLocaleString("en-IN")} packages sold
+                            </p>
+                          </div>
                         </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate text-[14px] font-semibold text-[#111827]">
-                            {entry.fullName}
+                        <div className="text-right">
+                          <p className="text-sm font-black text-emerald-600">
+                            {formatCurrencyCompact(entry.earnings)}
                           </p>
-                          <p className="text-xs text-zinc-500">{entry.packagesSold} packages sold</p>
+                          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+                            Earnings
+                          </p>
                         </div>
-                        <p className="shrink-0 text-[14px] font-bold text-[#111827]">
-                          {formatCurrency(entry.earnings)}
-                        </p>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="space-y-px p-5">
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
-                    <Skeleton className="h-12 w-full" />
+                  <div className="grid gap-3 p-5 sm:p-6">
+                    {[0, 1, 2, 3].map((item) => (
+                      <div key={item} className="h-16 animate-pulse rounded-2xl bg-slate-100" />
+                    ))}
                   </div>
                 )}
-              </div>
+              </section>
             </div>
 
-            {/* Right column (1/3) */}
             <div className="space-y-5">
+              <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                <div className="relative bg-[#FFF1F4] p-5">
+                  <Image src="/dashboard/availbalance.png" alt="" fill className="object-cover opacity-50" sizes="360px" />
+                  <div className="relative">
+                    <p className="text-xs font-black uppercase tracking-[0.1em] text-[#C41E3A]">Wallet limits</p>
+                    <p className="mt-2 text-3xl font-black text-[#C41E3A]">{formatCurrencyCompact(wallet?.remainingWithdrawalLimit)}</p>
+                    <p className="mt-1 text-sm font-bold text-[#C41E3A]/70">available to withdraw</p>
+                  </div>
+                </div>
+                <div className="space-y-4 p-5">
+                  {[
+                    { label: "Withdrawal cap", value: formatCurrencyCompact(wallet?.withdrawalCap), pct: withdrawalUsedPct },
+                    { label: "Earnings cap used", value: `${earningsUsedPct}%`, pct: earningsUsedPct },
+                  ].map((item) => (
+                    <div key={item.label}>
+                      <div className="mb-1 flex justify-between text-sm">
+                        <span className="font-bold text-[#64748B]">{item.label}</span>
+                        <span className="font-black text-[#0F172A]">{item.value}</span>
+                      </div>
+                      <div className="h-2 overflow-hidden rounded-full bg-slate-100">
+                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${item.pct}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                  <div className="grid grid-cols-2 gap-3 pt-1">
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Withdrawn</p>
+                      <p className="mt-1 truncate text-sm font-black text-[#0F172A]">{formatCurrencyCompact(wallet?.totalLifetimeWithdrawals)}</p>
+                    </div>
+                    <div className="rounded-2xl bg-slate-50 p-3">
+                      <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Package</p>
+                      <p className="mt-1 truncate text-sm font-black text-[#0F172A]">{formatUsdCompact(dashboardData?.package?.packageUSD)}</p>
+                    </div>
+                  </div>
+                </div>
+              </section>
 
-              {/* Referral Link */}
-              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-                <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
-                  Referral Link
-                </h2>
-                <div className="mb-3 break-all rounded-xl bg-[#F8F9FA] px-3 py-2.5 font-mono text-[12px] text-zinc-500">
+              <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                <div className="flex items-center justify-between gap-3">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Referral link</p>
+                    <h2 className="mt-1 text-xl font-black text-[#0F172A]">Grow the network</h2>
+                  </div>
+                  <Users className="h-6 w-6 text-[#C41E3A]" />
+                </div>
+                <div className="mt-4 break-all rounded-2xl bg-slate-50 px-3 py-3 font-mono text-xs text-[#64748B]">
                   {referralLink || "—"}
                 </div>
                 <button
                   onClick={handleCopy}
-                  className="flex w-full items-center justify-center gap-2 rounded-xl py-2.5 text-sm font-semibold text-white transition-colors"
-                  style={{ background: copied ? "#00b386" : "#C41E3A" }}
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#C41E3A] py-3 text-sm font-black text-white transition hover:bg-[#ad1b34]"
                 >
                   <Copy className="h-4 w-4" />
                   {copied ? "Copied!" : "Copy Link"}
                 </button>
-              </div>
+              </section>
 
-              {/* Referral Stats */}
-              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-                <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
-                  Referral Stats
-                </h2>
-                <div className="grid grid-cols-2 gap-2.5">
-                  {[
-                    { label: "Total Referrals", value: referralSummary?.totalReferrals ?? 0 },
-                    { label: "Active Agents", value: activeReferrals },
-                    { label: "Invested", value: referralSummary?.investedCount ?? 0 },
-                    {
-                      label: "Downline Vol.",
-                      value: formatCurrency(referralSummary?.totalDownlineVolume),
-                    },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="rounded-xl bg-[#F8F9FA] p-3">
-                      <p className="mb-1 text-[11px] font-bold uppercase tracking-[0.05em] text-zinc-400">
-                        {label}
-                      </p>
-                      <p className="text-[18px] font-extrabold text-[#111827]">{value}</p>
-                    </div>
-                  ))}
+              <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Rewards fuel</p>
+                    <h2 className="mt-1 text-xl font-black text-[#0F172A]">Tickets</h2>
+                  </div>
+                  <Image src="/dashboard/dashboard-ticket-figurine.png" alt="" width={76} height={76} className="h-16 w-16 object-contain" />
                 </div>
-              </div>
-
-              {/* Wallet Summary */}
-              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-                <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
-                  Wallet Summary
-                </h2>
-                <div className="space-y-2.5 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">Withdrawal cap</span>
-                    <span className="font-semibold text-[#111827]">
-                      {formatCurrency(wallet?.withdrawalCap)}
-                    </span>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl bg-violet-50 p-4">
+                    <p className="text-[11px] font-black uppercase tracking-[0.08em] text-violet-700">Available</p>
+                    <p className="mt-1 text-2xl font-black text-violet-700">{ticketBalance?.totalTickets ?? 0}</p>
                   </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">Withdrawn</span>
-                    <span className="font-semibold text-[#111827]">
-                      {formatCurrency(wallet?.totalLifetimeWithdrawals)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-[#F0F0F0] pt-2.5">
-                    <span className="text-zinc-500">Remaining limit</span>
-                    <span className="font-semibold text-[#00b386]">
-                      {formatCurrency(wallet?.remainingWithdrawalLimit)}
-                    </span>
-                  </div>
-                  {wallet?.earningsCapTotal !== undefined && (
-                    <>
-                      <div className="flex items-center justify-between border-t border-[#F0F0F0] pt-2.5">
-                        <span className="text-zinc-500">Earnings cap</span>
-                        <span className="font-semibold text-[#111827]">
-                          {formatCurrency(wallet?.earningsCapTotal)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-zinc-500">Earned so far</span>
-                        <span className="font-semibold text-[#111827]">
-                          {formatCurrency(wallet?.earnedSinceBaseline)}
-                        </span>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-zinc-500">Cap remaining</span>
-                        <span className="font-semibold text-[#00b386]">
-                          {formatCurrency(wallet?.remainingEarningsCap)}
-                        </span>
-                      </div>
-                    </>
-                  )}
-                </div>
-              </div>
-
-              {/* Ticket Balance */}
-              <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-                <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
-                  Ticket Balance
-                </h2>
-                <div className="space-y-2.5 text-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">Total tickets</span>
-                    <span className="font-semibold text-[#111827]">
-                      {ticketBalance?.totalTickets ?? 0}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between">
-                    <span className="text-zinc-500">Total invested</span>
-                    <span className="font-semibold text-[#111827]">
-                      {formatCurrency(ticketBalance?.totalInvestedUSD)}
-                    </span>
-                  </div>
-                  <div className="flex items-center justify-between border-t border-[#F0F0F0] pt-2.5 text-xs text-zinc-400">
-                    <span>Last calculated</span>
-                    <span>
-                      {ticketBalance?.lastCalculatedAt
-                        ? new Date(ticketBalance.lastCalculatedAt).toLocaleString()
-                        : "N/A"}
-                    </span>
+                  <div className="rounded-2xl bg-slate-50 p-4">
+                    <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Invested</p>
+                    <p className="mt-1 truncate text-lg font-black text-[#0F172A]">{formatUsdCompact(ticketBalance?.totalInvestedUSD)}</p>
                   </div>
                 </div>
-              </div>
+                <p className="mt-3 text-xs font-semibold text-[#64748B]">
+                  Last calculated:{" "}
+                  {ticketBalance?.lastCalculatedAt ? new Date(ticketBalance.lastCalculatedAt).toLocaleString() : "N/A"}
+                </p>
+              </section>
 
-              {/* Multiplier Window (conditional) */}
               {earningsMultiplierDeadline && (
-                <div className="rounded-2xl border border-[#E8E8E8] bg-white p-5 shadow-sm">
-                  <h2 className="mb-3 text-[16px] font-bold tracking-tight text-[#111827]">
-                    Multiplier Window
-                  </h2>
-                  <div className="space-y-2.5 text-sm">
-                    <div className="flex items-center justify-between">
-                      <span className="text-zinc-500">Current multiplier</span>
-                      <span className="font-bold text-[#111827]">{earningsMultiplier ?? 0}×</span>
+                <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-white text-amber-600">
+                      <Calendar className="h-5 w-5" />
                     </div>
-                    <div className="border-t border-[#F0F0F0] pt-2.5">
-                      <p className="text-xs text-zinc-400">Qualification deadline</p>
-                      <p className="mt-0.5 font-semibold text-[#111827]">
-                        {new Date(earningsMultiplierDeadline).toLocaleString()}
-                      </p>
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.1em] text-amber-700">Multiplier window</p>
+                      <p className="text-lg font-black text-[#0F172A]">{earningsMultiplier ?? 0}x active</p>
                     </div>
                   </div>
-                </div>
+                  <p className="mt-4 text-sm font-semibold text-amber-800">
+                    Deadline: {new Date(earningsMultiplierDeadline).toLocaleString()}
+                  </p>
+                </section>
               )}
             </div>
+          </div>
           </div>
         </div>
       )}
