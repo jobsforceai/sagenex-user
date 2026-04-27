@@ -75,7 +75,12 @@ const WithdrawalRequest = ({
     e.preventDefault();
     const amt = parseFloat(cashAmount);
     if (!amt || amt <= 0) { toast.error("Enter a valid amount."); return; }
-    if (amt > currentBalance) { toast.error("Insufficient balance."); return; }
+    // Limit check on GROSS (net + 5% tax) — the actual wallet deduction.
+    const gross = Math.round(amt * 1.05 * 100) / 100;
+    if (gross > currentBalance) {
+      toast.error(`Insufficient balance. Need ₹${gross.toFixed(2)} (₹${amt.toFixed(2)} + 5% tax) but only have ₹${currentBalance.toFixed(2)}.`);
+      return;
+    }
     setCashLoading(true);
     try {
       const res = await requestCashWithdrawal(amt);
@@ -423,6 +428,19 @@ const WithdrawalRequest = ({
                 <p className="mt-1 text-xs text-zinc-500">
                   Amount is held immediately. Admin will contact you with pickup details.
                 </p>
+                {(() => {
+                  const a = parseFloat(cashAmount);
+                  if (!isFinite(a) || a <= 0) return null;
+                  const tax = Math.round(a * 0.05 * 100) / 100;
+                  const gross = Math.round((a + tax) * 100) / 100;
+                  return (
+                    <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
+                      <p>You will receive in cash: <span className="font-bold text-amber-900">₹{a.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                      <p className="mt-0.5">5% tax (3% GST + 2% CGST): <span className="font-semibold">+₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                      <p className="mt-0.5">Total deducted from your wallet: <span className="font-bold text-amber-900">₹{gross.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                    </div>
+                  );
+                })()}
               </div>
               <Button type="submit" disabled={cashLoading} className="w-full bg-[#C41E3A] text-white hover:bg-[#ad1b34]">
                 {cashLoading ? "Requesting..." : "Request Cash Withdrawal"}
@@ -440,14 +458,19 @@ const WithdrawalRequest = ({
                   'border-[#E8E8E8] bg-[#F8F9FA]'
                 }`}>
                   <div className="flex items-center justify-between">
-                    <span className="font-semibold text-[#111827]">₹{cw.amount.toLocaleString('en-IN')}</span>
+                    <div>
+                      <span className="font-semibold text-[#111827]">₹{cw.amount.toLocaleString('en-IN')}</span>
+                      {cw.grossAmount && cw.grossAmount !== cw.amount && (
+                        <span className="ml-2 text-[11px] text-zinc-500">(₹{cw.grossAmount.toLocaleString('en-IN')} debited)</span>
+                      )}
+                    </div>
                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${
                       cw.status === 'CANCELLED' ? 'bg-red-500/20 text-red-300' :
                       cw.status === 'DELIVERED' ? 'bg-emerald-500/20 text-emerald-300' :
                       cw.status === 'SCHEDULED' ? 'bg-blue-500/20 text-blue-300' :
                       'bg-gray-600/40 text-gray-300'
                     }`}>{cw.status}</span>
-                  </div>
+                    </div>
 
                   {cw.status === 'SCHEDULED' && (
                     <div className="space-y-1 text-xs text-zinc-600">
