@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -17,10 +16,9 @@ import {
   ShieldCheck,
   User,
   LogOut,
-  RefreshCw,
 } from "lucide-react";
 
-const NAV_ITEMS = [
+export const NAV_ITEMS = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/wallet", icon: Wallet, label: "Wallet" },
   { href: "/team", icon: Users, label: "Team" },
@@ -44,80 +42,6 @@ export default function Sidebar({ balance, userName, userRank, avatarUrl }: Side
   const pathname = usePathname();
   const { logout } = useAuth();
 
-  const [syncing, setSyncing] = useState(false);
-  const [showSyncModal, setShowSyncModal] = useState(false);
-  const [syncMessages, setSyncMessages] = useState<string[]>([]);
-  const [syncDone, setSyncDone] = useState(false);
-  const [syncSummary, setSyncSummary] = useState("");
-
-  const handleSyncProfile = async () => {
-    setSyncing(true);
-    setShowSyncModal(true);
-    setSyncMessages(["Connecting to audit service..."]);
-    setSyncDone(false);
-    setSyncSummary("");
-
-    try {
-      const token = document.cookie
-        .split("; ")
-        .find((r) => r.startsWith("authToken="))
-        ?.split("=")[1];
-
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "";
-      const res = await fetch(`${backendUrl}/api/v1/user/sync/stream`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      if (!res.ok || !res.body) throw new Error("Failed to connect to sync service");
-
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-      let currentEvent = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const parts = buffer.split("\n");
-        buffer = parts.pop() ?? "";
-
-        for (const line of parts) {
-          if (line.startsWith("event: ")) {
-            currentEvent = line.slice(7).trim();
-          } else if (line.startsWith("data: ")) {
-            try {
-              const data = JSON.parse(line.slice(6));
-              if (currentEvent === "progress" && data.message) {
-                setSyncMessages((prev) => [...prev, data.message]);
-              } else if (currentEvent === "done") {
-                setSyncDone(true);
-                setSyncSummary(data.message ?? "Audit complete.");
-              } else if (currentEvent === "error") {
-                setSyncDone(true);
-                setSyncSummary(data.message ?? "Something went wrong.");
-              }
-            } catch {}
-            currentEvent = "";
-          }
-        }
-      }
-    } catch (error) {
-      console.error("Sync failed:", error);
-      setSyncMessages((prev) => [...prev, "Connection error. Please try again."]);
-      setSyncDone(true);
-      setSyncSummary("Sync failed. Please try again.");
-    } finally {
-      setSyncing(false);
-    }
-  };
-
-  const handleSyncClose = () => {
-    setShowSyncModal(false);
-    window.location.reload();
-  };
-
   const formattedBalance =
     balance !== undefined
       ? balance.toLocaleString("en-IN", {
@@ -139,7 +63,7 @@ export default function Sidebar({ balance, userName, userRank, avatarUrl }: Side
           height={32}
           className="h-8 w-8 object-contain"
         />
-        <span className="text-sm font-black tracking-widest text-[#C41E3A]">SAGENEX</span>
+        <span className="text-sm font-black tracking-widest text-black">SAGENEX</span>
       </div>
 
       {/* User strip */}
@@ -192,24 +116,24 @@ export default function Sidebar({ balance, userName, userRank, avatarUrl }: Side
         })}
       </nav>
 
-      {/* Bottom: balance + sync + logout */}
-      <div className="shrink-0 border-t border-[#e8e8e8] p-4 space-y-2.5">
+      {/* Bottom: balance + logout */}
+      <div className="shrink-0 border-t border-[#e8e8e8] p-3 space-y-2.5">
         {formattedBalance !== null && (
-          <div className="rounded-xl bg-[#FFF0F2] px-4 py-2.5">
+          <div
+            className="rounded-xl px-4 py-2.5 bg-no-repeat"
+            style={{
+              backgroundColor: "#FFF0F2",
+              backgroundImage: "url('/dashboard/availbalance.png')",
+              backgroundSize: "cover",
+              backgroundPosition: "center",
+            }}
+          >
             <p className="text-[10px] font-bold uppercase tracking-[0.06em] text-[#C41E3A] opacity-70">
               Available Balance
             </p>
             <p className="mt-0.5 text-[18px] font-black text-[#C41E3A]">{formattedBalance}</p>
           </div>
         )}
-        <button
-          onClick={handleSyncProfile}
-          disabled={syncing}
-          className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-[#f5f5f5] hover:text-[#0a0a0a] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <RefreshCw className={`h-4 w-4 ${syncing ? "animate-spin" : ""}`} />
-          {syncing ? "Syncing..." : "Sync Profile"}
-        </button>
         <button
           onClick={logout}
           className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm text-zinc-400 transition-colors hover:bg-[#fff0f2] hover:text-[#C41E3A]"
@@ -218,59 +142,6 @@ export default function Sidebar({ balance, userName, userRank, avatarUrl }: Side
           Logout
         </button>
       </div>
-
-      {/* Sync modal */}
-      {showSyncModal && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/60 backdrop-blur-sm px-4">
-          <div className="w-full max-w-sm rounded-2xl border border-white/10 bg-zinc-900 p-6 shadow-2xl">
-            <div className="mb-4 flex items-center gap-3">
-              {!syncDone ? (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20">
-                  <svg className="h-4 w-4 animate-spin text-emerald-400" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-                  </svg>
-                </span>
-              ) : (
-                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-emerald-500/20">
-                  <svg className="h-4 w-4 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                  </svg>
-                </span>
-              )}
-              <h3 className="text-base font-semibold text-white">
-                {syncDone ? "Audit Complete" : "Audit Scan Running..."}
-              </h3>
-            </div>
-
-            <div className="mb-4 max-h-48 space-y-1.5 overflow-y-auto rounded-lg bg-black/30 p-3">
-              {syncMessages.map((msg, i) => (
-                <p key={i} className="flex items-start gap-2 text-xs text-zinc-300">
-                  <span className="mt-0.5 text-emerald-400">›</span>
-                  {msg}
-                </p>
-              ))}
-              {!syncDone && (
-                <p className="flex items-center gap-1.5 text-xs text-zinc-500 animate-pulse">
-                  <span className="text-emerald-500">›</span> Working...
-                </p>
-              )}
-            </div>
-
-            {syncDone && (
-              <>
-                <p className="mb-4 text-sm text-zinc-300">{syncSummary}</p>
-                <button
-                  onClick={handleSyncClose}
-                  className="w-full rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-emerald-500 transition-colors"
-                >
-                  Close &amp; Refresh
-                </button>
-              </>
-            )}
-          </div>
-        </div>
-      )}
     </aside>
   );
 }

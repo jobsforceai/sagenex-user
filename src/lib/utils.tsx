@@ -15,8 +15,8 @@ type FlowData = {
   label: React.ReactNode;
 };
 
-const nodeWidth = 200;
-const nodeHeight = 90;
+const nodeWidth = 148;
+const nodeHeight = 126;
 
 // Small helpers to satisfy dagre's loose typings
 type DagrePos = { x: number; y: number };
@@ -41,7 +41,7 @@ export const transformDataToFlow = (
 ): { nodes: Node<FlowData>[]; edges: Edge[] } => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 25, ranksep: 80 });
+  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 36, ranksep: 86 });
 
   const nodes: Node<FlowData>[] = [];
   const edges: Edge[] = [];
@@ -125,36 +125,61 @@ export const transformDataToFlow = (
 
     const user = findUserNode(tree, nodeId);
     if (!user) return;
+    const isRoot = user.userId === tree.userId;
+    const isActive = Number(user.packageUSD || 0) > 0;
+    const teamCount = countTeamMembers(user);
+    const maskedName = maskName(user.fullName || user.userId);
+    const initial = (user.fullName || user.userId || "S").charAt(0).toUpperCase();
+    const borderColor = isRoot ? '#D4143F' : isActive ? '#6EE7B7' : '#CBD5E1';
 
     nodes.push({
       id: user.userId,
       position: { x: graphNode.x - nodeWidth / 2, y: graphNode.y - nodeHeight / 2 },
       data: {
         label: (
-          <div className="p-2 text-left text-[#111827]">
-            <strong className="text-base font-bold tracking-tight">{user.fullName}</strong>
-            <br />
-            <small className="text-zinc-500">ID: {user.userId}</small>
-            <br />
-            <small className="text-zinc-500">Package: ${Number(user.packageUSD || 0).toLocaleString()}</small>
+          <div className="relative flex h-full flex-col items-center justify-center px-3 py-3 text-center text-[#0F172A]">
+            <span
+              className={`absolute right-3 top-3 h-2.5 w-2.5 rounded-full ${
+                isActive ? "bg-emerald-500" : "bg-slate-300"
+              }`}
+            />
+            <div
+              className={`mb-2 flex h-11 w-11 items-center justify-center rounded-full text-base font-black text-white ${
+                isRoot ? "bg-[#D4143F]" : isActive ? "bg-emerald-500" : "bg-slate-400"
+              }`}
+            >
+              {initial}
+            </div>
+            <strong className="max-w-full truncate text-sm font-black tracking-tight">
+              {maskedName}
+            </strong>
+            <small className="mt-1 text-[11px] font-medium text-[#64748B]">ID: {user.userId}</small>
+            <small className="mt-1 text-[11px] font-medium text-[#64748B]">
+              Team: {teamCount.toLocaleString("en-IN")}
+            </small>
+            {isRoot && (
+              <span className="mt-1 rounded-full bg-[#FFF1F4] px-2 py-0.5 text-[10px] font-bold text-[#C8103E]">
+                You
+              </span>
+            )}
             {user.isSplitSponsor && (
-              <>
-                <br />
-                <small className="font-semibold text-amber-600">
-                  Sponsor: {user.originalSponsorId}
-                </small>
-              </>
+              <small className="mt-1 max-w-full truncate text-[10px] font-semibold text-amber-600">
+                Sponsor: {user.originalSponsorId}
+              </small>
             )}
           </div>
         ),
       },
       style: {
-        border: '1px solid #E8E8E8',
-        padding: 10,
+        border: `1.5px solid ${borderColor}`,
+        padding: 0,
         borderRadius: 12,
         background: '#ffffff',
-        boxShadow: '0 8px 24px rgba(15, 23, 42, 0.08)',
+        boxShadow: isRoot
+          ? '0 16px 34px rgba(200, 16, 62, 0.14)'
+          : '0 10px 24px rgba(15, 23, 42, 0.08)',
         width: nodeWidth,
+        height: nodeHeight,
       },
     });
   });
@@ -167,10 +192,20 @@ export const transformDataToFlow = (
       source: edge.v,
       target: edge.w,
       type: 'smoothstep',
-      markerEnd: { type: MarkerType.ArrowClosed, color: '#9ca3af' }, // gray-400
-      style: { stroke: '#9ca3af' },
+      markerEnd: { type: MarkerType.ArrowClosed, color: '#94A3B8' },
+      style: { stroke: '#94A3B8', strokeWidth: 1.4 },
     });
   });
 
   return { nodes, edges };
 };
+
+function countTeamMembers(node: UserNode): number {
+  return (node.children || []).reduce((total, child) => total + 1 + countTeamMembers(child), 0);
+}
+
+function maskName(value: string): string {
+  const clean = value.trim();
+  if (clean.length <= 2) return clean;
+  return `${clean.charAt(0)}${"*".repeat(Math.min(5, Math.max(2, clean.length - 2)))}${clean.charAt(clean.length - 1)}`;
+}

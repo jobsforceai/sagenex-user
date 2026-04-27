@@ -1,21 +1,24 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Image from "next/image";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import TreeClient from "./TreeClient";
 import PlacementQueue from "@/app/components/dashboard/PlacementQueue";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
 import { UserNode, ParentNode, QueuedUser } from "@/types";
-import { getBonusRulesConfig, getTeamTree, getPlacementQueue, getDashboardData } from "@/actions/user";
+import {
+  getBonusRulesConfig,
+  getTeamTree,
+  getPlacementQueue,
+  getDashboardData,
+  getReferralSummary,
+  getLeaderboard,
+  getFinancialSummary,
+} from "@/actions/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { X } from "lucide-react";
+import { Bell, RotateCw, X } from "lucide-react";
 
 interface TreeApiResponse {
   tree: UserNode;
@@ -60,6 +63,31 @@ type BonusRulesConfig = {
   };
 };
 
+interface Referral {
+  activityStatus?: string;
+}
+
+interface ReferralSummary {
+  totalReferrals?: number;
+  referrals?: Referral[];
+  investedCount?: number;
+  totalDownlineVolume?: number;
+}
+
+interface LeaderboardEntry {
+  rank: number;
+  userId: string | null;
+  fullName: string;
+  profilePicture: string | null;
+  packagesSold: number;
+  earnings: number;
+}
+
+interface FinancialSummary {
+  referralEarnings?: number;
+  monthlyIncentive?: number;
+}
+
 // Frontend displays unilevel levels as +1 to match user-facing terminology.
 // Backend rules start at level 1 (internal), but UI should start at level 2.
 const DISPLAY_LEVEL_OFFSET = 1;
@@ -74,27 +102,100 @@ const DEFAULT_LEVEL_ONE_RULE = {
   activeTeamRequired: 0,
 };
 
+const teamAsset = {
+  total: "/teams/icon-total-team-crimson.png",
+  active: "/teams/icon-active-team-mint.png",
+  left: "/teams/icon-left-team-purple.png",
+  bonus: "/teams/icon-team-bonus-gold.png",
+  rules: "/teams/icon-bonus-rules-document.png",
+  info: "/teams/icon-info-crimson.png",
+  medals: [
+    "/teams/medal-gold-rank-1.png",
+    "/teams/medal-silver-rank-2.png",
+    "/teams/medal-bronze-rank-3.png",
+  ],
+} as const;
+
+const formatCurrency = (amount?: number) =>
+  (amount ?? 0).toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  });
+
+const countMembers = (node?: UserNode | null): number => {
+  if (!node) return 0;
+  return (node.children || []).reduce((total, child) => total + 1 + countMembers(child), 0);
+};
+
+const countActiveMembers = (node?: UserNode | null): number => {
+  if (!node) return 0;
+  return (node.children || []).reduce(
+    (total, child) =>
+      total + (Number(child.packageUSD || 0) > 0 ? 1 : 0) + countActiveMembers(child),
+    0,
+  );
+};
+
+const maskName = (value: string) => {
+  const clean = value.trim();
+  if (clean.length <= 2) return clean;
+  return `${clean.charAt(0)}${"*".repeat(Math.min(5, Math.max(2, clean.length - 2)))}${clean.charAt(clean.length - 1)}`;
+};
+
+const percent = (value: number, total: number) => (total > 0 ? Math.round((value / total) * 1000) / 10 : 0);
+
+const TeamStatCard = ({
+  label,
+  value,
+  subtitle,
+  icon,
+}: {
+  label: string;
+  value: string | number;
+  subtitle: string;
+  icon: string;
+}) => (
+  <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)]">
+    <Image src={icon} alt="" width={54} height={54} className="h-14 w-14 object-contain" />
+    <p className="mt-5 text-sm font-medium text-[#64748B]">{label}</p>
+    <p className="mt-2 text-3xl font-black leading-none text-[#0F172A]">{value}</p>
+    <p className="mt-2 text-sm text-[#64748B]">{subtitle}</p>
+  </div>
+);
+
 const TeamPage = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
   const [treeData, setTreeData] = useState<TreeApiResponse | null>(null);
   const [queue, setQueue] = useState<QueuedUser[]>([]);
   const [bonusRules, setBonusRules] = useState<BonusRulesConfig | null>(null);
+  const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
+  const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
+  const [financialSummary, setFinancialSummary] = useState<FinancialSummary | null>(null);
   const [bonusModalOpen, setBonusModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
-  const [profileData, setProfileData] = useState<{ fullName?: string; profilePicture?: string; } | null>(null);
-  const [rankData, setRankData] = useState<{ name?: string } | null>(null);
-  const [walletData, setWalletData] = useState<{ availableBalance?: number } | null>(null);
 
   const fetchTeamData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const [treeResult, queueResult, bonusRulesResult, dashboardResult] = await Promise.all([
+      const [
+        treeResult,
+        queueResult,
+        bonusRulesResult,
+        dashboardResult,
+        referralResult,
+        leaderboardResult,
+        financialResult,
+      ] = await Promise.all([
         getTeamTree(),
         getPlacementQueue(),
         getBonusRulesConfig(),
         getDashboardData(),
+        getReferralSummary(),
+        getLeaderboard(),
+        getFinancialSummary(),
       ]);
 
       if (treeResult.error) {
@@ -115,20 +216,27 @@ const TeamPage = () => {
       } else {
         setBonusRules(bonusRulesResult);
       }
-      
-      // Extract profile and rank from dashboard
-      if (dashboardResult && !dashboardResult.error) {
-        if (dashboardResult.profile) {
-          setProfileData(dashboardResult.profile);
-        }
-        if (dashboardResult.rank || dashboardResult.performanceRank) {
-          setRankData(dashboardResult.rank || dashboardResult.performanceRank);
-        }
-        if (dashboardResult.wallet) {
-          setWalletData(dashboardResult.wallet);
-        }
+      if (dashboardResult?.error) {
+        console.error("Could not fetch dashboard data:", dashboardResult.error);
       }
 
+      if (referralResult?.error) {
+        console.error("Could not fetch referral summary:", referralResult.error);
+      } else {
+        setReferralSummary(referralResult);
+      }
+
+      if (leaderboardResult?.error) {
+        console.error("Could not fetch leaderboard:", leaderboardResult.error);
+      } else {
+        setLeaderboardData(Array.isArray(leaderboardResult) ? leaderboardResult : []);
+      }
+
+      if (financialResult?.error) {
+        console.error("Could not fetch financial summary:", financialResult.error);
+      } else {
+        setFinancialSummary(financialResult);
+      }
     } catch {
       setError("An error occurred while fetching team data");
     } finally {
@@ -147,46 +255,244 @@ const TeamPage = () => {
   }, [isAuthenticated, authLoading, router, fetchTeamData]);
 
   if (authLoading || dataLoading) {
-    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Loading...</div>;
+    return (
+      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <div className="h-10 w-56 animate-pulse rounded-xl bg-slate-200" />
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            {[0, 1, 2, 3].map((item) => (
+              <div key={item} className="h-44 animate-pulse rounded-3xl bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]" />
+            ))}
+          </div>
+          <div className="h-[680px] animate-pulse rounded-3xl bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]" />
+        </div>
+      </div>
+    );
   }
 
   if (error) {
-    return <div className="bg-[#f8f9fa] text-[#0a0a0a] min-h-screen flex items-center justify-center">Error: {error}</div>;
+    return (
+      <div className="dashboard-light-scope flex min-h-screen items-center justify-center bg-[#F8FAFC] p-6">
+        <div className="max-w-md rounded-3xl border border-red-200 bg-red-50 p-6 text-center shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <p className="text-lg font-black text-red-700">Unable to load team data</p>
+          <p className="mt-2 text-sm text-red-600">{error}</p>
+          <Button onClick={fetchTeamData} className="wallet-red-control mt-5 bg-[#C8103E] text-white hover:bg-[#A90D32]">
+            <RotateCw className="mr-2 h-4 w-4" />
+            Retry
+          </Button>
+        </div>
+      </div>
+    );
   }
+
+  const totalTeam = referralSummary?.totalReferrals ?? countMembers(treeData?.tree);
+  const activeTeam =
+    referralSummary?.referrals?.filter((referral) => referral.activityStatus === "Active").length ??
+    referralSummary?.investedCount ??
+    countActiveMembers(treeData?.tree);
+  const inactiveTeam = Math.max(0, totalTeam - activeTeam);
+  const leftTeam = 0;
+  const teamBonus = financialSummary?.referralEarnings ?? financialSummary?.monthlyIncentive ?? 0;
+  const topPerformers = leaderboardData.slice(0, 3);
+  const activePct = percent(activeTeam, totalTeam);
+  const inactivePct = percent(inactiveTeam, totalTeam);
+  const leftPct = percent(leftTeam, totalTeam);
 
   return (
     <>
-      <div className="dashboard-light-scope p-6 space-y-6">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <h1 className="text-2xl font-semibold text-[#0a0a0a]">My Team</h1>
-            <p className="text-sm text-zinc-600">View team structure and bonus rules.</p>
+      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-6">
+          <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl">My Team</h1>
+              <p className="mt-1 text-sm text-[#64748B] sm:text-base">
+                View your team structure and bonus rules.
+              </p>
+            </div>
+            <div className="flex flex-wrap items-center gap-3">
+              <Button
+                variant="outline"
+                className="h-12 rounded-xl border-slate-200 bg-white px-4 font-bold text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:bg-slate-50"
+                onClick={() => setBonusModalOpen(true)}
+              >
+                <Image
+                  src={teamAsset.rules}
+                  alt=""
+                  width={22}
+                  height={22}
+                  className="mr-2 h-5 w-5 object-contain"
+                />
+                Bonus Rules
+              </Button>
+              <button
+                type="button"
+                aria-label="Notifications"
+                className="relative inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+              >
+                <Bell className="h-5 w-5" />
+                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C8103E] px-1 text-[10px] font-black text-white">
+                  3
+                </span>
+              </button>
+            </div>
+          </header>
+
+          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+            <TeamStatCard
+              label="Total Team"
+              value={totalTeam.toLocaleString("en-IN")}
+              subtitle="Members"
+              icon={teamAsset.total}
+            />
+            <TeamStatCard
+              label="Active Team"
+              value={activeTeam.toLocaleString("en-IN")}
+              subtitle="Active"
+              icon={teamAsset.active}
+            />
+            <TeamStatCard
+              label="Left Team"
+              value={inactiveTeam.toLocaleString("en-IN")}
+              subtitle="Inactive"
+              icon={teamAsset.left}
+            />
+            <TeamStatCard
+              label="Team Bonus"
+              value={formatCurrency(teamBonus)}
+              subtitle="This Cycle"
+              icon={teamAsset.bonus}
+            />
+          </section>
+
+          {queue.length > 0 && <PlacementQueue queue={queue} onUserPlaced={fetchTeamData} />}
+
+          {treeData && treeData.tree ? (
+            <TreeClient tree={treeData.tree} />
+          ) : (
+            <section className="rounded-3xl border border-slate-200/70 bg-white p-10 text-center shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+              <Image src={teamAsset.total} alt="" width={96} height={96} className="mx-auto h-24 w-24 object-contain opacity-80" />
+              <p className="mt-4 text-lg font-black text-[#0F172A]">No team members yet</p>
+              <p className="mt-1 text-sm text-[#64748B]">
+                Start sharing your referral link to build your network.
+              </p>
+            </section>
+          )}
+
+          <section className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+              <h2 className="text-lg font-black text-[#0F172A]">Team Overview</h2>
+              <div className="mt-6 grid gap-6 md:grid-cols-[220px_minmax(0,1fr)] md:items-center">
+                <div className="relative mx-auto h-44 w-44">
+                  <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
+                    <circle cx="60" cy="60" r="42" fill="none" stroke="#F1F5F9" strokeWidth="16" />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="42"
+                      fill="none"
+                      stroke="#10B981"
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                      strokeDasharray={`${activePct * 2.64} 264`}
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="42"
+                      fill="none"
+                      stroke="#CBD5E1"
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                      strokeDasharray={`${inactivePct * 2.64} 264`}
+                      strokeDashoffset={`-${activePct * 2.64}`}
+                    />
+                    <circle
+                      cx="60"
+                      cy="60"
+                      r="42"
+                      fill="none"
+                      stroke="#C8103E"
+                      strokeWidth="16"
+                      strokeLinecap="round"
+                      strokeDasharray={`${leftPct * 2.64} 264`}
+                      strokeDashoffset={`-${(activePct + inactivePct) * 2.64}`}
+                    />
+                  </svg>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center">
+                    <p className="text-3xl font-black text-[#0F172A]">{totalTeam.toLocaleString("en-IN")}</p>
+                    <p className="text-sm text-[#64748B]">Total Team</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  {[
+                    { label: "Active Members", count: activeTeam, pct: activePct, color: "bg-emerald-500" },
+                    { label: "Inactive Members", count: inactiveTeam, pct: inactivePct, color: "bg-slate-300" },
+                    { label: "Left Members", count: leftTeam, pct: leftPct, color: "bg-[#C8103E]" },
+                  ].map((item) => (
+                    <div key={item.label} className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0">
+                      <span className="inline-flex items-center gap-3 text-sm text-[#64748B]">
+                        <span className={`h-2 w-2 rounded-full ${item.color}`} />
+                        {item.label}
+                      </span>
+                      <span className="text-sm font-black text-[#0F172A]">
+                        {item.count.toLocaleString("en-IN")} ({item.pct}%)
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+              <div className="flex items-center justify-between gap-3">
+                <h2 className="text-lg font-black text-[#0F172A]">Top Performers</h2>
+                <button
+                  type="button"
+                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-[#0F172A] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+                >
+                  View all
+                </button>
+              </div>
+              <div className="mt-5 space-y-4">
+                {topPerformers.length > 0 ? (
+                  topPerformers.map((performer, index) => (
+                    <div key={`${performer.userId || performer.fullName}-${index}`} className="flex items-center justify-between gap-3">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Image
+                          src={teamAsset.medals[index] || teamAsset.medals[2]}
+                          alt={`Rank ${index + 1}`}
+                          width={42}
+                          height={42}
+                          className="h-11 w-11 shrink-0 object-contain"
+                        />
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-black text-[#0F172A]">{maskName(performer.fullName)}</p>
+                          <p className="text-xs text-[#64748B]">Team: {performer.packagesSold.toLocaleString("en-IN")}</p>
+                        </div>
+                      </div>
+                      <p className="shrink-0 text-sm font-black text-emerald-600">
+                        +{formatCurrency(performer.earnings)}
+                      </p>
+                    </div>
+                  ))
+                ) : (
+                  <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-[#64748B]">
+                    Top performers will appear once team activity is available.
+                  </p>
+                )}
+              </div>
+            </div>
+          </section>
+
+          <div className="flex items-center gap-3 rounded-2xl border border-red-100 bg-[#FFF1F4] px-5 py-4 text-sm font-medium text-[#C8103E]">
+            <Image src={teamAsset.info} alt="" width={24} height={24} className="h-6 w-6 object-contain" />
+            <p>Team data is updated in real-time. Build your team and earn more rewards!</p>
           </div>
-          <Button
-            variant="outline"
-            className="border-[#C41E3A]/40 text-[#C41E3A] hover:bg-[#C41E3A]/10"
-            onClick={() => setBonusModalOpen(true)}
-          >
-            Bonus Rules
-          </Button>
         </div>
-        <PlacementQueue queue={queue} onUserPlaced={fetchTeamData} />
-        <Card>
-          <CardHeader>
-            <CardTitle>My Team</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {treeData && treeData.tree ? (
-              <TreeClient tree={treeData.tree} />
-            ) : (
-              <p>No team members found.</p>
-            )}
-          </CardContent>
-        </Card>
 
         {bonusModalOpen && (
           <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-            <div className="w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_25px_80px_rgba(0,0,0,0.55)] max-h-[85vh] overflow-hidden">
+            <div className="wallet-red-surface w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_25px_80px_rgba(0,0,0,0.55)] max-h-[85vh] overflow-hidden">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-semibold">Bonus Rules</h2>
