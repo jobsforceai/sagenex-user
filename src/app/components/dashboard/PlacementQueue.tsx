@@ -128,12 +128,12 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
     }
 
     return (
-        <div className="mb-12 bg-gray-900/40 border border-gray-800 rounded-3xl p-8">
-            <h2 className="text-2xl font-bold mb-4 text-white flex items-center gap-2">
+        <div className="mb-12 rounded-3xl border border-slate-200/70 bg-white p-8 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+            <h2 className="text-2xl font-black tracking-tight text-[#0F172A] mb-4 flex items-center gap-2">
                 <UserPlus className="text-emerald-400" />
                 Placement Queue
             </h2>
-            <p className="text-gray-400 mb-6">
+            <p className="text-[#64748B] mb-6">
                 Users you have sponsored who are waiting to be placed in your team tree.
             </p>
 
@@ -145,22 +145,22 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
 
             <div className="space-y-4">
                 {queue.map(user => (
-                    <div key={user.userId} className="bg-gray-800/50 p-4 rounded-lg flex items-center justify-between">
+                    <div key={user.userId} className="rounded-2xl border border-slate-200/70 bg-slate-50 p-4 flex items-center justify-between">
                         <div>
-                            <h3 className="font-semibold text-white">{user.fullName}</h3>
-                            <p className="text-sm text-gray-400">{user.email}</p>
-                            <p className="text-sm text-gray-500">ID: {user.userId}</p>
+                            <h3 className="font-bold text-[#0F172A]">{user.fullName}</h3>
+                            <p className="text-sm text-[#64748B]">{user.email}</p>
+                            <p className="text-sm text-slate-400">ID: {user.userId}</p>
                         </div>
                         <div className="flex items-center gap-4">
                             <button
                                 onClick={() => { setTransferringUser(user); setMessage(null); }}
-                                className="px-4 py-2 rounded-md bg-sky-600 text-white text-sm font-semibold hover:bg-sky-500"
+                                className="px-4 py-2 rounded-xl bg-sky-600 text-white text-sm font-bold hover:bg-sky-700"
                             >
                                 Transfer
                             </button>
                             <button
                                 onClick={() => { setSelectedUser(user); setMessage(null); }}
-                                className="px-4 py-2 rounded-md bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500"
+                                className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
                             >
                                 Place User
                             </button>
@@ -171,13 +171,13 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
 
             {selectedUser && (
 
-                            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => { setSelectedUser(null); setDropdownVisible(false); }}>
+                            <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={() => { setSelectedUser(null); setDropdownVisible(false); }}>
 
-                                <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-md" onClick={e => e.stopPropagation()}>
+                                <div className="rounded-3xl border border-slate-200/70 bg-white p-8 w-full max-w-md shadow-[0_25px_80px_rgba(15,23,42,0.18)]" onClick={e => e.stopPropagation()}>
 
-                                    <h3 className="text-xl font-bold mb-2 text-white">Place {selectedUser.fullName}</h3>
+                                    <h3 className="text-xl font-black tracking-tight text-[#0F172A] mb-2">Place {selectedUser.fullName}</h3>
 
-                                    <p className="text-gray-400 mb-6">
+                                    <p className="text-[#64748B] mb-6">
 
                                         Select a parent from your downline. This can be yourself or any member of your team.
 
@@ -187,7 +187,7 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
 
                                         {isLoadingOptions ? (
 
-                                            <div className="text-center text-gray-400">Loading options...</div>
+                                            <div className="text-center text-[#64748B]">Loading options...</div>
 
                                         ) : (
 
@@ -201,7 +201,7 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
 
                                                     onChange={handleSearchChange}
 
-                                                    className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                                                    className="w-full h-11 px-4 rounded-xl bg-white border border-slate-200 text-[#0F172A] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
 
                                                     placeholder="Search by name or ID..."
 
@@ -213,7 +213,7 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
 
                                                 {dropdownVisible && filteredOptions.length > 0 && (
 
-                                                    <div className="absolute z-10 w-full mt-1 bg-gray-800 border border-gray-600 rounded-md shadow-lg max-h-60 overflow-y-auto">
+                                                    <div className="absolute z-10 w-full mt-1 rounded-xl border border-slate-200 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.1)] max-h-60 overflow-y-auto">
 
                                                         {filteredOptions.map(option => (
 
@@ -221,7 +221,7 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
 
                                                                 key={option.userId}
 
-                                                                className="px-4 py-2 text-white cursor-pointer hover:bg-gray-700"
+                                                                className="px-4 py-2 text-[#0F172A] cursor-pointer hover:bg-slate-50"
 
                                                                 onClick={() => handleSelectOption(option)}
 
@@ -243,13 +243,13 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
 
                                         <div className="mt-6 flex justify-end gap-4">
 
-                                            <button type="button" onClick={() => { setSelectedUser(null); setDropdownVisible(false); }} className="px-4 py-2 rounded-md text-gray-300 hover:bg-gray-700">
+                                            <button type="button" onClick={() => { setSelectedUser(null); setDropdownVisible(false); }} className="h-11 px-5 rounded-xl border border-slate-200 bg-white font-bold text-[#0F172A] hover:bg-slate-50">
 
                                                 Cancel
 
                                             </button>
 
-                                            <button type="submit" disabled={isSubmitting || isLoadingOptions || !placementParentId} className="px-4 py-2 rounded-md bg-emerald-600 text-white font-semibold hover:bg-emerald-500 disabled:opacity-50">
+                                            <button type="submit" disabled={isSubmitting || isLoadingOptions || !placementParentId} className="h-11 px-5 rounded-xl bg-emerald-600 text-white font-bold hover:bg-emerald-700 disabled:opacity-50 shadow-[0_10px_30px_rgba(5,150,105,0.25)]">
 
                                                 {isSubmitting ? 'Placing...' : 'Confirm Placement'}
 
@@ -266,10 +266,10 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
                         )}
 
             {transferringUser && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50" onClick={() => setTransferringUser(null)}>
-                    <div className="bg-gray-900 border border-gray-700 rounded-2xl p-8 w-full max-w-md" onClick={e => e.stopPropagation()}>
-                        <h3 className="text-xl font-bold mb-2 text-white">Transfer {transferringUser.fullName}</h3>
-                        <p className="text-gray-400 mb-6">
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4" onClick={() => setTransferringUser(null)}>
+                    <div className="rounded-3xl border border-slate-200/70 bg-white p-8 w-full max-w-md shadow-[0_25px_80px_rgba(15,23,42,0.18)]" onClick={e => e.stopPropagation()}>
+                        <h3 className="text-xl font-black tracking-tight text-[#0F172A] mb-2">Transfer {transferringUser.fullName}</h3>
+                        <p className="text-[#64748B] mb-6">
                             Enter the User ID of the new sponsor. The user will be moved to their placement queue.
                         </p>
                         <form onSubmit={handleTransferUser}>
@@ -277,15 +277,15 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
                                 type="text"
                                 value={newSponsorId}
                                 onChange={e => setNewSponsorId(e.target.value)}
-                                className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white focus:outline-none focus:ring-2 focus:ring-sky-500"
+                                className="w-full h-11 px-4 rounded-xl bg-white border border-slate-200 text-[#0F172A] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-sky-500/30"
                                 placeholder="Enter new Sponsor User ID"
                                 required
                             />
                             <div className="mt-6 flex justify-end gap-4">
-                                <button type="button" onClick={() => setTransferringUser(null)} className="px-4 py-2 rounded-md text-gray-300 hover:bg-gray-700">
+                                <button type="button" onClick={() => setTransferringUser(null)} className="h-11 px-5 rounded-xl border border-slate-200 bg-white font-bold text-[#0F172A] hover:bg-slate-50">
                                     Cancel
                                 </button>
-                                <button type="submit" disabled={isSubmitting || !newSponsorId} className="px-4 py-2 rounded-md bg-sky-600 text-white font-semibold hover:bg-sky-500 disabled:opacity-50">
+                                <button type="submit" disabled={isSubmitting || !newSponsorId} className="h-11 px-5 rounded-xl bg-sky-600 text-white font-bold hover:bg-sky-700 disabled:opacity-50 shadow-[0_10px_30px_rgba(2,132,199,0.25)]">
                                     {isSubmitting ? 'Transferring...' : 'Confirm Transfer'}
                                 </button>
                             </div>

@@ -484,15 +484,15 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                     ROI Preview
                                 </div>
                                 <div className="grid grid-cols-2 gap-3">
-                                    <div className="rounded-lg bg-gray-800/60 p-3">
+                                    <div className="rounded-xl border border-slate-200/70 bg-slate-50 p-3">
                                         <p className="text-xs text-gray-400 mb-1">Current Package</p>
-                                        <p className="text-sm font-semibold text-white">{fmt(currentPkg)}</p>
+                                        <p className="text-sm font-bold text-[#0F172A]">{fmt(currentPkg)}</p>
                                         <p className="text-xs text-gray-400 mt-1">{(currentRate * 100).toFixed(0)}% / month</p>
                                         <p className="text-xs text-gray-500">{fmt(currentMonthly)} / month</p>
                                     </div>
                                     <div className="rounded-lg bg-emerald-900/30 border border-emerald-500/20 p-3">
                                         <p className="text-xs text-emerald-300 mb-1">After Top-up</p>
-                                        <p className="text-sm font-semibold text-white">{fmt(newPkg)}</p>
+                                        <p className="text-sm font-bold text-emerald-700">{fmt(newPkg)}</p>
                                         <p className="text-xs text-emerald-400 mt-1">{(newRate * 100).toFixed(0)}% / month{rateChanged && newRate > currentRate ? ' ↑' : ''}</p>
                                         <p className="text-xs text-emerald-300">{fmt(newMonthly)} / month</p>
                                     </div>
@@ -594,7 +594,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                     }
                                 }}
                             >
-                                <DialogContent className="bg-gray-950 border-gray-800 p-4 sm:p-6 sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+                                <DialogContent className="rounded-3xl border border-slate-200/70 bg-white p-4 sm:p-6 sm:max-w-2xl max-h-[90vh] overflow-y-auto shadow-[0_25px_80px_rgba(15,23,42,0.18)]">
                                     <FaceVerificationPanel
                                         variant="modal"
                                         purpose="TRANSFER"

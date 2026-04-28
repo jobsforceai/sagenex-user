@@ -6,25 +6,18 @@ interface RoiPlanPickerProps {
   value: RoiPlanType | null;
   onChange: (plan: RoiPlanType) => void;
   packageUSD?: number;
-  /** Backend says whether to show the picker at all. */
   show: boolean;
-  /** Backend says all deposits are forced to 'new' (post April 10). */
   forceNew: boolean;
 }
 
-/**
- * ROI Plan selector driven by backend config.
- * When forceNew=true, shows an info banner (auto "new").
- * When show=false, renders nothing.
- */
 const RoiPlanPicker = ({ value, onChange, packageUSD, show, forceNew }: RoiPlanPickerProps) => {
   if (!show) return null;
 
   if (forceNew) {
     return (
-      <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-200">
-        <p className="font-semibold">New ROI Plan Active</p>
-        <p className="text-xs text-emerald-300/80 mt-1">
+      <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm">
+        <p className="font-black text-emerald-700">New ROI Plan Active</p>
+        <p className="mt-1 text-xs font-semibold text-emerald-700/80">
           All new investments use the updated ROI structure with higher referral benefits.
         </p>
       </div>
@@ -36,55 +29,47 @@ const RoiPlanPicker = ({ value, onChange, packageUSD, show, forceNew }: RoiPlanP
 
   return (
     <div>
-      <label className="block text-sm font-medium text-gray-300 mb-2">
-        Choose ROI Plan
-      </label>
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {/* Old ROI */}
+      <label className="mb-2 block text-sm font-bold text-[#0F172A]">Choose ROI Plan</label>
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
         <button
           type="button"
           onClick={() => onChange("old")}
-          className={`relative flex flex-col items-start p-4 rounded-lg border-2 transition-all duration-200 text-left
-            ${value === "old"
-              ? "bg-gray-700 border-gray-500"
-              : "bg-gray-800/50 border-gray-700 hover:bg-gray-700/50 hover:border-gray-600"
-            }`}
+          className={`relative flex flex-col items-start rounded-2xl border-2 p-4 text-left transition-all duration-200 ${
+            value === "old"
+              ? "border-slate-400 bg-slate-50"
+              : "border-slate-200 bg-white hover:border-slate-300 hover:bg-slate-50"
+          }`}
         >
-          <span className="font-semibold text-white text-sm">Old ROI Plan</span>
-          <span className="text-xs text-gray-400 mt-1">
-            Existing ROI &amp; referral structure
-          </span>
+          <span className="text-sm font-black text-[#0F172A]">Old ROI Plan</span>
+          <span className="mt-1 text-xs text-[#64748B]">Existing ROI &amp; referral structure</span>
           {oldRate && (
-            <span className="text-xs text-gray-500 mt-1">{oldRate}% monthly ROI at your tier</span>
+            <span className="mt-1 text-xs font-semibold text-[#94A3B8]">{oldRate}% monthly ROI at your tier</span>
           )}
         </button>
 
-        {/* New ROI (recommended) */}
         <button
           type="button"
           onClick={() => onChange("new")}
-          className={`relative flex flex-col items-start p-4 rounded-lg border-2 transition-all duration-200 text-left
-            ${value === "new"
-              ? "bg-emerald-900/40 border-emerald-500"
-              : "bg-gray-800/50 border-gray-700 hover:bg-emerald-900/20 hover:border-emerald-600"
-            }`}
+          className={`relative flex flex-col items-start rounded-2xl border-2 p-4 text-left transition-all duration-200 ${
+            value === "new"
+              ? "border-emerald-500 bg-emerald-50"
+              : "border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/40"
+          }`}
         >
           <div className="flex items-center gap-2">
-            <span className="font-semibold text-white text-sm">New ROI Plan</span>
-            <span className="text-[10px] font-bold uppercase tracking-wider bg-emerald-600 text-white px-1.5 py-0.5 rounded">
+            <span className="text-sm font-black text-[#0F172A]">New ROI Plan</span>
+            <span className="rounded-full bg-emerald-600 px-2 py-0.5 text-[10px] font-black uppercase tracking-wider text-white">
               Recommended
             </span>
           </div>
-          <span className="text-xs text-gray-400 mt-1">
-            Higher referral income up to 15%
-          </span>
+          <span className="mt-1 text-xs text-[#64748B]">Higher referral income up to 15%</span>
           {newRate && (
-            <span className="text-xs text-emerald-400/70 mt-1">{newRate}% monthly ROI at your tier</span>
+            <span className="mt-1 text-xs font-semibold text-emerald-700">{newRate}% monthly ROI at your tier</span>
           )}
         </button>
       </div>
 
-      <p className="text-xs text-amber-400/70 mt-2">
+      <p className="mt-2 text-xs font-semibold text-amber-700">
         Choosing a plan applies new rates to your entire package going forward.
       </p>
     </div>

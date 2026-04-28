@@ -484,16 +484,16 @@ const TeamPage = () => {
         </div>
 
         {bonusModalOpen && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 px-4">
-            <div className="wallet-red-surface w-full max-w-4xl rounded-2xl border border-white/10 bg-[#0b0b0b] p-6 text-white shadow-[0_25px_80px_rgba(0,0,0,0.55)] max-h-[85vh] overflow-hidden">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm px-4">
+            <div className="w-full max-w-4xl rounded-3xl border border-slate-200/70 bg-white p-6 text-[#0F172A] shadow-[0_25px_80px_rgba(15,23,42,0.18)] max-h-[85vh] overflow-hidden">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-semibold">Bonus Rules</h2>
-                <p className="text-xs text-white/50">
+                <h2 className="text-2xl font-black tracking-tight text-[#0F172A]">Bonus Rules</h2>
+                <p className="text-xs text-[#64748B]">
                   {bonusRules?.rulesCutoff?.description || "Rules apply from the cutoff date below."}
                 </p>
                 {bonusRules?.rulesCutoff?.iso && (
-                  <p className="mt-1 text-xs text-white/40">
+                  <p className="mt-1 text-xs text-slate-400">
                     Cutoff: {new Date(bonusRules.rulesCutoff.iso).toLocaleString()}{" "}
                     {bonusRules?.rulesCutoff?.timezone ? `(${bonusRules.rulesCutoff.timezone})` : ""}
                   </p>
@@ -502,7 +502,7 @@ const TeamPage = () => {
               <button
                 type="button"
                 onClick={() => setBonusModalOpen(false)}
-                className="rounded-full border border-white/10 p-2 text-white/70 hover:text-white"
+                className="rounded-full border border-slate-200 p-2 text-[#64748B] hover:bg-slate-50 hover:text-[#0F172A]"
                 aria-label="Close"
               >
                 <X className="h-4 w-4" />
@@ -511,56 +511,56 @@ const TeamPage = () => {
 
             <div className="mt-5 overflow-y-auto max-h-[70vh] pr-2">
               <Tabs defaultValue="first" className="w-full">
-                <TabsList className="grid w-full grid-cols-2 max-w-md bg-gray-900/40 border border-gray-800 rounded-2xl p-1">
+                <TabsList className="grid w-full grid-cols-2 max-w-md bg-slate-100 border border-slate-200 rounded-2xl p-1">
                   <TabsTrigger value="first">First Investment</TabsTrigger>
                   <TabsTrigger value="reinvest">Reinvestments</TabsTrigger>
                 </TabsList>
 
                 <TabsContent value="first" className="mt-5">
                   <div className="grid gap-4 lg:grid-cols-2">
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                      <p className="text-sm text-white/60">Direct Bonus</p>
-                      <p className="mt-2 text-2xl font-semibold text-white">
+                    <div className="rounded-xl border border-slate-200/70 bg-slate-50 p-4">
+                      <p className="text-sm text-[#64748B]">Direct Bonus</p>
+                      <p className="mt-2 text-2xl font-black text-[#0F172A]">
                         {bonusRules?.directBonus?.percentageLabel || "—"}
                       </p>
-                      <p className="mt-1 text-xs text-white/50">
+                      <p className="mt-1 text-xs text-[#64748B]">
                         Recipient: {bonusRules?.directBonus?.recipient || "—"}
                       </p>
                       {bonusRules?.directBonus?.notes && (
-                        <p className="mt-2 text-xs text-white/50">
+                        <p className="mt-2 text-xs text-[#64748B]">
                           {bonusRules.directBonus.notes}
                         </p>
                       )}
                     </div>
 
-                    <div className="rounded-xl border border-white/10 bg-white/5 p-4">
-                      <p className="text-sm text-white/60">Unilevel Bonus</p>
+                    <div className="rounded-xl border border-slate-200/70 bg-slate-50 p-4">
+                      <p className="text-sm text-[#64748B]">Unilevel Bonus</p>
                       <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
                         {bonusRules?.unilevelBonus?.levels?.map((level) => (
                           <div
                             key={level.level}
-                            className="flex items-center justify-between rounded-lg border border-white/10 bg-black/30 px-3 py-2"
+                            className="flex items-center justify-between rounded-lg border border-slate-200/70 bg-slate-50 px-3 py-2"
                           >
                             {/* Backend levels start at 1; UI shows levels starting at 2 */}
-                            <span className="text-white/70">
+                            <span className="text-[#475569]">
                               Level {level.level + DISPLAY_LEVEL_OFFSET}
                             </span>
-                            <span className="text-white">{level.percentageLabel || "—"}</span>
+                            <span className="text-[#0F172A]">{level.percentageLabel || "—"}</span>
                           </div>
                         )) || (
-                          <p className="text-xs text-white/40">No unilevel levels configured.</p>
+                          <p className="text-xs text-slate-400">No unilevel levels configured.</p>
                         )}
                       </div>
                       {bonusRules?.unilevelBonus?.notes && (
-                        <p className="mt-3 text-xs text-white/50">
+                        <p className="mt-3 text-xs text-[#64748B]">
                           {bonusRules.unilevelBonus.notes}
                         </p>
                       )}
                     </div>
                   </div>
 
-                  <div className="mt-4 rounded-xl border border-white/10 bg-white/5 p-4">
-                    <p className="text-sm text-white/60">Unilevel Unlock Rules</p>
+                  <div className="mt-4 rounded-xl border border-slate-200/70 bg-slate-50 p-4">
+                    <p className="text-sm text-[#64748B]">Unilevel Unlock Rules</p>
                     <div className="mt-3 space-y-2 text-xs">
                       {/* UI adds Level 1 rule and shifts backend levels by +1 for clarity */}
                       {[DEFAULT_LEVEL_ONE_RULE, ...(bonusRules?.unilevelUnlockRules || [])].map(
@@ -583,27 +583,27 @@ const TeamPage = () => {
                               key={`rule-${displayLevel}`}
                               className={`flex flex-col gap-1 rounded-lg border px-3 py-2 ${
                                 isDefaultLevelOne
-                                  ? "border-emerald-500/40 bg-emerald-500/10"
-                                  : "border-white/10 bg-black/30"
+                                  ? "border-emerald-200 bg-emerald-50"
+                                  : "border-slate-200/70 bg-slate-50"
                               }`}
                             >
                               <div className="flex flex-wrap items-center justify-between gap-2">
                                 <span
                                   className={
-                                    isDefaultLevelOne ? "text-emerald-200" : "text-white/80"
+                                    isDefaultLevelOne ? "text-emerald-700" : "text-[#0F172A]"
                                   }
                                 >
                                   Level {displayLevel}
                                 </span>
                                 {isDefaultLevelOne && (
-                                  <span className="rounded-full border border-emerald-400/40 bg-emerald-500/10 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-200">
+                                  <span className="rounded-full border border-emerald-200 bg-emerald-50 px-2 py-0.5 text-[10px] uppercase tracking-wider text-emerald-700">
                                     Unlocked
                                   </span>
                                 )}
                               </div>
                               <p
                                 className={
-                                  isDefaultLevelOne ? "text-emerald-100/80" : "text-white/60"
+                                  isDefaultLevelOne ? "text-emerald-600" : "text-[#64748B]"
                                 }
                               >
                                 {descriptionText}
@@ -614,7 +614,7 @@ const TeamPage = () => {
                       )}
                       {(!bonusRules?.unilevelUnlockRules ||
                         bonusRules.unilevelUnlockRules.length === 0) && (
-                        <p className="text-xs text-white/40">No unlock rules configured.</p>
+                        <p className="text-xs text-slate-400">No unlock rules configured.</p>
                       )}
                     </div>
                   </div>
@@ -625,14 +625,14 @@ const TeamPage = () => {
                     {bonusRules?.reinvestmentBonus?.levels?.map((cycle) => (
                       <div
                         key={cycle.cycle}
-                        className="rounded-xl border border-white/10 bg-white/5 p-4"
+                        className="rounded-xl border border-slate-200/70 bg-slate-50 p-4"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
                           <div>
-                            <p className="text-sm text-white/60">
+                            <p className="text-sm text-[#64748B]">
                               {cycle.cycle} · Deposit #{cycle.depositNumber}
                             </p>
-                            <p className="text-lg font-semibold text-white">
+                            <p className="text-lg font-black text-[#0F172A]">
                               Total: {cycle.totalPercentageLabel || "—"}
                             </p>
                           </div>
@@ -643,10 +643,10 @@ const TeamPage = () => {
                               {cycle.splits.map((split) => (
                                 <div
                                   key={split.level}
-                                  className="flex items-center justify-between rounded-lg border border-white/10 bg-black/30 px-3 py-2"
+                                  className="flex items-center justify-between rounded-lg border border-slate-200/70 bg-slate-50 px-3 py-2"
                                 >
-                                  <span className="text-white/70">Level {split.level}</span>
-                                  <span className="text-white">
+                                  <span className="text-[#475569]">Level {split.level}</span>
+                                  <span className="text-[#0F172A]">
                                     {split.percentageLabel || "—"}
                                   </span>
                                 </div>
@@ -654,14 +654,14 @@ const TeamPage = () => {
                             </div>
                           )
                         ) : (
-                          <p className="mt-3 text-xs text-white/40">No splits configured.</p>
+                          <p className="mt-3 text-xs text-slate-400">No splits configured.</p>
                         )}
                       </div>
                     )) || (
-                      <p className="text-xs text-white/40">No reinvestment rules configured.</p>
+                      <p className="text-xs text-slate-400">No reinvestment rules configured.</p>
                     )}
                     {bonusRules?.reinvestmentBonus?.notes && (
-                      <p className="text-xs text-white/50">
+                      <p className="text-xs text-[#64748B]">
                         {bonusRules.reinvestmentBonus.notes}
                       </p>
                     )}
