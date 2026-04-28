@@ -18,7 +18,7 @@ import {
   getFinancialSummary,
 } from "@/actions/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Bell, RotateCw, X } from "lucide-react";
+import { RotateCw, X } from "lucide-react";
 
 interface TreeApiResponse {
   tree: UserNode;
@@ -327,16 +327,6 @@ const TeamPage = () => {
                 />
                 Bonus Rules
               </Button>
-              <button
-                type="button"
-                aria-label="Notifications"
-                className="relative inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
-              >
-                <Bell className="h-5 w-5" />
-                <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C8103E] px-1 text-[10px] font-black text-white">
-                  3
-                </span>
-              </button>
             </div>
           </header>
 

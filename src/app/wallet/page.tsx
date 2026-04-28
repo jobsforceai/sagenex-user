@@ -32,7 +32,6 @@ import { KycStatus } from "@/types";
 import {
   AlertCircle,
   ArrowUp,
-  Bell,
   Eye,
   LockKeyhole,
   TrendingUp,
@@ -331,13 +330,6 @@ const WalletPage = () => {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2.5">
-          <button
-            type="button"
-            aria-label="Notifications"
-            className="inline-flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200/80 bg-white text-slate-500 shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:border-slate-300 hover:text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30"
-          >
-            <Bell className="h-4 w-4" />
-          </button>
           {kycStatus && (
             <button
               type="button"

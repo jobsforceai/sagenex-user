@@ -27,7 +27,6 @@ import {
   FileClock,
   FileCheck,
   Lock,
-  Bell,
   Calendar,
   ChevronRight,
   Clock,
@@ -436,13 +435,6 @@ const RewardsHeader = ({ onRulesClick }: { onRulesClick: () => void }) => (
         <Info className="mr-2 h-4 w-4 text-[#C81E4A]" />
         Rules & Info
       </Button>
-      <button
-        type="button"
-        aria-label="Notifications"
-        className="relative inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C81E4A]/20"
-      >
-        <Bell className="h-5 w-5" />
-      </button>
     </div>
   </header>
 );
