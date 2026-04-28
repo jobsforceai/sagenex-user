@@ -5,7 +5,6 @@ import { AuthProvider } from "./context/AuthContext";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "sonner";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
-import ChatbotWidget from "@/app/components/ChatbotWidget";
 import AuthenticatedShell from "@/app/components/AuthenticatedShell";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -35,7 +34,6 @@ export default function RootLayout({
               disableTransitionOnChange
             >
               <AuthenticatedShell>{children}</AuthenticatedShell>
-              <ChatbotWidget />
               <Toaster />
             </NextThemesProvider>
           </AuthProvider>
