@@ -1,331 +1,587 @@
-"use client"
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { CheckCircle, Clock, AlertTriangle, CheckCircle2, FileText } from 'lucide-react';
-import { getKycStatus, uploadKycDocument, submitKycForReview } from '@/actions/user';
-import { KycStatus } from '@/types';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import Image from "next/image";
+import { useEffect, useMemo, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  Clock3,
+  FileCheck2,
+  FileText,
+  Fingerprint,
+  Info,
+  LockKeyhole,
+  RefreshCw,
+  ShieldCheck,
+  UploadCloud,
+} from "lucide-react";
+import { getKycStatus, submitKycForReview, uploadKycDocument } from "@/actions/user";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import { KycStatus } from "@/types";
 
-const ProgressStepper = ({ currentStep, completedSteps }: { currentStep: number; completedSteps: Set<number> }) => {
-    const steps = [
-        { num: 1, label: 'Legal Agreement', description: 'Upload signed form' },
-        { num: 2, label: 'ID Front', description: 'Upload front side' },
-        { num: 3, label: 'ID Back', description: 'Upload back side' },
-    ];
+type DocType = "LEGAL_AGREEMENT" | "ID_FRONT" | "ID_BACK";
 
-    return (
-        <div className="mb-6 sm:mb-8 px-2 sm:px-0">
-            <div className="flex items-center justify-between max-w-3xl mx-auto">
-                {steps.map((step, idx) => (
-                    <React.Fragment key={step.num}>
-                        <div className="flex flex-col items-center flex-1">
-                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center font-bold mb-1 sm:mb-2 transition-all ${completedSteps.has(step.num)
-                                ? 'bg-emerald-500 text-white'
-                                : currentStep === step.num
-                                    ? 'bg-emerald-500/20 text-emerald-400 ring-2 ring-emerald-500'
-                                    : 'bg-gray-800 text-gray-500'
-                                }`}>
-                                {completedSteps.has(step.num) ? (
-                                    <CheckCircle2 className="w-5 h-5 sm:w-6 sm:h-6" />
-                                ) : (
-                                    <span className="text-sm sm:text-base">{step.num}</span>
-                                )}
-                            </div>
-                            <div className="text-center px-1">
-                                <div className={`text-xs sm:text-sm font-semibold leading-tight ${completedSteps.has(step.num) || currentStep === step.num
-                                    ? 'text-white'
-                                    : 'text-gray-500'
-                                    }`}>
-                                    {step.label}
-                                </div>
-                                <div className="text-xs text-gray-500 mt-1 hidden sm:block">
-                                    {step.description}
-                                </div>
-                            </div>
-                        </div>
-                        {idx < steps.length - 1 && (
-                            <div className={`h-0.5 flex-1 mx-1 sm:mx-2 mb-6 sm:mb-8 transition-all ${completedSteps.has(step.num) ? 'bg-emerald-500' : 'bg-gray-700'
-                                }`} />
-                        )}
-                    </React.Fragment>
-                ))}
-            </div>
-        </div>
-    );
+const documentSteps: Array<{
+  docType: DocType;
+  step: number;
+  label: string;
+  shortLabel: string;
+  description: string;
+  helper: string;
+}> = [
+  {
+    docType: "LEGAL_AGREEMENT",
+    step: 1,
+    label: "Signed Legal Agreement",
+    shortLabel: "Agreement",
+    description: "Download, sign, and upload your agreement.",
+    helper: "PDF or clear image accepted.",
+  },
+  {
+    docType: "ID_FRONT",
+    step: 2,
+    label: "ID Front",
+    shortLabel: "ID Front",
+    description: "Upload the front side of your government ID.",
+    helper: "Make sure all text is readable.",
+  },
+  {
+    docType: "ID_BACK",
+    step: 3,
+    label: "ID Back",
+    shortLabel: "ID Back",
+    description: "Upload the back side of your government ID.",
+    helper: "Avoid glare, blur, and cropped edges.",
+  },
+];
+
+const statusCopy: Record<
+  KycStatus["status"],
+  {
+    title: string;
+    eyebrow: string;
+    description: string;
+    badgeClass: string;
+    iconClass: string;
+  }
+> = {
+  NOT_SUBMITTED: {
+    title: "Verify Your Identity",
+    eyebrow: "KYC Not Submitted",
+    description: "Upload your documents to unlock withdrawals, rewards, and secure wallet actions.",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    iconClass: "text-amber-500 bg-amber-50",
+  },
+  PENDING: {
+    title: "KYC Submitted",
+    eyebrow: "Review In Progress",
+    description: "Your documents are with the review team. This usually takes up to 48 hours.",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    iconClass: "text-amber-500 bg-amber-50",
+  },
+  VERIFIED: {
+    title: "KYC Verified",
+    eyebrow: "Identity Confirmed",
+    description: "Your identity has been verified. You can use eligible wallet and reward features.",
+    badgeClass: "bg-emerald-50 text-emerald-700 border-emerald-200",
+    iconClass: "text-emerald-600 bg-emerald-50",
+  },
+  REJECTED: {
+    title: "KYC Needs Attention",
+    eyebrow: "Submission Rejected",
+    description: "Please correct the issue, re-upload the required documents, and submit again.",
+    badgeClass: "bg-[#FFF1F4] text-[#C8103E] border-rose-200",
+    iconClass: "text-[#C8103E] bg-[#FFF1F4]",
+  },
 };
 
-const KycStatusDisplay = ({ status }: { status: KycStatus }) => {
-    const statusInfo = {
-        PENDING: {
-            icon: <Clock className="w-16 h-16 text-yellow-400" />,
-            title: "KYC Submitted",
-            message: "Your documents have been submitted and are pending review. This usually takes up to 48 hours.",
-        },
-        VERIFIED: {
-            icon: <CheckCircle className="w-16 h-16 text-green-400" />,
-            title: "KYC Verified",
-            message: "Congratulations! Your identity has been successfully verified.",
-        },
-        REJECTED: {
-            icon: <AlertTriangle className="w-16 h-16 text-red-400" />,
-            title: "KYC Rejected",
-            message: `Your KYC submission was rejected. Reason: ${status.rejectionReason}`,
-        }
-    };
+const isDocUploaded = (status: KycStatus | null, docType: DocType) =>
+  Boolean(status?.documents.some((doc) => doc.docType === docType));
 
-    const currentStatus = status.status;
-    if (currentStatus === 'NOT_SUBMITTED') return null;
-    const { icon, title, message } = statusInfo[currentStatus];
+const getStatusIcon = (status: KycStatus["status"]) => {
+  if (status === "VERIFIED") return CheckCircle2;
+  if (status === "REJECTED") return AlertTriangle;
+  if (status === "PENDING") return Clock3;
+  return ShieldCheck;
+};
 
-    return (
-        <div className="max-w-4xl mt-16 mx-auto text-center">
-            <div className="flex justify-center mb-6">{icon}</div>
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{title}</h1>
-            <p className="text-lg text-gray-400 max-w-3xl mx-auto">{message}</p>
+const KycHeader = ({ status }: { status: KycStatus["status"] }) => {
+  const copy = statusCopy[status];
+  const StatusIcon = getStatusIcon(status);
+
+  return (
+    <header className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+      <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div className="min-w-0">
+          <div className={`inline-flex items-center gap-2 rounded-full border px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] ${copy.badgeClass}`}>
+            <span className="h-2 w-2 rounded-full bg-current" />
+            {copy.eyebrow}
+          </div>
+          <h1 className="mt-4 text-2xl font-black tracking-tight text-[#0F172A] sm:text-4xl">KYC Verification</h1>
+          <p className="mt-2 max-w-2xl text-sm text-[#64748B] sm:text-base">{copy.description}</p>
         </div>
-    )
-}
+        <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+          <div className="flex h-12 min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+            <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${copy.iconClass}`}>
+              <StatusIcon className="h-4 w-4" />
+            </span>
+            <span className="truncate text-sm font-black text-[#0F172A]">{copy.title}</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  );
+};
+
+const KycHeroCard = ({
+  status,
+  uploadedCount,
+}: {
+  status: KycStatus["status"];
+  uploadedCount: number;
+}) => {
+  const copy = statusCopy[status];
+
+  return (
+    <section className="wallet-red-surface relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_58%,#30000C_100%)] p-4 text-white shadow-[0_24px_70px_rgba(122,0,31,0.22)] sm:p-6 lg:p-7">
+      <div className="absolute inset-0 opacity-[0.16] [background-image:radial-gradient(circle_at_1px_1px,rgba(255,255,255,0.8)_1px,transparent_0)] [background-size:28px_28px]" />
+      <div className="absolute -left-16 -top-20 h-64 w-64 rounded-full bg-white/10 blur-3xl" />
+      <div className="absolute -right-28 -bottom-28 h-80 w-80 rounded-full bg-[#F59E0B]/18 blur-3xl" />
+      <Image
+        src="/payouts/secure-verified-shield.png"
+        alt=""
+        width={240}
+        height={240}
+        className="pointer-events-none absolute -right-8 bottom-[-34px] hidden h-56 w-56 object-contain opacity-20 drop-shadow-2xl lg:block"
+      />
+      <div className="relative max-w-5xl">
+        <div className="min-w-0">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 backdrop-blur">
+            <ShieldCheck className="h-4 w-4 text-amber-100" />
+            <p className="wallet-red-muted text-[11px] font-black uppercase tracking-[0.16em] text-amber-50">Secure Identity Check</p>
+          </div>
+          <h2 className="mt-5 max-w-3xl break-words text-3xl font-black leading-[1.04] text-white sm:text-4xl lg:text-5xl">{copy.title}</h2>
+          <p className="wallet-red-soft mt-4 max-w-2xl text-sm font-semibold leading-6 text-white/82 sm:text-base">{copy.description}</p>
+
+          <div className="mt-6 grid gap-3 sm:grid-cols-3 xl:max-w-4xl">
+            {[
+              ["Documents", `${uploadedCount}/3`, "Uploaded"],
+              ["Review Time", "48 hrs", "Typical window"],
+              ["Access", status === "VERIFIED" ? "Unlocked" : "Protected", "Wallet features"],
+            ].map(([label, value, helper]) => (
+              <div key={label} className="rounded-2xl border border-white/12 bg-white/[0.09] p-4 backdrop-blur">
+                <p className="wallet-red-muted text-[10px] font-black uppercase tracking-[0.12em] text-white/55">{label}</p>
+                <p className="mt-2 text-2xl font-black leading-none text-white">{value}</p>
+                <p className="wallet-red-soft mt-2 text-xs font-semibold text-white/65">{helper}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ProgressStepper = ({
+  currentStep,
+  completedSteps,
+}: {
+  currentStep: number;
+  completedSteps: Set<number>;
+}) => (
+  <div className="grid gap-3 sm:grid-cols-3">
+    {documentSteps.map((step) => {
+      const complete = completedSteps.has(step.step);
+      const active = currentStep === step.step && !complete;
+      return (
+        <div
+          key={step.docType}
+          className={`rounded-2xl border p-4 transition ${
+            complete
+              ? "border-emerald-200 bg-[#ECFDF5]"
+              : active
+                ? "border-[#C8103E]/30 bg-[#FFF1F4]"
+                : "border-slate-200 bg-slate-50"
+          }`}
+        >
+          <div className="flex items-start gap-3">
+            <span
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black ${
+                complete
+                  ? "bg-emerald-600 text-white"
+                  : active
+                    ? "bg-[#C8103E] text-white"
+                    : "bg-white text-[#64748B]"
+              }`}
+            >
+              {complete ? <CheckCircle2 className="h-5 w-5" /> : step.step}
+            </span>
+            <div className="min-w-0">
+              <p className="font-black text-[#0F172A]">{step.shortLabel}</p>
+              <p className="mt-1 text-xs text-[#64748B]">{complete ? "Completed" : step.description}</p>
+            </div>
+          </div>
+        </div>
+      );
+    })}
+  </div>
+);
+
+const DocumentUploadCard = ({
+  doc,
+  uploaded,
+  selectedFile,
+  uploading,
+  onFileChange,
+  onUpload,
+}: {
+  doc: (typeof documentSteps)[number];
+  uploaded: boolean;
+  selectedFile: File | null;
+  uploading: boolean;
+  onFileChange: (file: File | null) => void;
+  onUpload: () => void;
+}) => (
+  <article className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-5">
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="flex min-w-0 gap-4">
+        <span className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${uploaded ? "bg-[#ECFDF5] text-emerald-600" : "bg-[#FFF1F4] text-[#C8103E]"}`}>
+          {uploaded ? <FileCheck2 className="h-6 w-6" /> : <UploadCloud className="h-6 w-6" />}
+        </span>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">
+              Step {doc.step}
+            </span>
+            <span className={`rounded-full px-2.5 py-1 text-[11px] font-black ${uploaded ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>
+              {uploaded ? "Uploaded" : "Required"}
+            </span>
+          </div>
+          <h3 className="mt-3 text-lg font-black text-[#0F172A]">{doc.label}</h3>
+          <p className="mt-1 text-sm text-[#64748B]">{doc.description}</p>
+          <p className="mt-2 text-xs font-semibold text-[#64748B]">{doc.helper}</p>
+        </div>
+      </div>
+    </div>
+
+    {doc.docType === "LEGAL_AGREEMENT" && (
+      <div className="mt-5 rounded-2xl border border-emerald-100 bg-[#ECFDF5] p-4">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-start gap-3">
+            <FileText className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+            <p className="text-sm font-semibold text-emerald-800">Download the agreement, sign it, then upload the completed file.</p>
+          </div>
+          <a
+            href="/withdrawal-agreement-form.pdf"
+            download
+            className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-black text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-600/25"
+          >
+            <FileText className="h-4 w-4" />
+            Download
+          </a>
+        </div>
+      </div>
+    )}
+
+    <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px] lg:items-center">
+      <label className="block rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-[#C8103E]/50 hover:bg-[#FFF1F4]/50">
+        <span className="block text-sm font-black text-[#0F172A]">{selectedFile?.name || "Choose file"}</span>
+        <span className="mt-1 block text-xs text-[#64748B]">Images or PDF files are supported.</span>
+        <input
+          type="file"
+          accept="image/*,.pdf"
+          className="sr-only"
+          onChange={(event) => onFileChange(event.target.files?.[0] ?? null)}
+        />
+      </label>
+      <Button
+        type="button"
+        onClick={onUpload}
+        disabled={uploading}
+        className="wallet-red-control h-12 rounded-2xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] text-white hover:from-[#C8103E] hover:to-[#68001A] disabled:opacity-60"
+      >
+        {uploading ? "Uploading..." : uploaded ? "Re-upload" : "Upload"}
+      </Button>
+    </div>
+  </article>
+);
+
+const SubmitReviewCard = ({
+  canSubmit,
+  submitting,
+  onSubmit,
+}: {
+  canSubmit: boolean | null;
+  submitting: boolean;
+  onSubmit: () => void;
+}) => (
+  <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-5">
+    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div className="flex items-start gap-4">
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#ECFDF5] text-emerald-600">
+          <ShieldCheck className="h-6 w-6" />
+        </span>
+        <div>
+          <h3 className="text-lg font-black text-[#0F172A]">Submit for Review</h3>
+          <p className="mt-1 text-sm text-[#64748B]">Upload all required documents, then send your profile for admin verification.</p>
+        </div>
+      </div>
+      <Button
+        type="button"
+        onClick={onSubmit}
+        disabled={!canSubmit || submitting}
+        className="wallet-red-control h-12 rounded-2xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-6 text-white hover:from-[#C8103E] hover:to-[#68001A] disabled:opacity-50"
+      >
+        {submitting ? "Submitting..." : "Submit for Review"}
+        {!submitting && <CheckCircle2 className="ml-2 h-5 w-5" />}
+      </Button>
+    </div>
+    {!canSubmit && (
+      <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+        All three documents are required before final submission.
+      </p>
+    )}
+  </section>
+);
+
+const StatusResultCard = ({ status }: { status: KycStatus }) => {
+  const copy = statusCopy[status.status];
+  const StatusIcon = getStatusIcon(status.status);
+
+  return (
+    <section className="rounded-3xl border border-slate-200/70 bg-white p-6 text-center shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-10">
+      <span className={`mx-auto flex h-20 w-20 items-center justify-center rounded-3xl ${copy.iconClass}`}>
+        <StatusIcon className="h-10 w-10" />
+      </span>
+      <h2 className="mt-6 text-3xl font-black text-[#0F172A]">{copy.title}</h2>
+      <p className="mx-auto mt-3 max-w-2xl text-sm text-[#64748B] sm:text-base">
+        {status.status === "REJECTED" && status.rejectionReason
+          ? `Reason: ${status.rejectionReason}`
+          : copy.description}
+      </p>
+    </section>
+  );
+};
+
+const LoadingSkeleton = () => (
+  <main className="dashboard-light-scope min-h-screen overflow-x-hidden bg-[#F8FAFC] px-3 py-4 sm:px-6 sm:py-5 lg:px-8">
+    <div className="mx-auto max-w-7xl space-y-6">
+      <Skeleton className="h-40 rounded-3xl" />
+      <Skeleton className="h-72 rounded-3xl" />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Skeleton className="h-36 rounded-3xl" />
+        <Skeleton className="h-36 rounded-3xl" />
+        <Skeleton className="h-36 rounded-3xl" />
+      </div>
+      <Skeleton className="h-72 rounded-3xl" />
+    </div>
+  </main>
+);
 
 export default function KycPage() {
-    const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
-    const [loading, setLoading] = useState(true);
-    const [uploading, setUploading] = useState<string | null>(null);
-    const [submitting, setSubmitting] = useState(false);
-    const [message, setMessage] = useState<string | null>(null);
-    const [selectedFiles, setSelectedFiles] = useState<Record<string, File | null>>({
-        LEGAL_AGREEMENT: null,
-        ID_FRONT: null,
-        ID_BACK: null,
-    });
+  const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState<DocType | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [message, setMessage] = useState<string | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<Record<DocType, File | null>>({
+    LEGAL_AGREEMENT: null,
+    ID_FRONT: null,
+    ID_BACK: null,
+  });
 
-    const fetchKycStatus = async () => {
-        try {
-            const status = await getKycStatus();
-            if (status && !status.error) {
-                setKycStatus(status);
-            } else {
-                setMessage(status.error || "Could not load your KYC information.");
-            }
-        } catch (error) {
-            console.error("Failed to fetch KYC status", error);
-            setMessage("Could not load your KYC information.");
-        } finally {
-            setLoading(false);
-        }
+  const fetchKycStatus = async () => {
+    try {
+      const status = await getKycStatus();
+      if (status && !status.error) {
+        setKycStatus(status);
+      } else {
+        setMessage(status.error || "Could not load your KYC information.");
+      }
+    } catch (error) {
+      console.error("Failed to fetch KYC status", error);
+      setMessage("Could not load your KYC information.");
+    } finally {
+      setLoading(false);
     }
+  };
 
-    useEffect(() => {
-        setLoading(true);
-        fetchKycStatus();
-    }, []);
+  useEffect(() => {
+    setLoading(true);
+    fetchKycStatus();
+  }, []);
 
-    if (loading) {
-        return (
-            <>
-                <div className="dashboard-light-scope min-h-screen flex items-center justify-center">
-                    <div>Loading KYC status...</div>
-                </div>
-            </>
-        )
-    }
-
-    const requiredDocs = ['LEGAL_AGREEMENT', 'ID_FRONT', 'ID_BACK'];
-    const canSubmitForReview = kycStatus && requiredDocs.every(docType =>
-        kycStatus.documents.some(d => d.docType === docType)
-    );
-
-    const isDocUploaded = (status: KycStatus | null, docType: string) =>
-        Boolean(status?.documents.some((doc) => doc.docType === docType));
-
-    const docMeta: Record<string, { label: string; description: string }> = {
-        LEGAL_AGREEMENT: { label: 'Signed Legal Agreement', description: 'Upload your signed agreement (PDF or image)' },
-        ID_FRONT: { label: 'ID Front', description: 'Upload the front side of your ID' },
-        ID_BACK: { label: 'ID Back', description: 'Upload the back side of your ID' },
-    };
-
-    const getCurrentStep = () => {
-        if (!isDocUploaded(kycStatus, 'LEGAL_AGREEMENT')) return 1;
-        if (!isDocUploaded(kycStatus, 'ID_FRONT')) return 2;
-        if (!isDocUploaded(kycStatus, 'ID_BACK')) return 3;
-        return 3;
-    };
-
-    const currentStep = getCurrentStep();
-    const stepLabel = currentStep === 1 ? "Legal Agreement" : currentStep === 2 ? "ID Front" : "ID Back";
+  const derived = useMemo(() => {
+    const uploadedCount = documentSteps.filter((doc) => isDocUploaded(kycStatus, doc.docType)).length;
+    const progressPercent = kycStatus?.status === "VERIFIED" ? 100 : Math.round((uploadedCount / documentSteps.length) * 100);
+    const currentStep =
+      documentSteps.find((doc) => !isDocUploaded(kycStatus, doc.docType))?.step ?? documentSteps.length;
     const completedSteps = new Set<number>();
-    if (isDocUploaded(kycStatus, 'LEGAL_AGREEMENT')) completedSteps.add(1);
-    if (isDocUploaded(kycStatus, 'ID_FRONT')) completedSteps.add(2);
-    if (isDocUploaded(kycStatus, 'ID_BACK')) completedSteps.add(3);
+    documentSteps.forEach((doc) => {
+      if (isDocUploaded(kycStatus, doc.docType)) completedSteps.add(doc.step);
+    });
+    const canSubmit =
+      kycStatus &&
+      documentSteps.every((doc) => kycStatus.documents.some((uploadedDoc) => uploadedDoc.docType === doc.docType));
 
-    const handleFileChange = (docType: string, file: File | null) => {
-        setSelectedFiles((prev) => ({ ...prev, [docType]: file }));
-    };
+    return { uploadedCount, progressPercent, currentStep, completedSteps, canSubmit };
+  }, [kycStatus]);
 
-    const handleUpload = async (docType: string) => {
-        const file = selectedFiles[docType];
-        if (!file) {
-            setMessage(`Please select a file for ${docMeta[docType].label}`);
-            return;
-        }
+  if (loading) return <LoadingSkeleton />;
 
-        setUploading(docType);
-        setMessage(null);
+  const status = kycStatus?.status ?? "NOT_SUBMITTED";
+  const canEdit = status === "NOT_SUBMITTED" || status === "REJECTED";
 
-        try {
-            const formData = new FormData();
-            formData.append("document", file, file.name);
-            formData.append("docType", docType);
+  const handleFileChange = (docType: DocType, file: File | null) => {
+    setSelectedFiles((prev) => ({ ...prev, [docType]: file }));
+  };
 
-            const uploadResult = await uploadKycDocument(formData);
-            if (uploadResult.error) {
-                setMessage(`Failed to upload ${docMeta[docType].label}: ${uploadResult.error}`);
-                return;
-            }
-            setKycStatus(uploadResult.kyc);
-            setSelectedFiles((prev) => ({ ...prev, [docType]: null }));
-        } catch (err) {
-            console.error(err);
-            setMessage("Failed to upload document. Please try again.");
-        } finally {
-            setUploading(null);
-        }
-    };
+  const handleUpload = async (docType: DocType) => {
+    const file = selectedFiles[docType];
+    const doc = documentSteps.find((item) => item.docType === docType);
 
-    const handleFinalSubmit = async () => {
-        setSubmitting(true);
-        setMessage(null);
-        try {
-            const result = await submitKycForReview();
-            if (result.error) {
-                setMessage(result.error);
-            } else {
-                setMessage(result.message);
-                setKycStatus(result.kyc);
-            }
-        } catch (err) {
-            console.error(err);
-            setMessage('An unexpected error occurred during submission.');
-        } finally {
-            setSubmitting(false);
-        }
-    };
+    if (!file) {
+      setMessage(`Please select a file for ${doc?.label || "this document"}.`);
+      return;
+    }
 
-    return (
-        <>
-            <div className="dashboard-light-scope p-6">
+    setUploading(docType);
+    setMessage(null);
 
-            {kycStatus && kycStatus.status !== 'NOT_SUBMITTED' && kycStatus.status !== 'REJECTED' ? (
-                <KycStatusDisplay status={kycStatus} />
-            ) : (
-                <div className="max-w-4xl mt-16 mx-auto">
-                    <header className="text-center mb-8">
-                        <h1 className="text-4xl md:text-5xl pb-2 font-bold mb-4 bg-linear-to-r from-emerald-400 to-green-600 bg-clip-text text-transparent">
-                            KYC — Verify your identity
-                        </h1>
-                        <p className="text-lg text-gray-400 max-w-3xl mx-auto">
-                            Upload your documents to complete KYC verification.
-                        </p>
-                    </header>
+    try {
+      const formData = new FormData();
+      formData.append("document", file, file.name);
+      formData.append("docType", docType);
 
-                    {kycStatus?.status === 'REJECTED' && (
-                        <div className="bg-red-900/50 border border-red-700 text-red-300 p-4 rounded-xl mb-6 text-center">
-                            <h3 className="font-bold">Submission Rejected</h3>
-                            <p>Reason: {kycStatus.rejectionReason}</p>
-                            <p className="mt-2 text-sm">Please correct the issues by re-uploading the documents and resubmitting.</p>
-                        </div>
-                    )}
+      const uploadResult = await uploadKycDocument(formData);
+      if (uploadResult.error) {
+        setMessage(`Failed to upload ${doc?.label || "document"}: ${uploadResult.error}`);
+        return;
+      }
+      setKycStatus(uploadResult.kyc);
+      setSelectedFiles((prev) => ({ ...prev, [docType]: null }));
+      setMessage(`${doc?.label || "Document"} uploaded successfully.`);
+    } catch (err) {
+      console.error(err);
+      setMessage("Failed to upload document. Please try again.");
+    } finally {
+      setUploading(null);
+    }
+  };
 
-                    <div className="bg-gray-900/40 border border-gray-800 rounded-3xl p-6 sm:p-8 space-y-6">
-                        <ProgressStepper currentStep={currentStep} completedSteps={completedSteps} />
-                        <div className="rounded-xl border border-gray-800/70 bg-black/30 px-4 py-3 text-sm text-gray-300">
-                            Next step: <span className="text-emerald-300 font-semibold">{stepLabel}</span>
-                        </div>
+  const handleFinalSubmit = async () => {
+    setSubmitting(true);
+    setMessage(null);
+    try {
+      const result = await submitKycForReview();
+      if (result.error) {
+        setMessage(result.error);
+      } else {
+        setMessage(result.message);
+        setKycStatus(result.kyc);
+      }
+    } catch (err) {
+      console.error(err);
+      setMessage("An unexpected error occurred during submission.");
+    } finally {
+      setSubmitting(false);
+    }
+  };
 
-                        {requiredDocs.map((docType) => {
-                            const uploaded = isDocUploaded(kycStatus, docType);
-                            const stepNumber = docType === "LEGAL_AGREEMENT" ? 1 : docType === "ID_FRONT" ? 2 : 3;
-                            return (
-                                <Card key={docType} className="bg-black/30 border border-gray-800">
-                                    <CardHeader>
-                                        <CardTitle className="text-lg flex flex-wrap items-center gap-2">
-                                            <span className="inline-flex items-center justify-center rounded-full bg-gray-800 px-2.5 py-0.5 text-xs font-semibold text-gray-300">
-                                                Step {stepNumber}
-                                            </span>
-                                            {docMeta[docType].label}
-                                        </CardTitle>
-                                        <p className="text-sm text-gray-400">{docMeta[docType].description}</p>
-                                    </CardHeader>
-                                    <CardContent className="space-y-4">
-                                        {docType === "LEGAL_AGREEMENT" && (
-                                            <div className="rounded-lg border border-emerald-700/40 bg-emerald-900/20 p-3 text-sm text-emerald-100">
-                                                <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-                                                    <span>Download, sign, then upload the agreement.</span>
-                                                    <a
-                                                        href="/withdrawal-agreement-form.pdf"
-                                                        download
-                                                        className="inline-flex items-center gap-2 rounded-md bg-emerald-600 px-3 py-2 text-xs font-semibold text-white hover:bg-emerald-500"
-                                                    >
-                                                        <FileText className="h-4 w-4" />
-                                                        Download Agreement
-                                                    </a>
-                                                </div>
-                                            </div>
-                                        )}
-                                        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                                            <div className="flex items-center gap-3">
-                                                <div className={`px-3 py-1 rounded-full text-xs font-semibold ${uploaded ? 'bg-emerald-500/20 text-emerald-300' : 'bg-gray-800 text-gray-400'}`}>
-                                                    {uploaded ? 'Uploaded' : 'Not uploaded'}
-                                                </div>
-                                            </div>
-                                            <div className="flex flex-col sm:flex-row gap-2 sm:items-center">
-                                                <input
-                                                    type="file"
-                                                    accept="image/*,.pdf"
-                                                    className="text-xs text-gray-300 file:mr-3 file:rounded-md file:border-0 file:bg-gray-800 file:px-3 file:py-2 file:text-xs file:font-semibold file:text-gray-200 hover:file:bg-gray-700"
-                                                    onChange={(e) => handleFileChange(docType, e.target.files?.[0] ?? null)}
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    className="bg-emerald-600 hover:bg-emerald-500 text-white"
-                                                    onClick={() => handleUpload(docType)}
-                                                    disabled={uploading === docType}
-                                                >
-                                                    {uploading === docType ? 'Uploading...' : uploaded ? 'Re-upload' : 'Upload'}
-                                                </Button>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            );
-                        })}
+  return (
+    <main className="dashboard-light-scope min-h-screen overflow-x-hidden bg-[#F8FAFC] px-3 py-4 sm:px-6 sm:py-5 lg:px-8">
+      <div className="mx-auto max-w-7xl space-y-6">
+        <KycHeader status={status} />
+        <KycHeroCard status={status} uploadedCount={derived.uploadedCount} />
 
-                        <div className="rounded-xl border border-emerald-700/30 bg-emerald-900/20 p-4 space-y-3">
-                            <div className="flex items-start gap-2">
-                                <CheckCircle className="w-5 h-5 text-emerald-400 mt-0.5" />
-                                <div>
-                                    <h4 className="text-sm font-semibold text-emerald-200">Submit for review</h4>
-                                    <p className="text-xs text-emerald-200/80">
-                                        Upload all three documents, then submit for admin review.
-                                    </p>
-                                </div>
-                            </div>
-                            <button
-                                type="button"
-                                onClick={handleFinalSubmit}
-                                disabled={!canSubmitForReview || submitting}
-                                className="w-full inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-                            >
-                                {submitting ? 'Submitting...' : 'Submit for Review'}
-                                {!submitting && <CheckCircle2 className="w-5 h-5" />}
-                            </button>
-                        </div>
+        {status === "REJECTED" && (
+          <div className="flex items-start gap-3 rounded-2xl border border-rose-200 bg-[#FFF1F4] px-4 py-3 text-sm font-semibold text-[#C8103E]">
+            <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>
+              Submission rejected{kycStatus?.rejectionReason ? `: ${kycStatus.rejectionReason}` : "."} Please re-upload the documents and submit again.
+            </p>
+          </div>
+        )}
 
-                        {message && <div className="text-sm text-center text-emerald-300">{message}</div>}
-                    </div>
+        {message && (
+          <div className="flex items-start gap-3 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
+            <Info className="mt-0.5 h-4 w-4 shrink-0" />
+            <p>{message}</p>
+          </div>
+        )}
+
+        {canEdit ? (
+          <>
+            <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-5">
+              <div className="mb-5 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="text-xl font-black text-[#0F172A]">Verification Steps</h2>
+                  <p className="mt-1 text-sm text-[#64748B]">Complete each requirement to submit your KYC for review.</p>
                 </div>
-            )}
-            </div>
-        </>
-    );
+                <p className="text-sm font-black text-[#C8103E]">{derived.progressPercent}% complete</p>
+              </div>
+              <ProgressStepper currentStep={derived.currentStep} completedSteps={derived.completedSteps} />
+            </section>
+
+            <section className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_330px]">
+              <div className="space-y-5">
+                {documentSteps.map((doc) => (
+                  <DocumentUploadCard
+                    key={doc.docType}
+                    doc={doc}
+                    uploaded={isDocUploaded(kycStatus, doc.docType)}
+                    selectedFile={selectedFiles[doc.docType]}
+                    uploading={uploading === doc.docType}
+                    onFileChange={(file) => handleFileChange(doc.docType, file)}
+                    onUpload={() => handleUpload(doc.docType)}
+                  />
+                ))}
+              </div>
+
+              <aside className="space-y-5">
+                <SubmitReviewCard canSubmit={derived.canSubmit} submitting={submitting} onSubmit={handleFinalSubmit} />
+                <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                  <LockKeyhole className="h-8 w-8 text-[#C8103E]" />
+                  <h3 className="mt-4 text-lg font-black text-[#0F172A]">Secure Review</h3>
+                  <p className="mt-2 text-sm text-[#64748B]">Your documents are used only for identity verification and admin compliance review.</p>
+                  <div className="mt-5 space-y-3">
+                    {[
+                      ["Encrypted uploads", ShieldCheck],
+                      ["Admin reviewed", FileCheck2],
+                      ["Wallet protection", Fingerprint],
+                    ].map(([label, Icon]) => (
+                      <div key={label as string} className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3">
+                        <Icon className="h-5 w-5 text-emerald-600" />
+                        <span className="text-sm font-bold text-[#0F172A]">{label as string}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </aside>
+            </section>
+          </>
+        ) : (
+          <StatusResultCard status={kycStatus || { status, documents: [] }} />
+        )}
+
+        <section className="flex flex-col gap-3 rounded-3xl border border-emerald-100 bg-[#ECFDF5] px-4 py-5 shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:flex-row sm:items-center sm:px-5">
+          <ShieldCheck className="h-8 w-8 text-emerald-700" />
+          <div className="min-w-0">
+            <p className="text-lg font-black text-emerald-700">Verified accounts keep the SAGENEX ecosystem safer.</p>
+            <p className="mt-1 text-sm text-emerald-800/80">Complete KYC once to improve trust, withdrawal readiness, and reward eligibility.</p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            onClick={fetchKycStatus}
+            className="h-11 rounded-xl border-emerald-200 bg-white font-black text-emerald-700 hover:bg-emerald-50 sm:ml-auto"
+          >
+            <RefreshCw className="mr-2 h-4 w-4" />
+            Refresh
+          </Button>
+        </section>
+      </div>
+    </main>
+  );
 }

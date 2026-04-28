@@ -4,13 +4,13 @@ import Image from "next/image";
 import Link from "next/link";
 import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
 import { useRef } from "react";
-import { Smartphone, ShieldCheck, Bell } from "lucide-react";
+import { Smartphone, ShieldCheck, BarChart3 } from "lucide-react";
 import { FaAndroid, FaApple } from "react-icons/fa";
 
 const FEATURES = [
   { icon: Smartphone, label: "Full Dashboard Access", desc: "Manage your portfolio, track earnings, and view team progress on the go." },
   { icon: ShieldCheck, label: "Secure Wallet Management", desc: "Deposit, withdraw, and transfer funds with the same security as the web platform." },
-  { icon: Bell, label: "Real-time Notifications", desc: "Instant alerts for new sign-ups, payouts, and important announcements." },
+  { icon: BarChart3, label: "Growth Insights", desc: "Track earnings, team momentum, and reward progress from one mobile dashboard." },
 ];
 
 export default function AppDownloadSection() {

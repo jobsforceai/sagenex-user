@@ -9,8 +9,6 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/
 import { Button } from "@/components/ui/button";
 import { getPayouts, getCurrentPayoutProgress } from "@/actions/user";
 import {
-  ArrowLeftIcon,
-  Bell,
   CalendarDays,
   ChevronDown,
   Clock,
@@ -112,16 +110,6 @@ const PayoutHeader = ({ onInfoClick }: { onInfoClick: () => void }) => (
   <header className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
     <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div>
-        {/* <Button
-          asChild
-          variant="outline"
-          className="mb-5 h-10 rounded-xl border-slate-200 bg-white text-sm font-bold text-[#0F172A] hover:bg-slate-50"
-        >
-          <Link href="/dashboard">
-            <ArrowLeftIcon className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
-        </Button> */}
         <h1 className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl">Payouts</h1>
         <p className="mt-1 max-w-2xl text-sm text-[#64748B] sm:text-base">
           Track your earnings, bonuses and review your payout history.
@@ -137,16 +125,6 @@ const PayoutHeader = ({ onInfoClick }: { onInfoClick: () => void }) => (
           <Info className="mr-2 h-4 w-4 text-amber-500" />
           Payout Rules & Info
         </Button>
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="relative inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C8103E] px-1 text-[10px] font-black text-white">
-            3
-          </span>
-        </button>
       </div>
     </div>
     <Image

@@ -1,8 +1,6 @@
 "use client";
 
-import Link from "next/link";
 import Navbar from "@/app/components/Navbar";
-import { Button } from "@/components/ui/button";
 
 export default function BookTestPage() {
   return (
@@ -13,13 +11,6 @@ export default function BookTestPage() {
         <p className="mt-3 text-sm text-white/70">
           This feature is currently disabled. Please check back later.
         </p>
-        <div className="mt-6 flex justify-center">
-          <Link href="/dashboard">
-            <Button className="bg-emerald-600 hover:bg-emerald-500 text-white">
-              Back to Dashboard
-            </Button>
-          </Link>
-        </div>
       </div>
     </div>
   );

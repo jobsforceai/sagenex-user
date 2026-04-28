@@ -2,15 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { getRankProgress } from "@/actions/user";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
-  Bell,
   CheckCircle2,
   ChevronDown,
   Crown,
@@ -234,16 +231,6 @@ const SalaryHeader = ({ onRulesClick }: { onRulesClick: () => void }) => (
   <header className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
     <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0">
-        <Button
-          asChild
-          variant="outline"
-          className="mb-5 h-11 w-full rounded-xl border-slate-200 bg-white text-sm font-bold text-[#0F172A] hover:bg-slate-50 sm:w-auto"
-        >
-          <Link href="/dashboard">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
-        </Button>
         <h1 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
           Salary & Rank <span aria-hidden="true">👑</span>
         </h1>
@@ -251,7 +238,7 @@ const SalaryHeader = ({ onRulesClick }: { onRulesClick: () => void }) => (
           Track your rank, payout status, and qualification progress.
         </p>
       </div>
-      <div className="grid w-full grid-cols-[minmax(0,1fr)_48px] items-center gap-3 sm:flex sm:w-auto sm:flex-wrap lg:pr-48">
+      <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto lg:pr-48">
         <Button
           type="button"
           variant="outline"
@@ -261,16 +248,6 @@ const SalaryHeader = ({ onRulesClick }: { onRulesClick: () => void }) => (
           <Info className="mr-2 h-4 w-4 shrink-0 text-amber-500" />
           <span className="truncate">Rules & Qualification</span>
         </Button>
-        <button
-          type="button"
-          aria-label="Notifications"
-          className="relative inline-flex h-12 w-12 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
-        >
-          <Bell className="h-5 w-5" />
-          <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#C8103E] px-1 text-[10px] font-black text-white">
-            3
-          </span>
-        </button>
       </div>
     </div>
     <Image
