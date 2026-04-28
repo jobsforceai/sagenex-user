@@ -7,6 +7,7 @@ import { useRouter } from "next/navigation";
 import FundTransfer from "@/app/components/wallet/FundTransfer";
 import { CompoundingProjectionModal } from "@/app/components/wallet/CompoundingProjectionModal";
 import WithdrawalRequest from "@/app/components/wallet/WithdrawalRequest";
+import ScheduledCashBanner from "@/app/components/wallet/ScheduledCashBanner";
 import { OverviewTab } from "@/app/components/wallet/tabs/OverviewTab";
 import { TransferTab } from "@/app/components/wallet/tabs/TransferTab";
 import { RewardsTab } from "@/app/components/wallet/tabs/RewardsTab";
@@ -364,6 +365,8 @@ const WalletPage = () => {
           </Button>
         </div>
       </header>
+
+      <ScheduledCashBanner />
 
       <section className="wallet-red-surface relative overflow-hidden rounded-3xl bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_55%,#430010_100%)] p-5 text-white shadow-[0_22px_55px_rgba(122,0,31,0.25)] sm:p-7 lg:p-8">
         <Image

@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeletons";
+import ScheduledCashBanner from "../components/wallet/ScheduledCashBanner";
 
 // ─── Interfaces ────────────────────────────────────────────────────
 
@@ -369,6 +370,7 @@ const DashboardPage = () => {
       ) : (
         <div className="min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl space-y-6">
+          <ScheduledCashBanner />
           <section className="relative overflow-hidden rounded-3xl bg-[#0F172A] text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)]">
             <Image
               src="/dashboard/dashboard-hero-figurine.png"
