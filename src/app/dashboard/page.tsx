@@ -601,6 +601,43 @@ const DashboardPage = () => {
                 </div>
               </section>
 
+              {wallet?.bonuses && wallet.bonuses.length > 0 && (
+                <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Level income</p>
+                      <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Unilevel Bonuses</h2>
+                    </div>
+                    <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.08em] text-emerald-700">
+                      L1 – L{wallet.bonuses.length}
+                    </span>
+                  </div>
+                  <div className="grid divide-y divide-slate-100">
+                    {wallet.bonuses.map((bonus) => (
+                      <div key={bonus.level} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 sm:px-6">
+                        <div className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black ${bonus.isUnlocked ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
+                          L{bonus.level}
+                        </div>
+                        <div className="min-w-0">
+                          <p className="truncate text-sm font-black text-[#0F172A]">{bonus.name}</p>
+                          <p className="text-xs font-semibold text-[#64748B]">
+                            {bonus.isUnlocked ? "Unlocked · credited to wallet" : bonus.unlockRequirement}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className={`text-sm font-black ${bonus.isUnlocked ? "text-emerald-600" : "text-amber-600"}`}>
+                            {formatCurrencyCompact(bonus.lockedAmount)}
+                          </p>
+                          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+                            {bonus.isUnlocked ? "Earned" : "Locked"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </section>
+              )}
+
               <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
                 <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
                   <div>
