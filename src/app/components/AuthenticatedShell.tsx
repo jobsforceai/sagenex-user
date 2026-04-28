@@ -3,6 +3,7 @@
 import { useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import AppShell from "@/app/components/AppShell";
+import SyncProfileFab from "@/app/components/SyncProfileFab";
 import { getDashboardData } from "@/actions/user";
 import { useShellStore } from "@/store/shellStore";
 
@@ -45,17 +46,25 @@ export default function AuthenticatedShell({ children }: { children: React.React
   }, [shouldUseShell, pathname, setShellData]);
 
   if (!shouldUseShell) {
-    return <>{children}</>;
+    return (
+      <>
+        {children}
+        <SyncProfileFab />
+      </>
+    );
   }
 
   return (
-    <AppShell
-      balance={hydrated ? balance : undefined}
-      userName={hydrated ? userName : undefined}
-      userRank={hydrated ? userRank : undefined}
-      avatarUrl={hydrated ? avatarUrl : undefined}
-    >
-      {children}
-    </AppShell>
+    <>
+      <AppShell
+        balance={hydrated ? balance : undefined}
+        userName={hydrated ? userName : undefined}
+        userRank={hydrated ? userRank : undefined}
+        avatarUrl={hydrated ? avatarUrl : undefined}
+      >
+        {children}
+      </AppShell>
+      <SyncProfileFab />
+    </>
   );
 }
