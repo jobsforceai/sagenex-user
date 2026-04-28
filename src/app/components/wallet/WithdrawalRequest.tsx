@@ -115,6 +115,10 @@ const WithdrawalRequest = ({
     safeRemainingLimit !== null
       ? Math.min(currentBalance, safeRemainingLimit)
       : currentBalance;
+  // Max NET the user can actually receive after the 5% tax is taken from gross.
+  // gross = net × 1.05  →  net = gross / 1.05. Floor to 2dp so we never quote
+  // a number whose computed gross would round above maxWithdrawable.
+  const maxNetWithdrawable = Math.floor((maxWithdrawable / 1.05) * 100) / 100;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -420,11 +424,23 @@ const WithdrawalRequest = ({
                   type="number"
                   value={cashAmount}
                   onChange={(e) => setCashAmount(e.target.value)}
-                  placeholder={`Available: ₹${currentBalance.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  placeholder={`Max receive: ₹${(Math.floor((currentBalance / 1.05) * 100) / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                   className="border-[#E8E8E8] bg-white text-[#111827]"
                   min="0.01"
                   step="0.01"
                 />
+                <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-emerald-50 px-3 py-2 text-xs">
+                  <span className="font-bold text-emerald-700">
+                    Max withdrawable (after 5% tax): ₹{(Math.floor((currentBalance / 1.05) * 100) / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setCashAmount((Math.floor((currentBalance / 1.05) * 100) / 100).toFixed(2))}
+                    className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
+                  >
+                    Use Max
+                  </button>
+                </div>
                 <p className="mt-1 text-xs text-zinc-500">
                   Amount is held immediately. Admin will contact you with pickup details.
                 </p>
@@ -524,15 +540,27 @@ const WithdrawalRequest = ({
                 type="number"
                 value={amount}
                 onChange={handleAmountChange}
-                placeholder={`Available: ₹${maxWithdrawable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                placeholder={`Max receive: ₹${maxNetWithdrawable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
                 className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                 required
                 min="0.01"
                 step="0.01"
               />
+              <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-emerald-50 px-3 py-2 text-xs">
+                <span className="font-bold text-emerald-700">
+                  Max withdrawable (after 5% tax): ₹{maxNetWithdrawable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => handleAmountChange({ target: { value: maxNetWithdrawable.toFixed(2) } } as React.ChangeEvent<HTMLInputElement>)}
+                  className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
+                >
+                  Use Max
+                </button>
+              </div>
               {safeRemainingLimit !== null && (
-                <p className="mt-2 text-xs text-zinc-500">
-                  Remaining withdrawal limit: ₹{maxWithdrawable.toFixed(2)}
+                <p className="mt-1 text-[11px] text-zinc-500">
+                  Wallet limit (gross, incl. tax): ₹{maxWithdrawable.toFixed(2)}
                 </p>
               )}
               {withdrawalType === "upi" && parseFloat(amount) > 500 && (
