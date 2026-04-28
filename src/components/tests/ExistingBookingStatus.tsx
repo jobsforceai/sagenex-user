@@ -334,22 +334,12 @@ export function ExistingBookingStatus({ booking, onNewBooking }: ExistingBooking
               <RotateCw className="w-4 h-4 mr-2" />
               Book a New Test
             </Button>
-            <Link href="/dashboard" className="w-full">
-              <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/5">
-                Back to Dashboard
-              </Button>
-            </Link>
           </>
         ) : (
           <>
             <Link href="/tests/book" className="w-full">
               <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/5">
                 View All Bookings
-              </Button>
-            </Link>
-            <Link href="/dashboard" className="w-full">
-              <Button variant="outline" className="w-full border-white/20 text-white hover:bg-white/5">
-                Back to Dashboard
               </Button>
             </Link>
           </>

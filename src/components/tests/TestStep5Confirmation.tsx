@@ -6,7 +6,6 @@
 
 import { Button } from '@/components/ui/button';
 import { Check } from 'lucide-react';
-import Link from 'next/link';
 import type { Booking } from '@/hooks/useTestBooking';
 import type { TestCatalogItem } from '@/types/tests';
 
@@ -90,14 +89,6 @@ export function TestStep5Confirmation({
         >
           View All Bookings
         </Button>
-        <Link href="/dashboard" className="w-full">
-          <Button
-            variant="outline"
-            className="w-full border-white/20 text-white hover:bg-white/5"
-          >
-            Back to Dashboard
-          </Button>
-        </Link>
       </div>
     </div>
   );

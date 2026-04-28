@@ -2,14 +2,12 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
-import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
 import { getRankProgress } from "@/actions/user";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import {
-  ArrowLeft,
   CheckCircle2,
   ChevronDown,
   Crown,
@@ -233,16 +231,6 @@ const SalaryHeader = ({ onRulesClick }: { onRulesClick: () => void }) => (
   <header className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
     <div className="relative z-10 flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
       <div className="min-w-0">
-        <Button
-          asChild
-          variant="outline"
-          className="mb-5 h-11 w-full rounded-xl border-slate-200 bg-white text-sm font-bold text-[#0F172A] hover:bg-slate-50 sm:w-auto"
-        >
-          <Link href="/dashboard">
-            <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Dashboard
-          </Link>
-        </Button>
         <h1 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
           Salary & Rank <span aria-hidden="true">👑</span>
         </h1>
