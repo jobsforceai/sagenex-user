@@ -18,7 +18,7 @@ interface WithdrawalRequestProps {
   remainingWithdrawalLimit?: number;
 }
 
-type WithdrawalType = "crypto" | "upi" | "bank" | "cash";
+type WithdrawalType = "upi" | "bank" | "cash";
 type AuthMethod = "password" | "otp";
 type VerificationMethod = "face" | "password" | "otp";
 
@@ -30,8 +30,7 @@ const WithdrawalRequest = ({
 }: WithdrawalRequestProps) => {
   const { user } = useAuth();
   const [amount, setAmount] = useState("");
-  const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>("crypto");
-  const [withdrawalAddress, setWithdrawalAddress] = useState("");
+  const [withdrawalType, setWithdrawalType] = useState<WithdrawalType>("bank");
   const [upiId, setUpiId] = useState("");
   const [bankDetails, setBankDetails] = useState({
     bankName: "",
@@ -122,10 +121,7 @@ const WithdrawalRequest = ({
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const profileData = await getProfileData();
-      if (profileData && !profileData.error && profileData.usdtTrc20Address) {
-        setWithdrawalAddress(profileData.usdtTrc20Address);
-      }
+      await getProfileData();
     };
     fetchProfile();
   }, []);
@@ -232,7 +228,6 @@ const WithdrawalRequest = ({
 
     const payload: {
       amount: number;
-      withdrawalAddress?: string;
       upiId?: string;
       bankDetails?: {
         bankName: string;
@@ -245,13 +240,7 @@ const WithdrawalRequest = ({
       faceVerificationId?: string;
     } = { amount: withdrawalAmount };
 
-    if (withdrawalType === "crypto") {
-      if (!withdrawalAddress) {
-        toast.error("Please set your USDT (TRC20) withdrawal address in your profile or enter it manually.");
-        return null;
-      }
-      payload.withdrawalAddress = withdrawalAddress;
-    } else if (withdrawalType === "upi") {
+    if (withdrawalType === "upi") {
       if (!upiId) {
         toast.error("Please enter your UPI ID.");
         return null;
@@ -393,16 +382,12 @@ const WithdrawalRequest = ({
             onChange={(e) => setWithdrawalType(e.target.value as WithdrawalType)}
             className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
           >
-            <option value="crypto">Crypto</option>
             <option value="upi">UPI</option>
             <option value="bank">Bank</option>
             <option value="cash">Cash</option>
           </select>
         </div>
         <div className="mb-4 hidden gap-2 border-b border-[#E8E8E8] sm:flex">
-          <Button variant={withdrawalType === "crypto" ? "secondary" : "ghost"} className="text-[#111827]" onClick={() => setWithdrawalType("crypto")}>
-            Crypto
-          </Button>
           <Button variant={withdrawalType === "upi" ? "secondary" : "ghost"} className="text-[#111827]" onClick={() => setWithdrawalType("upi")}>
             UPI
           </Button>
@@ -582,25 +567,6 @@ const WithdrawalRequest = ({
               })()}
               {error && <p className="text-red-400 text-sm mt-2">{error}</p>}
             </div>
-
-            {withdrawalType === "crypto" && (
-              <div>
-                <label htmlFor="withdrawalAddress" className="mb-2 block text-sm font-medium text-zinc-600">
-                  USDT (TRC20) Withdrawal Address
-                </label>
-                <Input
-                  id="withdrawalAddress"
-                  name="withdrawalAddress"
-                  type="text"
-                  value={withdrawalAddress}
-                  onChange={(e) => setWithdrawalAddress(e.target.value)}
-                  placeholder="Enter your withdrawal address"
-                  className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
-                  required
-                />
-                <p className="mt-1 text-xs text-zinc-500">This is pre-filled from your profile settings.</p>
-              </div>
-            )}
 
             {withdrawalType === "upi" && (
               <div>
