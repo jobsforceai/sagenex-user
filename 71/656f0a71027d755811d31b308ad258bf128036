@@ -1,0 +1,23 @@
+src/app/rewards/page.tsx
+  964e0d3fba450c9c 571-574,576-586
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "71656f0a71027d755811d31b308ad258bf128036",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 15,
+      "total_deletions": 62,
+      "accepted_lines": 2846,
+      "overriden_lines": 0
+    }
+  }
+}
