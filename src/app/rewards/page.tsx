@@ -28,7 +28,9 @@ import {
   FileCheck,
   Lock,
   Calendar,
+  Check,
   ChevronRight,
+  Crown,
   Clock,
   Medal,
   Ship,
@@ -37,6 +39,7 @@ import {
   Sparkles,
   TrendingUp,
   Trophy,
+  UserCircle2,
   Users,
   Zap,
 } from "lucide-react";
@@ -93,7 +96,51 @@ const PROGRAM_ICONS: Record<string, React.ReactNode> = {
 const REWARD_ASSETS = {
   hero: "/rewards/hero-travel-collage.png",
   trophy: "/rewards/trophy-motivation.png",
+  global: "/rewards/global-rewards-collage.png",
+  tech: "/rewards/luxury-tech-reward.png",
+  bike: "/rewards/bike-travel-reward.png",
+  officeCar: "/rewards/office-car-reward.png",
+  crown: "/rewards/crown-tier-reward.png",
 } as const;
+
+const tierCards = [
+  {
+    name: "Starter Tier",
+    threshold: "₹10,00,000",
+    image: "/rewards/luxury-tech-reward.png",
+    badgeBg: "bg-amber-50",
+    badgeText: "text-amber-600",
+    accent: "from-amber-50 to-white",
+    rewards: ["Choose Any One", "Dubai Trip / MacBook", "iPad / ₹1L Cash"],
+  },
+  {
+    name: "Mid Tier",
+    threshold: "₹30,00,000",
+    image: "/rewards/bike-travel-reward.png",
+    badgeBg: "bg-emerald-50",
+    badgeText: "text-emerald-600",
+    accent: "from-emerald-50 to-white",
+    rewards: ["Choose Any One", "Premium Bike / Intl Trip", "₹3L Cash"],
+  },
+  {
+    name: "Elite Tier",
+    threshold: "₹50,00,000",
+    image: "/rewards/office-car-reward.png",
+    badgeBg: "bg-sky-50",
+    badgeText: "text-sky-600",
+    accent: "from-sky-50 to-white",
+    rewards: ["Choose Any One", "Office Setup / Car", "₹6L Cash"],
+  },
+  {
+    name: "Crown Tier",
+    threshold: "₹1,00,00,000",
+    image: "/rewards/crown-tier-reward.png",
+    badgeBg: "bg-rose-50",
+    badgeText: "text-[#C81E4A]",
+    accent: "from-[#FFF7ED] to-[#FFF1F4]",
+    rewards: ["Choose Any One", "House / Luxury Car", "₹10L+ Cash"],
+  },
+];
 
 const benefitItems = [
   { icon: Trophy, label: "Performance Based Rewards" },
@@ -450,7 +497,7 @@ const RewardsHeroBanner = ({
     initial={{ opacity: 0, y: 14 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.35 }}
-    className="wallet-red-surface relative overflow-hidden rounded-3xl border border-white/10 bg-[#19030B] p-6 text-white shadow-[0_24px_70px_rgba(83,0,24,0.24)] sm:p-8 lg:p-10"
+    className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0E2A2C] via-[#0A1F22] to-[#06181A] p-6 text-white shadow-[0_24px_70px_rgba(6,24,26,0.32)] sm:p-8 lg:p-10"
   >
     <Image
       src={REWARD_ASSETS.hero}
@@ -460,7 +507,7 @@ const RewardsHeroBanner = ({
       className="object-cover opacity-68"
       sizes="100vw"
     />
-    <div className="absolute inset-0 bg-gradient-to-r from-[#16020A]/95 via-[#510018]/72 to-black/28" />
+    <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F22]/95 via-[#0E2A2C]/65 to-black/30" />
     <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
       <div>
         <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/12 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-amber-100 backdrop-blur">
@@ -512,6 +559,106 @@ const RewardsHeroBanner = ({
       </div>
     </div>
   </motion.section>
+);
+
+const QualificationPathSection = ({
+  directProgress,
+  remainingForNext,
+}: {
+  directProgress: ReturnType<typeof getRewardProgress>;
+  remainingForNext: number;
+}) => (
+  <section>
+    <h2 className="mb-4 text-sm font-black uppercase tracking-[0.12em] text-[#0F172A]">Choose Your Path To Earn Rewards</h2>
+    <div className="grid gap-5 lg:grid-cols-[1fr_1fr_1fr] lg:items-stretch">
+      <div className="relative rounded-3xl border border-emerald-200 bg-gradient-to-br from-[#ECFDF5] to-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.12em] text-emerald-700">Direct Business</p>
+            <h3 className="mt-2 text-3xl font-black text-[#0F172A]">₹4,00,000+</h3>
+            <p className="mt-1 text-sm font-bold text-[#475569]">Direct Business</p>
+          </div>
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100">
+            <UserCircle2 className="h-7 w-7 text-emerald-600" />
+          </div>
+        </div>
+        <ul className="mt-5 space-y-2 text-sm">
+          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /><span className="text-[#475569]">From Single Account</span></li>
+          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /><span className="text-[#475569]">Only Fresh Business (Current Month)</span></li>
+        </ul>
+        <div className="mt-5 border-t border-emerald-100 pt-3">
+          <p className="text-sm font-black text-emerald-700">Achieve ₹4 Lakhs Direct Business</p>
+          <p className="text-xs font-semibold text-[#475569]">From Single Account &amp; Fly International</p>
+        </div>
+        <span className="absolute -right-3 top-1/2 hidden -translate-y-1/2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-[#64748B] shadow-sm lg:inline-flex">OR</span>
+      </div>
+
+      <div className="relative rounded-3xl border border-rose-200 bg-gradient-to-br from-[#FFF1F4] to-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
+        <div className="flex items-start justify-between">
+          <div>
+            <p className="text-sm font-black uppercase tracking-[0.12em] text-[#C81E4A]">Team Business</p>
+            <h3 className="mt-2 text-3xl font-black text-[#0F172A]">₹5,00,000</h3>
+            <p className="mt-1 text-sm font-bold text-[#475569]">Team Business</p>
+          </div>
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100">
+            <Users className="h-7 w-7 text-[#C81E4A]" />
+          </div>
+        </div>
+        <ul className="mt-5 space-y-2 text-sm">
+          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C81E4A]" /><span className="text-[#475569]">Max 40% from One Leg</span></li>
+          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C81E4A]" /><span className="text-[#475569]">Remaining 60% from Other Legs</span></li>
+          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C81E4A]" /><span className="text-[#475569]">Minimum 3 Active Legs Required</span></li>
+          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C81E4A]" /><span className="text-[#475569]">Only Fresh Business (Current Month)</span></li>
+        </ul>
+        <div className="mt-5 border-t border-rose-100 pt-3">
+          <p className="text-sm font-black text-[#C81E4A]">Achieve ₹5 Lakhs Team Business</p>
+          <p className="text-xs font-semibold text-[#475569]">With Power of Structure &amp; Fly International</p>
+        </div>
+      </div>
+
+      <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+        <div className="relative h-40">
+          <Image src={REWARD_ASSETS.global} alt="Next reward preview" fill className="object-cover" sizes="(min-width: 1024px) 33vw, 100vw" />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
+        </div>
+        <div className="p-6">
+          <p className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">Next Reward Preview</p>
+          <h3 className="mt-2 text-2xl font-black text-[#0F172A]">Europe Trip 2026</h3>
+          <p className="mt-2 text-sm text-[#64748B]">You are just</p>
+          <p className="mt-1 text-2xl font-black text-emerald-600">{remainingForNext > 0 ? formatCurrency(remainingForNext) : formatCurrency(directProgress.target ?? 0)}</p>
+          <p className="text-sm font-semibold text-[#475569]">away from your dream!</p>
+          <Button className="mt-5 h-11 w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-base font-bold text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:from-emerald-700 hover:to-emerald-600">
+            Keep Going 🚀
+          </Button>
+        </div>
+      </div>
+    </div>
+  </section>
+);
+
+const RewardTierCard = ({ tier, index }: { tier: (typeof tierCards)[number]; index: number }) => (
+  <motion.div
+    whileHover={{ y: -4 }}
+    transition={{ duration: 0.2 }}
+    className={`overflow-hidden rounded-3xl border border-slate-200/70 bg-gradient-to-b ${tier.accent} shadow-[0_10px_30px_rgba(15,23,42,0.06)]`}
+  >
+    <div className="flex items-center justify-between gap-3 px-5 pt-5">
+      <div className="flex items-center gap-3">
+        <span className={`flex h-8 w-8 items-center justify-center rounded-full ${tier.badgeBg} text-sm font-black ${tier.badgeText}`}>{index + 1}</span>
+        <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#0F172A]">{tier.name}</p>
+      </div>
+      <Crown className={`h-5 w-5 ${tier.badgeText}`} />
+    </div>
+    <p className="mt-1 px-5 text-2xl font-black text-[#0F172A]">{tier.threshold}</p>
+    <div className="relative mt-3 h-32 w-full">
+      <Image src={tier.image} alt={tier.name} fill className="object-contain" sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw" />
+    </div>
+    <div className="px-5 pb-5">
+      <p className="text-center text-[11px] font-black uppercase tracking-[0.12em] text-[#64748B]">{tier.rewards[0]}</p>
+      <p className="mt-2 text-center text-sm font-bold text-[#0F172A]">{tier.rewards[1]}</p>
+      <p className="text-center text-sm font-bold text-[#0F172A]">{tier.rewards[2]}</p>
+    </div>
+  </motion.div>
 );
 
 const BenefitsStrip = () => (
@@ -1054,6 +1201,20 @@ const RewardsPage = () => {
                 rewards={rewardsByProgram[program.programId] ?? []}
               />
             ))}
+          </section>
+
+          <QualificationPathSection
+            directProgress={directProgress}
+            remainingForNext={Math.max(0, (directProgress.target ?? 0) - (directProgress.current ?? 0))}
+          />
+
+          <section>
+            <h2 className="mb-4 text-sm font-black uppercase tracking-[0.12em] text-[#0F172A]">Luxury Reward Tiers</h2>
+            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+              {tierCards.map((tier, index) => (
+                <RewardTierCard key={tier.name} tier={tier} index={index} />
+              ))}
+            </div>
           </section>
 
           <BenefitsStrip />
