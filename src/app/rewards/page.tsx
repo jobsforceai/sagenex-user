@@ -39,7 +39,6 @@ import {
   Sparkles,
   TrendingUp,
   Trophy,
-  UserCircle2,
   Users,
   Zap,
 } from "lucide-react";
@@ -569,68 +568,22 @@ const QualificationPathSection = ({
   remainingForNext: number;
 }) => (
   <section>
-    <h2 className="mb-4 text-sm font-black uppercase tracking-[0.12em] text-[#0F172A]">Choose Your Path To Earn Rewards</h2>
-    <div className="grid gap-5 lg:grid-cols-[1fr_1fr_1fr] lg:items-stretch">
-      <div className="relative rounded-3xl border border-emerald-200 bg-gradient-to-br from-[#ECFDF5] to-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.12em] text-emerald-700">Direct Business</p>
-            <h3 className="mt-2 text-3xl font-black text-[#0F172A]">₹4,00,000+</h3>
-            <p className="mt-1 text-sm font-bold text-[#475569]">Direct Business</p>
-          </div>
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100">
-            <UserCircle2 className="h-7 w-7 text-emerald-600" />
-          </div>
-        </div>
-        <ul className="mt-5 space-y-2 text-sm">
-          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /><span className="text-[#475569]">From Single Account</span></li>
-          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" /><span className="text-[#475569]">Only Fresh Business (Current Month)</span></li>
-        </ul>
-        <div className="mt-5 border-t border-emerald-100 pt-3">
-          <p className="text-sm font-black text-emerald-700">Achieve ₹4 Lakhs Direct Business</p>
-          <p className="text-xs font-semibold text-[#475569]">From Single Account &amp; Fly International</p>
-        </div>
-        <span className="absolute -right-3 top-1/2 hidden -translate-y-1/2 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-[#64748B] shadow-sm lg:inline-flex">OR</span>
+    <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] lg:grid lg:grid-cols-[260px_1fr]">
+      <div className="relative h-44 lg:h-auto">
+        <Image src={REWARD_ASSETS.global} alt="Next reward preview" fill className="object-cover" sizes="(min-width: 1024px) 260px, 100vw" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent lg:bg-gradient-to-r" />
       </div>
-
-      <div className="relative rounded-3xl border border-rose-200 bg-gradient-to-br from-[#FFF1F4] to-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm font-black uppercase tracking-[0.12em] text-[#C81E4A]">Team Business</p>
-            <h3 className="mt-2 text-3xl font-black text-[#0F172A]">₹5,00,000</h3>
-            <p className="mt-1 text-sm font-bold text-[#475569]">Team Business</p>
-          </div>
-          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-rose-100">
-            <Users className="h-7 w-7 text-[#C81E4A]" />
-          </div>
-        </div>
-        <ul className="mt-5 space-y-2 text-sm">
-          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C81E4A]" /><span className="text-[#475569]">Max 40% from One Leg</span></li>
-          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C81E4A]" /><span className="text-[#475569]">Remaining 60% from Other Legs</span></li>
-          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C81E4A]" /><span className="text-[#475569]">Minimum 3 Active Legs Required</span></li>
-          <li className="flex items-start gap-2"><Check className="mt-0.5 h-4 w-4 shrink-0 text-[#C81E4A]" /><span className="text-[#475569]">Only Fresh Business (Current Month)</span></li>
-        </ul>
-        <div className="mt-5 border-t border-rose-100 pt-3">
-          <p className="text-sm font-black text-[#C81E4A]">Achieve ₹5 Lakhs Team Business</p>
-          <p className="text-xs font-semibold text-[#475569]">With Power of Structure &amp; Fly International</p>
-        </div>
-      </div>
-
-      <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-        <div className="relative h-40">
-          <Image src={REWARD_ASSETS.global} alt="Next reward preview" fill className="object-cover" sizes="(min-width: 1024px) 33vw, 100vw" />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent" />
-        </div>
-        <div className="p-6">
-          <p className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">Next Reward Preview</p>
-          <h3 className="mt-2 text-2xl font-black text-[#0F172A]">Europe Trip 2026</h3>
-          <p className="mt-2 text-sm text-[#64748B]">You are just</p>
-          <p className="mt-1 text-2xl font-black text-emerald-600">{remainingForNext > 0 ? formatCurrency(remainingForNext) : formatCurrency(directProgress.target ?? 0)}</p>
-          <p className="text-sm font-semibold text-[#475569]">away from your dream!</p>
-          <Button className="mt-5 h-11 w-full rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-base font-bold text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:from-emerald-700 hover:to-emerald-600">
-            Keep Going 🚀
-          </Button>
-        </div>
+      <div className="flex flex-col justify-center p-6 sm:p-8">
+        <p className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">Next Reward Preview</p>
+        <h3 className="mt-2 text-3xl font-black text-[#0F172A]">Europe Trip 2026</h3>
+        <p className="mt-3 text-sm text-[#64748B]">You are just</p>
+        <p className="mt-1 text-3xl font-black text-emerald-600">
+          {remainingForNext > 0 ? formatCurrency(remainingForNext) : formatCurrency(directProgress.target ?? 0)}
+        </p>
+        <p className="text-sm font-semibold text-[#475569]">away from your dream!</p>
+        <Button className="mt-6 h-11 w-full max-w-xs rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-base font-bold text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:from-emerald-700 hover:to-emerald-600">
+          Keep Going 🚀
+        </Button>
       </div>
     </div>
   </section>
