@@ -269,6 +269,55 @@
   color: #fff7ed !important;
 }
 
+
+.dashboard-light-scope .rewards-dark-surface,
+.dashboard-light-scope .rewards-dark-surface * {
+  color: #ffffff !important;
+}
+
+.dashboard-light-scope .rewards-dark-surface [class*="text-white\\/"],
+.dashboard-light-scope .rewards-dark-surface .text-amber-100,
+.dashboard-light-scope .rewards-dark-surface .text-amber-200 {
+  color: inherit !important;
+}
+
+.dashboard-light-scope .rewards-dark-surface .text-amber-100 {
+  color: #FDE68A !important;
+}
+
+.dashboard-light-scope .rewards-dark-surface .text-amber-200 {
+  color: #FCD34D !important;
+}
+
+.dashboard-light-scope .rewards-dark-surface .text-emerald-600,
+.dashboard-light-scope .rewards-dark-surface .text-emerald-700 {
+  color: #34D399 !important;
+}
+
+.dashboard-light-scope .rewards-dark-surface .border-white\/10,
+.dashboard-light-scope .rewards-dark-surface .border-white\/12,
+.dashboard-light-scope .rewards-dark-surface .border-white\/15,
+.dashboard-light-scope .rewards-dark-surface .border-white\/16,
+.dashboard-light-scope .rewards-dark-surface .border-white\/18,
+.dashboard-light-scope .rewards-dark-surface .border-white\/20,
+.dashboard-light-scope .rewards-dark-surface [class*="border-white"] {
+  border-color: rgba(255, 255, 255, 0.18) !important;
+}
+
+.dashboard-light-scope .rewards-dark-surface .bg-white\/10,
+.dashboard-light-scope .rewards-dark-surface .bg-white\/12,
+.dashboard-light-scope .rewards-dark-surface .bg-white\/14,
+.dashboard-light-scope .rewards-dark-surface .bg-white\/15,
+.dashboard-light-scope .rewards-dark-surface .bg-white\/18,
+.dashboard-light-scope .rewards-dark-surface [class*="bg-white\/"] {
+  background-color: rgba(255, 255, 255, 0.14) !important;
+}
+
+.dashboard-light-scope .rewards-dark-surface .bg-black\/35,
+.dashboard-light-scope .rewards-dark-surface [class*="bg-black\/"] {
+  background-color: rgba(0, 0, 0, 0.35) !important;
+}
+
 .hero-crimson-stage {
   background: #2a0008;
 }

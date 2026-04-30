@@ -226,7 +226,7 @@ const ShowcaseCard = ({ program, rewards }: { program: RewardProgram; rewards: R
       type="button"
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
-      className="group relative min-h-[430px] overflow-hidden rounded-3xl border border-white/20 text-left shadow-[0_18px_45px_rgba(15,23,42,0.16)] focus:outline-none focus:ring-2 focus:ring-[#C81E4A]/30"
+      className="rewards-dark-surface group relative min-h-[430px] overflow-hidden rounded-3xl border border-white/20 text-left shadow-[0_18px_45px_rgba(15,23,42,0.16)] focus:outline-none focus:ring-2 focus:ring-[#C81E4A]/30"
       onClick={() => {
         document
           .getElementById(`tracker-${program.programId}`)
@@ -496,7 +496,7 @@ const RewardsHeroBanner = ({
     initial={{ opacity: 0, y: 14 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.35 }}
-    className="relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0E2A2C] via-[#0A1F22] to-[#06181A] p-6 text-white shadow-[0_24px_70px_rgba(6,24,26,0.32)] sm:p-8 lg:p-10"
+    className="rewards-dark-surface relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0E2A2C] via-[#0A1F22] to-[#06181A] p-6 text-white shadow-[0_24px_70px_rgba(6,24,26,0.32)] sm:p-8 lg:p-10"
   >
     <Image
       src={REWARD_ASSETS.hero}
