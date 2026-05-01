@@ -1,0 +1,29 @@
+src/app/components/AuthenticatedShell.tsx
+  964e0d3fba450c9c 14
+src/app/components/Sidebar.tsx
+  964e0d3fba450c9c 14,26
+src/app/components/Navbar.tsx
+  964e0d3fba450c9c 32
+src/app/team-business/page.tsx
+  964e0d3fba450c9c 1-748
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "1c27de4a41af9620291613590a992a41fb2e720e",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 755,
+      "total_deletions": 0,
+      "accepted_lines": 3758,
+      "overriden_lines": 0
+    }
+  }
+}
