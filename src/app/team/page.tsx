@@ -18,7 +18,7 @@ import {
   getFinancialSummary,
 } from "@/actions/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Info, RotateCw, X } from "lucide-react";
+import { Info, Loader2, RotateCw, X } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TreeApiResponse {
@@ -254,6 +254,19 @@ const TeamPage = () => {
     return (
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-6">
+          {/* Loading hero with explicit copy so users understand why they're waiting */}
+          <div className="rounded-3xl border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-8">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F4]">
+                <Loader2 className="h-6 w-6 animate-spin text-[#C8103E]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">Loading your team</p>
+                <p className="mt-1 text-base font-black text-[#0F172A] sm:text-lg">Building your referral tree and downline metrics…</p>
+                <p className="mt-1 text-xs text-[#64748B]">For larger downlines (200+ members) this can take a few seconds. Hang tight.</p>
+              </div>
+            </div>
+          </div>
           <div className="h-10 w-56 animate-pulse rounded-xl bg-slate-200" />
           <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {[0, 1, 2, 3].map((item) => (
@@ -352,10 +365,25 @@ const TeamPage = () => {
           {queue.length > 0 && <PlacementQueue queue={queue} onUserPlaced={fetchTeamData} />}
 
           {treeLoading ? (
-            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-              <div className="mb-3 h-6 w-40 animate-pulse rounded bg-slate-200" />
-              <p className="text-sm text-[#64748B]">Loading your team tree — this can take a moment for larger downlines.</p>
-              <div className="mt-5 h-[640px] animate-pulse rounded-3xl bg-slate-100" />
+            <div className="relative rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+              <div className="flex items-start gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F4]">
+                  <Loader2 className="h-5 w-5 animate-spin text-[#C8103E]" />
+                </div>
+                <div>
+                  <p className="text-base font-black text-[#0F172A]">Loading your team tree</p>
+                  <p className="text-sm text-[#64748B]">This can take a moment for larger downlines (200+ members).</p>
+                </div>
+              </div>
+              <div className="relative mt-5 h-[640px] overflow-hidden rounded-3xl bg-slate-100">
+                <div className="absolute inset-0 animate-pulse" />
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                    <Loader2 className="h-4 w-4 animate-spin text-[#C8103E]" />
+                    <span className="text-sm font-bold text-[#0F172A]">Building tree…</span>
+                  </div>
+                </div>
+              </div>
             </div>
           ) : treeData && treeData.tree ? (
             <TreeClient tree={treeData.tree} />
