@@ -24,6 +24,7 @@ import {
   TrendingUp,
   Users,
   XCircle,
+  Loader2,
 } from "lucide-react";
 
 // ─── Types ──────────────────────────────────────────────────────────
@@ -329,6 +330,19 @@ const TeamBusinessPage = () => {
     return (
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-6">
+          {/* Loading hero with explicit copy so users understand why they're waiting */}
+          <div className="rounded-3xl border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-8">
+            <div className="flex items-center gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F4]">
+                <Loader2 className="h-6 w-6 animate-spin text-[#C8103E]" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">Loading your business data</p>
+                <p className="mt-1 text-base font-black text-[#0F172A] sm:text-lg">Crunching this month&apos;s leg-by-leg numbers…</p>
+                <p className="mt-1 text-xs text-[#64748B]">For larger downlines (200+ members) this can take a few seconds. Hang tight.</p>
+              </div>
+            </div>
+          </div>
           <Skeleton className="h-10 w-72" />
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
             {[0, 1, 2, 3].map((i) => (
@@ -570,7 +584,15 @@ const TeamBusinessPage = () => {
         </section>
 
         {/* Leg-by-leg table */}
-        <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+        <section className="relative rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+          {monthLoading && (
+            <div className="absolute inset-0 z-10 flex items-center justify-center rounded-3xl bg-white/70 backdrop-blur-[2px]">
+              <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
+                <Loader2 className="h-4 w-4 animate-spin text-[#C8103E]" />
+                <span className="text-sm font-bold text-[#0F172A]">Loading month data…</span>
+              </div>
+            </div>
+          )}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h2 className="text-xl font-black text-[#0F172A]">Leg-by-Leg Business</h2>
