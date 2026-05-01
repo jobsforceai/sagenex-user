@@ -100,20 +100,24 @@ export function CompoundingProjectionModal({ manualOpen, onManualClose, onCompou
   const monthlyEarning = packageUSD * monthlyRate;
   const snapshots = buildProjection(packageUSD, rateFn);
 
-  const handleEnable = async () => {
-    if (compoundingEnabled) { setOpen(false); return; }
+  const handleToggle = async () => {
     setEnabling(true);
     try {
       const res = await toggleCompounding();
-      if (res?.error) { toast.error(res.error); }
-      else {
-        setCompoundingEnabled(true);
-        onCompoundingChange?.(true);
-        toast.success("Compounding enabled!");
+      if (res?.error) {
+        toast.error(res.error);
+      } else {
+        const next = !compoundingEnabled;
+        setCompoundingEnabled(next);
+        onCompoundingChange?.(next);
+        toast.success(next ? "Compounding enabled!" : "Compounding disabled.");
         setOpen(false);
       }
-    } catch { toast.error("Failed to enable compounding."); }
-    finally { setEnabling(false); }
+    } catch {
+      toast.error(compoundingEnabled ? "Failed to disable compounding." : "Failed to enable compounding.");
+    } finally {
+      setEnabling(false);
+    }
   };
 
   return (
@@ -187,22 +191,23 @@ export function CompoundingProjectionModal({ manualOpen, onManualClose, onCompou
             className="h-11 flex-1 rounded-xl border-slate-200 bg-white font-bold text-[#0F172A] hover:bg-slate-50"
             onClick={() => setOpen(false)}
           >
-            Maybe Later
+            {compoundingEnabled ? "Close" : "Maybe Later"}
           </Button>
-          {!compoundingEnabled ? (
+          {compoundingEnabled ? (
             <Button
-              className="h-11 flex-1 rounded-xl bg-emerald-600 font-bold text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:bg-emerald-700"
-              onClick={handleEnable}
+              className="h-11 flex-1 rounded-xl bg-rose-600 font-bold text-white shadow-[0_10px_30px_rgba(225,29,72,0.25)] hover:bg-rose-700"
+              onClick={handleToggle}
               disabled={enabling}
             >
-              {enabling ? "Enabling..." : "Enable Compounding"}
+              {enabling ? "Disabling..." : "Disable Compounding"}
             </Button>
           ) : (
             <Button
               className="h-11 flex-1 rounded-xl bg-emerald-600 font-bold text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:bg-emerald-700"
-              onClick={() => setOpen(false)}
+              onClick={handleToggle}
+              disabled={enabling}
             >
-              Got it
+              {enabling ? "Enabling..." : "Enable Compounding"}
             </Button>
           )}
         </div>
