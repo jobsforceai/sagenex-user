@@ -18,7 +18,8 @@ import {
   getFinancialSummary,
 } from "@/actions/user";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { RotateCw, X } from "lucide-react";
+import { Info, RotateCw, X } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 interface TreeApiResponse {
   tree: UserNode;
@@ -435,7 +436,38 @@ const TeamPage = () => {
 
             <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-black text-[#0F172A]">Top Performers</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-lg font-black text-[#0F172A]">Top Performers</h2>
+                  <TooltipProvider delayDuration={0}>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button
+                          type="button"
+                          aria-label="How Top Performers is calculated"
+                          className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-slate-200 text-[#64748B] transition hover:bg-slate-50 hover:text-[#0F172A] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+                        >
+                          <Info className="h-3.5 w-3.5" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent
+                        side="bottom"
+                        align="end"
+                        className="max-w-[280px] rounded-xl border border-slate-200 bg-white p-3 text-left shadow-[0_10px_30px_rgba(15,23,42,0.12)]"
+                      >
+                        <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">How it works</p>
+                        <p className="mt-1.5 text-xs font-semibold text-[#0F172A]">
+                          Ranks sponsors in your downline by team business this calendar month (IST).
+                        </p>
+                        <p className="mt-1.5 text-xs text-[#475569]">
+                          Resets on the 1st of every month, so the list will look empty in the first day or two until fresh package activations come in.
+                        </p>
+                        <p className="mt-1.5 text-xs text-[#475569]">
+                          Earnings = Direct + Unilevel + ROI Upline bonuses received this month.
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
                 <button
                   type="button"
                   className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-[#0F172A] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
