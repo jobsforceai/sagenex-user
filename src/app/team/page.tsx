@@ -180,12 +180,27 @@ const TeamPage = () => {
   const [bonusModalOpen, setBonusModalOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
+  const [treeLoading, setTreeLoading] = useState(true);
 
   const fetchTeamData = useCallback(async () => {
     setDataLoading(true);
+    setTreeLoading(true);
+
+    // Fire the heavy referral tree separately — it can take several seconds
+    // for users with large downlines (200+ users). Don't block the rest of
+    // the page on it.
+    getTeamTree()
+      .then((res) => {
+        if (res?.error) console.error("Could not fetch team tree:", res.error);
+        else setTreeData(res);
+      })
+      .catch((e) => console.error("Tree fetch failed:", e))
+      .finally(() => setTreeLoading(false));
+
+    // Light fetches: kick them in parallel and let the page render as the
+    // critical ones (referral summary, dashboard) come back.
     try {
       const [
-        treeResult,
         queueResult,
         bonusRulesResult,
         dashboardResult,
@@ -193,7 +208,6 @@ const TeamPage = () => {
         leaderboardResult,
         financialResult,
       ] = await Promise.all([
-        getTeamTree(),
         getPlacementQueue(),
         getBonusRulesConfig(),
         getDashboardData(),
@@ -202,45 +216,22 @@ const TeamPage = () => {
         getFinancialSummary(),
       ]);
 
-      if (treeResult.error) {
-        setError(treeResult.error);
-      } else {
-        setTreeData(treeResult);
-      }
+      if (queueResult?.error) console.error("Could not fetch placement queue:", queueResult.error);
+      else setQueue(queueResult);
 
-      if (queueResult.error) {
-        // Handle queue error separately if needed, for now just log it
-        console.error("Could not fetch placement queue:", queueResult.error);
-      } else {
-        setQueue(queueResult);
-      }
+      if (bonusRulesResult?.error) console.error("Could not fetch bonus rules:", bonusRulesResult.error);
+      else setBonusRules(bonusRulesResult);
 
-      if (bonusRulesResult?.error) {
-        console.error("Could not fetch bonus rules:", bonusRulesResult.error);
-      } else {
-        setBonusRules(bonusRulesResult);
-      }
-      if (dashboardResult?.error) {
-        console.error("Could not fetch dashboard data:", dashboardResult.error);
-      }
+      if (dashboardResult?.error) console.error("Could not fetch dashboard data:", dashboardResult.error);
 
-      if (referralResult?.error) {
-        console.error("Could not fetch referral summary:", referralResult.error);
-      } else {
-        setReferralSummary(referralResult);
-      }
+      if (referralResult?.error) console.error("Could not fetch referral summary:", referralResult.error);
+      else setReferralSummary(referralResult);
 
-      if (leaderboardResult?.error) {
-        console.error("Could not fetch leaderboard:", leaderboardResult.error);
-      } else {
-        setLeaderboardData(Array.isArray(leaderboardResult) ? leaderboardResult : []);
-      }
+      if (leaderboardResult?.error) console.error("Could not fetch leaderboard:", leaderboardResult.error);
+      else setLeaderboardData(Array.isArray(leaderboardResult) ? leaderboardResult : []);
 
-      if (financialResult?.error) {
-        console.error("Could not fetch financial summary:", financialResult.error);
-      } else {
-        setFinancialSummary(financialResult);
-      }
+      if (financialResult?.error) console.error("Could not fetch financial summary:", financialResult.error);
+      else setFinancialSummary(financialResult);
     } catch {
       setError("An error occurred while fetching team data");
     } finally {
@@ -359,7 +350,13 @@ const TeamPage = () => {
 
           {queue.length > 0 && <PlacementQueue queue={queue} onUserPlaced={fetchTeamData} />}
 
-          {treeData && treeData.tree ? (
+          {treeLoading ? (
+            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+              <div className="mb-3 h-6 w-40 animate-pulse rounded bg-slate-200" />
+              <p className="text-sm text-[#64748B]">Loading your team tree — this can take a moment for larger downlines.</p>
+              <div className="mt-5 h-[640px] animate-pulse rounded-3xl bg-slate-100" />
+            </div>
+          ) : treeData && treeData.tree ? (
             <TreeClient tree={treeData.tree} />
           ) : (
             <section className="rounded-3xl border border-slate-200/70 bg-white p-10 text-center shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
