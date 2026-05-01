@@ -23,7 +23,7 @@ export const NAV_ITEMS = [
   { href: "/dashboard", icon: LayoutDashboard, label: "Dashboard" },
   { href: "/wallet", icon: Wallet, label: "Wallet" },
   { href: "/team", icon: Users, label: "Team" },
-  { href: "/team-business", icon: TrendingUp, label: "Business" },
+  { href: "/team-business", icon: TrendingUp, label: "My Business" },
   { href: "/rewards", icon: Gift, label: "Rewards" },
   { href: "/payouts", icon: ArrowDownCircle, label: "Payouts" },
   { href: "/salary", icon: BadgeDollarSign, label: "Salary" },

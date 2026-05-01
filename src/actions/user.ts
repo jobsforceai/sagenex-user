@@ -247,8 +247,9 @@ export async function createSgbnCoupon(planType: "BUSINESS" | "FREELANCER") {
   return handleApiResponse(res);
 }
 
-export async function getRankProgress() {
-  const res = await fetch(`${API_BASE_URL}/api/v1/user/rank-progress`, {
+export async function getRankProgress(opts?: { year?: number; month?: number }) {
+  const qs = opts?.year && opts?.month ? `?year=${opts.year}&month=${opts.month}` : '';
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/rank-progress${qs}`, {
     headers: await getAuthHeaders(),
   });
   return handleApiResponse(res);

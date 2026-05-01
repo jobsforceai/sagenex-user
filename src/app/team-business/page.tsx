@@ -196,13 +196,39 @@ const TeamBusinessPage = () => {
   const [kycVerified, setKycVerified] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [monthLoading, setMonthLoading] = useState(false);
+
+  // Selected month state — defaults to current month (1-indexed).
+  const today = new Date();
+  const [selectedYear, setSelectedYear] = useState<number>(today.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState<number>(today.getMonth() + 1);
+
+  const isCurrentMonth = selectedYear === today.getFullYear() && selectedMonth === today.getMonth() + 1;
+
+  // Build last 12 months as picker options
+  const monthOptions = useMemo(() => {
+    const opts: { year: number; month: number; label: string; isCurrent: boolean }[] = [];
+    for (let i = 0; i < 12; i++) {
+      const d = new Date(today.getFullYear(), today.getMonth() - i, 1);
+      const y = d.getFullYear();
+      const m = d.getMonth() + 1;
+      opts.push({
+        year: y,
+        month: m,
+        label: d.toLocaleString("en-IN", { month: "long", year: "numeric" }),
+        isCurrent: i === 0,
+      });
+    }
+    return opts;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
       const [rp, dash, ref, lb, kyc] = await Promise.all([
-        getRankProgress(),
+        getRankProgress({ year: selectedYear, month: selectedMonth }),
         getDashboardData(),
         getReferralSummary(),
         getLeaderboard("team"),
@@ -224,6 +250,18 @@ const TeamBusinessPage = () => {
     } finally {
       setLoading(false);
     }
+  }, [selectedYear, selectedMonth]);
+
+  // Lighter-weight fetch when only the month changes — re-pulls rankProgress
+  // (the only month-bound dataset) without re-loading dashboard/leaderboard/kyc.
+  const fetchMonth = useCallback(async (year: number, month: number) => {
+    setMonthLoading(true);
+    try {
+      const rp = await getRankProgress({ year, month });
+      if (!rp?.error) setRankProgress(rp);
+    } finally {
+      setMonthLoading(false);
+    }
   }, []);
 
   useEffect(() => {
@@ -232,7 +270,15 @@ const TeamBusinessPage = () => {
       return;
     }
     if (isAuthenticated) fetchAll();
-  }, [isAuthenticated, authLoading, router, fetchAll]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isAuthenticated, authLoading, router]);
+
+  // When the user changes the month, do a lightweight refetch.
+  useEffect(() => {
+    if (loading) return; // initial load handles it
+    fetchMonth(selectedYear, selectedMonth);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear, selectedMonth]);
 
   const legs = useMemo(() => {
     const list = [...(rankProgress?.legDetails ?? [])];
@@ -330,14 +376,43 @@ const TeamBusinessPage = () => {
               Monthly business and 3x / 4x qualification indicators across your legs.
             </p>
           </div>
-          <Button
-            variant="outline"
-            onClick={fetchAll}
-            className="h-11 rounded-xl border-slate-200 bg-white font-bold text-[#0F172A] hover:bg-slate-50"
-          >
-            <RefreshCw className="mr-2 h-4 w-4" /> Refresh
-          </Button>
+          <div className="flex flex-wrap items-center gap-2">
+            <label htmlFor="month-picker" className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">
+              Month
+            </label>
+            <select
+              id="month-picker"
+              value={`${selectedYear}-${selectedMonth}`}
+              onChange={(e) => {
+                const [y, m] = e.target.value.split("-").map((v) => parseInt(v, 10));
+                setSelectedYear(y);
+                setSelectedMonth(m);
+              }}
+              className="h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm font-bold text-[#0F172A] shadow-sm focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+            >
+              {monthOptions.map((opt) => (
+                <option key={`${opt.year}-${opt.month}`} value={`${opt.year}-${opt.month}`}>
+                  {opt.label}{opt.isCurrent ? " (current)" : ""}
+                </option>
+              ))}
+            </select>
+            <Button
+              variant="outline"
+              onClick={fetchAll}
+              disabled={monthLoading}
+              className="h-11 rounded-xl border-slate-200 bg-white font-bold text-[#0F172A] hover:bg-slate-50"
+            >
+              <RefreshCw className={`mr-2 h-4 w-4 ${monthLoading ? "animate-spin" : ""}`} /> Refresh
+            </Button>
+          </div>
         </header>
+
+        {/* Banner: indicate when viewing a past month vs current */}
+        {!isCurrentMonth && (
+          <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
+            Viewing {monthOptions.find((o) => o.year === selectedYear && o.month === selectedMonth)?.label}. Numbers below are for that month only — switch back to current month for live data.
+          </div>
+        )}
 
         {/* Multiplier Status */}
         <section className="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-[#FFF1F4] to-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
