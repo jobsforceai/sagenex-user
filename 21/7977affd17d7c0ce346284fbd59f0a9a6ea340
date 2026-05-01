@@ -1,0 +1,25 @@
+src/app/components/wallet/CompoundingProjectionModal.tsx
+  964e0d3fba450c9c 53-58,65,67,76,79-96,118
+src/app/wallet/page.tsx
+  964e0d3fba450c9c 187-196,361-371,621-632
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "217977affd17d7c0ce346284fbd59f0a9a6ea340",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 89,
+      "total_deletions": 5,
+      "accepted_lines": 2918,
+      "overriden_lines": 0
+    }
+  }
+}
