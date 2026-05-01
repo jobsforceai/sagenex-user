@@ -11,6 +11,7 @@ const SHELL_ROUTES = [
   "/dashboard",
   "/wallet",
   "/team",
+  "/team-business",
   "/rewards",
   "/payouts",
   "/salary",

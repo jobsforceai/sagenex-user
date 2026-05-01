@@ -29,6 +29,7 @@ const authLinks: NavLink[] = [
   { href: "/kyc", label: "KYC" },
   { href: "/wallet", label: "Wallet" },
   { href: "/team", label: "My Team" },
+  { href: "/team-business", label: "My Business" },
   { href: "/profile", label: "Profile" },
   { href: process.env.NEXT_PUBLIC_ANDROID_APP_URL ?? "#", label: "Download App" },
 ];
