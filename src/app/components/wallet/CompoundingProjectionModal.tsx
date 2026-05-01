@@ -53,9 +53,10 @@ const fmt = (v: number) => `₹${Math.round(v).toLocaleString("en-IN")}`;
 interface CompoundingProjectionModalProps {
   manualOpen?: boolean;
   onManualClose?: () => void;
+  onCompoundingChange?: (enabled: boolean) => void;
 }
 
-export function CompoundingProjectionModal({ manualOpen, onManualClose }: CompoundingProjectionModalProps = {}) {
+export function CompoundingProjectionModal({ manualOpen, onManualClose, onCompoundingChange }: CompoundingProjectionModalProps = {}) {
   const [open, setOpen] = useState(false);
   const [packageUSD, setPackageUSD] = useState(0);
   const [compoundingEnabled, setCompoundingEnabled] = useState(false);
@@ -107,6 +108,7 @@ export function CompoundingProjectionModal({ manualOpen, onManualClose }: Compou
       if (res?.error) { toast.error(res.error); }
       else {
         setCompoundingEnabled(true);
+        onCompoundingChange?.(true);
         toast.success("Compounding enabled!");
         setOpen(false);
       }

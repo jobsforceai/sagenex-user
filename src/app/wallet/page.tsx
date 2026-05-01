@@ -620,15 +620,8 @@ const WalletPage = () => {
 
       <CompoundingProjectionModal
         manualOpen={compoundingModalOpen}
-        onManualClose={() => {
-          setCompoundingModalOpen(false);
-          // Refresh status so the badge updates immediately
-          import("@/actions/user").then(({ getCompoundingStatus }) => {
-            getCompoundingStatus().then((res) => {
-              if (!res?.error) setCompoundingEnabled(Boolean(res.compoundingEnabled));
-            });
-          });
-        }}
+        onManualClose={() => setCompoundingModalOpen(false)}
+        onCompoundingChange={(enabled) => setCompoundingEnabled(enabled)}
       />
       </div>
     </div>
