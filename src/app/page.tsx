@@ -2,6 +2,7 @@ import HomePage from "@/components/landing/home-page";
 import MarqueeTicker from "@/components/landing/marquee-ticker";
 import AboutSection from "@/components/landing/about-section";
 import InvestmentPillars from "@/components/landing/investment-pillars";
+import ProfitCalculator from "@/components/landing/profit-calculator";
 import EcosystemSection from "@/components/landing/ecosystem-section";
 import SagenexAcademy from "@/components/landing/sagenex-academy";
 import RoadmapSection from "@/components/landing/roadmap-section";
@@ -18,6 +19,7 @@ export default function Home() {
       <MarqueeTicker />
       <AboutSection />
       <InvestmentPillars />
+      <ProfitCalculator />
       <EcosystemSection />
       {/* <SagenexAcademy /> */}
       <RoadmapSection />

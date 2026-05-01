@@ -1,192 +1,484 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { Calculator, TrendingUp, Info, RefreshCcw, Percent } from "lucide-react";
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip } from "recharts";
+import { TrendingUp, Sparkles } from "lucide-react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  Legend,
+} from "recharts";
 
-type AssetKey = "sagenex" | "gold" | "land" | "stocks" | "cash";
-type Asset = { key: AssetKey; label: string; color: string; defaultAPR: number; hint: string };
+type Tier = {
+  minPackage: number;
+  maxPackage: number | null;
+  rateMonthly: number;
+  label: string;
+};
 
-const ASSETS: Asset[] = [
-  { key: "sagenex", label: "Sagenex",         color: "#00b386", defaultAPR: 12, hint: "Adjust expected annual return (illustrative)." },
-  { key: "stocks",  label: "Stock Market",    color: "#6366f1", defaultAPR: 8,  hint: "Long-run nominal avg often ~7–10%." },
-  { key: "gold",    label: "Gold",            color: "#d97706", defaultAPR: 6,  hint: "Historic nominal trend ~4–8% with cycles." },
-  { key: "land",    label: "Real Estate",     color: "#0ea5e9", defaultAPR: 4.5,hint: "Appreciation ex-rent; location specific." },
-  { key: "cash",    label: "Cash (Ref)",      color: "#9ca3af", defaultAPR: 3,  hint: "Bank/APY (varies)." },
+type Plan = {
+  name: string;
+  tiers: Tier[];
+};
+
+type RoiResponse = {
+  success: boolean;
+  data: {
+    old: Plan;
+    new: Plan;
+  };
+};
+
+type PlanKey = "old" | "new";
+
+const MILESTONES = [6, 12, 24, 36];
+const DURATIONS: { value: number; label: string }[] = [
+  { value: 6, label: "6 mo" },
+  { value: 12, label: "1 yr" },
+  { value: 24, label: "2 yr" },
+  { value: 36, label: "3 yr" },
 ];
 
-function compound(p: number, r: number, y: number) { return p * Math.pow(1 + r / 100, y); }
+const inr = (value: number) =>
+  value.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  });
+
+function findTier(tiers: Tier[], amount: number): Tier | null {
+  for (const t of tiers) {
+    const above = amount >= t.minPackage;
+    const below = t.maxPackage === null || amount <= t.maxPackage;
+    if (above && below) return t;
+  }
+  return null;
+}
+
+function project(tiers: Tier[], principal: number, months: number) {
+  const monthlyRate = findTier(tiers, principal)?.rateMonthly ?? 0;
+
+  // Simple
+  const simpleMonthly = principal * monthlyRate;
+  const simpleSeries: number[] = [];
+  for (let m = 0; m <= months; m++) {
+    simpleSeries.push(principal + simpleMonthly * m);
+  }
+
+  // Compound — reinvest each month, re-evaluate tier
+  const compoundSeries: number[] = [principal];
+  let pkg = principal;
+  for (let m = 1; m <= months; m++) {
+    const r = findTier(tiers, pkg)?.rateMonthly ?? 0;
+    pkg = pkg * (1 + r);
+    compoundSeries.push(pkg);
+  }
+
+  return { simpleSeries, compoundSeries, monthlyRate };
+}
 
 export default function ProfitCalculator() {
-  const [amount, setAmount] = useState(1000);
-  const [years, setYears] = useState(3);
-  const [inflation, setInflation] = useState(4);
-  const [showReal, setShowReal] = useState(false);
-  const [rates, setRates] = useState<Record<AssetKey, number>>(
-    Object.fromEntries(ASSETS.map(a => [a.key, a.defaultAPR])) as Record<AssetKey, number>
-  );
+  const [plans, setPlans] = useState<{ old: Plan; new: Plan } | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(false);
 
-  const data = useMemo(() => ASSETS.map(a => {
-    const eff = showReal ? ((1 + rates[a.key] / 100) / (1 + inflation / 100) - 1) * 100 : rates[a.key];
-    const final = compound(amount, eff, years);
-    return { key: a.key, label: a.label, color: a.color, final, profit: final - amount, rate: eff };
-  }).sort((a, b) => b.profit - a.profit), [amount, years, rates, showReal, inflation]);
+  const [activePlan, setActivePlan] = useState<PlanKey>("new");
+  const [amount, setAmount] = useState(100000);
+  const [months, setMonths] = useState(24);
 
-  const reset = () => {
-    setAmount(1000); setYears(3); setInflation(4); setShowReal(false);
-    setRates(Object.fromEntries(ASSETS.map(a => [a.key, a.defaultAPR])) as Record<AssetKey, number>);
-  };
+  useEffect(() => {
+    let cancelled = false;
+    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/config/roi-rates`;
+    fetch(url)
+      .then((r) => r.json())
+      .then((j: RoiResponse) => {
+        if (cancelled) return;
+        if (j?.success && j.data?.old && j.data?.new) {
+          setPlans({ old: j.data.old, new: j.data.new });
+        } else {
+          setError(true);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setError(true);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const activeTiers = plans ? plans[activePlan].tiers : [];
+  const minPackage = activeTiers[0]?.minPackage ?? 0;
+  const belowMin = !!plans && amount < minPackage;
+
+  const projection = useMemo(() => {
+    if (!plans) return null;
+    return project(activeTiers, amount, months);
+  }, [plans, activeTiers, amount, months]);
+
+  const tierLabel = useMemo(() => {
+    if (!plans) return "";
+    return findTier(activeTiers, amount)?.label ?? "—";
+  }, [plans, activeTiers, amount]);
+
+  const monthlyRatePct = projection ? (projection.monthlyRate * 100).toFixed(1) : "0.0";
+
+  const chartData = useMemo(() => {
+    if (!projection) return [];
+    return projection.simpleSeries.map((s, i) => ({
+      month: i,
+      Simple: Math.round(s),
+      Compound: Math.round(projection.compoundSeries[i] ?? s),
+    }));
+  }, [projection]);
+
+  const simpleTotal = projection ? projection.simpleSeries[months] ?? amount : amount;
+  const compoundTotal = projection ? projection.compoundSeries[months] ?? amount : amount;
+  const delta = compoundTotal - simpleTotal;
+
+  const isNew = activePlan === "new";
 
   return (
-    <section className="w-full bg-white py-20 md:py-28">
+    <section className="w-full bg-gradient-to-b from-white to-[#F8FAFC] py-20 md:py-28">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Header */}
         <motion.div
-          initial={{ opacity: 0, y: 24 }}
+          initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-10"
+          className="text-center mb-10 max-w-3xl mx-auto"
         >
-          <span className="inline-block bg-[#e6f7f3] text-[#00875f] text-sm font-semibold px-4 py-1.5 rounded-full mb-4">
-            <Calculator className="inline h-3.5 w-3.5 mr-1.5" />
-            Profit Comparison
+          <span className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">
+            Wealth Compounding
           </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#1a1a1a] mb-3">
-            See How Your Money <span className="text-[#00b386]">Grows</span>
+          <h2 className="mt-3 font-black text-[#0F172A] text-3xl sm:text-4xl md:text-5xl leading-tight">
+            Compounding That Creates <span className="text-[#10B981]">Real Wealth</span>
           </h2>
-          <p className="text-[#555] max-w-xl mx-auto">
-            Compare Sagenex returns against Gold, Real Estate, Stocks, and Cash side by side.
+          <p className="mt-4 text-[#64748B] text-base sm:text-lg">
+            Small Steps Today, Massive Freedom Tomorrow.
           </p>
         </motion.div>
 
         <motion.div
-          initial={{ opacity: 0, y: 30 }}
+          initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          className="bg-[#f7f8fa] border border-[#e8e8e8] rounded-3xl p-6 sm:p-8"
+          className="rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] p-6 sm:p-8 md:p-10"
         >
-          {/* Controls */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-            {/* Amount */}
-            <div className="bg-white border border-[#e8e8e8] rounded-2xl p-4">
-              <label className="text-sm font-semibold text-[#1a1a1a] block mb-2">Amount (USD)</label>
-              <input
-                type="number" min={50} step={50} value={amount}
-                onChange={e => setAmount(Number(e.target.value))}
-                className="w-full border border-[#e8e8e8] rounded-lg px-3 py-2 text-sm text-[#1a1a1a] outline-none focus:ring-2 focus:ring-[#00b386]/30"
-              />
-              <input type="range" min={50} max={100000} step={50} value={amount}
-                onChange={e => setAmount(Number(e.target.value))}
-                className="mt-2 w-full accent-[#00b386]" />
-            </div>
-            {/* Years */}
-            <div className="bg-white border border-[#e8e8e8] rounded-2xl p-4">
-              <label className="text-sm font-semibold text-[#1a1a1a] block mb-2">Years: {years}</label>
-              <input type="range" min={1} max={15} value={years}
-                onChange={e => setYears(Number(e.target.value))}
-                className="w-full accent-[#00b386] mt-1" />
-              <div className="flex justify-between text-xs text-[#888] mt-1">
-                <span>1 yr</span><span>15 yrs</span>
-              </div>
-            </div>
-            {/* Inflation */}
-            <div className="bg-white border border-[#e8e8e8] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-2">
-                <label className="text-sm font-semibold text-[#1a1a1a] flex items-center gap-1.5">
-                  <Percent className="h-3.5 w-3.5 text-[#888]" /> Inflation: {inflation}%
-                </label>
-              </div>
-              <input type="range" min={0} max={12} value={inflation}
-                onChange={e => setInflation(parseFloat(e.target.value))}
-                className="w-full accent-[#00b386]" />
-              <div className="flex items-center justify-between mt-2">
-                <label className="text-xs text-[#555]">Show real returns</label>
-                <input type="checkbox" className="h-4 w-4 accent-[#00b386]" checked={showReal}
-                  onChange={e => setShowReal(e.target.checked)} />
-              </div>
+          {/* Plan tabs */}
+          <div className="flex items-center justify-center mb-8">
+            <div className="inline-flex p-1 rounded-2xl bg-slate-100 border border-slate-200/70">
+              {(["old", "new"] as PlanKey[]).map((key) => {
+                const active = activePlan === key;
+                const isNewKey = key === "new";
+                return (
+                  <button
+                    key={key}
+                    onClick={() => setActivePlan(key)}
+                    className={`px-5 sm:px-7 py-2.5 rounded-xl text-sm font-black transition-all ${
+                      active
+                        ? isNewKey
+                          ? "bg-[#10B981] text-white shadow-md"
+                          : "bg-[#0F172A] text-white shadow-md"
+                        : "text-[#64748B] hover:text-[#0F172A]"
+                    }`}
+                  >
+                    {isNewKey ? "New ROI Plan" : "Old ROI Plan"}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Rate sliders */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
-            {ASSETS.map(a => (
-              <div key={a.key} className="bg-white border border-[#e8e8e8] rounded-xl p-3">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-xs font-semibold text-[#1a1a1a]">{a.label}</span>
-                  <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: a.color }} />
+          {loading && (
+            <div className="grid place-items-center py-20">
+              <div className="h-10 w-10 animate-spin rounded-full border-4 border-slate-200 border-t-[#10B981]" />
+            </div>
+          )}
+
+          {error && !loading && (
+            <div className="text-center py-16 text-[#64748B]">
+              Unable to load live ROI rates. Please refresh and try again.
+            </div>
+          )}
+
+          {!loading && !error && plans && (
+            <>
+              {/* Inputs */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                <div className="rounded-2xl border border-slate-200/70 bg-[#F8FAFC] p-5">
+                  <div className="flex items-baseline justify-between mb-3">
+                    <label className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">
+                      Investment Amount
+                    </label>
+                    <span className="font-black text-[#0F172A] text-lg">{inr(amount)}</span>
+                  </div>
+                  <input
+                    type="number"
+                    min={1000}
+                    step={1000}
+                    value={amount}
+                    onChange={(e) => setAmount(Math.max(0, Number(e.target.value) || 0))}
+                    className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-semibold text-[#0F172A] outline-none focus:ring-2 focus:ring-[#10B981]/30"
+                  />
+                  <input
+                    type="range"
+                    min={1000}
+                    max={2000000}
+                    step={1000}
+                    value={Math.min(amount, 2000000)}
+                    onChange={(e) => setAmount(Number(e.target.value))}
+                    className={`mt-3 w-full ${isNew ? "accent-[#10B981]" : "accent-[#0F172A]"}`}
+                  />
+                  <div className="flex justify-between text-[11px] text-[#64748B] mt-1">
+                    <span>{inr(1000)}</span>
+                    <span>{inr(2000000)}+</span>
+                  </div>
                 </div>
-                <div className="text-xs text-[#555] mb-1">APR: <span className="font-bold">{rates[a.key].toFixed(1)}%</span></div>
-                <input type="range" min={0} max={a.key === "sagenex" ? 40 : 20} step={0.5}
-                  value={rates[a.key]}
-                  style={{ accentColor: a.color }}
-                  className="w-full"
-                  onChange={e => setRates(r => ({ ...r, [a.key]: parseFloat(e.target.value) }))} />
-                <p className="text-[10px] text-[#888] mt-1 flex items-start gap-1">
-                  <Info className="h-3 w-3 flex-shrink-0 mt-0.5" /> {a.hint}
-                </p>
-              </div>
-            ))}
-          </div>
 
-          {/* Chart + table */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <div className="bg-white border border-[#e8e8e8] rounded-2xl p-4">
-              <p className="text-sm font-semibold text-[#1a1a1a] mb-3">Final Value after {years} year{years > 1 ? "s" : ""}</p>
-              <div className="h-52">
-                <ResponsiveContainer>
-                  <BarChart data={data.map(d => ({ name: d.label, Value: Math.round(d.final), fill: d.color }))}
-                    margin={{ left: 0, right: 8, top: 4, bottom: 0 }}>
-                    <CartesianGrid stroke="#f0f0f0" vertical={false} />
-                    <XAxis dataKey="name" tick={{ fill: "#555", fontSize: 11 }} />
-                    <YAxis tick={{ fill: "#888", fontSize: 11 }} />
-                    <Tooltip formatter={(v: number) => [`₹${v.toLocaleString('en-IN')}`, "Value"]}
-                      contentStyle={{ borderRadius: 8, border: "1px solid #e8e8e8", fontSize: 12 }} />
-                    <Bar dataKey="Value" radius={[6, 6, 0, 0]} fill="#00b386" />
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
-
-            <div className="bg-white border border-[#e8e8e8] rounded-2xl p-4">
-              <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-semibold text-[#1a1a1a]">Breakdown</p>
-                <button onClick={reset}
-                  className="inline-flex items-center gap-1 border border-[#e8e8e8] rounded-lg px-2 py-1 text-xs text-[#555] hover:bg-[#f7f8fa]">
-                  <RefreshCcw className="h-3.5 w-3.5" /> Reset
-                </button>
-              </div>
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-[#888] text-xs">
-                    <th className="pb-2">Asset</th><th className="pb-2">Rate</th><th className="pb-2">Final</th><th className="pb-2">Profit</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {data.map(d => (
-                    <tr key={d.key} className="border-t border-[#f0f0f0]">
-                      <td className="py-2 text-[#1a1a1a]">
-                        <div className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full flex-shrink-0" style={{ background: d.color }} />
+                <div className="rounded-2xl border border-slate-200/70 bg-[#F8FAFC] p-5">
+                  <div className="flex items-baseline justify-between mb-3">
+                    <label className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">
+                      Duration
+                    </label>
+                    <span className="font-black text-[#0F172A] text-lg">{months} months</span>
+                  </div>
+                  <div className="grid grid-cols-4 gap-2">
+                    {DURATIONS.map((d) => {
+                      const active = months === d.value;
+                      return (
+                        <button
+                          key={d.value}
+                          onClick={() => setMonths(d.value)}
+                          className={`py-2 rounded-xl text-sm font-black transition-all ${
+                            active
+                              ? isNew
+                                ? "bg-[#10B981] text-white"
+                                : "bg-[#0F172A] text-white"
+                              : "bg-white border border-slate-200 text-[#64748B] hover:text-[#0F172A]"
+                          }`}
+                        >
                           {d.label}
-                        </div>
-                      </td>
-                      <td className="py-2 text-[#555]">{d.rate.toFixed(1)}%</td>
-                      <td className="py-2 text-[#1a1a1a] font-medium">₹{d.final.toLocaleString('en-IN', { maximumFractionDigits: 0 })}</td>
-                      <td className="py-2 font-semibold" style={{ color: d.profit >= 0 ? "#00b386" : "#ef4444" }}>
-                        {d.profit >= 0 ? "+" : "-"}₹{Math.abs(d.profit).toLocaleString('en-IN', { maximumFractionDigits: 0 })}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-              <div className="mt-3 text-[11px] text-[#888] flex items-start gap-1.5">
-                <TrendingUp className="h-3.5 w-3.5 mt-0.5 flex-shrink-0" />
-                Illustrative only. Not financial advice.
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <input
+                    type="range"
+                    min={1}
+                    max={60}
+                    value={months}
+                    onChange={(e) => setMonths(Number(e.target.value))}
+                    className={`mt-4 w-full ${isNew ? "accent-[#10B981]" : "accent-[#0F172A]"}`}
+                  />
+                  <div className="flex justify-between text-[11px] text-[#64748B] mt-1">
+                    <span>1 mo</span>
+                    <span>60 mo</span>
+                  </div>
+                </div>
               </div>
-            </div>
-          </div>
+
+              {/* Resolved tier */}
+              <div
+                className={`rounded-2xl p-5 mb-8 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 border ${
+                  belowMin
+                    ? "border-amber-200 bg-amber-50"
+                    : isNew
+                      ? "border-emerald-200 bg-emerald-50"
+                      : "border-slate-200 bg-slate-50"
+                }`}
+              >
+                <div>
+                  <div className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">
+                    {plans[activePlan].name}
+                  </div>
+                  <div className="mt-1 font-black text-[#0F172A] text-base sm:text-lg">
+                    {belowMin ? `Enter at least ${inr(minPackage)} to qualify` : tierLabel}
+                  </div>
+                </div>
+                {!belowMin && (
+                  <div className="text-right">
+                    <div className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">
+                      Monthly Rate
+                    </div>
+                    <div
+                      className={`mt-1 font-black text-2xl ${isNew ? "text-[#10B981]" : "text-[#0F172A]"}`}
+                    >
+                      {monthlyRatePct}%
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Result cards */}
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+                <div className="rounded-2xl border border-slate-200/70 bg-white p-5">
+                  <div className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">
+                    Simple ROI Total
+                  </div>
+                  <div className="mt-2 font-black text-[#0F172A] text-2xl sm:text-3xl">
+                    {inr(simpleTotal)}
+                  </div>
+                  <div className="mt-1 text-sm text-[#64748B]">Withdraw monthly, package stays flat</div>
+                </div>
+                <div
+                  className={`rounded-2xl p-5 border-2 ${
+                    isNew ? "border-[#10B981] bg-emerald-50" : "border-[#0F172A] bg-slate-50"
+                  }`}
+                >
+                  <div className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B] flex items-center gap-1.5">
+                    <Sparkles className="h-3.5 w-3.5" /> Compound ROI Total
+                  </div>
+                  <div
+                    className={`mt-2 font-black text-2xl sm:text-3xl ${
+                      isNew ? "text-[#10B981]" : "text-[#0F172A]"
+                    }`}
+                  >
+                    {inr(compoundTotal)}
+                  </div>
+                  <div className="mt-1 text-sm text-[#64748B]">Reinvest monthly, package compounds</div>
+                </div>
+                <div className="rounded-2xl border border-slate-200/70 bg-white p-5">
+                  <div className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B] flex items-center gap-1.5">
+                    <TrendingUp className="h-3.5 w-3.5" /> Compounding Bonus
+                  </div>
+                  <div className="mt-2 font-black text-[#0F172A] text-2xl sm:text-3xl">
+                    +{inr(Math.max(0, delta))}
+                  </div>
+                  <div className="mt-1 text-sm text-[#64748B]">Extra wealth from compounding</div>
+                </div>
+              </div>
+
+              {/* Chart */}
+              <div className="rounded-2xl border border-slate-200/70 bg-white p-4 sm:p-6 mb-8">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <div className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">
+                      Wealth Trajectory
+                    </div>
+                    <div className="font-black text-[#0F172A] text-base">
+                      Simple vs Compound · {months} months
+                    </div>
+                  </div>
+                </div>
+                <div className="h-64 sm:h-80">
+                  <ResponsiveContainer>
+                    <AreaChart data={chartData} margin={{ top: 10, right: 8, bottom: 0, left: 0 }}>
+                      <defs>
+                        <linearGradient id="gradCompound" x1="0" y1="0" x2="0" y2="1">
+                          <stop
+                            offset="0%"
+                            stopColor={isNew ? "#10B981" : "#0F172A"}
+                            stopOpacity={0.3}
+                          />
+                          <stop
+                            offset="100%"
+                            stopColor={isNew ? "#10B981" : "#0F172A"}
+                            stopOpacity={0}
+                          />
+                        </linearGradient>
+                        <linearGradient id="gradSimple" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0%" stopColor="#94A3B8" stopOpacity={0.25} />
+                          <stop offset="100%" stopColor="#94A3B8" stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid stroke="#E2E8F0" vertical={false} />
+                      <XAxis
+                        dataKey="month"
+                        tick={{ fill: "#64748B", fontSize: 11 }}
+                        tickFormatter={(v) => `${v}m`}
+                      />
+                      <YAxis
+                        tick={{ fill: "#64748B", fontSize: 11 }}
+                        tickFormatter={(v) =>
+                          v >= 1e7
+                            ? `${(v / 1e7).toFixed(1)}Cr`
+                            : v >= 1e5
+                              ? `${(v / 1e5).toFixed(1)}L`
+                              : `${(v / 1000).toFixed(0)}K`
+                        }
+                      />
+                      <Tooltip
+                        formatter={(v: number) => inr(v)}
+                        labelFormatter={(l) => `Month ${l}`}
+                        contentStyle={{
+                          borderRadius: 12,
+                          border: "1px solid #E2E8F0",
+                          fontSize: 12,
+                        }}
+                      />
+                      <Legend wrapperStyle={{ fontSize: 12 }} />
+                      <Area
+                        type="monotone"
+                        dataKey="Simple"
+                        stroke="#94A3B8"
+                        strokeWidth={2}
+                        fill="url(#gradSimple)"
+                      />
+                      <Area
+                        type="monotone"
+                        dataKey="Compound"
+                        stroke={isNew ? "#10B981" : "#0F172A"}
+                        strokeWidth={2.5}
+                        fill="url(#gradCompound)"
+                      />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
+              </div>
+
+              {/* Milestone strip */}
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {MILESTONES.filter((m) => m <= months && projection).map((m) => {
+                  const s = projection!.simpleSeries[m] ?? 0;
+                  const c = projection!.compoundSeries[m] ?? 0;
+                  const extra = c - s;
+                  const label =
+                    m === 6 ? "After 6 mo" : m === 12 ? "After 1 yr" : `After ${m / 12} yr`;
+                  return (
+                    <div
+                      key={m}
+                      className="rounded-2xl border border-slate-200/70 bg-[#F8FAFC] p-4"
+                    >
+                      <div className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">
+                        {label}
+                      </div>
+                      <div className="mt-2 text-sm text-[#64748B]">
+                        Simple <span className="font-black text-[#0F172A]">{inr(s)}</span>
+                      </div>
+                      <div className="text-sm text-[#64748B]">
+                        Compound{" "}
+                        <span
+                          className={`font-black ${isNew ? "text-[#10B981]" : "text-[#0F172A]"}`}
+                        >
+                          {inr(c)}
+                        </span>
+                      </div>
+                      <div
+                        className={`mt-2 inline-block rounded-full px-2.5 py-1 text-xs font-black ${
+                          isNew ? "bg-emerald-100 text-[#10B981]" : "bg-slate-200 text-[#0F172A]"
+                        }`}
+                      >
+                        +{inr(Math.max(0, extra))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <p className="mt-6 text-[11px] text-[#94A3B8] text-center">
+                Illustrative projection based on current ROI tiers. Past performance is not a
+                guarantee of future returns.
+              </p>
+            </>
+          )}
         </motion.div>
       </div>
     </section>
