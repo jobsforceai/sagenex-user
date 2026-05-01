@@ -184,6 +184,16 @@ const WalletPage = () => {
   const [withdrawDrawerOpen, setWithdrawDrawerOpen] = useState(false);
   const [transferDrawerOpen, setTransferDrawerOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("overview");
+  const [compoundingModalOpen, setCompoundingModalOpen] = useState(false);
+  const [compoundingEnabled, setCompoundingEnabled] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    import("@/actions/user").then(({ getCompoundingStatus }) => {
+      getCompoundingStatus().then((res) => {
+        if (!res?.error) setCompoundingEnabled(Boolean(res.compoundingEnabled));
+      });
+    });
+  }, []);
 
   const fetchData = useCallback(async () => {
     setWalletLoading(true);
@@ -348,6 +358,17 @@ const WalletPage = () => {
               {kycStatus.status === "VERIFIED" ? "KYC VERIFIED" : "KYC PENDING"}
             </button>
           )}
+          <button
+            type="button"
+            onClick={() => setCompoundingModalOpen(true)}
+            className="inline-flex h-11 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 text-sm font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/30"
+          >
+            <TrendingUp className="h-4 w-4" />
+            Compounding
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${compoundingEnabled ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+              {compoundingEnabled === null ? '...' : compoundingEnabled ? 'ON' : 'OFF'}
+            </span>
+          </button>
           <Button
             onClick={() => setWithdrawDrawerOpen(true)}
             className="wallet-red-control h-11 rounded-xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-5 font-bold text-white shadow-[0_14px_30px_rgba(200,16,62,0.24)] hover:from-[#C8103E] hover:to-[#68001A] focus:ring-2 focus:ring-[#C8103E]/30"
@@ -597,7 +618,18 @@ const WalletPage = () => {
         </DrawerContent>
       </Drawer>
 
-      <CompoundingProjectionModal />
+      <CompoundingProjectionModal
+        manualOpen={compoundingModalOpen}
+        onManualClose={() => {
+          setCompoundingModalOpen(false);
+          // Refresh status so the badge updates immediately
+          import("@/actions/user").then(({ getCompoundingStatus }) => {
+            getCompoundingStatus().then((res) => {
+              if (!res?.error) setCompoundingEnabled(Boolean(res.compoundingEnabled));
+            });
+          });
+        }}
+      />
       </div>
     </div>
   );

@@ -50,14 +50,21 @@ function buildProjection(packageUSD: number, monthlyRateFn: (pkg: number) => num
 
 const fmt = (v: number) => `₹${Math.round(v).toLocaleString("en-IN")}`;
 
-export function CompoundingProjectionModal() {
+interface CompoundingProjectionModalProps {
+  manualOpen?: boolean;
+  onManualClose?: () => void;
+}
+
+export function CompoundingProjectionModal({ manualOpen, onManualClose }: CompoundingProjectionModalProps = {}) {
   const [open, setOpen] = useState(false);
   const [packageUSD, setPackageUSD] = useState(0);
   const [compoundingEnabled, setCompoundingEnabled] = useState(false);
   const [roiPlanType, setRoiPlanType] = useState<"old" | "new" | undefined>(undefined);
   const [enabling, setEnabling] = useState(false);
 
+  // Auto-open once on mount for active-package users (first-time pitch)
   useEffect(() => {
+    if (manualOpen) return; // don't auto-open if parent is controlling
     getCompoundingStatus().then((res) => {
       if (!res?.error && res?.isPackageActive && (res?.packageUSD ?? 0) > 0) {
         setPackageUSD(res.packageUSD);
@@ -66,7 +73,26 @@ export function CompoundingProjectionModal() {
         setOpen(true);
       }
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // External (manual) open: refetch status + open
+  useEffect(() => {
+    if (!manualOpen) return;
+    getCompoundingStatus().then((res) => {
+      if (!res?.error) {
+        setPackageUSD(res.packageUSD ?? 0);
+        setCompoundingEnabled(res.compoundingEnabled ?? false);
+        setRoiPlanType(res.roiPlanType);
+        setOpen(true);
+      }
+    });
+  }, [manualOpen]);
+
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next);
+    if (!next) onManualClose?.();
+  };
 
   const rateFn = roiPlanType === "new" ? getNewTieredROIRate : getTieredROIRate;
   const monthlyRate = rateFn(packageUSD);
@@ -89,7 +115,7 @@ export function CompoundingProjectionModal() {
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="max-h-[90vh] max-w-lg overflow-y-auto rounded-3xl border border-slate-200/70 bg-white p-6 text-[#0F172A] shadow-[0_25px_80px_rgba(15,23,42,0.18)] sm:p-8">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 text-lg font-black tracking-tight text-[#0F172A]">
