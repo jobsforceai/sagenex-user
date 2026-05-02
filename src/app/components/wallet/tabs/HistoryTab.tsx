@@ -195,7 +195,17 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
                     const reference = getTransactionReference(tx);
                     const counterparty = getCounterpartyLabel(tx);
                     const metaEntries = Object.entries(tx.meta || {})
-                      .map(([key, value]) => [formatLabel(key), value] as const)
+                      .map(([key, value]) => {
+                        // For UNILEVEL bonuses, the backend stores level=1 to mean
+                        // the depth-2 upline. User-facing UI everywhere else shows
+                        // it as Level 2 (since L1 in user terms is the DIRECT bonus).
+                        // Shift the displayed level by +1 for consistency with the
+                        // Bonus Summary panel.
+                        if (tx.type === "UNILEVEL" && (key === "level" || key === "unilevelLevel") && typeof value === "number") {
+                          return [formatLabel(key), value + 1] as const;
+                        }
+                        return [formatLabel(key), value] as const;
+                      })
                       .filter(([, value]) => !isEmptyValue(value));
 
                     const detailItems = [

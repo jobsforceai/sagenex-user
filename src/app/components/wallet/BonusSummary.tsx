@@ -29,9 +29,10 @@ const formatCurrency = (amount: number) =>
 export const BonusSummary = ({ bonuses, loading }: BonusSummaryProps) => {
   const [showDetails, setShowDetails] = useState(false);
 
-  // Show the backend level directly — this matches the level shown on each
-  // UNILEVEL entry in Wallet History, so the user can reconcile.
-  const displayLevel = (level: number) => level;
+  // Backend levels start at 1, but UI should display starting at 2 because
+  // L1 in user-facing nomenclature is the DIRECT bonus (immediate sponsor),
+  // and backend UNILEVEL level=1 is the depth-2 upline.
+  const displayLevel = (level: number) => level + 1;
   // Also shift any "L<number>" tokens in names to match UI numbering.
   const displayName = (name: string) =>
     name.replace(/\bL(\d+)\b/g, (_, raw) => `L${Number(raw) + 1}`);
