@@ -1,0 +1,25 @@
+src/app/wallet/page.tsx
+  964e0d3fba450c9c 312-319
+src/app/dashboard/page.tsx
+  964e0d3fba450c9c 235-242
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.3.4",
+  "base_commit_sha": "a78c633a61c9b98bc2302643a288cdea36c48168",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai",
+      "messages": [],
+      "total_additions": 16,
+      "total_deletions": 0,
+      "accepted_lines": 3537,
+      "overriden_lines": 0
+    }
+  }
+}
