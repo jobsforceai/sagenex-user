@@ -309,6 +309,14 @@ const WalletPage = () => {
 
     if (isAuthenticated) {
       fetchData();
+      // Silent auto-sync (throttled 1/day server-side); refresh wallet data if corrections were applied
+      autoSyncProfile()
+        .then((res: any) => {
+          if (res?.synced && (res?.corrections ?? 0) > 0) {
+            fetchData();
+          }
+        })
+        .catch(() => {});
     }
   }, [isAuthenticated, authLoading, router, fetchData]);
 
