@@ -4,6 +4,7 @@ import { useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import AppShell from "@/app/components/AppShell";
 import SyncProfileFab from "@/app/components/SyncProfileFab";
+import ChatbotAssistant from "@/app/components/ChatbotAssistant";
 import { getDashboardData } from "@/actions/user";
 import { useShellStore } from "@/store/shellStore";
 
@@ -51,6 +52,7 @@ export default function AuthenticatedShell({ children }: { children: React.React
       <>
         {children}
         <SyncProfileFab />
+        <ChatbotAssistant />
       </>
     );
   }
@@ -66,6 +68,7 @@ export default function AuthenticatedShell({ children }: { children: React.React
         {children}
       </AppShell>
       <SyncProfileFab />
+        <ChatbotAssistant />
     </>
   );
 }

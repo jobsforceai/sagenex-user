@@ -990,3 +990,17 @@ export async function withdrawFromLP(amount: number, credentials: { type: 'OTP' 
   });
   return handleApiResponse(res);
 }
+
+
+export async function askChatbot(message: string, history: Array<{ role: string; content: string }> = []) {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/chatbot/ask`, {
+      method: 'POST',
+      headers: { ...(await getAuthHeaders()), 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message, history }),
+    });
+    return handleApiResponse(res);
+  } catch {
+    return { error: 'chatbot_failed' };
+  }
+}
