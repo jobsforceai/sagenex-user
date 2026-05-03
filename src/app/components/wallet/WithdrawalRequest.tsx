@@ -72,7 +72,8 @@ const WithdrawalRequest = ({
 
   const handleCashWithdrawal = async (e: React.FormEvent) => {
     e.preventDefault();
-    const amt = parseFloat(cashAmount);
+    if (!/^[0-9]+$/.test(cashAmount)) { toast.error("Enter a whole rupee amount (no paise)."); return; }
+    const amt = parseInt(cashAmount, 10);
     if (!amt || amt <= 0) { toast.error("Enter a valid amount."); return; }
     // Limit check on GROSS (net + 5% tax) — the actual wallet deduction.
     const gross = Math.round(amt * 1.05 * 100) / 100;
@@ -177,12 +178,16 @@ const WithdrawalRequest = ({
   };
 
   const handleAmountChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newAmount = e.target.value;
-    setAmount(newAmount);
-
+    // Strip any decimal/paise input — withdrawals must be whole rupees only.
+    const sanitized = e.target.value.replace(/[^0-9]/g, "");
+    setAmount(sanitized);
     setError(null);
 
-    const withdrawalAmount = parseFloat(newAmount);
+    const withdrawalAmount = parseInt(sanitized, 10);
+    if (sanitized && (isNaN(withdrawalAmount) || withdrawalAmount <= 0)) {
+      setError("Enter a whole rupee amount (no paise).");
+      return;
+    }
     // Limits are on GROSS (what leaves the wallet), so apply 5% on top of the user-entered net.
     const grossAmount = !isNaN(withdrawalAmount) && withdrawalAmount > 0
       ? Math.round(withdrawalAmount * 1.05 * 100) / 100
@@ -190,9 +195,9 @@ const WithdrawalRequest = ({
     if (!isNaN(withdrawalAmount) && grossAmount > maxWithdrawable) {
       setError("Total deduction (incl. 5% tax) exceeds your remaining withdrawal limit.");
     } else if (withdrawalType === "upi" && grossAmount > 500) {
-      setError(`UPI withdrawal cannot exceed ₹500 leaving the wallet (5% tax included). Max receive: ₹${(500 / 1.05).toFixed(2)}.`);
+      setError(`UPI withdrawal cannot exceed ₹500 leaving the wallet (5% tax included). Max receive: ₹${Math.floor(500 / 1.05)}.`);
     } else if (withdrawalType === "bank" && grossAmount > 0 && grossAmount < 500) {
-      setError(`Bank withdrawal must be at least ₹500 leaving the wallet (5% tax included). Min receive: ₹${(500 / 1.05).toFixed(2)}.`);
+      setError(`Bank withdrawal must be at least ₹500 leaving the wallet (5% tax included). Min receive: ₹${Math.ceil(500 / 1.05)}.`);
     }
   };
 
@@ -409,18 +414,18 @@ const WithdrawalRequest = ({
                   type="number"
                   value={cashAmount}
                   onChange={(e) => setCashAmount(e.target.value)}
-                  placeholder={`Max receive: ₹${(Math.floor((currentBalance / 1.05) * 100) / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                  placeholder={`Max receive: ₹${Math.floor(currentBalance / 1.05).toLocaleString('en-IN')}`}
                   className="border-[#E8E8E8] bg-white text-[#111827]"
-                  min="0.01"
-                  step="0.01"
+                  min="1"
+                  step="1"
                 />
                 <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-emerald-50 px-3 py-2 text-xs">
                   <span className="font-bold text-emerald-700">
-                    Max withdrawable (after 5% tax): ₹{(Math.floor((currentBalance / 1.05) * 100) / 100).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    Max withdrawable (after 5% tax): ₹{Math.floor(currentBalance / 1.05).toLocaleString('en-IN')}
                   </span>
                   <button
                     type="button"
-                    onClick={() => setCashAmount((Math.floor((currentBalance / 1.05) * 100) / 100).toFixed(2))}
+                    onClick={() => setCashAmount(String(Math.floor(currentBalance / 1.05)))}
                     className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
                   >
                     Use Max
@@ -525,19 +530,19 @@ const WithdrawalRequest = ({
                 type="number"
                 value={amount}
                 onChange={handleAmountChange}
-                placeholder={`Max receive: ₹${maxNetWithdrawable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+                placeholder={`Max receive: ₹${Math.floor(maxNetWithdrawable).toLocaleString('en-IN')}`}
                 className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                 required
-                min="0.01"
-                step="0.01"
+                min="1"
+                step="1"
               />
               <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-emerald-50 px-3 py-2 text-xs">
                 <span className="font-bold text-emerald-700">
-                  Max withdrawable (after 5% tax): ₹{maxNetWithdrawable.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  Max withdrawable (after 5% tax): ₹{Math.floor(maxNetWithdrawable).toLocaleString('en-IN')}
                 </span>
                 <button
                   type="button"
-                  onClick={() => handleAmountChange({ target: { value: maxNetWithdrawable.toFixed(2) } } as React.ChangeEvent<HTMLInputElement>)}
+                  onClick={() => handleAmountChange({ target: { value: String(Math.floor(maxNetWithdrawable)) } } as React.ChangeEvent<HTMLInputElement>)}
                   className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
                 >
                   Use Max
