@@ -8,6 +8,7 @@ import Alert from "../components/dashboard/Alert";
 import { useAuth } from "@/app/context/AuthContext";
 import {
   getDashboardData,
+  autoSyncProfile,
   getReferralSummary,
   getRankProgress,
   getLeaderboard,

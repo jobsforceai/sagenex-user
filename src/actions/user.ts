@@ -904,6 +904,19 @@ export async function submitExpenseTicket(ticketId: string) {
     return handleApiResponse(res);
 }
 
+
+export async function autoSyncProfile() {
+  try {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/sync/auto`, {
+      method: "POST",
+      headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+  } catch {
+    return { error: "auto_sync_failed" };
+  }
+}
+
 export async function toggleCompounding() {
   const res = await fetch(`${API_BASE_URL}/api/v1/user/compounding/toggle`, {
     method: "POST",

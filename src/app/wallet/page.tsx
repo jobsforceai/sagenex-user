@@ -25,6 +25,7 @@ import {
 import {
   getWalletData,
   getDashboardData,
+  autoSyncProfile,
   getKycStatus,
   getWalletCurrentCycleHistory,
 } from "@/actions/user";
