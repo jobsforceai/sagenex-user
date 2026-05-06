@@ -28,9 +28,18 @@ interface LPTransaction {
   meta?: Record<string, unknown>;
 }
 
+interface ActiveDeployment {
+  deploymentId: string;
+  amountDeployed: number;
+  deployedAt: string;
+  expectedSettlementAt?: string;
+  earlyWithdrawalRequested: boolean;
+}
+
 interface LPData {
   pool: LPPool | null;
   transactions: LPTransaction[];
+  activeDeployments: ActiveDeployment[];
 }
 
 const formatINR = (amount: number) =>
@@ -50,7 +59,8 @@ interface LPTabProps {
 }
 
 export const LiquidityProviderTab = ({ availableBalance, onSuccess }: LPTabProps) => {
-  const [data, setData] = useState<LPData>({ pool: null, transactions: [] });
+  const [data, setData] = useState<LPData>({ pool: null, transactions: [], activeDeployments: [] });
+  const [now, setNow] = useState<number>(() => Date.now());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -81,7 +91,8 @@ export const LiquidityProviderTab = ({ availableBalance, onSuccess }: LPTabProps
         totalEarned: res?.totalEarned ?? 0,
       };
       const transactions = res?.transactions ?? res?.history ?? [];
-      setData({ pool, transactions });
+      const activeDeployments: ActiveDeployment[] = res?.activeDeployments ?? [];
+      setData({ pool, transactions, activeDeployments });
     }
     setLoading(false);
   }, []);
@@ -89,6 +100,12 @@ export const LiquidityProviderTab = ({ availableBalance, onSuccess }: LPTabProps
   useEffect(() => {
     fetchData();
   }, [fetchData]);
+
+  // Tick every minute to keep countdown labels fresh
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     if (otpCooldown <= 0) return;
@@ -237,6 +254,50 @@ export const LiquidityProviderTab = ({ availableBalance, onSuccess }: LPTabProps
           </CardContent>
         </Card>
       </div>
+
+      {/* Active deployments with settlement countdown */}
+      {data.activeDeployments.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-sm font-semibold text-gray-300">Active Deployments</h3>
+          <div className="space-y-2">
+            {data.activeDeployments.map((d) => {
+              const target = d.expectedSettlementAt ? new Date(d.expectedSettlementAt).getTime() : null;
+              const diff = target !== null ? target - now : null;
+              const overdue = diff !== null && diff <= 0;
+              const days = diff !== null ? Math.max(0, Math.floor(Math.abs(diff) / 86400000)) : 0;
+              const hours = diff !== null ? Math.max(0, Math.floor((Math.abs(diff) % 86400000) / 3600000)) : 0;
+              const minutes = diff !== null ? Math.max(0, Math.floor((Math.abs(diff) % 3600000) / 60000)) : 0;
+              return (
+                <Card key={d.deploymentId} className="bg-gray-900/60 border-gray-800">
+                  <CardContent className="p-4 flex items-center justify-between gap-4">
+                    <div>
+                      <p className="text-sm font-semibold text-amber-400">{formatINR(d.amountDeployed)}</p>
+                      <p className="text-xs text-gray-400">
+                        Deployed {new Date(d.deployedAt).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      {target === null ? (
+                        <p className="text-xs text-gray-500">Settlement: Pending admin</p>
+                      ) : overdue ? (
+                        <>
+                          <p className="text-xs text-red-400">Settlement overdue</p>
+                          <p className="text-[11px] text-gray-500">by {days}d {hours}h</p>
+                        </>
+                      ) : (
+                        <>
+                          <p className="text-xs text-gray-400">Settlement in</p>
+                          <p className="text-sm font-semibold text-emerald-400">{days}d {hours}h {minutes}m</p>
+                        </>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Action buttons */}
       <div className="flex flex-wrap gap-3">
