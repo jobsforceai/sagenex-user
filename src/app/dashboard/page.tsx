@@ -27,8 +27,7 @@ import {
   Sparkles,
   TrendingUp,
   Users,
-  Wallet,
-} from "lucide-react";
+  Wallet, Info} from "lucide-react";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 import MultiplierProgress from "../components/dashboard/MultiplierProgress";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeletons";
@@ -419,9 +418,20 @@ const DashboardPage = () => {
                       </span>
                     )}
                     {earningsMultiplier && earningsMultiplier > 0 && (
-                      <span className="rounded-full bg-emerald-400/18 px-3 py-1 text-xs font-bold text-emerald-100">
-                        {earningsMultiplier}x multiplier
-                      </span>
+                      <MultiplierProgress
+                        earningsMultiplier={earningsMultiplier}
+                        legDetails={(dashboardData as any)?.legDetails || []}
+                        kycStatus={(dashboardData as any)?.kycStatus || (profile as any)?.kycStatus}
+                        trigger={
+                          <button
+                            type="button"
+                            className="inline-flex items-center gap-1 rounded-full bg-emerald-400/18 px-3 py-1 text-xs font-bold text-emerald-100 hover:bg-emerald-400/28"
+                          >
+                            {earningsMultiplier}x multiplier
+                            <Info className="h-3 w-3" />
+                          </button>
+                        }
+                      />
                     )}
                   </div>
                 </div>
@@ -494,12 +504,6 @@ const DashboardPage = () => {
               </div>
             </div>
           </section>
-
-          <MultiplierProgress
-            earningsMultiplier={earningsMultiplier}
-            legDetails={(dashboardData as any)?.legDetails || []}
-            kycStatus={(dashboardData as any)?.kycStatus || (profile as any)?.kycStatus}
-          />
 
           {consecutiveMonthsMissed === 1 && (
             <Alert
