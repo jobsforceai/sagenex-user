@@ -1,0 +1,21 @@
+src/app/components/dashboard/LegGauges.tsx
+  s_964e0d3fba450c::t_afdc2442f87b1f 1-130
+src/app/dashboard/page.tsx
+  s_964e0d3fba450c::t_afdc2442f87b1f 33,509-513
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "27fbdd52b3480a6dc00e2c586c6cd5671acbf944",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
