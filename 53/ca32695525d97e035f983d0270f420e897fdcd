@@ -1,0 +1,37 @@
+src/app/components/dashboard/MultiplierProgress.tsx
+  s_964e0d3fba450c::t_00712c938fc5ac 1-202
+src/app/dashboard/page.tsx
+  s_964e0d3fba450c::t_a95ae8d9abe11a 500
+  s_964e0d3fba450c::t_2906168c884b10 33,498-499,501-502
+src/actions/user.ts
+  s_964e0d3fba450c::t_00712c938fc5ac 80
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "53ca32695525d97e035f983d0270f420e897fdcd",
+  "prompts": {
+    "964e0d3fba450c9c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>",
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 4849,
+      "overriden_lines": 0
+    }
+  },
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
