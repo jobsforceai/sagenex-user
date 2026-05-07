@@ -30,6 +30,7 @@ import {
   Wallet,
 } from "lucide-react";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
+import MultiplierProgress from "../components/dashboard/MultiplierProgress";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeletons";
 import ScheduledCashBanner from "../components/wallet/ScheduledCashBanner";
 
@@ -493,6 +494,12 @@ const DashboardPage = () => {
               </div>
             </div>
           </section>
+
+          <MultiplierProgress
+            earningsMultiplier={earningsMultiplier}
+            legDetails={(dashboardData as any)?.legDetails || []}
+            kycStatus={(dashboardData as any)?.kycStatus || (profile as any)?.kycStatus}
+          />
 
           {consecutiveMonthsMissed === 1 && (
             <Alert

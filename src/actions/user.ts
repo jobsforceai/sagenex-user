@@ -77,7 +77,7 @@ export async function getDashboardData() {
         return { error: dashboardData.error || rankData.error };
     }
 
-    return { ...dashboardData, rank: rankData.rank, performanceRank: rankData.performanceRank };
+    return { ...dashboardData, rank: rankData.rank, performanceRank: rankData.performanceRank, legDetails: rankData.legDetails || [] };
 }
 
 export async function setPassword(password: string, confirmPassword: string) {
