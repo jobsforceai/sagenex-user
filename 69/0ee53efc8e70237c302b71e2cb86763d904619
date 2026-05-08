@@ -1,0 +1,19 @@
+src/app/components/sgnx-gold/SgnxGoldHero.tsx
+  s_964e0d3fba450c::t_14b1dbac3ddd5f 13
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.1",
+  "base_commit_sha": "690ee53efc8e70237c302b71e2cb86763d904619",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
