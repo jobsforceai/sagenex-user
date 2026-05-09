@@ -77,10 +77,10 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
     finally { setSubmitting(false); }
   };
 
-  const bonusLabel = config && selectedSlab
-    ? planType === "gold"
-      ? `${config.goldBonusMultiplier}x gold bonus = ${fmtINR(selectedSlab.amountInr * config.goldBonusMultiplier)}`
-      : `${config.cashBonusMultiplier}x cash bonus = ${fmtINR(selectedSlab.amountInr * config.cashBonusMultiplier)}`
+  // User-side is always Gold + 2x (new plan). Cash plan is admin-only on the old version.
+  const NEW_GOLD_MULTIPLIER = 2;
+  const bonusLabel = selectedSlab
+    ? `${NEW_GOLD_MULTIPLIER}x gold bonus = ${fmtINR(selectedSlab.amountInr * NEW_GOLD_MULTIPLIER)}`
     : "";
 
   return (
@@ -105,32 +105,12 @@ export default function EnrollModal({ open, onOpenChange, onSuccess }: EnrollMod
               <span className="text-lg font-extrabold text-[#111827]">{fmtINR(walletBalance)}</span>
             </div>
 
-            {/* Plan Type */}
+            {/* Plan Type — fixed to Gold (2x) on the new plan; cash plan removed */}
             <div className="space-y-2">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Plan Type</p>
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  onClick={() => setPlanType("gold")}
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    planType === "gold"
-                      ? "border-[#D7AF35]/40 bg-[#F8F9FA]"
-                      : "border-[#E8E8E8] bg-white hover:border-[#D7AF35]/30"
-                  }`}
-                >
-                  <p className={`text-sm font-extrabold ${planType === "gold" ? "text-[#111827]" : "text-[#111827]"}`}>Gold Plan</p>
-                  <p className="mt-0.5 text-xs text-zinc-400">{config ? `${config.goldBonusMultiplier}x gold bonus` : ""}</p>
-                </button>
-                <button
-                  onClick={() => setPlanType("cash")}
-                  className={`rounded-2xl border p-4 text-left transition ${
-                    planType === "cash"
-                      ? "border-[#E8E8E8] bg-[#F8F9FA]"
-                      : "border-[#E8E8E8] bg-white hover:border-[#E8E8E8]"
-                  }`}
-                >
-                  <p className={`text-sm font-extrabold ${planType === "cash" ? "text-[#111827]" : "text-[#111827]"}`}>Cash Plan</p>
-                  <p className="mt-0.5 text-xs text-zinc-400">{config ? `${config.cashBonusMultiplier}x cash bonus` : ""}</p>
-                </button>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Plan</p>
+              <div className="rounded-2xl border border-[#D7AF35]/40 bg-[#F8F9FA] p-4">
+                <p className="text-sm font-extrabold text-[#111827]">Gold Plan</p>
+                <p className="mt-0.5 text-xs text-zinc-500">2x gold bonus at maturity</p>
               </div>
             </div>
 
