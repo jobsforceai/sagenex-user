@@ -275,9 +275,15 @@ export default function SgnxGoldPage() {
         {/* City Prices - own loading */}
         {cityLoading ? null : <CityPricesGrid prices={cityPrices} />}
 
-        {/* Payment Progress (if active enrollment) */}
-        {!heroLoading && activeEnrollment && (
-          <PaymentProgress enrollmentId={activeEnrollment._id} />
+        {/* Payment Progress — one card per active enrollment */}
+        {!heroLoading && enrollments.filter(e => e.status === "ACTIVE").length > 0 && (
+          <div className="space-y-4">
+            {enrollments
+              .filter(e => e.status === "ACTIVE")
+              .map((e) => (
+                <PaymentProgress key={e._id} enrollmentId={e._id} />
+              ))}
+          </div>
         )}
 
         {/* Transaction History (toggle) */}
