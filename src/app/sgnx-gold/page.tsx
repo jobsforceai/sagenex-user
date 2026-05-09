@@ -241,15 +241,17 @@ export default function SgnxGoldPage() {
         {!heroLoading && (
           <div className="flex flex-wrap gap-2.5">
             <button
+              type="button"
               onClick={() => setEnrollModalOpen(true)}
-              className="rounded-xl bg-[#D7AF35] px-5 py-2.5 text-sm font-extrabold text-[#171B27] transition hover:brightness-110"
+              className="rounded-xl bg-[#D7AF35] px-5 py-2.5 text-sm font-extrabold text-[#171B27] shadow-sm transition hover:brightness-110"
             >
               {hasEnrollment ? "New Investment" : "Start Investing"}
             </button>
             {hasEnrollment && (
               <button
-                onClick={() => setShowHistory(!showHistory)}
-                className="rounded-xl border border-[#8a77c8]/35 bg-[#252A3A] px-5 py-2.5 text-sm font-semibold text-[#ECEFF8] transition hover:border-[#d7af35]/40"
+                type="button"
+                onClick={() => setShowHistory((v) => !v)}
+                className="rounded-xl border border-[#111827] bg-[#111827] px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#1f2937]"
               >
                 {showHistory ? "Hide History" : "View History"}
               </button>
