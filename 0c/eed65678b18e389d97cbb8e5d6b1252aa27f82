@@ -1,0 +1,19 @@
+src/app/team-business/page.tsx
+  s_964e0d3fba450c::t_a7784cd023ef5a 67,195-198,236,238,249,304-323,338,340,343-345,354,454,485,487,502-504,507-509,512-514,544-546
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "0ceed65678b18e389d97cbb8e5d6b1252aa27f82",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
