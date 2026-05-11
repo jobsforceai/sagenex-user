@@ -1,0 +1,21 @@
+src/actions/user.ts
+  s_964e0d3fba450c::t_39d278db9060fd 80
+src/app/dashboard/page.tsx
+  s_964e0d3fba450c::t_39d278db9060fd 424,511
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.4",
+  "base_commit_sha": "125ce0a3f6aab392e14b1dcb09073ad4a7f8a239",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
