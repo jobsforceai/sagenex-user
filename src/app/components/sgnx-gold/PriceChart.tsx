@@ -23,6 +23,7 @@ const GRAMS_PER_OUNCE = 31.1035;
 
 interface PriceChartProps {
   metal: "gold" | "silver";
+  onMetalChange: (metal: "gold" | "silver") => void;
 }
 
 interface DataPoint {
@@ -46,7 +47,7 @@ function formatCurrencyValue(value: number, currency: Currency) {
   return value.toLocaleString("en-US", { maximumFractionDigits: 2 }) + " AED";
 }
 
-export default function PriceChart({ metal }: PriceChartProps) {
+export default function PriceChart({ metal, onMetalChange }: PriceChartProps) {
   const [range, setRange] = useState<Range>("1D");
   const [currency, setCurrency] = useState<Currency>("INR");
   const [rawData, setRawData] = useState<DataPoint[]>([]);
@@ -120,13 +121,15 @@ export default function PriceChart({ metal }: PriceChartProps) {
         </div>
         <div className="flex flex-wrap gap-1.5">
           <button
-            onClick={() => {/* metal toggle handled by parent */}}
+            type="button"
+            onClick={() => onMetalChange("gold")}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${metal === "gold" ? "bg-[#D7AF35]/15 text-[#8b6b1f]" : "bg-[#F8F9FA] text-zinc-500"}`}
           >
             Gold
           </button>
           <button
-            onClick={() => {/* metal toggle handled by parent */}}
+            type="button"
+            onClick={() => onMetalChange("silver")}
             className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${metal === "silver" ? "bg-[#9CA3AF]/15 text-[#4b5563]" : "bg-[#F8F9FA] text-zinc-500"}`}
           >
             Silver

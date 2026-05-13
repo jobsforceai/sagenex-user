@@ -5,7 +5,7 @@ interface HeroProps {
   totalGoldGrams: number;
   maturityValueUsd: number;
   totalCashBonusUsd: number;
-  goldRateUsd: number | null;
+  goldRateInr: number | null;
   hasEnrollment: boolean;
 }
 
@@ -18,10 +18,10 @@ export default function SgnxGoldHero({
   totalGoldGrams,
   maturityValueUsd,
   totalCashBonusUsd,
-  goldRateUsd,
+  goldRateInr,
   hasEnrollment,
 }: HeroProps) {
-  const liveGoldValue = goldRateUsd ? totalGoldGrams * goldRateUsd : 0;
+  const liveGoldValue = goldRateInr ? totalGoldGrams * goldRateInr : 0;
   const profitUsd = maturityValueUsd - totalDepositedUsd;
   const profitPct = totalDepositedUsd > 0 ? (profitUsd / totalDepositedUsd) * 100 : 0;
 
@@ -57,7 +57,7 @@ export default function SgnxGoldHero({
             <div className="rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Gold Holdings</p>
               <p className="mt-1 text-xl font-extrabold text-[#111827]">{totalGoldGrams.toFixed(4)}g</p>
-              <p className="text-xs text-zinc-500">{goldRateUsd ? fmt(liveGoldValue) : "—"}</p>
+              <p className="text-xs text-zinc-500">{goldRateInr ? fmt(liveGoldValue) : "—"}</p>
             </div>
             <div className="rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Cash Bonus</p>
@@ -78,10 +78,10 @@ export default function SgnxGoldHero({
               : "Start your 11-month gold or cash investment plan today."}
           </p>
 
-          {goldRateUsd && (
+          {goldRateInr && (
             <div className="mt-5 rounded-2xl border border-[#E8E8E8] bg-white p-4">
               <p className="text-[10px] uppercase tracking-[0.16em] text-zinc-400">Current Gold / gram</p>
-              <p className="mt-1 text-2xl font-black text-[#111827]">{fmt(goldRateUsd)}</p>
+              <p className="mt-1 text-2xl font-black text-[#111827]">{fmt(goldRateInr)}</p>
             </div>
           )}
         </div>
