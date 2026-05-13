@@ -421,7 +421,7 @@ const DashboardPage = () => {
                     {earningsMultiplier && earningsMultiplier > 0 && (
                       <MultiplierProgress
                         earningsMultiplier={earningsMultiplier}
-                        legDetails={(dashboardData as any)?.legDetails || []}
+                        legDetails={(dashboardData as any)?.multiplierLegDetails || (dashboardData as any)?.legDetails || []}
                         kycStatus={(dashboardData as any)?.kycStatus || (profile as any)?.kycStatus}
                         trigger={
                           <button
@@ -508,7 +508,7 @@ const DashboardPage = () => {
 
           <LegGauges
             earningsMultiplier={earningsMultiplier}
-            legDetails={(dashboardData as any)?.legDetails || []}
+            legDetails={(dashboardData as any)?.multiplierLegDetails || (dashboardData as any)?.legDetails || []}
             kycStatus={(dashboardData as any)?.kycStatus || (profile as any)?.kycStatus}
           />
 

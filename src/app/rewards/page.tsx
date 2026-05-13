@@ -65,7 +65,7 @@ const TRAVEL_PROMO: Record<
     subtitle: "Paris, Amsterdam, Zurich, Rome and Switzerland",
     image: "/rewards/europe-trip-bg.png",
     cta: "View Progress",
-    lastDate: "April 30",
+    lastDate: "April 10",
     details: [
       { label: "Destinations", value: "Paris, Amsterdam, Zurich, Rome, Switzerland" },
       { label: "Single Ticket", value: "₹20 Lakhs business" },
@@ -77,7 +77,7 @@ const TRAVEL_PROMO: Record<
     subtitle: "Vizag to Pondicherry to Chennai",
     image: "/rewards/cruise-trip-bg.png",
     cta: "View Progress",
-    lastDate: "April 30",
+    lastDate: "April 10",
     details: [
       { label: "Travel Dates", value: "8th July to 11th July" },
       { label: "Duration", value: "3 Nights / 4 Days" },

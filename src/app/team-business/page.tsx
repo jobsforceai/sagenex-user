@@ -64,6 +64,7 @@ interface RankProgress {
     requirements?: unknown;
   };
   legDetails: LegDetail[];
+  multiplierLegDetails?: { userId: string; monthlyBusiness: number }[];
   achieverBonus: AchieverBonus | null;
 }
 
@@ -191,6 +192,10 @@ const TeamBusinessPage = () => {
   const { isAuthenticated, loading: authLoading } = useAuth();
 
   const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
+  // Always-live rolling-30d snapshot for the 3x/4x qualification panel.
+  // Independent of the month picker so switching months never lies about
+  // qualification status.
+  const [liveRankProgress, setLiveRankProgress] = useState<RankProgress | null>(null);
   const [dashboard, setDashboard] = useState<DashboardLike | null>(null);
   const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([]);
@@ -228,8 +233,9 @@ const TeamBusinessPage = () => {
     setLoading(true);
     setError(null);
     try {
-      const [rp, dash, ref, lb, kyc] = await Promise.all([
+      const [rp, rpLive, dash, ref, lb, kyc] = await Promise.all([
         getRankProgress({ year: selectedYear, month: selectedMonth }),
+        getRankProgress(),
         getDashboardData(),
         getReferralSummary(),
         getLeaderboard("team"),
@@ -240,6 +246,7 @@ const TeamBusinessPage = () => {
       } else {
         setRankProgress(rp);
       }
+      if (rpLive && !rpLive.error) setLiveRankProgress(rpLive);
       if (!dash?.error) setDashboard(dash);
       if (!ref?.error) setReferralSummary(ref);
       if (Array.isArray(lb)) setLeaderboard(lb);
@@ -294,6 +301,26 @@ const TeamBusinessPage = () => {
     return { legsAt4x, legsAt3x };
   }, [legs]);
 
+  // Live (rolling 30d) leg data — drives the 3x/4x qualification panel.
+  // Falls back to month-bound legs only if the live snapshot hasn't loaded yet.
+  const liveLegs = useMemo(() => {
+    const live = liveRankProgress?.multiplierLegDetails;
+    if (live && live.length > 0) {
+      return [...live]
+        .map((l) => ({ userId: l.userId, monthlyBusiness: l.monthlyBusiness || 0, activeTeam: 0 }))
+        .sort((a, b) => (b.monthlyBusiness || 0) - (a.monthlyBusiness || 0));
+    }
+    return legs;
+  }, [liveRankProgress, legs]);
+
+  const liveTeamMath = useMemo(() => computeCappedTeam(liveLegs), [liveLegs]);
+
+  const liveCounts = useMemo(() => {
+    const legsAt4x = liveLegs.filter((l) => l.monthlyBusiness >= LEG_4X_THRESHOLD).length;
+    const legsAt3x = liveLegs.filter((l) => l.monthlyBusiness >= LEG_3X_THRESHOLD).length;
+    return { legsAt4x, legsAt3x };
+  }, [liveLegs]);
+
   const earningsMultiplier =
     dashboard?.earningsMultiplier ?? dashboard?.profile?.earningsMultiplier ?? 0;
   const earningsMultiplierFloor = dashboard?.profile?.earningsMultiplierFloor;
@@ -308,14 +335,14 @@ const TeamBusinessPage = () => {
   const downlineVolume = referralSummary?.totalDownlineVolume ?? 0;
 
   const qualifies3x =
-    counts.legsAt3x >= 3 && teamMath.capped >= TEAM_3X_THRESHOLD;
+    liveCounts.legsAt3x >= 3 && liveTeamMath.capped >= TEAM_3X_THRESHOLD;
   const qualifies4x =
-    counts.legsAt4x >= 4 && teamMath.capped >= TEAM_4X_THRESHOLD && kycVerified;
+    liveCounts.legsAt4x >= 4 && liveTeamMath.capped >= TEAM_4X_THRESHOLD && kycVerified;
 
   const nextHint = useMemo(() => {
-    if (qualifies4x) return "You meet 4x indicators this month. Keep it up.";
-    const needLegs = Math.max(0, 4 - counts.legsAt4x);
-    const needTeam = Math.max(0, TEAM_4X_THRESHOLD - teamMath.capped);
+    if (qualifies4x) return "You meet 4x indicators right now. Keep it up.";
+    const needLegs = Math.max(0, 4 - liveCounts.legsAt4x);
+    const needTeam = Math.max(0, TEAM_4X_THRESHOLD - liveTeamMath.capped);
     const parts: string[] = [];
     if (!kycVerified) parts.push("verify KYC");
     if (needLegs > 0)
@@ -324,7 +351,7 @@ const TeamBusinessPage = () => {
       parts.push(`${formatCurrencyCompact(needTeam)} more capped team business`);
     if (parts.length === 0) return "All 4x indicators met — pending official daily computation.";
     return `What you need to reach 4x: ${parts.join(", ")}.`;
-  }, [counts.legsAt4x, teamMath.capped, kycVerified, qualifies4x]);
+  }, [liveCounts.legsAt4x, liveTeamMath.capped, kycVerified, qualifies4x]);
 
   if (authLoading || loading) {
     return (
@@ -424,7 +451,7 @@ const TeamBusinessPage = () => {
         {/* Banner: indicate when viewing a past month vs current */}
         {!isCurrentMonth && (
           <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-800">
-            Viewing {monthOptions.find((o) => o.year === selectedYear && o.month === selectedMonth)?.label}. Numbers below are for that month only — switch back to current month for live data.
+            Viewing {monthOptions.find((o) => o.year === selectedYear && o.month === selectedMonth)?.label}. The leg-by-leg table below is for that month only. 3x / 4x indicators above are always live (rolling 30d).
           </div>
         )}
 
@@ -455,9 +482,9 @@ const TeamBusinessPage = () => {
               </div>
             </div>
             <div className="rounded-2xl border border-slate-200/70 bg-white px-4 py-3">
-              <p className="text-xs text-[#64748B]">Capped team business (MTD)</p>
+              <p className="text-xs text-[#64748B]">Capped team business (rolling 30d)</p>
               <p className="mt-1 text-lg font-black text-[#0F172A]">
-                {formatCurrencyCompact(teamMath.capped)}{" "}
+                {formatCurrencyCompact(liveTeamMath.capped)}{" "}
                 <span className="text-xs font-medium text-[#64748B]">
                   / {formatCurrencyCompact(TEAM_4X_THRESHOLD)} (4x)
                 </span>
@@ -472,19 +499,19 @@ const TeamBusinessPage = () => {
               detail={kycVerified ? "Required for 4x — done" : "Required for 4x"}
             />
             <ChecklistRow
-              ok={counts.legsAt3x >= 3}
-              title="3 legs ≥ ₹1.5L this month"
-              detail={`${counts.legsAt3x} of 3 legs qualifying for 3x`}
+              ok={liveCounts.legsAt3x >= 3}
+              title="3 legs ≥ ₹1.5L (rolling 30d)"
+              detail={`${liveCounts.legsAt3x} of 3 legs qualifying for 3x`}
             />
             <ChecklistRow
-              ok={counts.legsAt4x >= 4}
-              title="4 legs ≥ ₹2L this month"
-              detail={`${counts.legsAt4x} of 4 legs qualifying for 4x`}
+              ok={liveCounts.legsAt4x >= 4}
+              title="4 legs ≥ ₹2L (rolling 30d)"
+              detail={`${liveCounts.legsAt4x} of 4 legs qualifying for 4x`}
             />
             <ChecklistRow
-              ok={teamMath.capped >= TEAM_4X_THRESHOLD}
-              title="Capped team ≥ ₹10L"
-              detail={`${formatCurrencyCompact(teamMath.capped)} / ${formatCurrencyCompact(TEAM_4X_THRESHOLD)}`}
+              ok={liveTeamMath.capped >= TEAM_4X_THRESHOLD}
+              title="Capped team ≥ ₹10L (rolling 30d)"
+              detail={`${formatCurrencyCompact(liveTeamMath.capped)} / ${formatCurrencyCompact(TEAM_4X_THRESHOLD)}`}
             />
           </div>
 
@@ -514,9 +541,9 @@ const TeamBusinessPage = () => {
           <p className="mt-4 flex items-start gap-2 rounded-2xl bg-white/70 p-3 text-xs text-[#64748B]">
             <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#C8103E]" />
             <span>
-              {nextHint} Numbers below are <strong>month-to-date</strong>. Your multiplier is
-              computed daily by the system on a rolling 30-day window — these tables are an
-              indicator, not the official qualification.
+              {nextHint} These qualification indicators always reflect the <strong>last 30 days</strong>,
+              regardless of the month selected below. The month picker only affects the leg-by-leg
+              monthly history.
             </span>
           </p>
         </section>
