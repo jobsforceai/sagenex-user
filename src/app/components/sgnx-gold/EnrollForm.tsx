@@ -31,8 +31,13 @@ interface GoldRate {
   timestamp: string;
 }
 
-const formatUSD = (v: number) =>
-  v.toLocaleString("en-US", { style: "currency", currency: "USD" });
+const formatINR = (v: number) =>
+  v.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  });
 
 export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
   const [targetUserId, setTargetUserId] = useState(userId);
@@ -71,10 +76,10 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
 
   // Gold-specific preview
   const goldGramsPerMonth =
-    isGold && goldRate && amount > 0 ? amount / goldRate.pricePerGramUsd : 0;
+    isGold && goldRate && amount > 0 ? amount / goldRate.pricePerGram : 0;
   const totalGoldGrams = goldGramsPerMonth * maturityMonths;
   const bonusGoldGrams =
-    isGold && goldRate && amount > 0 ? bonusAmount / goldRate.pricePerGramUsd : 0;
+    isGold && goldRate && amount > 0 ? bonusAmount / goldRate.pricePerGram : 0;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -141,7 +146,7 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
 
             <div className="space-y-2">
               <Label htmlFor="amount" className="text-gray-300">
-                Monthly Amount (USD)
+                Monthly Amount (INR)
               </Label>
               <Input
                 id="amount"
@@ -150,7 +155,7 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
                 step="0.01"
                 value={amountUsd}
                 onChange={(e) => setAmountUsd(e.target.value)}
-                placeholder="e.g. 100"
+                placeholder="e.g. 10000"
                 className="bg-gray-800/50 border-gray-700 text-white"
               />
             </div>
@@ -184,7 +189,7 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
                       <Loader2 className="h-3 w-3 animate-spin" />
                     ) : goldRate ? (
                       <span className="font-semibold">
-                        {formatUSD(goldRate.pricePerGramUsd)}/gram
+                        {formatINR(goldRate.pricePerGram)}/gram
                       </span>
                     ) : (
                       "Unavailable"
@@ -231,22 +236,22 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
               <PreviewRow
                 icon={<DollarSign className="h-4 w-4 text-blue-400" />}
                 label="Monthly Payment"
-                value={formatUSD(amount)}
+                value={formatINR(amount)}
               />
               <PreviewRow
                 icon={<DollarSign className="h-4 w-4 text-emerald-400" />}
                 label={`Total Over ${maturityMonths} Months`}
-                value={formatUSD(totalDeposited)}
+                value={formatINR(totalDeposited)}
               />
               <PreviewRow
                 icon={<Sparkles className="h-4 w-4 text-purple-400" />}
                 label={`Bonus (${bonusMultiplier}x)`}
-                value={formatUSD(bonusAmount)}
+                value={formatINR(bonusAmount)}
               />
               <PreviewRow
                 icon={<TrendingUp className="h-4 w-4 text-amber-400" />}
                 label="Maturity Value"
-                value={formatUSD(maturityValue)}
+                value={formatINR(maturityValue)}
               />
               {isGold && goldRate && (
                 <>

@@ -109,6 +109,16 @@ interface CityPrice {
   pricePerGram: number;
 }
 
+interface GoldRate {
+  pricePerGram: number;
+  pricePerGramBeforeGst: number;
+  gstPercent: number;
+  pricePerGramUsd: number;
+  exchangeRate: number;
+  source: string;
+  timestamp: string;
+}
+
 export default function SgnxGoldPage() {
   const { isAuthenticated, loading: authLoading } = useAuth();
   const router = useRouter();
@@ -120,7 +130,7 @@ export default function SgnxGoldPage() {
 
   const [enrollments, setEnrollments] = useState<Enrollment[]>([]);
   const [vault, setVault] = useState<Vault | null>(null);
-  const [goldRate, setGoldRate] = useState<{ pricePerGramUsd: number } | null>(null);
+  const [goldRate, setGoldRate] = useState<GoldRate | null>(null);
   const [goldLive, setGoldLive] = useState<LivePriceData | null>(null);
   const [silverLive, setSilverLive] = useState<LivePriceData | null>(null);
   const [cityPrices, setCityPrices] = useState<CityPrice[]>([]);
@@ -232,7 +242,7 @@ export default function SgnxGoldPage() {
             totalGoldGrams={vault?.totalGoldQuantityGrams ?? 0}
             maturityValueUsd={vault?.maturityValueUsd ?? 0}
             totalCashBonusUsd={vault?.totalCashBonusUsd ?? 0}
-            goldRateUsd={goldRate?.pricePerGramUsd ?? null}
+            goldRateInr={goldRate?.pricePerGram ?? null}
             hasEnrollment={hasEnrollment}
           />
         )}
@@ -247,7 +257,7 @@ export default function SgnxGoldPage() {
             >
               {hasEnrollment ? "New Investment" : "Start Investing"}
             </button>
-            {hasEnrollment && (
+            {/* {hasEnrollment && (
               <button
                 type="button"
                 onClick={() => setShowHistory((v) => !v)}
@@ -255,7 +265,7 @@ export default function SgnxGoldPage() {
               >
                 {showHistory ? "Hide History" : "View History"}
               </button>
-            )}
+            )} */}
           </div>
         )}
 
@@ -270,20 +280,14 @@ export default function SgnxGoldPage() {
         )}
 
         {/* Price Chart (fetches its own data internally) */}
-        <PriceChart metal={activeMetal} />
+        <PriceChart metal={activeMetal} onMetalChange={setActiveMetal} />
 
         {/* City Prices - own loading */}
         {cityLoading ? null : <CityPricesGrid prices={cityPrices} />}
 
-        {/* Payment Progress — one card per active enrollment */}
-        {!heroLoading && enrollments.filter(e => e.status === "ACTIVE").length > 0 && (
-          <div className="space-y-4">
-            {enrollments
-              .filter(e => e.status === "ACTIVE")
-              .map((e) => (
-                <PaymentProgress key={e._id} enrollmentId={e._id} />
-              ))}
-          </div>
+        {/* Payment Progress */}
+        {!heroLoading && activeEnrollment && (
+          <PaymentProgress enrollmentId={activeEnrollment._id} />
         )}
 
         {/* Transaction History (toggle) */}
