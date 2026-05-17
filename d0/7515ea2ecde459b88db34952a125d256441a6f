@@ -1,0 +1,9 @@
+src/app/rewards/page.tsx
+  ai_agent 278
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.8",
+  "base_commit_sha": "d07515ea2ecde459b88db34952a125d256441a6f",
+  "prompts": {}
+}
