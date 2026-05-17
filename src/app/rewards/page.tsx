@@ -275,7 +275,7 @@ const ShowcaseCard = ({ program, rewards }: { program: RewardProgram; rewards: R
               </div>
             ))}
           </div>
-          <div className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-white px-4 py-3 text-sm font-black text-[#C81E4A] shadow-lg transition group-hover:bg-[#FFF1F4]">
+          <div className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#C81E4A] px-5 py-3 text-sm font-black text-white shadow-[0_8px_20px_rgba(200,30,74,0.45)] ring-1 ring-white/20 transition group-hover:bg-[#A8163C]">
             {promo.cta}
             <ChevronRight className="h-4 w-4" />
           </div>
