@@ -1,31 +1,98 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import ReactFlow, { Background, ReactFlowInstance } from "reactflow";
 import "reactflow/dist/style.css";
 import { transformDataToFlow } from "@/lib/utils";
 import { UserNode } from "@/types";
-import { Expand, Lock, Maximize2, Minus, Plus, Unlock } from "lucide-react";
+import { Expand, Lock, Maximize2, Minus, Plus, Search, Unlock } from "lucide-react";
+import { getTeamNodeSubtree, findUserInDownline } from "@/actions/user";
+import { toast } from "sonner";
 
 interface TreeClientProps {
   tree: UserNode;
 }
 
-const TreeClient = ({ tree }: TreeClientProps) => {
+const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
+  const [tree, setTree] = useState<UserNode>(initialTree);
   const [flow, setFlow] = useState<ReactFlowInstance | null>(null);
   const [locked, setLocked] = useState(false);
-  const [level, setLevel] = useState(4);
-  const visibleTree = useMemo(() => pruneTree(tree, level), [tree, level]);
-  const { nodes, edges } = useMemo(
-    () => transformDataToFlow(visibleTree),
-    [visibleTree]
+  const [expanding, setExpanding] = useState<Set<string>>(new Set());
+  const [searchInput, setSearchInput] = useState("");
+  const [searching, setSearching] = useState(false);
+
+  const { nodes, edges } = useMemo(() => transformDataToFlow(tree), [tree]);
+
+  // Merge a freshly-fetched subtree into the in-memory tree at the matching node.
+  const mergeSubtree = useCallback((subtree: UserNode) => {
+    setTree((prev) => mergeNodeInTree(prev, subtree));
+  }, []);
+
+  const expandNode = useCallback(async (userId: string) => {
+    if (expanding.has(userId)) return;
+    setExpanding((s) => new Set(s).add(userId));
+    try {
+      const { subtree } = await getTeamNodeSubtree(userId, 2);
+      if (subtree) mergeSubtree(subtree);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to expand node";
+      toast.error(msg);
+    } finally {
+      setExpanding((s) => {
+        const next = new Set(s);
+        next.delete(userId);
+        return next;
+      });
+    }
+  }, [expanding, mergeSubtree]);
+
+  const handleNodeClick = useCallback(
+    (_: React.MouseEvent, node: { id: string }) => {
+      const target = findNodeInTree(tree, node.id);
+      if (!target) return;
+      const loadedKids = target.children?.length ?? 0;
+      const totalKids = target.childrenCount ?? loadedKids;
+      if (totalKids > loadedKids) {
+        void expandNode(node.id);
+      }
+    },
+    [tree, expandNode]
   );
+
+  const handleSearch = useCallback(async () => {
+    const trimmed = searchInput.trim();
+    if (!trimmed) return;
+    setSearching(true);
+    try {
+      const result = await findUserInDownline(trimmed);
+      const path: string[] = result?.ancestorPath ?? [];
+      // Expand every ancestor along the path so the target becomes visible.
+      for (const ancestorId of path) {
+        const node = findNodeInTree(tree, ancestorId);
+        if (!node) {
+          // Ancestor not yet loaded — fetch it. Then re-resolve.
+          await expandNode(ancestorId);
+        } else if ((node.childrenCount ?? 0) > (node.children?.length ?? 0)) {
+          await expandNode(ancestorId);
+        }
+      }
+      // Center on target if it ended up in view.
+      setTimeout(() => flow?.fitView({ padding: 0.3, duration: 500, nodes: [{ id: trimmed }] as never }), 250);
+      toast.success(`Found ${trimmed} in your downline`);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "User not found in your downline";
+      toast.error(msg);
+    } finally {
+      setSearching(false);
+    }
+  }, [searchInput, tree, expandNode, flow]);
 
   return (
     <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
         <div>
           <h2 className="text-lg font-black text-[#0F172A]">Team Structure</h2>
+          <p className="mt-1 text-xs text-[#64748B]">Click any node to expand the next 2 levels.</p>
           <div className="mt-3 flex flex-wrap items-center gap-5 text-xs text-[#64748B]">
             <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" />Active</span>
             <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-slate-300" />Inactive</span>
@@ -33,6 +100,25 @@ const TreeClient = ({ tree }: TreeClientProps) => {
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-3">
+          <div className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-[#C8103E] focus-within:ring-2 focus-within:ring-[#C8103E]/20">
+            <Search className="h-4 w-4 text-slate-400" />
+            <input
+              type="text"
+              value={searchInput}
+              onChange={(e) => setSearchInput(e.target.value.toUpperCase())}
+              onKeyDown={(e) => e.key === "Enter" && handleSearch()}
+              placeholder="Find user ID e.g. U3458"
+              className="w-44 bg-transparent text-sm font-semibold text-[#0F172A] placeholder:text-slate-400 focus:outline-none"
+            />
+            <button
+              type="button"
+              onClick={handleSearch}
+              disabled={searching || !searchInput.trim()}
+              className="rounded-md bg-[#C8103E] px-3 py-1 text-xs font-bold text-white disabled:opacity-50"
+            >
+              {searching ? "…" : "Go"}
+            </button>
+          </div>
           <button
             type="button"
             onClick={() => flow?.fitView({ padding: 0.2, duration: 500 })}
@@ -41,16 +127,6 @@ const TreeClient = ({ tree }: TreeClientProps) => {
             <Expand className="h-4 w-4" />
             Fit View
           </button>
-          <select
-            value={level}
-            onChange={(event) => setLevel(Number(event.target.value))}
-            className="h-11 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-[#0F172A] shadow-sm focus:border-[#C8103E] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
-            aria-label="Select tree depth"
-          >
-            {[2, 3, 4, 5, 6].map((item) => (
-              <option key={item} value={item}>Level {item}</option>
-            ))}
-          </select>
         </div>
       </div>
 
@@ -67,6 +143,7 @@ const TreeClient = ({ tree }: TreeClientProps) => {
           zoomOnScroll={!locked}
           zoomOnPinch={!locked}
           onInit={setFlow}
+          onNodeClick={handleNodeClick}
           proOptions={{ hideAttribution: true }}
         >
           <Background color="#E2E8F0" gap={22} size={1} />
@@ -112,12 +189,23 @@ const TreeClient = ({ tree }: TreeClientProps) => {
 
 export default TreeClient;
 
-function pruneTree(node: UserNode, maxDepth: number, depth = 1): UserNode {
+// Recursively find a node in the tree by userId.
+function findNodeInTree(root: UserNode, userId: string): UserNode | null {
+  if (root.userId === userId) return root;
+  for (const child of root.children || []) {
+    const hit = findNodeInTree(child, userId);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+// Replace the matching node in the tree with the freshly-fetched subtree.
+function mergeNodeInTree(root: UserNode, subtree: UserNode): UserNode {
+  if (root.userId === subtree.userId) {
+    return { ...root, ...subtree };
+  }
   return {
-    ...node,
-    children:
-      depth >= maxDepth
-        ? []
-        : (node.children || []).map((child) => pruneTree(child, maxDepth, depth + 1)),
+    ...root,
+    children: (root.children || []).map((c) => mergeNodeInTree(c, subtree)),
   };
 }

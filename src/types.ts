@@ -5,6 +5,10 @@ export interface UserNode {
     isSplitSponsor?: boolean;
     originalSponsorId?: string;
     children: UserNode[];
+    childrenCount?: number;
+    activityStatus?: 'Active' | 'Inactive';
+    email?: string;
+    dateJoined?: string;
 }
 
 export interface ParentNode {

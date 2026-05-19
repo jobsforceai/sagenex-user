@@ -111,9 +111,29 @@ export async function getPayouts(page: number = 1, limit: number = 20) {
       return handleApiResponse(res);
 }
 
-export async function getTeamTree() {
+export async function getTeamTree(depth: number = 2) {
     const res = await fetch(
-        `${API_BASE_URL}/api/v1/user/team/tree`,
+        `${API_BASE_URL}/api/v1/user/team/tree?depth=${depth}`,
+        {
+          headers: await getAuthHeaders(),
+        }
+      );
+      return handleApiResponse(res);
+}
+
+export async function getTeamNodeSubtree(userId: string, depth: number = 2) {
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/user/team/node/${encodeURIComponent(userId)}?depth=${depth}`,
+        {
+          headers: await getAuthHeaders(),
+        }
+      );
+      return handleApiResponse(res);
+}
+
+export async function findUserInDownline(targetUserId: string) {
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/user/team/find?userId=${encodeURIComponent(targetUserId)}`,
         {
           headers: await getAuthHeaders(),
         }
