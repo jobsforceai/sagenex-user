@@ -6,6 +6,7 @@ import { GoogleOAuthProvider } from "@react-oauth/google";
 import { Toaster } from "sonner";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import AuthenticatedShell from "@/app/components/AuthenticatedShell";
+import PostHogProvider from "./posthog-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display" });
@@ -26,7 +27,8 @@ export default function RootLayout({
         <GoogleOAuthProvider
           clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
         >
-          <AuthProvider>
+          <PostHogProvider>
+            <AuthProvider>
             <NextThemesProvider
               attribute="class"
               defaultTheme="light"
@@ -37,6 +39,7 @@ export default function RootLayout({
               <Toaster />
             </NextThemesProvider>
           </AuthProvider>
+          </PostHogProvider>
         </GoogleOAuthProvider>
       </body>
     </html>

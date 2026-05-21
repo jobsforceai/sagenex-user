@@ -7,6 +7,7 @@ import { transformDataToFlow } from "@/lib/utils";
 import { UserNode } from "@/types";
 import { Expand, Lock, Maximize2, Minus, Plus, Search, Unlock, PhoneCall, MessageCircle, X } from "lucide-react";
 import { getTeamNodeSubtree, findUserInDownline, getTeamMemberContact } from "@/actions/user";
+import { track } from "@/lib/posthog";
 import { toast } from "sonner";
 
 interface TreeClientProps {
@@ -57,6 +58,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
       const isRoot = node.id === tree.userId;
       if (!isRoot) {
         setSelected({ userId: target.userId, fullName: target.fullName });
+        track("tree_node_action_bar_opened", { userId: target.userId });
         setSelectedLoading(true);
         getTeamMemberContact(node.id)
           .then(res => {
@@ -91,6 +93,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
     const trimmed = searchInput.trim();
     if (!trimmed) return;
     setSearching(true);
+    track("tree_search_executed", { query: trimmed });
     try {
       const result = await findUserInDownline(trimmed);
       const path: string[] = result?.ancestorPath ?? [];
@@ -242,6 +245,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
                 <a
                   href={selected.phone ? `tel:${selected.phone}` : undefined}
                   aria-disabled={!selected.phone}
+                  onClick={() => track("tree_node_call_clicked", { userId: selected.userId })}
                   className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-[#0F172A] !text-white hover:opacity-90" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
                 >
                   <PhoneCall className="h-3.5 w-3.5" />Call
@@ -250,6 +254,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
                   href={selected.phone ? `https://wa.me/${(selected.phone.replace(/\\D/g, "").length === 10 ? "91" : "") + selected.phone.replace(/\\D/g, "")}?text=${encodeURIComponent(`Hi ${(selected.fullName ?? "").split(" ")[0] || "there"}, wanted to chat about your Sagenex journey.`)}` : undefined}
                   target="_blank" rel="noopener noreferrer"
                   aria-disabled={!selected.phone}
+                  onClick={() => track("tree_node_whatsapp_clicked", { userId: selected.userId })}
                   className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-emerald-500 !text-white hover:bg-emerald-600" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
                 >
                   <MessageCircle className="h-3.5 w-3.5" />WhatsApp
