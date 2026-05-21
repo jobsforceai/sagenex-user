@@ -1,0 +1,33 @@
+src/app/team/TreeClient.tsx
+  s_964e0d3fba450c::t_e1ed357919182c 10,61,96,248,257
+pnpm-lock.yaml
+  ai_agent 88,95-97,523-630,2081-2083,2230-2232,2443-2445,2893-2895,3098-3103,3111-3114,3122-3124,3579-3581,3928-4031,5601-5602,5746-5749,6105-6106,6534-6535,6594,6612,6728-6745,6754-6768,6773-6774,7389
+src/app/dashboard/TeamPulseSection.tsx
+  s_964e0d3fba450c::t_e1ed357919182c 17,318,327,364,373,444,453
+src/lib/posthog.ts
+  s_964e0d3fba450c::t_760f76f63a7ef1 1-75
+src/app/posthog-provider.tsx
+  s_964e0d3fba450c::t_06a3c53c220479 1-14
+package.json
+  s_964e0d3fba450c::t_2b48118bc6b8eb 41
+src/app/context/AuthContext.tsx
+  s_964e0d3fba450c::t_48c610833f6da1 3,52,92,98,151
+src/app/layout.tsx
+  s_964e0d3fba450c::t_48c610833f6da1 9,30-31,42
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "e54cf20e73b9e44062364a0681a2dc89ddf1bfbc",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
