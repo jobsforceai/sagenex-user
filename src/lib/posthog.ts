@@ -1,8 +1,7 @@
 /**
  * PostHog product analytics — single source of truth.
  *
- * Client-only. Safe to import from server components (the init guards on
- * typeof window). Initialised once via PostHogProvider mounted in the root
+ * Client-only. Initialised once via PostHogProvider mounted in the root
  * layout. Authenticated users are tied via `identify(userId)` inside
  * AuthContext after login.
  */
@@ -19,33 +18,17 @@ export function initPosthog() {
   if (typeof window === "undefined") return;
   if (initialised || !POSTHOG_KEY) return;
   initialised = true;
+  // Keep config minimal — extra options have caused silent init failures
+  // (consent / __loaded internals breaking) in v1.375. Add back as needed.
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
     person_profiles: "always",
     capture_pageview: true,
-    capture_pageleave: true,
     autocapture: true,
-    // Mask all input contents by default to keep PII (OTP, password, phone) out of session replays.
-    mask_all_text: false,
-    mask_all_element_attributes: false,
     loaded: (ph) => {
-      // Expose on window for browser-console debugging — AFTER init has finished
-      // configuring persistence, consent, queue, etc. (doing it before init leaves
-      // window.posthog as a half-built stub that throws on every method call).
       (window as unknown as { posthog?: typeof ph }).posthog = ph;
     },
-    session_recording: {
-      maskAllInputs: true,
-      maskInputOptions: { password: true },
-      // Sample 25 % of sessions to stay under the 5K free-tier cap while still
-      // capturing enough video for support cases.
-      sampleRate: 0.25,
-    },
   });
-}
-
-export function ph() {
-  return posthog;
 }
 
 export function identifyUser(userId: string, traits?: Record<string, unknown>) {
@@ -58,10 +41,6 @@ export function resetUser() {
   posthog.reset();
 }
 
-/**
- * Strongly-typed wrapper for capture() so we keep event names consistent.
- * Add new event names here as they're introduced.
- */
 export type AnalyticsEvent =
   | "team_pulse_call_clicked"
   | "team_pulse_whatsapp_clicked"
