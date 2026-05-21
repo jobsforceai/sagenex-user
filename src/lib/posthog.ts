@@ -19,8 +19,6 @@ export function initPosthog() {
   if (typeof window === "undefined") return;
   if (initialised || !POSTHOG_KEY) return;
   initialised = true;
-  // Expose on window for browser-console debugging (safe — same key already in network requests).
-  (window as unknown as { posthog?: typeof posthog }).posthog = posthog;
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
     person_profiles: "always",
@@ -30,6 +28,12 @@ export function initPosthog() {
     // Mask all input contents by default to keep PII (OTP, password, phone) out of session replays.
     mask_all_text: false,
     mask_all_element_attributes: false,
+    loaded: (ph) => {
+      // Expose on window for browser-console debugging — AFTER init has finished
+      // configuring persistence, consent, queue, etc. (doing it before init leaves
+      // window.posthog as a half-built stub that throws on every method call).
+      (window as unknown as { posthog?: typeof ph }).posthog = ph;
+    },
     session_recording: {
       maskAllInputs: true,
       maskInputOptions: { password: true },
