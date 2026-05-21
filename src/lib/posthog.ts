@@ -19,9 +19,11 @@ export function initPosthog() {
   if (typeof window === "undefined") return;
   if (initialised || !POSTHOG_KEY) return;
   initialised = true;
+  // Expose on window for browser-console debugging (safe — same key already in network requests).
+  (window as unknown as { posthog?: typeof posthog }).posthog = posthog;
   posthog.init(POSTHOG_KEY, {
     api_host: POSTHOG_HOST,
-    person_profiles: "identified_only",
+    person_profiles: "always",
     capture_pageview: true,
     capture_pageleave: true,
     autocapture: true,
