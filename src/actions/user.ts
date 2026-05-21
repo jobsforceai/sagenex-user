@@ -1031,3 +1031,11 @@ export async function getTeamPulse() {
     });
     return handleApiResponse(res);
 }
+
+export async function getTeamMemberContact(userId: string) {
+    const res = await fetch(
+        `${API_BASE_URL}/api/v1/user/team/member/${encodeURIComponent(userId)}`,
+        { headers: await getAuthHeaders() }
+    );
+    return handleApiResponse(res);
+}

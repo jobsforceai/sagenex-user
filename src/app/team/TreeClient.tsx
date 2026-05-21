@@ -5,8 +5,8 @@ import ReactFlow, { Background, ReactFlowInstance } from "reactflow";
 import "reactflow/dist/style.css";
 import { transformDataToFlow } from "@/lib/utils";
 import { UserNode } from "@/types";
-import { Expand, Lock, Maximize2, Minus, Plus, Search, Unlock } from "lucide-react";
-import { getTeamNodeSubtree, findUserInDownline } from "@/actions/user";
+import { Expand, Lock, Maximize2, Minus, Plus, Search, Unlock, PhoneCall, MessageCircle, X } from "lucide-react";
+import { getTeamNodeSubtree, findUserInDownline, getTeamMemberContact } from "@/actions/user";
 import { toast } from "sonner";
 
 interface TreeClientProps {
@@ -20,6 +20,9 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
   const [expanding, setExpanding] = useState<Set<string>>(new Set());
   const [searchInput, setSearchInput] = useState("");
   const [searching, setSearching] = useState(false);
+  // Selected-member action bar
+  const [selected, setSelected] = useState<{ userId: string; fullName?: string; phone?: string | null; packageUSD?: number; isPackageActive?: boolean } | null>(null);
+  const [selectedLoading, setSelectedLoading] = useState(false);
 
   const { nodes, edges } = useMemo(() => transformDataToFlow(tree), [tree]);
 
@@ -50,6 +53,31 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
     (_: React.MouseEvent, node: { id: string }) => {
       const target = findNodeInTree(tree, node.id);
       if (!target) return;
+      // Show action bar for any clicked node that isn't the root (self).
+      const isRoot = node.id === tree.userId;
+      if (!isRoot) {
+        setSelected({ userId: target.userId, fullName: target.fullName });
+        setSelectedLoading(true);
+        getTeamMemberContact(node.id)
+          .then(res => {
+            if (res?.error || !res?.member) {
+              setSelected(s => s && s.userId === node.id ? { ...s, phone: null } : s);
+            } else {
+              setSelected({
+                userId: res.member.userId,
+                fullName: res.member.fullName,
+                phone: res.member.phone,
+                packageUSD: res.member.packageUSD,
+                isPackageActive: res.member.isPackageActive,
+              });
+            }
+          })
+          .catch(() => {
+            setSelected(s => s && s.userId === node.id ? { ...s, phone: null } : s);
+          })
+          .finally(() => setSelectedLoading(false));
+      }
+      // Expand subtree if more children exist (existing behaviour kept).
       const loadedKids = target.children?.length ?? 0;
       const totalKids = target.childrenCount ?? loadedKids;
       if (totalKids > loadedKids) {
@@ -182,6 +210,57 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
             <p><span className="mr-2 inline-block rounded-full bg-[#FFF1F4] px-2 py-1 text-[10px] font-bold text-[#C8103E]">Red</span> Left Members</p>
           </div>
         </div>
+
+        {/* Selected-member action panel (Call / WhatsApp) */}
+        {selected && (
+          <div className="absolute right-7 top-7 z-20 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B]">Selected member</p>
+                <p className="mt-1 truncate text-base font-black text-[#0F172A]">{maskName(selected.fullName ?? selected.userId)}</p>
+                <p className="text-xs font-bold text-[#64748B]">{selected.userId}</p>
+                {typeof selected.packageUSD === "number" && selected.packageUSD > 0 && (
+                  <p className="mt-1 text-[11px] text-[#0F172A]">
+                    Package ₹{selected.packageUSD.toLocaleString("en-IN")} · {selected.isPackageActive ? <span className="font-bold text-emerald-700">Active</span> : <span className="font-bold text-slate-500">Inactive</span>}
+                  </p>
+                )}
+              </div>
+              <button
+                type="button"
+                onClick={() => setSelected(null)}
+                aria-label="Close"
+                className="flex h-7 w-7 items-center justify-center rounded-lg text-[#64748B] hover:bg-slate-100"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {selectedLoading ? (
+              <div className="mt-3 h-10 animate-pulse rounded-lg bg-slate-100" />
+            ) : (
+              <div className="mt-3 grid grid-cols-2 gap-2">
+                <a
+                  href={selected.phone ? `tel:${selected.phone}` : undefined}
+                  aria-disabled={!selected.phone}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-[#0F172A] text-white hover:opacity-90" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
+                >
+                  <PhoneCall className="h-3.5 w-3.5" />Call
+                </a>
+                <a
+                  href={selected.phone ? `https://wa.me/${(selected.phone.replace(/\\D/g, "").length === 10 ? "91" : "") + selected.phone.replace(/\\D/g, "")}?text=${encodeURIComponent(`Hi ${(selected.fullName ?? "").split(" ")[0] || "there"}, wanted to chat about your Sagenex journey.`)}` : undefined}
+                  target="_blank" rel="noopener noreferrer"
+                  aria-disabled={!selected.phone}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-emerald-500 text-white hover:bg-emerald-600" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
+                >
+                  <MessageCircle className="h-3.5 w-3.5" />WhatsApp
+                </a>
+              </div>
+            )}
+            {!selectedLoading && !selected.phone && (
+              <p className="mt-2 text-[11px] text-[#94A3B8]">No phone number on file for this member.</p>
+            )}
+          </div>
+        )}
       </div>
     </section>
   );
@@ -208,4 +287,11 @@ function mergeNodeInTree(root: UserNode, subtree: UserNode): UserNode {
     ...root,
     children: (root.children || []).map((c) => mergeNodeInTree(c, subtree)),
   };
+}
+
+
+function maskName(value: string): string {
+  const clean = (value || '').trim();
+  if (clean.length <= 2) return clean;
+  return `${clean.charAt(0)}${"*".repeat(Math.min(5, Math.max(2, clean.length - 2)))}${clean.charAt(clean.length - 1)}`;
 }

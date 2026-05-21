@@ -12,7 +12,7 @@
  * Pre-filled tel: and wa.me/ links — no extra backend work needed.
  */
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, Flame, PhoneCall, MessageCircle, Trophy, Activity } from "lucide-react";
+import { AlertTriangle, Flame, PhoneCall, MessageCircle, Trophy, Activity, Sparkles, ChevronRight } from "lucide-react";
 import { getTeamPulse } from "@/actions/user";
 
 interface AtRiskMember {
@@ -54,11 +54,19 @@ interface TeamHealth {
   weakSpots: string[];
 }
 
+interface ActionPlanItem {
+  headline: string;
+  detail?: string;
+  targetUserId?: string;
+  priority: "high" | "medium" | "low";
+}
+
 interface TeamPulse {
   atRisk: AtRiskMember[];
   opportunities: HotOpportunity[];
   recentWins: RecentWin[];
   health: TeamHealth;
+  actionPlan: ActionPlanItem[];
 }
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
@@ -315,9 +323,37 @@ export default function TeamPulseSection() {
 
       </div>
 
-      {/* Weak spots strip */}
+      {/* Action Plan — what to do today (rule-based, personalized) */}
+      {data.actionPlan?.length > 0 && (
+        <div className="mt-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-[#FFF7ED] via-white to-[#F0F9FF] p-4">
+          <div className="flex items-center gap-2">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] text-white">
+              <Sparkles className="h-3.5 w-3.5" />
+            </div>
+            <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">What to do today</p>
+          </div>
+          <ul className="mt-3 space-y-2">
+            {data.actionPlan.map((a, i) => (
+              <li key={i} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white px-3 py-2.5">
+                <span className={`mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full ${a.priority === 'high' ? 'bg-rose-500' : a.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-black text-[#0F172A]">{a.headline}</p>
+                  {a.detail && <p className="mt-0.5 text-[11px] text-[#64748B]">{a.detail}</p>}
+                </div>
+                {a.targetUserId && (
+                  <a href="/team" className="shrink-0 self-center rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-black text-[#0F172A] hover:bg-slate-50">
+                    {a.targetUserId} <ChevronRight className="-mr-0.5 ml-0.5 inline h-3 w-3" />
+                  </a>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* Weak spots strip — quieter follow-up under the action plan */}
       {health.weakSpots.length > 0 && (
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-3">
+        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-3">
           <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Watch outs</p>
           <ul className="mt-1.5 space-y-0.5 text-xs text-[#0F172A]">
             {health.weakSpots.map((s, i) => <li key={i} className="flex items-start gap-2">•<span>{s}</span></li>)}
