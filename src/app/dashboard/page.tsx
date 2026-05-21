@@ -45,6 +45,7 @@ interface Profile {
   userId: string;
   earningsMultiplierDeadline?: string | null;
   earningsMultiplier?: number;
+  kycStatus?: string;
 }
 
 interface WalletData {
@@ -81,6 +82,12 @@ interface RankSnapshot {
   consecutiveMonthsMissed?: number;
 }
 
+interface MultiplierLegDetail {
+  userId: string;
+  fullName?: string;
+  monthlyBusiness: number;
+}
+
 interface DashboardData {
   profile: Profile;
   wallet: WalletData;
@@ -89,6 +96,9 @@ interface DashboardData {
   earningsMultiplierDeadline?: string | null;
   rank?: RankSnapshot;
   performanceRank?: RankSnapshot;
+  multiplierLegDetails?: MultiplierLegDetail[];
+  legDetails?: MultiplierLegDetail[];
+  kycStatus?: string;
 }
 
 interface Referral {
@@ -147,6 +157,12 @@ interface LeaderboardEntry {
   profilePicture: string | null;
   packagesSold: number;
   earnings: number;
+}
+
+interface AutoSyncResponse {
+  synced?: boolean;
+  corrections?: number;
+  error?: string;
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────
@@ -236,7 +252,7 @@ const DashboardPage = () => {
       fetchInitialData();
       // Silent auto-sync (throttled 1/day server-side); re-fetch dashboard if corrections applied
       autoSyncProfile()
-        .then((res: any) => {
+        .then((res: AutoSyncResponse) => {
           if (res?.synced && (res?.corrections ?? 0) > 0) {
             fetchInitialData();
           }
@@ -382,7 +398,7 @@ const DashboardPage = () => {
         <div className="min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
           <div className="mx-auto max-w-7xl space-y-6">
           <ScheduledCashBanner />
-          <section className="relative overflow-hidden rounded-3xl bg-[#0F172A] text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)]">
+          <section className="relative overflow-hidden rounded-[28px] bg-[#0F172A] text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] md:rounded-3xl">
             <Image
               src="/dashboard/dashboard-hero-figurine.png"
               alt=""
@@ -400,34 +416,34 @@ const DashboardPage = () => {
               priority
             />
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(196,30,58,0.95)_0%,rgba(122,0,31,0.78)_42%,rgba(15,23,42,0.96)_100%)]" />
-            <div className="relative grid gap-8 p-6 sm:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
-              <div className="space-y-7">
+            <div className="relative grid gap-2.5 p-3.5 sm:p-4 md:gap-8 md:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
+              <div className="space-y-2.5 md:space-y-7">
                 <div>
-                  <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/12 px-3 py-1.5 text-xs font-black uppercase tracking-[0.12em] text-white/80 backdrop-blur">
-                    <Sparkles className="h-4 w-4 text-amber-200" />
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/12 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-white/80 backdrop-blur md:gap-2 md:px-3 md:py-1.5 md:text-xs md:tracking-[0.12em]">
+                    <Sparkles className="h-3 w-3 text-amber-200 md:h-4 md:w-4" />
                     Command center
                   </span>
-                  <h1 className="mt-5 max-w-3xl text-4xl font-black leading-tight text-white sm:text-5xl">
+                  <h1 className="mt-1.5 max-w-3xl truncate text-2xl font-black leading-tight text-white sm:text-3xl md:mt-5 md:text-5xl">
                     {profile?.fullName || "Welcome back"}
                   </h1>
-                  <div className="mt-4 flex flex-wrap gap-2">
-                    <span className="rounded-full bg-white/14 px-3 py-1 text-xs font-bold text-white">
+                  <div className="mt-1.5 flex flex-wrap gap-1.5 md:mt-4 md:gap-2">
+                    <span className="rounded-full bg-white/14 px-2 py-0.5 text-[10px] font-bold text-white md:px-3 md:py-1 md:text-xs">
                       {currentRank?.name ?? "Member"}
                     </span>
                     {lifetimeRank?.name && lifetimeRank.name !== currentRank?.name && (
-                      <span className="rounded-full bg-white/14 px-3 py-1 text-xs font-bold text-white/80">
+                      <span className="rounded-full bg-white/14 px-2 py-0.5 text-[10px] font-bold text-white/80 md:px-3 md:py-1 md:text-xs">
                         Lifetime: {lifetimeRank.name}
                       </span>
                     )}
                     {earningsMultiplier && earningsMultiplier > 0 && (
                       <MultiplierProgress
                         earningsMultiplier={earningsMultiplier}
-                        legDetails={(dashboardData as any)?.multiplierLegDetails || (dashboardData as any)?.legDetails || []}
-                        kycStatus={(dashboardData as any)?.kycStatus || (profile as any)?.kycStatus}
+                        legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
+                        kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
                         trigger={
                           <button
                             type="button"
-                            className="inline-flex items-center gap-1 rounded-full bg-emerald-400/18 px-3 py-1 text-xs font-bold text-emerald-100 hover:bg-emerald-400/28"
+                            className="inline-flex items-center gap-1 rounded-full bg-emerald-400/18 px-2 py-0.5 text-[10px] font-bold text-emerald-100 hover:bg-emerald-400/28 md:px-3 md:py-1 md:text-xs"
                           >
                             {earningsMultiplier}x multiplier
                             <Info className="h-3 w-3" />
@@ -438,48 +454,51 @@ const DashboardPage = () => {
                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:grid-cols-3">
+                <div className="grid grid-cols-3 gap-1.5 md:gap-3">
                   {[
-                    { label: "Available Balance", value: formatCurrencyCompact(wallet?.availableBalance), icon: Wallet },
-                    { label: "Rank Progress", value: `${Math.round(progressPercentage)}%`, icon: TrendingUp },
-                    { label: "Tickets", value: ticketBalance?.totalTickets ?? 0, icon: Gift },
-                  ].map(({ label, value, icon: Icon }) => (
-                    <div key={label} className="rounded-2xl border border-white/12 bg-white/12 p-4 backdrop-blur">
-                      <Icon className="h-5 w-5 text-amber-100" />
-                      <p className="mt-3 text-[11px] font-black uppercase tracking-[0.08em] text-white/58">{label}</p>
-                      <p className="mt-1 truncate text-2xl font-black text-white">{value}</p>
+                    { label: "Available Balance", shortLabel: "Balance", value: formatCurrencyCompact(wallet?.availableBalance), icon: Wallet },
+                    { label: "Rank Progress", shortLabel: "Rank", value: `${Math.round(progressPercentage)}%`, icon: TrendingUp },
+                    { label: "Tickets", shortLabel: "Tickets", value: ticketBalance?.totalTickets ?? 0, icon: Gift },
+                  ].map(({ label, shortLabel, value, icon: Icon }) => (
+                    <div key={label} className="min-w-0 rounded-xl border border-white/12 bg-white/12 p-2 backdrop-blur md:rounded-2xl md:p-4">
+                      <Icon className="h-3.5 w-3.5 text-amber-100 md:h-5 md:w-5" />
+                      <p className="mt-1.5 truncate text-[7px] font-black uppercase tracking-[0.06em] text-white/58 md:mt-3 md:text-[11px] md:tracking-[0.08em]">
+                        <span className="md:hidden">{shortLabel}</span>
+                        <span className="hidden md:inline">{label}</span>
+                      </p>
+                      <p className="truncate text-sm font-black text-white sm:text-base md:mt-1 md:text-2xl">{value}</p>
                     </div>
                   ))}
                 </div>
               </div>
 
-              <div className="rounded-3xl border border-white/15 bg-white/14 p-5 backdrop-blur-md">
+              <div className="rounded-xl border border-white/15 bg-white/14 p-2.5 backdrop-blur-md md:rounded-3xl md:p-5">
                 <div className="flex items-center justify-between">
                   <div>
-                    <p className="text-xs font-black uppercase tracking-[0.12em] text-white/60">Next rank</p>
-                    <p className="mt-1 text-2xl font-black text-white">
+                    <p className="text-[8px] font-black uppercase tracking-[0.1em] text-white/60 md:text-xs">Next rank</p>
+                    <p className="text-base font-black text-white md:mt-1 md:text-2xl">
                       {rankProgress?.progress?.nextRankName ?? "Max rank"}
                     </p>
                   </div>
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white text-[#C41E3A]">
-                    <Crown className="h-8 w-8" />
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#C41E3A] md:h-16 md:w-16 md:rounded-2xl">
+                    <Crown className="h-4 w-4 md:h-8 md:w-8" />
                   </div>
                 </div>
-                <div className="mt-6">
-                  <div className="mb-2 flex items-center justify-between text-sm font-bold text-white/80">
+                <div className="mt-2 md:mt-6">
+                  <div className="mb-1 flex items-center justify-between text-[10px] font-bold text-white/80 md:mb-2 md:text-sm">
                     <span>Completion</span>
                     <span>{Math.round(progressPercentage)}%</span>
                   </div>
-                  <div className="h-3 overflow-hidden rounded-full bg-white/18">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/18 md:h-3">
                     <div
                       className="h-full rounded-full bg-emerald-400"
                       style={{ width: `${Math.min(100, Math.max(0, progressPercentage))}%` }}
                     />
                   </div>
                 </div>
-                <div className="mt-5 grid gap-2 text-sm">
+                <div className="mt-2 grid grid-cols-3 gap-1 text-[9px] md:mt-5 md:grid-cols-1 md:gap-2 md:text-sm">
                   {rankRequirements?.directs && (
-                    <div className="flex justify-between rounded-2xl bg-black/18 px-3 py-2">
+                    <div className="flex min-w-0 justify-between gap-1 rounded-lg bg-black/18 px-1.5 py-1 md:rounded-2xl md:px-3 md:py-2">
                       <span className="text-white/65">Directs</span>
                       <span className="font-black text-white">
                         {rankRequirements.directs.current}/{rankRequirements.directs.required}
@@ -487,16 +506,16 @@ const DashboardPage = () => {
                     </div>
                   )}
                   {rankRequirements?.activeTeam && (
-                    <div className="flex justify-between rounded-2xl bg-black/18 px-3 py-2">
-                      <span className="text-white/65">Active team</span>
+                    <div className="flex min-w-0 justify-between gap-1 rounded-lg bg-black/18 px-1.5 py-1 md:rounded-2xl md:px-3 md:py-2">
+                      <span className="truncate text-white/65">Active</span>
                       <span className="font-black text-white">
                         {rankRequirements.activeTeam.current}/{rankRequirements.activeTeam.required}
                       </span>
                     </div>
                   )}
                   {rankRequirements?.legRule && (
-                    <div className="flex justify-between rounded-2xl bg-black/18 px-3 py-2">
-                      <span className="text-white/65">Qualified legs</span>
+                    <div className="flex min-w-0 justify-between gap-1 rounded-lg bg-black/18 px-1.5 py-1 md:rounded-2xl md:px-3 md:py-2">
+                      <span className="truncate text-white/65">Legs</span>
                       <span className="font-black text-white">
                         {rankRequirements.legRule.current}/{rankRequirements.legRule.required}
                       </span>
@@ -509,8 +528,8 @@ const DashboardPage = () => {
 
           <LegGauges
             earningsMultiplier={earningsMultiplier}
-            legDetails={(dashboardData as any)?.multiplierLegDetails || (dashboardData as any)?.legDetails || []}
-            kycStatus={(dashboardData as any)?.kycStatus || (profile as any)?.kycStatus}
+            legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
+            kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
           />
 
           {consecutiveMonthsMissed === 1 && (
@@ -520,7 +539,7 @@ const DashboardPage = () => {
             />
           )}
 
-          <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <section className="hidden gap-4 md:grid md:grid-cols-2 xl:grid-cols-4">
             {quickActions.map(({ href, icon: Icon, title, subtitle, color }) => (
               <Link key={href} href={href} className="group">
                 <div className="flex h-full items-center justify-between gap-4 rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition duration-200 group-hover:-translate-y-0.5 group-hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)]">
