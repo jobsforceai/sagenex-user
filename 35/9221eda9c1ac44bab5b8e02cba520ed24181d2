@@ -1,0 +1,23 @@
+src/actions/user.ts
+  s_964e0d3fba450c::t_e56f504caef100 1034-1041
+src/app/dashboard/TeamPulseSection.tsx
+  s_964e0d3fba450c::t_a5eca4e3da2351 15,57-63,69,326-354,356
+src/app/team/TreeClient.tsx
+  s_964e0d3fba450c::t_a3a3cf96aa1726 8-9,23-25,56-80,213-263,291-296
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "359221eda9c1ac44bab5b8e02cba520ed24181d2",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
