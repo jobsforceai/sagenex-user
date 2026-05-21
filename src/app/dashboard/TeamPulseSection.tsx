@@ -72,6 +72,8 @@ interface ActionPlanItem {
   headline: string;
   detail?: string;
   targetUserId?: string;
+  targetPhone?: string | null;
+  whatsappMessage?: string;
   priority: "high" | "medium" | "low";
 }
 
@@ -413,20 +415,44 @@ export default function TeamPulseSection() {
             <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">What to do today</p>
           </div>
           <ul className="mt-3 space-y-2">
-            {data.actionPlan.map((a, i) => (
-              <li key={i} className="flex items-start gap-3 rounded-xl border border-slate-100 bg-white px-3 py-2.5">
-                <span className={`mt-0.5 inline-block h-2 w-2 shrink-0 rounded-full ${a.priority === 'high' ? 'bg-rose-500' : a.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
-                <div className="min-w-0 flex-1">
-                  <p className="text-sm font-black text-[#0F172A]">{a.headline}</p>
-                  {a.detail && <p className="mt-0.5 text-[11px] text-[#64748B]">{a.detail}</p>}
-                </div>
-                {a.targetUserId && (
-                  <a href="/team" className="shrink-0 self-center rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-black text-[#0F172A] hover:bg-slate-50">
-                    {a.targetUserId} <ChevronRight className="-mr-0.5 ml-0.5 inline h-3 w-3" />
-                  </a>
-                )}
-              </li>
-            ))}
+            {data.actionPlan.map((a, i) => {
+              const w = a.targetPhone ? wapp(a.targetPhone, a.whatsappMessage || `Hi, just touching base.`) : null;
+              return (
+                <li key={i} className="rounded-xl border border-slate-100 bg-white px-3 py-2.5">
+                  <div className="flex items-start gap-3">
+                    <span className={`mt-1 inline-block h-2 w-2 shrink-0 rounded-full ${a.priority === 'high' ? 'bg-rose-500' : a.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-black text-[#0F172A]">{a.headline}</p>
+                      {a.detail && <p className="mt-0.5 text-[11px] text-[#64748B]">{a.detail}</p>}
+                    </div>
+                    {a.targetUserId && (
+                      <a href="/team" className="shrink-0 self-center rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-black text-[#0F172A] hover:bg-slate-50">
+                        {a.targetUserId} <ChevronRight className="-mr-0.5 ml-0.5 inline h-3 w-3" />
+                      </a>
+                    )}
+                  </div>
+                  {(a.targetPhone || w) && (
+                    <div className="mt-2 flex gap-1.5 pl-5">
+                      <a
+                        href={a.targetPhone ? `tel:${a.targetPhone}` : undefined}
+                        aria-disabled={!a.targetPhone}
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${a.targetPhone ? 'bg-[#0F172A] !text-white hover:opacity-90' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
+                      >
+                        <PhoneCall className="h-3 w-3" />Call
+                      </a>
+                      <a
+                        href={w ?? undefined}
+                        target="_blank" rel="noopener noreferrer"
+                        aria-disabled={!w}
+                        className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${w ? 'bg-emerald-500 !text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
+                      >
+                        <MessageCircle className="h-3 w-3" />WhatsApp
+                      </a>
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         </div>
       )}
