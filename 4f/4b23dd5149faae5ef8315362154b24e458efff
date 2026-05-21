@@ -1,0 +1,19 @@
+src/app/dashboard/TeamPulseSection.tsx
+  s_964e0d3fba450c::t_840bf8c528cd81 75-76,418-455
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "4f4b23dd5149faae5ef8315362154b24e458efff",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
