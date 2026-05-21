@@ -1024,3 +1024,10 @@ export async function askChatbot(message: string, history: Array<{ role: string;
     return { error: 'chatbot_failed' };
   }
 }
+
+export async function getTeamPulse() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/team-pulse`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}

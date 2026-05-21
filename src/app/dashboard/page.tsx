@@ -1,4 +1,5 @@
 "use client";
+import TeamPulseSection from "./TeamPulseSection";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
@@ -538,6 +539,8 @@ const DashboardPage = () => {
               </Link>
             ))}
           </section>
+
+          <TeamPulseSection />
 
           <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
             <div className="space-y-5">
