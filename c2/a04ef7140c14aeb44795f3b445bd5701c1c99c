@@ -1,0 +1,9 @@
+src/lib/posthog.ts
+  ai_agent 22-23,26
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "c2a04ef7140c14aeb44795f3b445bd5701c1c99c",
+  "prompts": {}
+}
