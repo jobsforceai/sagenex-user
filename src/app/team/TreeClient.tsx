@@ -242,7 +242,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
                 <a
                   href={selected.phone ? `tel:${selected.phone}` : undefined}
                   aria-disabled={!selected.phone}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-[#0F172A] text-white hover:opacity-90" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-[#0F172A] !text-white hover:opacity-90" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
                 >
                   <PhoneCall className="h-3.5 w-3.5" />Call
                 </a>
@@ -250,7 +250,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
                   href={selected.phone ? `https://wa.me/${(selected.phone.replace(/\\D/g, "").length === 10 ? "91" : "") + selected.phone.replace(/\\D/g, "")}?text=${encodeURIComponent(`Hi ${(selected.fullName ?? "").split(" ")[0] || "there"}, wanted to chat about your Sagenex journey.`)}` : undefined}
                   target="_blank" rel="noopener noreferrer"
                   aria-disabled={!selected.phone}
-                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-emerald-500 text-white hover:bg-emerald-600" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
+                  className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-emerald-500 !text-white hover:bg-emerald-600" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
                 >
                   <MessageCircle className="h-3.5 w-3.5" />WhatsApp
                 </a>
