@@ -1,9 +1,5 @@
 /**
  * PostHog product analytics — single source of truth.
- *
- * Client-only. Initialised once via PostHogProvider mounted in the root
- * layout. Authenticated users are tied via `identify(userId)` inside
- * AuthContext after login.
  */
 "use client";
 
@@ -18,17 +14,12 @@ export function initPosthog() {
   if (typeof window === "undefined") return;
   if (initialised || !POSTHOG_KEY) return;
   initialised = true;
-  // Keep config minimal — extra options have caused silent init failures
-  // (consent / __loaded internals breaking) in v1.375. Add back as needed.
-  posthog.init(POSTHOG_KEY, {
-    api_host: POSTHOG_HOST,
-    person_profiles: "always",
-    capture_pageview: true,
-    autocapture: true,
-    loaded: (ph) => {
-      (window as unknown as { posthog?: typeof ph }).posthog = ph;
-    },
-  });
+  // Absolute-minimum init — just api_host. No autocapture flags, no recorder,
+  // no decide overrides. Anything beyond this has caused silent event-drop
+  // bugs in v1.375 where capture() returns ok but no network POST fires.
+  posthog.init(POSTHOG_KEY, { api_host: POSTHOG_HOST });
+  // Expose for console debugging
+  (window as unknown as { posthog?: typeof posthog }).posthog = posthog;
 }
 
 export function identifyUser(userId: string, traits?: Record<string, unknown>) {
