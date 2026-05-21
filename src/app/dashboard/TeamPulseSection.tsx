@@ -30,10 +30,24 @@ interface HotOpportunity {
   userId: string;
   fullName: string;
   phone?: string | null;
-  type: "NEXT_TIER" | "INACTIVE_HIGH_PACKAGE" | "CAP_NEAR_EXHAUST";
+  type: "TO_3X_LEG" | "TO_4X_LEG" | "INACTIVE_HIGH_PACKAGE";
   headline: string;
   detail: string;
   packageUSD: number;
+  legBusiness120d?: number;
+}
+
+interface RankProgress {
+  currentMultiplier: number;
+  nextMultiplier: number | null;
+  isKycVerified: boolean;
+  qualifyingLegs3x: number;
+  qualifyingLegs4x: number;
+  teamBusiness120d: number;
+  requiredLegs: number | null;
+  requiredLegBusinessPerLeg: number | null;
+  requiredTeamBusiness: number | null;
+  blockers: string[];
 }
 
 interface RecentWin {
@@ -67,6 +81,7 @@ interface TeamPulse {
   recentWins: RecentWin[];
   health: TeamHealth;
   actionPlan: ActionPlanItem[];
+  rankProgress: RankProgress;
 }
 
 const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
@@ -138,8 +153,18 @@ export default function TeamPulseSection() {
     );
   }
 
-  const { atRisk, opportunities, recentWins, health } = data;
+  const { atRisk, opportunities, recentWins, health, rankProgress } = data;
   const band = BAND_COLOUR[health.band];
+
+  // Multiplier-path card values
+  const rp = rankProgress;
+  const hasNextMultiplier = rp.nextMultiplier !== null;
+  const targetLegs = rp.requiredLegs ?? 0;
+  const haveLegs = rp.nextMultiplier === 3 ? rp.qualifyingLegs3x : rp.qualifyingLegs4x;
+  const targetTeam = rp.requiredTeamBusiness ?? 0;
+  const haveTeam = rp.teamBusiness120d;
+  const teamPct = targetTeam > 0 ? Math.min(100, Math.round((haveTeam / targetTeam) * 100)) : 100;
+  const legPct = targetLegs > 0 ? Math.min(100, Math.round((haveLegs / targetLegs) * 100)) : 100;
 
   return (
     <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
@@ -197,6 +222,61 @@ export default function TeamPulseSection() {
           <p className="mt-2 text-xl font-black text-[#0F172A]">{inrCompact(health.signals.activationVolume30d.amount)}</p>
           <p className="mt-0.5 text-[11px] text-[#64748B]">Activation volume</p>
         </div>
+      </div>
+
+      {/* Multiplier path */}
+      <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 ring-1 ring-slate-100">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">Multiplier path</p>
+            <p className="mt-1 text-base font-black text-[#0F172A]">
+              {hasNextMultiplier
+                ? <>You’re at <span className="text-[#C8103E]">{rp.currentMultiplier}x</span> — next stop <span className="text-emerald-600">{rp.nextMultiplier}x</span></>
+                : <>You’re at <span className="text-emerald-600">{rp.currentMultiplier}x</span> — max tier</>}
+            </p>
+          </div>
+          {hasNextMultiplier && (
+            <span className="rounded-full bg-slate-50 px-3 py-1 text-[11px] font-black text-[#0F172A]">{rp.blockers.length} thing{rp.blockers.length === 1 ? '' : 's'} left</span>
+          )}
+        </div>
+
+        {hasNextMultiplier ? (
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            {/* Legs progress */}
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+              <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">
+                <span>Qualifying legs</span>
+                <span className="font-black text-[#0F172A]">{haveLegs}/{targetLegs}</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+                <div className="h-full rounded-full bg-emerald-500" style={{ width: legPct + '%' }} />
+              </div>
+              <p className="mt-1.5 text-[11px] text-[#64748B]">Each leg needs ₹{(rp.requiredLegBusinessPerLeg ?? 0).toLocaleString('en-IN')}+ business in last 120 days</p>
+            </div>
+            {/* Team business progress */}
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
+              <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">
+                <span>Team business · 120d</span>
+                <span className="font-black text-[#0F172A]">{inrCompact(haveTeam)}/{inrCompact(targetTeam)}</span>
+              </div>
+              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+                <div className="h-full rounded-full bg-sky-500" style={{ width: teamPct + '%' }} />
+              </div>
+              <p className="mt-1.5 text-[11px] text-[#64748B]">Across your full downline in the rolling 120-day window</p>
+            </div>
+          </div>
+        ) : (
+          <p className="mt-3 text-xs text-[#64748B]">You’re at the top earning multiplier. Keep your qualifying legs strong — they refresh on a rolling 120-day window.</p>
+        )}
+
+        {hasNextMultiplier && rp.blockers.length > 0 && (
+          <ul className="mt-3 space-y-1 text-xs text-[#0F172A]">
+            {rp.blockers.map((b, i) => <li key={i} className="flex items-start gap-2"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C8103E]" /><span>{b}</span></li>)}
+            {!rp.isKycVerified && rp.nextMultiplier === 4 && (
+              <li className="flex items-start gap-2 text-[11px] text-amber-700">• KYC verification is required for 4x</li>
+            )}
+          </ul>
+        )}
       </div>
 
       {/* The three lists */}
