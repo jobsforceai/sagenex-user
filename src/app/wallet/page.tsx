@@ -380,7 +380,7 @@ const WalletPage = () => {
           >
             <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">Compounding</span>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${compoundingEnabled ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${compoundingEnabled ? 'bg-emerald-600 !text-white' : 'bg-slate-200 text-slate-600'}`}>
               {compoundingEnabled === null ? '...' : compoundingEnabled ? 'ON' : 'OFF'}
             </span>
           </button>
@@ -389,7 +389,7 @@ const WalletPage = () => {
 
       <ScheduledCashBanner />
 
-      <section className="wallet-red-surface relative overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_55%,#430010_100%)] p-3.5 text-white shadow-[0_22px_55px_rgba(122,0,31,0.25)] sm:p-4 md:rounded-3xl md:p-7 lg:p-8">
+      <section className="wallet-red-surface relative overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_55%,#430010_100%)] p-3.5 !text-white shadow-[0_22px_55px_rgba(122,0,31,0.25)] sm:p-4 md:rounded-3xl md:p-7 lg:p-8">
         <Image
           src={walletAsset.heroWave}
           alt=""
@@ -402,11 +402,11 @@ const WalletPage = () => {
         <div className="relative grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
           <div className="space-y-2.5 md:space-y-7">
             <div>
-              <div className="wallet-red-muted flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-white/70 md:gap-2 md:text-[11px] md:tracking-[0.18em]">
+              <div className="wallet-red-muted flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.12em] !text-white/70 md:gap-2 md:text-[11px] md:tracking-[0.18em]">
                 Available Balance
-                <Eye className="h-3 w-3 text-white/60 md:h-4 md:w-4" aria-hidden="true" />
+                <Eye className="h-3 w-3 !text-white/60 md:h-4 md:w-4" aria-hidden="true" />
               </div>
-              <div className="mt-1.5 truncate text-[2rem] font-black leading-none tracking-tight text-white sm:text-4xl md:mt-3 md:text-5xl lg:text-6xl">
+              <div className="mt-1.5 truncate text-[2rem] font-black leading-none tracking-tight !text-white sm:text-4xl md:mt-3 md:text-5xl lg:text-6xl">
                 {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
               </div>
               <div className="wallet-red-soft mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-100 md:mt-4 md:gap-2 md:px-3 md:py-1.5 md:text-xs">
@@ -423,13 +423,13 @@ const WalletPage = () => {
               ].map(({ label, shortLabel, value, suffix, icon: Icon }) => (
                 <div key={label} className="min-w-0 rounded-xl border border-white/10 bg-white/10 p-2 backdrop-blur md:rounded-2xl md:p-3">
                   <div className="mb-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white/15 md:mb-2 md:h-8 md:w-8">
-                    <Icon className="h-3.5 w-3.5 text-white md:h-4 md:w-4" />
+                    <Icon className="h-3.5 w-3.5 !text-white md:h-4 md:w-4" />
                   </div>
-                  <p className="wallet-red-muted truncate text-[7px] font-bold uppercase tracking-[0.06em] text-white/60 md:text-[11px] md:tracking-[0.08em]">
+                  <p className="wallet-red-muted truncate text-[7px] font-bold uppercase tracking-[0.06em] !text-white/60 md:text-[11px] md:tracking-[0.08em]">
                     <span className="md:hidden">{shortLabel}</span>
                     <span className="hidden md:inline">{label}</span>
                   </p>
-                  <p className="mt-0.5 truncate text-[11px] font-black text-white sm:text-xs md:mt-1 md:text-sm">
+                  <p className="mt-0.5 truncate text-[11px] font-black !text-white sm:text-xs md:mt-1 md:text-sm">
                     {summaryLoading ? "—" : suffix ? `${value}${suffix}` : formatCompactCurrency(Number(value))}
                   </p>
                 </div>
@@ -506,31 +506,31 @@ const WalletPage = () => {
           <TabsList className="h-auto w-max min-w-full justify-start gap-1.5 rounded-none bg-transparent p-0 sm:gap-2">
             <TabsTrigger
               value="overview"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="transfer"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               SGChain
             </TabsTrigger>
             <TabsTrigger
               value="rewards"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               Rewards
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               History
             </TabsTrigger>
             <TabsTrigger
               value="lp"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               LP Pool
             </TabsTrigger>

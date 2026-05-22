@@ -428,7 +428,7 @@ export default function TeamPulseSection() {
       {data.actionPlan?.length > 0 && (
         <div className="mt-3 rounded-2xl border border-slate-200 bg-gradient-to-br from-[#FFF7ED] via-white to-[#F0F9FF] p-3 md:mt-5 md:p-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] text-white md:h-8 md:w-8">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] !text-white md:h-8 md:w-8">
               <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </div>
             <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">What to do today</p>

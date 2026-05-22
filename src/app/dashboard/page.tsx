@@ -398,7 +398,7 @@ const DashboardPage = () => {
         <div className="min-h-screen bg-[#F8FAFC] px-4 py-4 sm:px-6 md:py-5 lg:px-8">
           <div className="mx-auto max-w-7xl space-y-3 md:space-y-6">
           <ScheduledCashBanner />
-          <section className="relative overflow-hidden rounded-[28px] bg-[#0F172A] text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] md:rounded-3xl">
+          <section className="relative overflow-hidden rounded-[28px] bg-[#0F172A] !text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] md:rounded-3xl">
             <Image
               src="/dashboard/dashboard-hero-figurine.png"
               alt=""
@@ -419,19 +419,19 @@ const DashboardPage = () => {
             <div className="relative grid gap-2 p-3 md:gap-8 md:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
               <div className="space-y-2 md:space-y-7">
                 <div>
-                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/12 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-white/80 backdrop-blur md:gap-2 md:px-3 md:py-1.5 md:text-xs md:tracking-[0.12em]">
+                  <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/12 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] !text-white/80 backdrop-blur md:gap-2 md:px-3 md:py-1.5 md:text-xs md:tracking-[0.12em]">
                     <Sparkles className="h-3 w-3 text-amber-200 md:h-4 md:w-4" />
                     Command center
                   </span>
-                  <h1 className="mt-1.5 max-w-3xl truncate text-2xl font-black leading-tight text-white sm:text-3xl md:mt-5 md:text-5xl">
+                  <h1 className="mt-1.5 max-w-3xl truncate text-2xl font-black leading-tight !text-white sm:text-3xl md:mt-5 md:text-5xl">
                     {profile?.fullName || "Welcome back"}
                   </h1>
                   <div className="mt-1.5 flex flex-wrap gap-1.5 md:mt-4 md:gap-2">
-                    <span className="rounded-full bg-white/14 px-2 py-0.5 text-[10px] font-bold text-white md:px-3 md:py-1 md:text-xs">
+                    <span className="rounded-full bg-white/14 px-2 py-0.5 text-[10px] font-bold !text-white md:px-3 md:py-1 md:text-xs">
                       {currentRank?.name ?? "Member"}
                     </span>
                     {lifetimeRank?.name && lifetimeRank.name !== currentRank?.name && (
-                      <span className="rounded-full bg-white/14 px-2 py-0.5 text-[10px] font-bold text-white/80 md:px-3 md:py-1 md:text-xs">
+                      <span className="rounded-full bg-white/14 px-2 py-0.5 text-[10px] font-bold !text-white/80 md:px-3 md:py-1 md:text-xs">
                         Lifetime: {lifetimeRank.name}
                       </span>
                     )}
@@ -462,11 +462,11 @@ const DashboardPage = () => {
                   ].map(({ label, shortLabel, value, icon: Icon }) => (
                     <div key={label} className="min-w-0 rounded-xl border border-white/12 bg-white/12 p-2 backdrop-blur md:rounded-2xl md:p-4">
                       <Icon className="h-3.5 w-3.5 text-amber-100 md:h-5 md:w-5" />
-                      <p className="mt-1.5 truncate text-[7px] font-black uppercase tracking-[0.06em] text-white/58 md:mt-3 md:text-[11px] md:tracking-[0.08em]">
+                      <p className="mt-1.5 truncate text-[7px] font-black uppercase tracking-[0.06em] !text-white/58 md:mt-3 md:text-[11px] md:tracking-[0.08em]">
                         <span className="md:hidden">{shortLabel}</span>
                         <span className="hidden md:inline">{label}</span>
                       </p>
-                      <p className="truncate text-sm font-black text-white sm:text-base md:mt-1 md:text-2xl">{value}</p>
+                      <p className="truncate text-sm font-black !text-white sm:text-base md:mt-1 md:text-2xl">{value}</p>
                     </div>
                   ))}
                 </div>
@@ -475,13 +475,13 @@ const DashboardPage = () => {
               <div className="rounded-xl border border-white/15 bg-white/14 p-2.5 backdrop-blur-md md:rounded-3xl md:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
-                    <p className="text-[8px] font-black uppercase tracking-[0.1em] text-white/60 md:text-xs">Next rank</p>
-                    <p className="text-base font-black text-white md:mt-1 md:text-2xl">
+                    <p className="text-[8px] font-black uppercase tracking-[0.1em] !text-white/60 md:text-xs">Next rank</p>
+                    <p className="text-base font-black !text-white md:mt-1 md:text-2xl">
                       {rankProgress?.progress?.nextRankName ?? "Max rank"}
                     </p>
                   </div>
                   <div className="min-w-[70px] text-right md:hidden">
-                    <p className="text-[8px] font-black uppercase tracking-[0.1em] text-white/55">Progress</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.1em] !text-white/55">Progress</p>
                     <p className="text-lg font-black text-emerald-200">{Math.round(progressPercentage)}%</p>
                   </div>
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#C41E3A] md:h-16 md:w-16 md:rounded-2xl">
@@ -489,7 +489,7 @@ const DashboardPage = () => {
                   </div>
                 </div>
                 <div className="mt-2 md:mt-6">
-                  <div className="mb-1 hidden items-center justify-between text-[10px] font-bold text-white/80 md:mb-2 md:flex md:text-sm">
+                  <div className="mb-1 hidden items-center justify-between text-[10px] font-bold !text-white/80 md:mb-2 md:flex md:text-sm">
                     <span>Completion</span>
                     <span>{Math.round(progressPercentage)}%</span>
                   </div>
@@ -503,24 +503,24 @@ const DashboardPage = () => {
                 <div className="mt-2 grid grid-cols-3 gap-1 text-[9px] md:mt-5 md:grid-cols-1 md:gap-2 md:text-sm">
                   {rankRequirements?.directs && (
                     <div className="flex min-w-0 justify-between gap-1 rounded-lg bg-black/18 px-1.5 py-1 md:rounded-2xl md:px-3 md:py-2">
-                      <span className="text-white/65">Directs</span>
-                      <span className="font-black text-white">
+                      <span className="!text-white/65">Directs</span>
+                      <span className="font-black !text-white">
                         {rankRequirements.directs.current}/{rankRequirements.directs.required}
                       </span>
                     </div>
                   )}
                   {rankRequirements?.activeTeam && (
                     <div className="flex min-w-0 justify-between gap-1 rounded-lg bg-black/18 px-1.5 py-1 md:rounded-2xl md:px-3 md:py-2">
-                      <span className="truncate text-white/65">Active</span>
-                      <span className="font-black text-white">
+                      <span className="truncate !text-white/65">Active</span>
+                      <span className="font-black !text-white">
                         {rankRequirements.activeTeam.current}/{rankRequirements.activeTeam.required}
                       </span>
                     </div>
                   )}
                   {rankRequirements?.legRule && (
                     <div className="flex min-w-0 justify-between gap-1 rounded-lg bg-black/18 px-1.5 py-1 md:rounded-2xl md:px-3 md:py-2">
-                      <span className="truncate text-white/65">Legs</span>
-                      <span className="font-black text-white">
+                      <span className="truncate !text-white/65">Legs</span>
+                      <span className="font-black !text-white">
                         {rankRequirements.legRule.current}/{rankRequirements.legRule.required}
                       </span>
                     </div>
@@ -777,7 +777,7 @@ const DashboardPage = () => {
                 </div>
                 <button
                   onClick={handleCopy}
-                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#C41E3A] py-3 text-sm font-black text-white transition hover:bg-[#ad1b34]"
+                  className="mt-3 flex w-full items-center justify-center gap-2 rounded-2xl bg-[#C41E3A] py-3 text-sm font-black !text-white transition hover:bg-[#ad1b34]"
                 >
                   <Copy className="h-4 w-4" />
                   {copied ? "Copied!" : "Copy Link"}

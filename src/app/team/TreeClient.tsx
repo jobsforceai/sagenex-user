@@ -145,7 +145,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
               type="button"
               onClick={handleSearch}
               disabled={searching || !searchInput.trim()}
-              className="rounded-md bg-[#C8103E] px-3 py-1 text-xs font-bold text-white disabled:opacity-50"
+              className="rounded-md bg-[#C8103E] px-3 py-1 text-xs font-bold !text-white disabled:opacity-50"
             >
               {searching ? "…" : "Go"}
             </button>
