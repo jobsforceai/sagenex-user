@@ -1,0 +1,20 @@
+src/app/team/TreeClient.tsx
+  s_964e0d3fba450c::t_97df63f377c3f9 227
+  s_964e0d3fba450c::t_f9c56ad9656d50 25,74-76,225-226,228-229,238-248
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "64524d1ce4cc15f6c4c42013995f50ef1756c42a",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
