@@ -28,7 +28,6 @@ import {
   FileCheck,
   Lock,
   Calendar,
-  Check,
   ChevronRight,
   Crown,
   Clock,
@@ -190,7 +189,7 @@ const ProgressRing = ({ percent, label }: { percent: number; label?: string }) =
   const offset = circumference - (percent / 100) * circumference;
 
   return (
-    <div className="relative h-24 w-24 shrink-0">
+    <div className="relative h-16 w-16 shrink-0 sm:h-24 sm:w-24">
       <svg viewBox="0 0 88 88" className="h-full w-full -rotate-90">
         <circle cx="44" cy="44" r={radius} fill="none" stroke="rgba(255,255,255,0.24)" strokeWidth="8" />
         <circle
@@ -206,8 +205,8 @@ const ProgressRing = ({ percent, label }: { percent: number; label?: string }) =
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
-        <span className="text-xl font-black">{percent}%</span>
-        {label && <span className="text-[10px] font-bold uppercase tracking-[0.08em] text-white/70">{label}</span>}
+        <span className="text-sm font-black sm:text-xl">{percent}%</span>
+        {label && <span className="text-[8px] font-bold uppercase tracking-[0.08em] text-white/70 sm:text-[10px]">{label}</span>}
       </div>
     </div>
   );
@@ -226,7 +225,7 @@ const ShowcaseCard = ({ program, rewards }: { program: RewardProgram; rewards: R
       type="button"
       whileHover={{ y: -4 }}
       transition={{ duration: 0.2 }}
-      className="rewards-dark-surface group relative min-h-[430px] overflow-hidden rounded-3xl border border-white/20 text-left shadow-[0_18px_45px_rgba(15,23,42,0.16)] focus:outline-none focus:ring-2 focus:ring-[#C81E4A]/30"
+      className="rewards-dark-surface group relative min-h-[320px] overflow-hidden rounded-2xl border border-white/20 text-left shadow-[0_18px_45px_rgba(15,23,42,0.16)] focus:outline-none focus:ring-2 focus:ring-[#C81E4A]/30 sm:min-h-[430px] sm:rounded-3xl"
       onClick={() => {
         document
           .getElementById(`tracker-${program.programId}`)
@@ -241,41 +240,42 @@ const ShowcaseCard = ({ program, rewards }: { program: RewardProgram; rewards: R
         sizes="(min-width: 1024px) 50vw, 100vw"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[#12020A]/95 via-[#300615]/62 to-black/18" />
-      <div className="relative flex h-full min-h-[430px] flex-col justify-between p-6 text-white sm:p-7">
+      <div className="relative flex h-full min-h-[320px] flex-col justify-between p-4 text-white sm:min-h-[430px] sm:p-7">
         <div className="flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-xs font-black uppercase tracking-[0.1em] text-white backdrop-blur">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-white backdrop-blur sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.1em]">
             {PROGRAM_ICONS[program.programId] ?? <Gift className="h-4 w-4" />}
             {program.status}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/35 px-3 py-1.5 text-xs font-bold text-white backdrop-blur">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur sm:px-3 sm:py-1.5 sm:text-xs">
             <Calendar className="h-3.5 w-3.5" />
-            Last Date: {promo.lastDate}
+            <span className="sm:hidden">{promo.lastDate}</span>
+            <span className="hidden sm:inline">Last Date: {promo.lastDate}</span>
           </span>
         </div>
 
         <div>
-          <div className="mb-5 flex items-end justify-between gap-4">
+          <div className="mb-3 flex items-end justify-between gap-3 sm:mb-5 sm:gap-4">
             <div>
-              <p className="text-sm font-bold uppercase tracking-[0.16em] text-amber-200">
+              <p className="line-clamp-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-200 sm:text-sm sm:tracking-[0.16em]">
                 {promo.subtitle}
               </p>
-              <h3 className="mt-2 text-3xl font-black tracking-tight text-white sm:text-4xl">
+              <h3 className="mt-1 text-2xl font-black tracking-tight text-white sm:mt-2 sm:text-4xl">
                 {program.name || promo.title}
               </h3>
             </div>
             <ProgressRing percent={progress.percent} label="done" />
           </div>
-          <div className="grid gap-2">
-            {promo.details.map((d) => (
-              <div key={d.label} className="rounded-2xl border border-white/12 bg-white/12 px-4 py-3 backdrop-blur">
-                <p className="text-[11px] font-black uppercase tracking-[0.1em] text-white/58">
+          <div className="grid gap-1.5 sm:gap-2">
+            {promo.details.map((d, index) => (
+              <div key={d.label} className={`${index > 1 ? "hidden sm:block" : "block"} rounded-xl border border-white/12 bg-white/12 px-3 py-2 backdrop-blur sm:rounded-2xl sm:px-4 sm:py-3`}>
+                <p className="text-[9px] font-black uppercase tracking-[0.08em] text-white/58 sm:text-[11px] sm:tracking-[0.1em]">
                   {d.label}
                 </p>
-                <p className="mt-1 text-sm font-bold text-white">{d.value}</p>
+                <p className="mt-0.5 line-clamp-1 text-xs font-bold text-white sm:mt-1 sm:text-sm">{d.value}</p>
               </div>
             ))}
           </div>
-          <div className="mt-5 inline-flex items-center gap-2 rounded-2xl bg-[#C81E4A] px-5 py-3 text-sm font-black text-white shadow-[0_8px_20px_rgba(200,30,74,0.45)] ring-1 ring-white/20 transition group-hover:bg-[#A8163C]">
+          <div className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[#C81E4A] px-4 py-2 text-xs font-black text-white shadow-[0_8px_20px_rgba(200,30,74,0.45)] ring-1 ring-white/20 transition group-hover:bg-[#A8163C] sm:mt-5 sm:gap-2 sm:rounded-2xl sm:px-5 sm:py-3 sm:text-sm">
             {promo.cta}
             <ChevronRight className="h-4 w-4" />
           </div>
@@ -396,10 +396,10 @@ const RewardCard = ({
   };
 
   return (
-    <Card className="flex flex-col overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <CardHeader className="p-6">
+    <Card className="flex flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl">
+      <CardHeader className="p-4 sm:p-6">
         <div className="flex items-center justify-between">
-          <CardTitle className="text-xl font-black text-[#0F172A]">
+          <CardTitle className="text-base font-black text-[#0F172A] sm:text-xl">
             {reward.rewardSnapshot.reward}
           </CardTitle>
           <span
@@ -412,12 +412,12 @@ const RewardCard = ({
             {reward.type} Business
           </span>
         </div>
-        <p className="flex items-center gap-2 pt-1 text-[#64748B]">
+        <p className="flex items-center gap-2 pt-1 text-xs text-[#64748B] sm:text-base">
           <Gift className="w-4 h-4 text-emerald-500" />
           Target: ₹{reward.rewardSnapshot.valueUSD.toLocaleString('en-IN')}
         </p>
       </CardHeader>
-      <CardContent className="p-6 space-y-4 flex-grow flex flex-col justify-between">
+      <CardContent className="flex flex-grow flex-col justify-between space-y-3 p-4 sm:space-y-4 sm:p-6">
         <div>
           <div className="flex justify-between items-center mb-2 text-sm">
             <span className="text-[#64748B]">Progress</span>
@@ -442,7 +442,7 @@ const RewardCard = ({
           </div>
         )}
 
-        <div className="mt-auto space-y-3 pt-4">
+        <div className="mt-auto space-y-2 pt-3 sm:space-y-3 sm:pt-4">
           {renderStatus()}
           {canTransferReward && (
             <Button
@@ -463,23 +463,23 @@ const RewardCard = ({
 };
 
 const RewardsHeader = ({ onRulesClick }: { onRulesClick: () => void }) => (
-  <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+  <header className="flex flex-row items-start justify-between gap-3">
     <div>
-      <h1 className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
+      <h1 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
         Rewards <span aria-hidden="true">🏆</span>
       </h1>
-      <p className="mt-1 text-sm text-[#64748B] sm:text-base">
+      <p className="mt-1 hidden text-sm text-[#64748B] sm:block sm:text-base">
         Unlock amazing travel experiences and luxury rewards.
       </p>
     </div>
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="flex shrink-0 flex-wrap items-center gap-3">
       <Button
         variant="outline"
         onClick={onRulesClick}
-        className="h-12 rounded-xl border-slate-200 bg-white px-4 font-bold text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:bg-slate-50"
+        className="h-10 rounded-xl border-slate-200 bg-white px-3 text-xs font-bold text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:bg-slate-50 sm:h-12 sm:px-4 sm:text-sm"
       >
         <Info className="mr-2 h-4 w-4 text-[#C81E4A]" />
-        Rules & Info
+        <span className="hidden sm:inline">Rules & </span>Info
       </Button>
     </div>
   </header>
@@ -496,7 +496,7 @@ const RewardsHeroBanner = ({
     initial={{ opacity: 0, y: 14 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.35 }}
-    className="rewards-dark-surface relative overflow-hidden rounded-3xl border border-white/10 bg-gradient-to-br from-[#0E2A2C] via-[#0A1F22] to-[#06181A] p-6 text-white shadow-[0_24px_70px_rgba(6,24,26,0.32)] sm:p-8 lg:p-10"
+    className="rewards-dark-surface relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#0E2A2C] via-[#0A1F22] to-[#06181A] p-4 text-white shadow-[0_24px_70px_rgba(6,24,26,0.32)] sm:rounded-3xl sm:p-8 lg:p-10"
   >
     <Image
       src={REWARD_ASSETS.hero}
@@ -507,49 +507,49 @@ const RewardsHeroBanner = ({
       sizes="100vw"
     />
     <div className="absolute inset-0 bg-gradient-to-r from-[#0A1F22]/95 via-[#0E2A2C]/65 to-black/30" />
-    <div className="relative grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
+    <div className="relative grid gap-4 sm:gap-8 lg:grid-cols-[minmax(0,1fr)_380px] lg:items-center">
       <div>
-        <span className="inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/12 px-3 py-1.5 text-xs font-black uppercase tracking-[0.14em] text-amber-100 backdrop-blur">
+        <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/12 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.1em] text-amber-100 backdrop-blur sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.14em]">
           <Sparkles className="h-4 w-4" />
           SAGENEX Rewards
         </span>
-        <h2 className="mt-5 max-w-3xl text-4xl font-black tracking-tight text-white sm:text-5xl lg:text-6xl">
+        <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-tight text-white sm:mt-5 sm:text-5xl lg:text-6xl">
           GLOBAL FLY REWARDS
         </h2>
-        <p className="mt-4 text-lg font-semibold text-white/86">
+        <p className="mt-2 text-sm font-semibold text-white/86 sm:mt-4 sm:text-lg">
           Achieve this month, fly next month
         </p>
-        <div className="mt-7 grid gap-3 sm:grid-cols-3">
+        <div className="mt-4 grid grid-cols-3 gap-2 sm:mt-7 sm:gap-3">
           {[
             { icon: Users, label: "Build Your Business" },
             { icon: Gift, label: "Unlock Rewards" },
             { icon: Plane, label: "Live Your Dreams" },
           ].map(({ icon: Icon, label }) => (
-            <div key={label} className="rounded-2xl border border-white/12 bg-white/12 p-4 backdrop-blur">
-              <Icon className="h-5 w-5 text-amber-100" />
-              <p className="mt-3 text-sm font-black text-white">{label}</p>
+            <div key={label} className="rounded-xl border border-white/12 bg-white/12 p-2.5 backdrop-blur sm:rounded-2xl sm:p-4">
+              <Icon className="h-4 w-4 text-amber-100 sm:h-5 sm:w-5" />
+              <p className="mt-2 text-[10px] font-black leading-tight text-white sm:mt-3 sm:text-sm">{label}</p>
             </div>
           ))}
         </div>
       </div>
-      <div className="rounded-3xl border border-white/16 bg-white/14 p-5 backdrop-blur-md">
-        <p className="text-sm font-black uppercase tracking-[0.12em] text-white/70">
+      <div className="rounded-2xl border border-white/16 bg-white/14 p-4 backdrop-blur-md sm:rounded-3xl sm:p-5">
+        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-white/70 sm:text-sm sm:tracking-[0.12em]">
           Progress Summary
         </p>
-        <div className="mt-5 space-y-5">
+        <div className="mt-3 space-y-3 sm:mt-5 sm:space-y-5">
           {[
             { label: "Direct Business", progress: directProgress, color: "bg-emerald-400" },
             { label: "Team Business", progress: teamProgress, color: "bg-[#F59E0B]" },
           ].map(({ label, progress, color }) => (
             <div key={label}>
               <div className="mb-2 flex items-center justify-between gap-3">
-                <span className="text-sm font-bold text-white">{label}</span>
-                <span className="text-sm font-black text-white">{progress.percent}%</span>
+                <span className="text-xs font-bold text-white sm:text-sm">{label}</span>
+                <span className="text-xs font-black text-white sm:text-sm">{progress.percent}%</span>
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-white/18">
                 <div className={`h-full rounded-full ${color}`} style={{ width: `${progress.percent}%` }} />
               </div>
-              <p className="mt-2 text-xs font-semibold text-white/70">
+              <p className="mt-1 truncate text-[10px] font-semibold text-white/70 sm:mt-2 sm:text-xs">
                 {formatCurrency(progress.current)} / {progress.target ? formatCurrency(progress.target) : "Target pending"}
               </p>
             </div>
@@ -568,20 +568,20 @@ const QualificationPathSection = ({
   remainingForNext: number;
 }) => (
   <section>
-    <div className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] lg:grid lg:grid-cols-[260px_1fr]">
-      <div className="relative h-44 lg:h-auto">
+    <div className="overflow-hidden rounded-2xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl lg:grid lg:grid-cols-[260px_1fr]">
+      <div className="relative h-28 sm:h-44 lg:h-auto">
         <Image src={REWARD_ASSETS.global} alt="Next reward preview" fill className="object-cover" sizes="(min-width: 1024px) 260px, 100vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/55 to-transparent lg:bg-gradient-to-r" />
       </div>
-      <div className="flex flex-col justify-center p-6 sm:p-8">
-        <p className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">Next Reward Preview</p>
-        <h3 className="mt-2 text-3xl font-black text-[#0F172A]">Europe Trip 2026</h3>
-        <p className="mt-3 text-sm text-[#64748B]">You are just</p>
-        <p className="mt-1 text-3xl font-black text-emerald-600">
+      <div className="flex flex-col justify-center p-4 sm:p-8">
+        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B] sm:text-xs sm:tracking-[0.12em]">Next Reward Preview</p>
+        <h3 className="mt-1 text-2xl font-black text-[#0F172A] sm:mt-2 sm:text-3xl">Europe Trip 2026</h3>
+        <p className="mt-2 text-xs text-[#64748B] sm:mt-3 sm:text-sm">You are just</p>
+        <p className="mt-1 text-2xl font-black text-emerald-600 sm:text-3xl">
           {remainingForNext > 0 ? formatCurrency(remainingForNext) : formatCurrency(directProgress.target ?? 0)}
         </p>
         <p className="text-sm font-semibold text-[#475569]">away from your dream!</p>
-        <Button className="mt-6 h-11 w-full max-w-xs rounded-2xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-base font-bold text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:from-emerald-700 hover:to-emerald-600">
+        <Button className="mt-4 h-10 w-full max-w-xs rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-sm font-bold text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:from-emerald-700 hover:to-emerald-600 sm:mt-6 sm:h-11 sm:rounded-2xl sm:text-base">
           Keep Going 🚀
         </Button>
       </div>
@@ -593,33 +593,33 @@ const RewardTierCard = ({ tier, index }: { tier: (typeof tierCards)[number]; ind
   <motion.div
     whileHover={{ y: -4 }}
     transition={{ duration: 0.2 }}
-    className={`overflow-hidden rounded-3xl border border-slate-200/70 bg-gradient-to-b ${tier.accent} shadow-[0_10px_30px_rgba(15,23,42,0.06)]`}
+    className={`overflow-hidden rounded-2xl border border-slate-200/70 bg-gradient-to-b ${tier.accent} shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl`}
   >
-    <div className="flex items-center justify-between gap-3 px-5 pt-5">
-      <div className="flex items-center gap-3">
-        <span className={`flex h-8 w-8 items-center justify-center rounded-full ${tier.badgeBg} text-sm font-black ${tier.badgeText}`}>{index + 1}</span>
-        <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#0F172A]">{tier.name}</p>
+    <div className="flex items-center justify-between gap-2 px-3 pt-3 sm:gap-3 sm:px-5 sm:pt-5">
+      <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+        <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full ${tier.badgeBg} text-xs font-black ${tier.badgeText} sm:h-8 sm:w-8 sm:text-sm`}>{index + 1}</span>
+        <p className="truncate text-[9px] font-black uppercase tracking-[0.08em] text-[#0F172A] sm:text-[11px] sm:tracking-[0.12em]">{tier.name}</p>
       </div>
-      <Crown className={`h-5 w-5 ${tier.badgeText}`} />
+      <Crown className={`h-4 w-4 shrink-0 sm:h-5 sm:w-5 ${tier.badgeText}`} />
     </div>
-    <p className="mt-1 px-5 text-2xl font-black text-[#0F172A]">{tier.threshold}</p>
-    <div className="relative mt-3 h-32 w-full">
+    <p className="mt-1 px-3 text-lg font-black text-[#0F172A] sm:px-5 sm:text-2xl">{tier.threshold}</p>
+    <div className="relative mt-2 h-24 w-full sm:mt-3 sm:h-32">
       <Image src={tier.image} alt={tier.name} fill className="object-contain" sizes="(min-width: 1280px) 25vw, (min-width: 768px) 50vw, 100vw" />
     </div>
-    <div className="px-5 pb-5">
-      <p className="text-center text-[11px] font-black uppercase tracking-[0.12em] text-[#64748B]">{tier.rewards[0]}</p>
-      <p className="mt-2 text-center text-sm font-bold text-[#0F172A]">{tier.rewards[1]}</p>
-      <p className="text-center text-sm font-bold text-[#0F172A]">{tier.rewards[2]}</p>
+    <div className="px-3 pb-3 sm:px-5 sm:pb-5">
+      <p className="text-center text-[9px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">{tier.rewards[0]}</p>
+      <p className="mt-1 line-clamp-1 text-center text-xs font-bold text-[#0F172A] sm:mt-2 sm:text-sm">{tier.rewards[1]}</p>
+      <p className="line-clamp-1 text-center text-xs font-bold text-[#0F172A] sm:text-sm">{tier.rewards[2]}</p>
     </div>
   </motion.div>
 );
 
 const BenefitsStrip = () => (
-  <div className="grid gap-3 rounded-3xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:grid-cols-2 lg:grid-cols-5">
+  <div className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:gap-3 sm:rounded-3xl sm:p-3 lg:grid-cols-5">
     {benefitItems.map(({ icon: Icon, label }) => (
-      <div key={label} className="flex items-center gap-3 rounded-2xl bg-slate-50 px-4 py-3">
-        <Icon className="h-5 w-5 shrink-0 text-[#C81E4A]" />
-        <p className="text-sm font-bold text-[#0F172A]">{label}</p>
+      <div key={label} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-3">
+        <Icon className="h-4 w-4 shrink-0 text-[#C81E4A] sm:h-5 sm:w-5" />
+        <p className="text-[11px] font-bold leading-tight text-[#0F172A] sm:text-sm">{label}</p>
       </div>
     ))}
   </div>
@@ -639,11 +639,11 @@ const TopPerformersCard = ({ leaders }: { leaders: LeaderboardEntry[] }) => {
   const performers = leaders.slice(0, 4);
 
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+    <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
       <div className="flex items-center justify-between gap-3">
-        <h3 className="text-lg font-black text-[#0F172A]">Top Performers This Month</h3>
+        <h3 className="text-base font-black text-[#0F172A] sm:text-lg">Top Performers</h3>
       </div>
-      <div className="mt-5 space-y-4">
+      <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
         {performers.length > 0 ? (
           performers.map((leader) => (
             <div key={leader.userId} className="flex items-center justify-between gap-3">
@@ -695,20 +695,20 @@ const AchievementsCard = ({ activeLegs }: { activeLegs: number }) => {
   const cycleLabel = getCurrentCycleLabel();
 
   return (
-    <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <h3 className="text-lg font-black text-[#0F172A]">Achievements / Status</h3>
-      <div className="mt-5 space-y-3">
+    <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
+      <h3 className="text-base font-black text-[#0F172A] sm:text-lg">Status</h3>
+      <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
         {[
           { icon: Users, label: "Active Legs", value: `${activeLegs}/${requiredLegs}` },
           { icon: Calendar, label: "Eligibility Cycle", value: cycleLabel },
           { icon: Clock, label: "Days Remaining", value: `${days} Days` },
         ].map(({ icon: Icon, label, value }) => (
-          <div key={label} className="flex items-center justify-between gap-3 rounded-2xl bg-slate-50 px-4 py-3">
+          <div key={label} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5 sm:rounded-2xl sm:px-4 sm:py-3">
             <div className="flex items-center gap-3">
               <Icon className="h-5 w-5 text-[#C81E4A]" />
-              <span className="text-sm font-bold text-[#64748B]">{label}</span>
+              <span className="text-xs font-bold text-[#64748B] sm:text-sm">{label}</span>
             </div>
-            <span className="text-sm font-black text-[#0F172A]">{value}</span>
+            <span className="text-xs font-black text-[#0F172A] sm:text-sm">{value}</span>
           </div>
         ))}
       </div>
@@ -717,12 +717,12 @@ const AchievementsCard = ({ activeLegs }: { activeLegs: number }) => {
 };
 
 const MotivationCard = () => (
-  <div className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-[#0F172A] p-5 text-white shadow-[0_10px_30px_rgba(15,23,42,0.12)]">
+  <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-[#0F172A] p-4 text-white shadow-[0_10px_30px_rgba(15,23,42,0.12)] sm:rounded-3xl sm:p-5">
     <Image src={REWARD_ASSETS.trophy} alt="Trophy motivation reward" fill className="object-cover opacity-58" sizes="(min-width: 1024px) 33vw, 100vw" />
     <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/95 via-[#0F172A]/72 to-[#0F172A]/20" />
-    <div className="relative flex min-h-72 flex-col justify-end">
-      <Trophy className="mb-4 h-9 w-9 text-amber-300" />
-      <p className="text-2xl font-black leading-tight text-white">
+    <div className="relative flex min-h-44 flex-col justify-end sm:min-h-72">
+      <Trophy className="mb-3 h-7 w-7 text-amber-300 sm:mb-4 sm:h-9 sm:w-9" />
+      <p className="text-xl font-black leading-tight text-white sm:text-2xl">
         “Don’t wait for opportunity. Create it.”
       </p>
       <p className="mt-3 text-sm font-bold text-amber-100">– Sagenex SGX</p>
@@ -870,12 +870,12 @@ const ProgramTracker = ({
   const displayRewards = activeType === "self" ? selfRewards : teamRewards;
 
   return (
-    <section id={`tracker-${program.programId}`} className="scroll-mt-8 rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-      <div className="flex items-center gap-3 mb-4">
+    <section id={`tracker-${program.programId}`} className="scroll-mt-8 rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
+      <div className="mb-3 flex items-center gap-2 sm:mb-4 sm:gap-3">
         <span className="text-[#C81E4A]">
           {PROGRAM_ICONS[program.programId] ?? <Gift className="w-5 h-5" />}
         </span>
-        <h2 className="text-2xl font-black text-[#0F172A]">{program.name}</h2>
+        <h2 className="text-lg font-black text-[#0F172A] sm:text-2xl">{program.name}</h2>
         {isLocked && (
           <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
             Ended
@@ -884,11 +884,11 @@ const ProgramTracker = ({
       </div>
 
       {/* Self / Team toggle */}
-      <div className="mb-6 flex border-b border-slate-200">
+      <div className="mb-4 flex border-b border-slate-200 sm:mb-6">
         {selfRewards.length > 0 && (
           <button
             onClick={() => setActiveType("self")}
-            className={`px-4 py-2 font-semibold transition-colors duration-200 ${
+            className={`px-3 py-2 text-sm font-semibold transition-colors duration-200 sm:px-4 sm:text-base ${
               activeType === "self"
                 ? "border-b-2 border-emerald-500 text-emerald-700"
                 : "text-[#64748B] hover:text-[#0F172A]"
@@ -900,7 +900,7 @@ const ProgramTracker = ({
         {teamRewards.length > 0 && (
           <button
             onClick={() => setActiveType("team")}
-            className={`px-4 py-2 font-semibold transition-colors duration-200 ${
+            className={`px-3 py-2 text-sm font-semibold transition-colors duration-200 sm:px-4 sm:text-base ${
               activeType === "team"
                 ? "border-b-2 border-[#C81E4A] text-[#C81E4A]"
                 : "text-[#64748B] hover:text-[#0F172A]"
@@ -919,7 +919,7 @@ const ProgramTracker = ({
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3 lg:gap-6"
           >
             {displayRewards.map((reward) => (
               <RewardCard
@@ -1129,8 +1129,8 @@ const RewardsPage = () => {
 
   return (
     <>
-      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl space-y-7">
+      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-5">
+        <div className="mx-auto max-w-7xl space-y-4 sm:space-y-7">
           <RewardsHeader onRulesClick={() => setMessage("Reward qualification rules are shown throughout this page.")} />
 
           {error && (
@@ -1146,7 +1146,7 @@ const RewardsPage = () => {
 
           <RewardsHeroBanner directProgress={directProgress} teamProgress={teamProgress} />
 
-          <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <section className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
             {displayPrograms.map((program) => (
               <ShowcaseCard
                 key={program.programId}
@@ -1162,8 +1162,8 @@ const RewardsPage = () => {
           />
 
           <section>
-            <h2 className="mb-4 text-sm font-black uppercase tracking-[0.12em] text-[#0F172A]">Luxury Reward Tiers</h2>
-            <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            <h2 className="mb-3 text-xs font-black uppercase tracking-[0.12em] text-[#0F172A] sm:mb-4 sm:text-sm">Luxury Reward Tiers</h2>
+            <div className="grid grid-cols-2 gap-3 md:gap-5 xl:grid-cols-4">
               {tierCards.map((tier, index) => (
                 <RewardTierCard key={tier.name} tier={tier} index={index} />
               ))}
@@ -1172,20 +1172,21 @@ const RewardsPage = () => {
 
           <BenefitsStrip />
 
-          <section className="grid gap-5 lg:grid-cols-3">
+          <section className="grid gap-4 lg:grid-cols-3 lg:gap-5">
             <TopPerformersCard leaders={leaders} />
             <AchievementsCard activeLegs={activeLegs} />
             <MotivationCard />
           </section>
 
-          <div className="rounded-3xl border border-rose-100 bg-[#FFF1F4] px-5 py-4 text-center text-sm font-black text-[#C81E4A] shadow-[0_10px_30px_rgba(15,23,42,0.04)]">
-            Keep building your business and unlock global experiences. Dream it. Earn it. Live it.
+          <div className="rounded-2xl border border-rose-100 bg-[#FFF1F4] px-4 py-3 text-center text-xs font-black text-[#C81E4A] shadow-[0_10px_30px_rgba(15,23,42,0.04)] sm:rounded-3xl sm:px-5 sm:py-4 sm:text-sm">
+            <span className="sm:hidden">Keep building. Dream it. Earn it.</span>
+            <span className="hidden sm:inline">Keep building your business and unlock global experiences. Dream it. Earn it. Live it.</span>
           </div>
 
-          <section className="space-y-10">
+          <section className="space-y-4 sm:space-y-10">
             <div>
-              <h2 className="text-2xl font-black text-[#0F172A]">Reward Progress Trackers</h2>
-              <p className="mt-1 text-sm text-[#64748B]">
+              <h2 className="text-xl font-black text-[#0F172A] sm:text-2xl">Reward Progress Trackers</h2>
+              <p className="mt-1 hidden text-sm text-[#64748B] sm:block">
                 Your backend reward progress, claims, transfers, and document actions remain here.
               </p>
             </div>

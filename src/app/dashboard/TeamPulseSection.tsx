@@ -87,7 +87,6 @@ interface TeamPulse {
   rankProgress: RankProgress;
 }
 
-const inr = (n: number) => "₹" + Math.round(n).toLocaleString("en-IN");
 const inrCompact = (n: number) => {
   if (n >= 10_000_000) return "₹" + (n / 10_000_000).toFixed(2).replace(/\.00$/, "") + " Cr";
   if (n >= 100_000) return "₹" + (n / 100_000).toFixed(2).replace(/\.00$/, "") + " L";
@@ -170,19 +169,19 @@ export default function TeamPulseSection() {
   const legPct = targetLegs > 0 ? Math.min(100, Math.round((haveLegs / targetLegs) * 100)) : 100;
 
   return (
-    <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+    <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Team engine</p>
-          <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Team Pulse</h2>
-          <p className="mt-1 text-xs text-[#64748B]">Who needs a nudge today, what&apos;s ripe, and how your team is trending.</p>
+          <h2 className="mt-1 text-xl font-black text-[#0F172A] md:text-2xl">Team Pulse</h2>
+          <p className="mt-1 hidden text-xs text-[#64748B] md:block">Who needs a nudge today, what&apos;s ripe, and how your team is trending.</p>
         </div>
 
         {/* Health pill */}
-        <div className={`flex items-center gap-3 rounded-2xl border border-slate-100 bg-white px-4 py-3 ring-1 ${band.ring}`}>
-          <div className="relative h-12 w-12">
-            <svg viewBox="0 0 36 36" className="h-12 w-12 -rotate-90">
+        <div className={`flex items-center gap-2 rounded-2xl border border-slate-100 bg-white px-3 py-2 ring-1 md:gap-3 md:px-4 md:py-3 ${band.ring}`}>
+          <div className="relative h-10 w-10 md:h-12 md:w-12">
+            <svg viewBox="0 0 36 36" className="h-10 w-10 -rotate-90 md:h-12 md:w-12">
               <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F1F5F9" strokeWidth="3" />
               <circle
                 cx="18" cy="18" r="15.9" fill="none"
@@ -191,7 +190,7 @@ export default function TeamPulseSection() {
                 strokeDasharray={`${(health.score / 100) * 100} 100`}
               />
             </svg>
-            <div className="absolute inset-0 flex items-center justify-center text-sm font-black text-[#0F172A]">{health.score}</div>
+            <div className="absolute inset-0 flex items-center justify-center text-xs font-black text-[#0F172A] md:text-sm">{health.score}</div>
           </div>
           <div>
             <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B]">Health</p>
@@ -203,36 +202,36 @@ export default function TeamPulseSection() {
       </div>
 
       {/* Health signals strip */}
-      <div className="mt-5 grid gap-3 sm:grid-cols-3">
-        <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-          <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">
+      <div className="mt-4 grid grid-cols-3 gap-2 md:mt-5 md:gap-3">
+        <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/60 p-2.5 md:p-4">
+          <div className="flex items-center gap-1.5 truncate text-[8px] font-black uppercase tracking-[0.06em] text-[#64748B] md:gap-2 md:text-[11px] md:tracking-[0.08em]">
             <Activity className="h-3.5 w-3.5" />Active directs
           </div>
-          <p className="mt-2 text-xl font-black text-[#0F172A]">{Math.round(health.signals.activeRatio.value * 100)}%</p>
-          <p className="mt-0.5 text-[11px] text-[#64748B]">Of your direct referrals</p>
+          <p className="mt-1 text-base font-black text-[#0F172A] md:mt-2 md:text-xl">{Math.round(health.signals.activeRatio.value * 100)}%</p>
+          <p className="mt-0.5 hidden text-[11px] text-[#64748B] md:block">Of your direct referrals</p>
         </div>
-        <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-          <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">
+        <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/60 p-2.5 md:p-4">
+          <div className="flex items-center gap-1.5 truncate text-[8px] font-black uppercase tracking-[0.06em] text-[#64748B] md:gap-2 md:text-[11px] md:tracking-[0.08em]">
             <Trophy className="h-3.5 w-3.5" />New joins · 30d
           </div>
-          <p className="mt-2 text-xl font-black text-[#0F172A]">{health.signals.growth30d.count}</p>
-          <p className="mt-0.5 text-[11px] text-[#64748B]">Across your downline</p>
+          <p className="mt-1 text-base font-black text-[#0F172A] md:mt-2 md:text-xl">{health.signals.growth30d.count}</p>
+          <p className="mt-0.5 hidden text-[11px] text-[#64748B] md:block">Across your downline</p>
         </div>
-        <div className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-          <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">
+        <div className="min-w-0 rounded-2xl border border-slate-100 bg-slate-50/60 p-2.5 md:p-4">
+          <div className="flex items-center gap-1.5 truncate text-[8px] font-black uppercase tracking-[0.06em] text-[#64748B] md:gap-2 md:text-[11px] md:tracking-[0.08em]">
             <Flame className="h-3.5 w-3.5" />Team business · 30d
           </div>
-          <p className="mt-2 text-xl font-black text-[#0F172A]">{inrCompact(health.signals.activationVolume30d.amount)}</p>
-          <p className="mt-0.5 text-[11px] text-[#64748B]">Activation volume</p>
+          <p className="mt-1 truncate text-base font-black text-[#0F172A] md:mt-2 md:text-xl">{inrCompact(health.signals.activationVolume30d.amount)}</p>
+          <p className="mt-0.5 hidden text-[11px] text-[#64748B] md:block">Activation volume</p>
         </div>
       </div>
 
       {/* Multiplier path */}
-      <div className="mt-5 rounded-2xl border border-slate-200 bg-white p-4 ring-1 ring-slate-100">
+      <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-3 ring-1 ring-slate-100 md:mt-5 md:p-4">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">Multiplier path</p>
-            <p className="mt-1 text-base font-black text-[#0F172A]">
+            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B] md:text-[11px]">Multiplier path</p>
+            <p className="mt-1 text-sm font-black text-[#0F172A] md:text-base">
               {hasNextMultiplier
                 ? <>You’re at <span className="text-[#C8103E]">{rp.currentMultiplier}x</span> — next stop <span className="text-emerald-600">{rp.nextMultiplier}x</span></>
                 : <>You’re at <span className="text-emerald-600">{rp.currentMultiplier}x</span> — max tier</>}
@@ -244,37 +243,37 @@ export default function TeamPulseSection() {
         </div>
 
         {hasNextMultiplier ? (
-          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+          <div className="mt-3 grid gap-2 md:mt-4 md:gap-3 sm:grid-cols-2">
             {/* Legs progress */}
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
-              <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-2.5 md:p-3">
+              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.08em] text-[#64748B] md:text-[11px]">
                 <span>Qualifying legs</span>
                 <span className="font-black text-[#0F172A]">{haveLegs}/{targetLegs}</span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white md:mt-2 md:h-2">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: legPct + '%' }} />
               </div>
-              <p className="mt-1.5 text-[11px] text-[#64748B]">Each leg needs ₹{(rp.requiredLegBusinessPerLeg ?? 0).toLocaleString('en-IN')}+ business in last 120 days</p>
+              <p className="mt-1 hidden text-[11px] text-[#64748B] md:block">Each leg needs ₹{(rp.requiredLegBusinessPerLeg ?? 0).toLocaleString('en-IN')}+ business in last 120 days</p>
             </div>
             {/* Team business progress */}
-            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-3">
-              <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">
+            <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-2.5 md:p-3">
+              <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.08em] text-[#64748B] md:text-[11px]">
                 <span>Team business · 120d</span>
                 <span className="font-black text-[#0F172A]">{inrCompact(haveTeam)}/{inrCompact(targetTeam)}</span>
               </div>
-              <div className="mt-2 h-2 overflow-hidden rounded-full bg-white">
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white md:mt-2 md:h-2">
                 <div className="h-full rounded-full bg-sky-500" style={{ width: teamPct + '%' }} />
               </div>
-              <p className="mt-1.5 text-[11px] text-[#64748B]">Across your full downline in the rolling 120-day window</p>
+              <p className="mt-1 hidden text-[11px] text-[#64748B] md:block">Across your full downline in the rolling 120-day window</p>
             </div>
           </div>
         ) : (
-          <p className="mt-3 text-xs text-[#64748B]">You’re at the top earning multiplier. Keep your qualifying legs strong — they refresh on a rolling 120-day window.</p>
+          <p className="mt-3 text-xs text-[#64748B] md:block">Top multiplier reached.</p>
         )}
 
         {hasNextMultiplier && rp.blockers.length > 0 && (
-          <ul className="mt-3 space-y-1 text-xs text-[#0F172A]">
-            {rp.blockers.map((b, i) => <li key={i} className="flex items-start gap-2"><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C8103E]" /><span>{b}</span></li>)}
+          <ul className="mt-2 space-y-1 text-[11px] text-[#0F172A] md:mt-3 md:text-xs">
+            {rp.blockers.map((b, i) => <li key={i} className={`${i > 1 ? 'hidden md:flex' : 'flex'} items-start gap-2`}><span className="mt-1 h-1.5 w-1.5 shrink-0 rounded-full bg-[#C8103E]" /><span className="line-clamp-1 md:line-clamp-none">{b}</span></li>)}
             {!rp.isKycVerified && rp.nextMultiplier === 4 && (
               <li className="flex items-start gap-2 text-[11px] text-amber-700">• KYC verification is required for 4x</li>
             )}
@@ -283,20 +282,24 @@ export default function TeamPulseSection() {
       </div>
 
       {/* The three lists */}
-      <div className="mt-5 grid gap-4 lg:grid-cols-3">
+      <div className="mt-4 grid grid-cols-3 gap-2 md:mt-5 md:gap-4 lg:grid-cols-3">
 
         {/* AT-RISK */}
-        <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-4">
+        <div className="rounded-2xl border border-rose-100 bg-rose-50/40 p-2.5 md:p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.08em] text-rose-700">
-              <AlertTriangle className="h-3.5 w-3.5" />At risk
+            <div className="flex min-w-0 items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-rose-700 md:gap-2 md:text-[11px] md:tracking-[0.08em]">
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
+              <span className="md:hidden">Risk</span>
+              <span className="hidden md:inline">At risk</span>
             </div>
             <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-black text-rose-700">{atRisk.length}</span>
           </div>
           {atRisk.length === 0 ? (
-            <p className="mt-4 text-xs text-[#64748B]">All your directs are active — nothing to chase today. ✨</p>
+            <p className="mt-2 text-[11px] font-semibold text-[#64748B] md:mt-4 md:text-xs">All clear</p>
           ) : (
-            <ul className="mt-3 space-y-2">
+            <>
+              <p className="mt-2 text-[11px] font-semibold text-rose-700 md:hidden">Call today</p>
+              <ul className="mt-3 hidden space-y-2 md:block">
               {atRisk.map(m => {
                 const text = `Hi ${m.fullName?.split(' ')[0] || 'there'}, missed seeing you on Sagenex. Let's hop on a quick call to get you back on track.`;
                 const w = wapp(m.phone, text);
@@ -333,22 +336,27 @@ export default function TeamPulseSection() {
                   </li>
                 );
               })}
-            </ul>
+              </ul>
+            </>
           )}
         </div>
 
         {/* HOT OPPORTUNITIES */}
-        <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-4">
+        <div className="rounded-2xl border border-amber-100 bg-amber-50/40 p-2.5 md:p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.08em] text-amber-700">
-              <Flame className="h-3.5 w-3.5" />Hot opportunities
+            <div className="flex min-w-0 items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-amber-700 md:gap-2 md:text-[11px] md:tracking-[0.08em]">
+              <Flame className="h-3.5 w-3.5 shrink-0" />
+              <span className="md:hidden">Hot</span>
+              <span className="hidden md:inline">Hot opportunities</span>
             </div>
             <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-black text-amber-700">{opportunities.length}</span>
           </div>
           {opportunities.length === 0 ? (
-            <p className="mt-4 text-xs text-[#64748B]">Nothing actionable right now. Plant some seeds.</p>
+            <p className="mt-2 text-[11px] font-semibold text-[#64748B] md:mt-4 md:text-xs">None now</p>
           ) : (
-            <ul className="mt-3 space-y-2">
+            <>
+              <p className="mt-2 text-[11px] font-semibold text-amber-700 md:hidden">Follow up</p>
+              <ul className="mt-3 hidden space-y-2 md:block">
               {opportunities.map(o => {
                 const text = `Hi ${o.fullName?.split(' ')[0] || 'there'}! ${o.headline}. Wanted to flag it — let's chat?`;
                 const w = wapp(o.phone, text);
@@ -379,22 +387,27 @@ export default function TeamPulseSection() {
                   </li>
                 );
               })}
-            </ul>
+              </ul>
+            </>
           )}
         </div>
 
         {/* RECENT WINS */}
-        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-4">
+        <div className="rounded-2xl border border-emerald-100 bg-emerald-50/40 p-2.5 md:p-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2 text-[11px] font-black uppercase tracking-[0.08em] text-emerald-700">
-              <Trophy className="h-3.5 w-3.5" />Recent wins
+            <div className="flex min-w-0 items-center gap-1.5 text-[9px] font-black uppercase tracking-[0.06em] text-emerald-700 md:gap-2 md:text-[11px] md:tracking-[0.08em]">
+              <Trophy className="h-3.5 w-3.5 shrink-0" />
+              <span className="md:hidden">Wins</span>
+              <span className="hidden md:inline">Recent wins</span>
             </div>
             <span className="rounded-full bg-white px-2 py-0.5 text-[11px] font-black text-emerald-700">{recentWins.length}</span>
           </div>
           {recentWins.length === 0 ? (
-            <p className="mt-4 text-xs text-[#64748B]">No team activations this week — keep pushing.</p>
+            <p className="mt-2 text-[11px] font-semibold text-[#64748B] md:mt-4 md:text-xs">No wins yet</p>
           ) : (
-            <ul className="mt-3 space-y-2">
+            <>
+              <p className="mt-2 text-[11px] font-semibold text-emerald-700 md:hidden">New activity</p>
+              <ul className="mt-3 hidden space-y-2 md:block">
               {recentWins.map((w, i) => (
                 <li key={i} className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-white px-3 py-2.5">
                   <div className="min-w-0">
@@ -404,7 +417,8 @@ export default function TeamPulseSection() {
                   <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700">+{inrCompact(w.amount)}</span>
                 </li>
               ))}
-            </ul>
+              </ul>
+            </>
           )}
         </div>
 
@@ -412,26 +426,26 @@ export default function TeamPulseSection() {
 
       {/* Action Plan — what to do today (rule-based, personalized) */}
       {data.actionPlan?.length > 0 && (
-        <div className="mt-5 rounded-2xl border border-slate-200 bg-gradient-to-br from-[#FFF7ED] via-white to-[#F0F9FF] p-4">
+        <div className="mt-3 rounded-2xl border border-slate-200 bg-gradient-to-br from-[#FFF7ED] via-white to-[#F0F9FF] p-3 md:mt-5 md:p-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] text-white">
-              <Sparkles className="h-3.5 w-3.5" />
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] text-white md:h-8 md:w-8">
+              <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </div>
             <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">What to do today</p>
           </div>
-          <ul className="mt-3 space-y-2">
+          <ul className="mt-2 space-y-2 md:mt-3">
             {data.actionPlan.map((a, i) => {
               const w = a.targetPhone ? wapp(a.targetPhone, a.whatsappMessage || `Hi, just touching base.`) : null;
               return (
-                <li key={i} className="rounded-xl border border-slate-100 bg-white px-3 py-2.5">
-                  <div className="flex items-start gap-3">
+                <li key={i} className={`${i > 0 ? 'hidden md:block' : 'block'} rounded-xl border border-slate-100 bg-white px-3 py-2.5`}>
+                  <div className="flex items-start gap-2.5 md:gap-3">
                     <span className={`mt-1 inline-block h-2 w-2 shrink-0 rounded-full ${a.priority === 'high' ? 'bg-rose-500' : a.priority === 'medium' ? 'bg-amber-500' : 'bg-emerald-500'}`} />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-black text-[#0F172A]">{a.headline}</p>
-                      {a.detail && <p className="mt-0.5 text-[11px] text-[#64748B]">{a.detail}</p>}
+                      <p className="text-xs font-black leading-snug text-[#0F172A] md:text-sm">{a.headline}</p>
+                      {a.detail && <p className="mt-0.5 hidden text-[11px] text-[#64748B] md:block">{a.detail}</p>}
                     </div>
                     {a.targetUserId && (
-                      <a href="/team" className="shrink-0 self-center rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-black text-[#0F172A] hover:bg-slate-50">
+                      <a href="/team" className="hidden shrink-0 self-center rounded-lg border border-slate-200 px-2 py-1 text-[10px] font-black text-[#0F172A] hover:bg-slate-50 md:inline-flex">
                         {a.targetUserId} <ChevronRight className="-mr-0.5 ml-0.5 inline h-3 w-3" />
                       </a>
                     )}
@@ -466,10 +480,10 @@ export default function TeamPulseSection() {
 
       {/* Weak spots strip — quieter follow-up under the action plan */}
       {health.weakSpots.length > 0 && (
-        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/60 px-4 py-3">
+        <div className="mt-3 rounded-2xl border border-slate-200 bg-slate-50/60 px-3 py-2.5 md:px-4 md:py-3">
           <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Watch outs</p>
-          <ul className="mt-1.5 space-y-0.5 text-xs text-[#0F172A]">
-            {health.weakSpots.map((s, i) => <li key={i} className="flex items-start gap-2">•<span>{s}</span></li>)}
+          <ul className="mt-1.5 space-y-0.5 text-[11px] text-[#0F172A] md:text-xs">
+            {health.weakSpots.map((s, i) => <li key={i} className={`${i > 1 ? 'hidden md:flex' : 'flex'} items-start gap-2`}>•<span className="line-clamp-1 md:line-clamp-none">{s}</span></li>)}
           </ul>
         </div>
       )}

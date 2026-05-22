@@ -75,6 +75,15 @@ interface DashboardLike {
     earningsMultiplierDeadline?: string | null;
     earningsMultiplierFloor?: number;
   };
+  wallet?: {
+    bonuses?: {
+      level: number;
+      name: string;
+      lockedAmount: number;
+      isUnlocked: boolean;
+      unlockRequirement: string;
+    }[];
+  };
   earningsMultiplier?: number;
   earningsMultiplierDeadline?: string | null;
 }
@@ -295,12 +304,6 @@ const TeamBusinessPage = () => {
 
   const teamMath = useMemo(() => computeCappedTeam(legs), [legs]);
 
-  const counts = useMemo(() => {
-    const legsAt4x = legs.filter((l) => l.monthlyBusiness >= LEG_4X_THRESHOLD).length;
-    const legsAt3x = legs.filter((l) => l.monthlyBusiness >= LEG_3X_THRESHOLD).length;
-    return { legsAt4x, legsAt3x };
-  }, [legs]);
-
   // Live (rolling 30d) leg data — drives the 3x/4x qualification panel.
   // Falls back to month-bound legs only if the live snapshot hasn't loaded yet.
   const liveLegs = useMemo(() => {
@@ -333,6 +336,7 @@ const TeamBusinessPage = () => {
     referralSummary?.inactiveDownlineCount ??
     Math.max(0, totalTeam - activeTeam);
   const downlineVolume = referralSummary?.totalDownlineVolume ?? 0;
+  const unilevelBonuses = dashboard?.wallet?.bonuses ?? [];
 
   const qualifies3x =
     liveCounts.legsAt3x >= 3 && liveTeamMath.capped >= TEAM_3X_THRESHOLD;
@@ -572,6 +576,43 @@ const TeamBusinessPage = () => {
             subtitle="Lifetime total"
           />
         </section>
+
+        {unilevelBonuses.length > 0 && (
+          <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+            <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-6 md:py-4">
+              <div>
+                <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Level income</p>
+                <h2 className="mt-1 text-xl font-black text-[#0F172A] md:text-2xl">Unilevel Bonuses</h2>
+              </div>
+              <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.08em] text-emerald-700">
+                L1 - L{unilevelBonuses.length}
+              </span>
+            </div>
+            <div className="grid divide-y divide-slate-100">
+              {unilevelBonuses.map((bonus) => (
+                <div key={bonus.level} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-6 md:gap-4 md:py-4">
+                  <div className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black ${bonus.isUnlocked ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
+                    L{bonus.level}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-black text-[#0F172A]">{bonus.name}</p>
+                    <p className="line-clamp-2 text-xs font-semibold text-[#64748B] sm:line-clamp-1">
+                      {bonus.isUnlocked ? "Unlocked · credited to wallet" : bonus.unlockRequirement}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className={`text-sm font-black ${bonus.isUnlocked ? "text-emerald-600" : "text-amber-600"}`}>
+                      {formatCurrencyCompact(bonus.lockedAmount)}
+                    </p>
+                    <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
+                      {bonus.isUnlocked ? "Earned" : "Locked"}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </section>
+        )}
 
         {/* Rank + salary block */}
         <section className="grid gap-4 lg:grid-cols-2">
