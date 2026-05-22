@@ -22,7 +22,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
   const [searchInput, setSearchInput] = useState("");
   const [searching, setSearching] = useState(false);
   // Selected-member action bar
-  const [selected, setSelected] = useState<{ userId: string; fullName?: string; phone?: string | null; packageUSD?: number; isPackageActive?: boolean } | null>(null);
+  const [selected, setSelected] = useState<{ userId: string; fullName?: string; phone?: string | null; packageUSD?: number; isPackageActive?: boolean; sponsor?: { userId: string; fullName: string } | null; totalLifetimeEarnings?: number; lastMonthEarnings?: number } | null>(null);
   const [selectedLoading, setSelectedLoading] = useState(false);
 
   const { nodes, edges } = useMemo(() => transformDataToFlow(tree), [tree]);
@@ -71,6 +71,9 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
                 phone: res.member.phone,
                 packageUSD: res.member.packageUSD,
                 isPackageActive: res.member.isPackageActive,
+                sponsor: res.member.sponsor ?? null,
+                totalLifetimeEarnings: res.member.totalLifetimeEarnings,
+                lastMonthEarnings: res.member.lastMonthEarnings,
               });
             }
           })
@@ -219,6 +222,11 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
           <div className="absolute inset-x-3 top-3 z-20 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_40px_rgba(15,23,42,0.12)] sm:inset-x-auto sm:right-7 sm:top-7 sm:w-72 sm:p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
+                {selected.sponsor && (
+                  <p className="mb-1 truncate text-[10px] text-[#64748B]">
+                    Sponsor · <span className="font-bold text-[#0F172A]">{selected.sponsor.userId}</span> {selected.sponsor.fullName ? `· ${selected.sponsor.fullName}` : ""}
+                  </p>
+                )}
                 <p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#64748B] sm:text-[10px]">Selected member</p>
                 <p className="mt-1 truncate text-sm font-black text-[#0F172A] sm:text-base">{selected.fullName ?? selected.userId}</p>
                 <p className="text-xs font-bold text-[#64748B]">{selected.userId}</p>
@@ -226,6 +234,18 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
                   <p className="mt-1 text-[11px] text-[#0F172A]">
                     Package ₹{selected.packageUSD.toLocaleString("en-IN")} · {selected.isPackageActive ? <span className="font-bold text-emerald-700">Active</span> : <span className="font-bold text-slate-500">Inactive</span>}
                   </p>
+                )}
+                {(typeof selected.totalLifetimeEarnings === "number" || typeof selected.lastMonthEarnings === "number") && (
+                  <div className="mt-2 grid grid-cols-2 gap-1.5">
+                    <div className="rounded-lg bg-emerald-50 px-2 py-1.5">
+                      <p className="text-[9px] font-black uppercase tracking-[0.06em] text-emerald-700">Lifetime</p>
+                      <p className="mt-0.5 truncate text-xs font-black text-emerald-700">₹{Math.round(selected.totalLifetimeEarnings ?? 0).toLocaleString("en-IN")}</p>
+                    </div>
+                    <div className="rounded-lg bg-sky-50 px-2 py-1.5">
+                      <p className="text-[9px] font-black uppercase tracking-[0.06em] text-sky-700">Last month</p>
+                      <p className="mt-0.5 truncate text-xs font-black text-sky-700">₹{Math.round(selected.lastMonthEarnings ?? 0).toLocaleString("en-IN")}</p>
+                    </div>
+                  </div>
                 )}
               </div>
               <button
