@@ -142,12 +142,6 @@ const countActiveMembers = (node?: UserNode | null): number => {
   );
 };
 
-const maskName = (value: string) => {
-  const clean = value.trim();
-  if (clean.length <= 2) return clean;
-  return `${clean.charAt(0)}${"*".repeat(Math.min(5, Math.max(2, clean.length - 2)))}${clean.charAt(clean.length - 1)}`;
-};
-
 const percent = (value: number, total: number) => (total > 0 ? Math.round((value / total) * 1000) / 10 : 0);
 
 const TeamStatCard = ({
@@ -163,13 +157,13 @@ const TeamStatCard = ({
   subtitle: string;
   icon: string;
 }) => (
-  <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)] sm:rounded-3xl sm:p-5 sm:shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-    <Image src={icon} alt="" width={54} height={54} className="h-8 w-8 object-contain sm:h-14 sm:w-14" />
-    <p className="mt-2 truncate text-[9px] font-black uppercase tracking-[0.06em] text-[#64748B] sm:mt-5 sm:text-sm sm:font-medium sm:normal-case sm:tracking-normal">
+  <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)] sm:rounded-3xl sm:p-5 sm:shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+    <Image src={icon} alt="" width={54} height={54} className="h-6 w-6 object-contain sm:h-14 sm:w-14" />
+    <p className="mt-1.5 truncate text-[8px] font-black uppercase tracking-[0.04em] text-[#64748B] sm:mt-5 sm:text-sm sm:font-medium sm:normal-case sm:tracking-normal">
       <span className="sm:hidden">{shortLabel || label}</span>
       <span className="hidden sm:inline">{label}</span>
     </p>
-    <p className="mt-1 truncate text-base font-black leading-none text-[#0F172A] sm:mt-2 sm:text-3xl">{value}</p>
+    <p className="mt-0.5 truncate text-[13px] font-black leading-none text-[#0F172A] sm:mt-2 sm:text-3xl">{value}</p>
     <p className="mt-1 hidden text-sm text-[#64748B] sm:block">{subtitle}</p>
   </div>
 );
@@ -257,10 +251,10 @@ const TeamPage = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
+      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
           {/* Loading hero with explicit copy so users understand why they're waiting */}
-          <div className="rounded-3xl border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-8">
+          <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-8">
             <div className="flex items-center gap-4">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F4]">
                 <Loader2 className="h-6 w-6 animate-spin text-[#C8103E]" />
@@ -273,12 +267,12 @@ const TeamPage = () => {
             </div>
           </div>
           <div className="h-10 w-56 animate-pulse rounded-xl bg-slate-200" />
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid grid-cols-4 gap-2 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
             {[0, 1, 2, 3].map((item) => (
-              <div key={item} className="h-44 animate-pulse rounded-3xl bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]" />
+              <div key={item} className="h-20 animate-pulse rounded-2xl bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:h-44 sm:rounded-3xl" />
             ))}
           </div>
-          <div className="h-[680px] animate-pulse rounded-3xl bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]" />
+          <div className="h-[430px] animate-pulse rounded-2xl bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:h-[680px] sm:rounded-3xl" />
         </div>
       </div>
     );
@@ -286,8 +280,8 @@ const TeamPage = () => {
 
   if (error) {
     return (
-      <div className="dashboard-light-scope flex min-h-screen items-center justify-center bg-[#F8FAFC] p-6">
-        <div className="max-w-md rounded-3xl border border-red-200 bg-red-50 p-6 text-center shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+      <div className="dashboard-light-scope flex min-h-screen items-center justify-center bg-[#F8FAFC] p-4 sm:p-6">
+        <div className="max-w-md rounded-2xl border border-red-200 bg-red-50 p-5 text-center shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
           <p className="text-lg font-black text-red-700">Unable to load team data</p>
           <p className="mt-2 text-sm text-red-600">{error}</p>
           <Button onClick={fetchTeamData} className="wallet-red-control mt-5 bg-[#C8103E] text-white hover:bg-[#A90D32]">
@@ -313,19 +307,19 @@ const TeamPage = () => {
 
   return (
     <>
-      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl space-y-6">
-          <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-3 sm:space-y-6">
+          <header className="flex items-center justify-between gap-3 sm:items-start">
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-[#0F172A] sm:text-4xl">My Team</h1>
-              <p className="mt-1 text-sm text-[#64748B] sm:text-base">
+              <h1 className="text-xl font-black tracking-tight text-[#0F172A] sm:text-4xl">My Team</h1>
+              <p className="mt-1 hidden text-sm text-[#64748B] sm:block sm:text-base">
                 View your team structure and bonus rules.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex shrink-0 flex-wrap items-center gap-2 sm:gap-3">
               <Button
                 variant="outline"
-                className="h-12 rounded-xl border-slate-200 bg-white px-4 font-bold text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:bg-slate-50"
+                className="h-9 rounded-xl border-slate-200 bg-white px-2.5 text-xs font-bold text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:bg-slate-50 sm:h-12 sm:px-4 sm:text-sm"
                 onClick={() => setBonusModalOpen(true)}
               >
                 <Image
@@ -333,9 +327,10 @@ const TeamPage = () => {
                   alt=""
                   width={22}
                   height={22}
-                  className="mr-2 h-5 w-5 object-contain"
+                  className="mr-1.5 h-4 w-4 object-contain sm:mr-2 sm:h-5 sm:w-5"
                 />
-                Bonus Rules
+                Rules
+                <span className="hidden sm:inline">&nbsp;& Info</span>
               </Button>
             </div>
           </header>
@@ -374,17 +369,17 @@ const TeamPage = () => {
           {queue.length > 0 && <PlacementQueue queue={queue} onUserPlaced={fetchTeamData} />}
 
           {treeLoading ? (
-            <div className="relative rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+            <div className="relative rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F4]">
-                  <Loader2 className="h-5 w-5 animate-spin text-[#C8103E]" />
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F4] sm:h-10 sm:w-10">
+                  <Loader2 className="h-4 w-4 animate-spin text-[#C8103E] sm:h-5 sm:w-5" />
                 </div>
                 <div>
-                  <p className="text-base font-black text-[#0F172A]">Loading your team tree</p>
-                  <p className="text-sm text-[#64748B]">This can take a moment for larger downlines (200+ members).</p>
+                  <p className="text-sm font-black text-[#0F172A] sm:text-base">Loading your team tree</p>
+                  <p className="text-xs text-[#64748B] sm:text-sm">Large downlines can take a moment.</p>
                 </div>
               </div>
-              <div className="relative mt-5 h-[640px] overflow-hidden rounded-3xl bg-slate-100">
+              <div className="relative mt-3 h-[420px] overflow-hidden rounded-2xl bg-slate-100 sm:mt-5 sm:h-[640px] sm:rounded-3xl">
                 <div className="absolute inset-0 animate-pulse" />
                 <div className="absolute inset-0 flex items-center justify-center">
                   <div className="flex items-center gap-3 rounded-2xl border border-slate-200 bg-white px-4 py-3 shadow-sm">
@@ -397,20 +392,20 @@ const TeamPage = () => {
           ) : treeData && treeData.tree ? (
             <TreeClient tree={treeData.tree} />
           ) : (
-            <section className="rounded-3xl border border-slate-200/70 bg-white p-10 text-center shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-              <Image src={teamAsset.total} alt="" width={96} height={96} className="mx-auto h-24 w-24 object-contain opacity-80" />
-              <p className="mt-4 text-lg font-black text-[#0F172A]">No team members yet</p>
+            <section className="rounded-2xl border border-slate-200/70 bg-white p-6 text-center shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-10">
+              <Image src={teamAsset.total} alt="" width={96} height={96} className="mx-auto h-16 w-16 object-contain opacity-80 sm:h-24 sm:w-24" />
+              <p className="mt-3 text-base font-black text-[#0F172A] sm:mt-4 sm:text-lg">No team members yet</p>
               <p className="mt-1 text-sm text-[#64748B]">
                 Start sharing your referral link to build your network.
               </p>
             </section>
           )}
 
-          <section className="grid gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
-            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-              <h2 className="text-lg font-black text-[#0F172A]">Team Overview</h2>
-              <div className="mt-6 grid gap-6 md:grid-cols-[220px_minmax(0,1fr)] md:items-center">
-                <div className="relative mx-auto h-44 w-44">
+          <section className="grid gap-3 sm:gap-5 lg:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+            <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
+              <h2 className="text-sm font-black text-[#0F172A] sm:text-lg">Team Overview</h2>
+              <div className="mt-3 grid grid-cols-[112px_minmax(0,1fr)] items-center gap-3 sm:mt-6 sm:gap-6 md:grid-cols-[220px_minmax(0,1fr)]">
+                <div className="relative mx-auto h-28 w-28 sm:h-44 sm:w-44">
                   <svg viewBox="0 0 120 120" className="h-full w-full -rotate-90">
                     <circle cx="60" cy="60" r="42" fill="none" stroke="#F1F5F9" strokeWidth="16" />
                     <circle
@@ -447,22 +442,22 @@ const TeamPage = () => {
                     />
                   </svg>
                   <div className="absolute inset-0 flex flex-col items-center justify-center">
-                    <p className="text-3xl font-black text-[#0F172A]">{totalTeam.toLocaleString("en-IN")}</p>
-                    <p className="text-sm text-[#64748B]">Total Team</p>
+                    <p className="text-xl font-black text-[#0F172A] sm:text-3xl">{totalTeam.toLocaleString("en-IN")}</p>
+                    <p className="text-[10px] text-[#64748B] sm:text-sm">Total Team</p>
                   </div>
                 </div>
-                <div className="space-y-4">
+                <div className="space-y-2 sm:space-y-4">
                   {[
                     { label: "Active Members", count: activeTeam, pct: activePct, color: "bg-emerald-500" },
                     { label: "Inactive Members", count: inactiveTeam, pct: inactivePct, color: "bg-slate-300" },
                     { label: "Left Members", count: leftTeam, pct: leftPct, color: "bg-[#C8103E]" },
                   ].map((item) => (
-                    <div key={item.label} className="flex items-center justify-between gap-4 border-b border-slate-100 pb-3 last:border-0">
-                      <span className="inline-flex items-center gap-3 text-sm text-[#64748B]">
+                    <div key={item.label} className="flex items-center justify-between gap-2 border-b border-slate-100 pb-2 last:border-0 sm:gap-4 sm:pb-3">
+                      <span className="inline-flex min-w-0 items-center gap-2 truncate text-[11px] text-[#64748B] sm:gap-3 sm:text-sm">
                         <span className={`h-2 w-2 rounded-full ${item.color}`} />
                         {item.label}
                       </span>
-                      <span className="text-sm font-black text-[#0F172A]">
+                      <span className="shrink-0 text-[11px] font-black text-[#0F172A] sm:text-sm">
                         {item.count.toLocaleString("en-IN")} ({item.pct}%)
                       </span>
                     </div>
@@ -471,10 +466,10 @@ const TeamPage = () => {
               </div>
             </div>
 
-            <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+            <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <h2 className="text-lg font-black text-[#0F172A]">Top Performers</h2>
+                  <h2 className="text-sm font-black text-[#0F172A] sm:text-lg">Top Performers</h2>
                   <TooltipProvider delayDuration={0}>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -507,12 +502,12 @@ const TeamPage = () => {
                 </div>
                 <button
                   type="button"
-                  className="rounded-xl border border-slate-200 bg-white px-4 py-2 text-xs font-bold text-[#0F172A] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+                  className="rounded-xl border border-slate-200 bg-white px-3 py-1.5 text-[11px] font-bold text-[#0F172A] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:px-4 sm:py-2 sm:text-xs"
                 >
                   View all
                 </button>
               </div>
-              <div className="mt-5 space-y-4">
+              <div className="mt-3 space-y-3 sm:mt-5 sm:space-y-4">
                 {topPerformers.length > 0 ? (
                   topPerformers.map((performer, index) => (
                     <div key={`${performer.userId || performer.fullName}-${index}`} className="flex items-center justify-between gap-3">
@@ -522,20 +517,20 @@ const TeamPage = () => {
                           alt={`Rank ${index + 1}`}
                           width={42}
                           height={42}
-                          className="h-11 w-11 shrink-0 object-contain"
+                          className="h-9 w-9 shrink-0 object-contain sm:h-11 sm:w-11"
                         />
                         <div className="min-w-0">
-                          <p className="truncate text-sm font-black text-[#0F172A]">{maskName(performer.fullName)}</p>
-                          <p className="text-xs text-[#64748B]">Team: {performer.packagesSold.toLocaleString("en-IN")}</p>
+                          <p className="truncate text-xs font-black text-[#0F172A] sm:text-sm">{performer.fullName || performer.userId || "Team member"}</p>
+                          <p className="text-[11px] text-[#64748B] sm:text-xs">Team: {performer.packagesSold.toLocaleString("en-IN")}</p>
                         </div>
                       </div>
-                      <p className="shrink-0 text-sm font-black text-emerald-600">
+                      <p className="shrink-0 text-xs font-black text-emerald-600 sm:text-sm">
                         +{formatCurrency(performer.earnings)}
                       </p>
                     </div>
                   ))
                 ) : (
-                  <p className="rounded-2xl bg-slate-50 px-4 py-6 text-center text-sm text-[#64748B]">
+                  <p className="rounded-2xl bg-slate-50 px-4 py-4 text-center text-xs text-[#64748B] sm:py-6 sm:text-sm">
                     Top performers will appear once team activity is available.
                   </p>
                 )}
@@ -543,9 +538,9 @@ const TeamPage = () => {
             </div>
           </section>
 
-          <div className="flex items-center gap-3 rounded-2xl border border-red-100 bg-[#FFF1F4] px-5 py-4 text-sm font-medium text-[#C8103E]">
-            <Image src={teamAsset.info} alt="" width={24} height={24} className="h-6 w-6 object-contain" />
-            <p>Team data is updated in real-time. Build your team and earn more rewards!</p>
+          <div className="flex items-center gap-2 rounded-2xl border border-red-100 bg-[#FFF1F4] px-3 py-3 text-xs font-bold text-[#C8103E] sm:gap-3 sm:px-5 sm:py-4 sm:text-sm">
+            <Image src={teamAsset.info} alt="" width={24} height={24} className="h-5 w-5 object-contain sm:h-6 sm:w-6" />
+            <p>Team data updates in real time. Build your network and earn more.</p>
           </div>
         </div>
 

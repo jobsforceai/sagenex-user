@@ -12,7 +12,7 @@
  * Pre-filled tel: and wa.me/ links — no extra backend work needed.
  */
 import { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, Flame, PhoneCall, MessageCircle, Trophy, Activity, Sparkles, ChevronRight } from "lucide-react";
+import { Activity, AlertTriangle, BarChart3, Flame, IndianRupee, MessageCircle, PhoneCall, Sparkles, Trophy, UserPlus, Users, Zap, ChevronRight } from "lucide-react";
 import { getTeamPulse } from "@/actions/user";
 import { track } from "@/lib/posthog";
 
@@ -94,11 +94,7 @@ const inrCompact = (n: number) => {
   return "₹" + Math.round(n).toLocaleString("en-IN");
 };
 
-const maskName = (name: string) => {
-  const clean = (name || "").trim();
-  if (clean.length <= 2) return clean;
-  return `${clean.charAt(0)}${"*".repeat(Math.min(5, Math.max(2, clean.length - 2)))}${clean.charAt(clean.length - 1)}`;
-};
+const displayName = (name: string) => (name || "").trim() || "Unknown";
 
 const wapp = (phone: string | null | undefined, text: string) => {
   if (!phone) return null;
@@ -167,9 +163,216 @@ export default function TeamPulseSection() {
   const haveTeam = rp.teamBusiness120d;
   const teamPct = targetTeam > 0 ? Math.min(100, Math.round((haveTeam / targetTeam) * 100)) : 100;
   const legPct = targetLegs > 0 ? Math.min(100, Math.round((haveLegs / targetLegs) * 100)) : 100;
+  const primaryActions = data.actionPlan.slice(0, 3);
+  const primaryOpportunities = opportunities.slice(0, 2);
+  const primaryAtRisk = atRisk.slice(0, 5);
+  const primaryWins = recentWins.slice(0, 5);
 
   return (
-    <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+    <>
+    <section className="md:hidden">
+      <div className="rounded-[22px] border border-slate-200/70 bg-white p-2.5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+        <div className="mb-2.5 flex items-center justify-between gap-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#64748B]">Team Pulse</p>
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-black capitalize ${band.pill}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${band.dot}`} />{health.band}
+          </span>
+        </div>
+        <div className="grid grid-cols-4 gap-1.5">
+          <div className="rounded-2xl border border-slate-100 bg-white p-1.5 text-center">
+            <div className="relative mx-auto h-11 w-11">
+              <svg viewBox="0 0 36 36" className="h-11 w-11 -rotate-90">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F1F5F9" strokeWidth="3" />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="none"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  className={health.band === 'excellent' ? 'stroke-emerald-500' : health.band === 'good' ? 'stroke-sky-500' : health.band === 'fair' ? 'stroke-amber-500' : 'stroke-rose-500'}
+                  strokeDasharray={`${(health.score / 100) * 100} 100`}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-xs font-black text-[#0F172A]">{health.score}</div>
+            </div>
+            <p className="mt-1 text-[7px] font-black uppercase tracking-[0.06em] text-[#64748B]">Health</p>
+          </div>
+          {[
+            { label: "Active", value: `${Math.round(health.signals.activeRatio.value * 100)}%`, icon: Users, tone: "text-blue-600 bg-blue-50" },
+            { label: "Joins", value: health.signals.growth30d.count, icon: Trophy, tone: "text-violet-600 bg-violet-50" },
+            { label: "Business", value: inrCompact(health.signals.activationVolume30d.amount), icon: IndianRupee, tone: "text-emerald-700 bg-emerald-50" },
+          ].map(({ label, value, icon: Icon, tone }) => (
+            <div key={label} className="min-w-0 rounded-2xl border border-slate-100 bg-white p-1.5 text-center">
+              <div className={`mx-auto flex h-7 w-7 items-center justify-center rounded-xl ${tone}`}>
+                <Icon className="h-3.5 w-3.5" />
+              </div>
+              <p className="mt-1 break-words text-[12px] font-black leading-none text-[#0F172A]">{value}</p>
+              <p className="mt-1 text-[7px] font-black uppercase tracking-[0.04em] text-[#64748B]">{label}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-3 gap-1.5">
+        <div className="rounded-[18px] border border-slate-200 bg-white p-1.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)]">
+          <div className="mb-1.5 flex items-center justify-between gap-1">
+            <div className="flex min-w-0 items-center gap-1.5">
+              <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-md bg-[#0F172A] text-white">
+                <Sparkles className="h-3 w-3" />
+              </span>
+              <p className="truncate text-[8px] font-black uppercase tracking-[0.04em] text-[#64748B]">Today</p>
+            </div>
+            <span className="rounded-full bg-slate-50 px-1.5 py-0.5 text-[8px] font-black text-[#0F172A]">{data.actionPlan.length}</span>
+          </div>
+          <div className="space-y-1.5">
+            {(primaryActions.length ? primaryActions : [{ headline: "No urgent task", priority: "low" as const }]).map((a, i) => {
+              const w = a.targetPhone ? wapp(a.targetPhone, a.whatsappMessage || "Hi, just touching base.") : null;
+              return (
+                <div key={`${a.headline}-${i}`} className="rounded-xl border border-slate-100 bg-white p-1.5">
+                  <div className="flex items-start gap-1">
+                    <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${a.priority === "high" ? "bg-rose-500" : a.priority === "medium" ? "bg-amber-500" : "bg-emerald-500"}`} />
+                    <div className="min-w-0 flex-1">
+                      <p className="line-clamp-3 text-[8px] font-black leading-[1.12] text-[#0F172A]">{a.headline}</p>
+                      {a.targetUserId && <p className="mt-1 inline-flex rounded-full bg-slate-50 px-1.5 py-0.5 text-[7px] font-black text-[#0F172A]">{a.targetUserId}</p>}
+                    </div>
+                  </div>
+                  {(a.targetPhone || w) && (
+                    <div className="mt-1.5 flex gap-1">
+                      <a href={a.targetPhone ? `tel:${a.targetPhone}` : undefined} aria-label={`Call ${a.targetUserId || a.headline}`} onClick={() => track("team_pulse_action_call_clicked", { source: "mobile_command", headline: a.headline, userId: a.targetUserId, priority: a.priority })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-[#0F172A] !text-white">
+                        <PhoneCall className="h-3.5 w-3.5" />
+                      </a>
+                      <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${a.targetUserId || a.headline}`} onClick={() => track("team_pulse_action_whatsapp_clicked", { source: "mobile_command", headline: a.headline, userId: a.targetUserId, priority: a.priority })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-emerald-500 !text-white">
+                        <MessageCircle className="h-3.5 w-3.5" />
+                      </a>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="rounded-[18px] border border-amber-100 bg-amber-50/30 p-1.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)]">
+          <div className="mb-1.5 flex items-center justify-between gap-1">
+            <p className="flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.04em] text-amber-700"><Flame className="h-3 w-3" />Hot</p>
+            <span className="rounded-full bg-white px-1.5 py-0.5 text-[8px] font-black text-amber-700">{opportunities.length}</span>
+          </div>
+          <div className="space-y-1.5">
+            {primaryOpportunities.length ? primaryOpportunities.map((o) => {
+              const pct = o.legBusiness120d ? Math.min(100, Math.round((o.legBusiness120d / 200000) * 100)) : 0;
+              const w = wapp(o.phone, `Hi ${o.fullName?.split(" ")[0] || "there"}! ${o.headline}. Wanted to flag it — let's chat?`);
+              return (
+                <div key={o.userId} className="rounded-xl border border-amber-100 bg-white p-1.5">
+                  <div className="flex items-start justify-between gap-1">
+                    <p className="min-w-0 flex-1 break-words text-[8px] font-black leading-[1.1] text-[#0F172A]">{displayName(o.fullName)}</p>
+                    <span className="shrink-0 rounded-full bg-amber-50 px-1.5 py-0.5 text-[7px] font-black text-[#0F172A]">{o.userId}</span>
+                  </div>
+                  <p className="mt-0.5 line-clamp-3 text-[8px] font-bold leading-[1.12] text-amber-700">{o.headline}</p>
+                  <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-amber-100">
+                    <div className="h-full rounded-full bg-amber-500" style={{ width: `${pct}%` }} />
+                  </div>
+                  <div className="mt-1.5 flex gap-1">
+                    <a href={o.phone ? `tel:${o.phone}` : undefined} aria-label={`Call ${o.userId}`} onClick={() => track("team_pulse_call_clicked", { source: "mobile_opportunity", userId: o.userId, type: o.type })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-[#0F172A] !text-white"><PhoneCall className="h-3.5 w-3.5" /></a>
+                    <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${o.userId}`} onClick={() => track("team_pulse_whatsapp_clicked", { source: "mobile_opportunity", userId: o.userId, type: o.type })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-emerald-500 !text-white"><MessageCircle className="h-3.5 w-3.5" /></a>
+                  </div>
+                </div>
+              );
+            }) : <p className="rounded-xl bg-white p-2 text-[8.5px] font-semibold text-[#64748B]">None now</p>}
+          </div>
+        </div>
+
+        <div className="rounded-[18px] border border-rose-100 bg-rose-50/45 p-1.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)]">
+          <div className="mb-1.5 flex items-center justify-between gap-1">
+            <p className="flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.04em] text-rose-700"><AlertTriangle className="h-3 w-3" />Risk</p>
+            <span className="rounded-full bg-white px-1.5 py-0.5 text-[8px] font-black text-rose-700">{atRisk.length}</span>
+          </div>
+          <div className="divide-y divide-rose-100 rounded-xl bg-white">
+            {primaryAtRisk.length ? primaryAtRisk.map((m) => {
+              const w = wapp(m.phone, `Hi ${m.fullName?.split(" ")[0] || "there"}, missed seeing you on Sagenex. Let's hop on a quick call.`);
+              return (
+                <div key={m.userId} className="p-1.5">
+                  <div className="flex items-start justify-between gap-1">
+                    <div className="min-w-0 flex-1">
+                      <div>
+                        <p className="break-words text-[8px] font-black leading-[1.1] text-[#0F172A]">{displayName(m.fullName)}</p>
+                        <p className="mt-0.5 text-[7px] font-black text-[#0F172A]">{m.userId}</p>
+                      </div>
+                      <p className="line-clamp-2 text-[7.5px] font-bold leading-[1.1] text-rose-700">{m.reason}</p>
+                    </div>
+                    <span className={`shrink-0 rounded-full px-1 py-0.5 text-[7px] font-black ${m.severity === "high" ? "bg-rose-100 text-rose-700" : "bg-amber-100 text-amber-700"}`}>{m.severity === "high" ? "high" : "med"}</span>
+                  </div>
+                  <div className="mt-1 flex justify-end gap-1">
+                    <a href={m.phone ? `tel:${m.phone}` : undefined} aria-label={`Call ${m.userId}`} onClick={() => track("team_pulse_call_clicked", { source: "mobile_at_risk", userId: m.userId, severity: m.severity })} className="flex h-6 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600"><PhoneCall className="h-3.5 w-3.5" /></a>
+                    <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${m.userId}`} onClick={() => track("team_pulse_whatsapp_clicked", { source: "mobile_at_risk", userId: m.userId, severity: m.severity })} className="flex h-6 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"><MessageCircle className="h-3.5 w-3.5" /></a>
+                  </div>
+                </div>
+              );
+            }) : <p className="p-2 text-[8.5px] font-semibold text-[#64748B]">All clear</p>}
+          </div>
+        </div>
+
+        <div className="rounded-[18px] border border-emerald-100 bg-emerald-50/35 p-1.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)]">
+          <div className="mb-1.5 flex items-center justify-between gap-1">
+            <p className="flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.04em] text-emerald-700"><Trophy className="h-3 w-3" />Wins</p>
+            <span className="rounded-full bg-white px-1.5 py-0.5 text-[8px] font-black text-emerald-700">{recentWins.length}</span>
+          </div>
+          <div className="divide-y divide-emerald-100 rounded-xl bg-white">
+            {primaryWins.length ? primaryWins.map((w) => (
+              <div key={`${w.userId}-${w.amount}`} className="flex items-center justify-between gap-1 p-1.5">
+                <div className="min-w-0 flex-1">
+                  <p className="break-words text-[8px] font-black leading-[1.1] text-[#0F172A]">{displayName(w.fullName)}</p>
+                  <p className="truncate text-[7.5px] font-bold text-[#64748B]">{w.userId} · {w.daysAgo}d</p>
+                </div>
+                <span className="rounded-full bg-emerald-50 px-1 py-0.5 text-[7px] font-black text-emerald-700">+{inrCompact(w.amount)}</span>
+              </div>
+            )) : <p className="p-2 text-[8.5px] font-semibold text-[#64748B]">No wins yet</p>}
+          </div>
+        </div>
+
+        <div className="rounded-[18px] border border-slate-200 bg-white p-1.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)]">
+          <p className="mb-2 flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.04em] text-[#64748B]"><BarChart3 className="h-3 w-3 text-emerald-600" />Multiplier</p>
+          <p className="text-sm font-black leading-tight text-[#0F172A]">
+            {hasNextMultiplier ? <>{rp.currentMultiplier}x → <span className="text-emerald-600">{rp.nextMultiplier}x</span></> : <>{rp.currentMultiplier}x <span className="text-emerald-600">max</span></>}
+          </p>
+          {hasNextMultiplier ? (
+            <div className="mt-3 space-y-2">
+              <div>
+                <div className="flex justify-between text-[7.5px] font-black text-[#64748B]"><span>Legs</span><span>{haveLegs}/{targetLegs}</span></div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-emerald-500" style={{ width: `${legPct}%` }} /></div>
+              </div>
+              <div>
+                <div className="flex justify-between text-[7.5px] font-black text-[#64748B]"><span>Team</span><span>{inrCompact(haveTeam)}</span></div>
+                <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-slate-100"><div className="h-full bg-sky-500" style={{ width: `${teamPct}%` }} /></div>
+              </div>
+            </div>
+          ) : (
+            <p className="mt-2 text-[8.5px] font-semibold leading-snug text-[#64748B]">Top tier. Keep qualifying legs strong.</p>
+          )}
+        </div>
+
+        <div className="rounded-[18px] border border-slate-200 bg-white p-1.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)]">
+          <p className="mb-1.5 flex items-center gap-1 text-[8px] font-black uppercase tracking-[0.04em] text-[#64748B]"><Zap className="h-3 w-3" />Actions</p>
+          <div className="grid grid-cols-3 gap-1">
+            {[
+              { label: "Lead", icon: UserPlus, href: "/team" },
+              { label: "Report", icon: BarChart3, href: "/team-business" },
+              { label: "Train", icon: Sparkles, href: "/courses" },
+              { label: "Rank", icon: Trophy, href: "/salary" },
+              { label: "Wallet", icon: IndianRupee, href: "/wallet" },
+              { label: "Help", icon: MessageCircle, href: "/support" },
+            ].map(({ label, icon: Icon, href }) => (
+              <a key={label} href={href} className="flex h-9 flex-col items-center justify-center rounded-lg border border-slate-100 bg-slate-50 text-[7px] font-black text-[#0F172A]">
+                <Icon className="mb-0.5 h-3 w-3 text-[#64748B]" />
+                {label}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section className="hidden rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6 md:block">
       {/* Header */}
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
@@ -307,7 +510,7 @@ export default function TeamPulseSection() {
                   <li key={m.userId} className="rounded-xl border border-rose-100 bg-white p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-[#0F172A]">{maskName(m.fullName)} <span className="text-xs font-bold text-[#64748B]">· {m.userId}</span></p>
+                        <p className="truncate text-sm font-black text-[#0F172A]">{displayName(m.fullName)} <span className="text-xs font-bold text-[#64748B]">· {m.userId}</span></p>
                         <p className="mt-0.5 text-[11px] text-rose-700">{m.reason}</p>
                       </div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black ${m.severity === 'high' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'}`}>
@@ -362,7 +565,7 @@ export default function TeamPulseSection() {
                 const w = wapp(o.phone, text);
                 return (
                   <li key={o.userId} className="rounded-xl border border-amber-100 bg-white p-3">
-                    <p className="truncate text-sm font-black text-[#0F172A]">{maskName(o.fullName)} <span className="text-xs font-bold text-[#64748B]">· {o.userId}</span></p>
+                    <p className="truncate text-sm font-black text-[#0F172A]">{displayName(o.fullName)} <span className="text-xs font-bold text-[#64748B]">· {o.userId}</span></p>
                     <p className="mt-0.5 text-[11px] font-bold text-amber-700">{o.headline}</p>
                     <p className="mt-1 line-clamp-2 text-[11px] text-[#64748B]">{o.detail}</p>
                     <div className="mt-2 flex gap-1.5">
@@ -411,7 +614,7 @@ export default function TeamPulseSection() {
               {recentWins.map((w, i) => (
                 <li key={i} className="flex items-center justify-between gap-3 rounded-xl border border-emerald-100 bg-white px-3 py-2.5">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-black text-[#0F172A]">{maskName(w.fullName)}</p>
+                    <p className="truncate text-sm font-black text-[#0F172A]">{displayName(w.fullName)}</p>
                     <p className="text-[11px] font-bold text-[#64748B]">{w.userId} · {w.daysAgo === 0 ? 'today' : `${w.daysAgo}d ago`}</p>
                   </div>
                   <span className="shrink-0 rounded-full bg-emerald-100 px-2 py-1 text-xs font-black text-emerald-700">+{inrCompact(w.amount)}</span>
@@ -488,5 +691,6 @@ export default function TeamPulseSection() {
         </div>
       )}
     </section>
+    </>
   );
 }

@@ -128,41 +128,41 @@ const PlacementQueue = ({ queue, onUserPlaced }: { queue: QueuedUser[], onUserPl
     }
 
     return (
-        <div className="mb-12 rounded-3xl border border-slate-200/70 bg-white p-8 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-            <h2 className="text-2xl font-black tracking-tight text-[#0F172A] mb-4 flex items-center gap-2">
-                <UserPlus className="text-emerald-400" />
+        <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:mb-12 sm:rounded-3xl sm:p-8">
+            <h2 className="mb-1.5 flex items-center gap-2 text-lg font-black tracking-tight text-[#0F172A] sm:mb-4 sm:text-2xl">
+                <UserPlus className="h-5 w-5 text-emerald-500 sm:h-6 sm:w-6" />
                 Placement Queue
             </h2>
-            <p className="text-[#64748B] mb-6">
-                Users you have sponsored who are waiting to be placed in your team tree.
+            <p className="mb-3 text-xs font-medium leading-relaxed text-[#64748B] sm:mb-6 sm:text-base">
+                Sponsored users waiting for placement.
             </p>
 
             {message && (
-                <div className={`p-4 rounded-md mb-4 text-sm ${message.type === 'error' ? 'bg-red-900/50 text-red-300' : 'bg-green-900/50 text-green-300'}`}>
+                <div className={`mb-3 rounded-xl border px-3 py-2 text-xs font-bold sm:mb-4 sm:px-4 sm:py-3 sm:text-sm ${message.type === 'error' ? 'border-red-200 bg-red-50 text-red-700' : 'border-emerald-200 bg-emerald-50 text-emerald-700'}`}>
                     {message.text}
                 </div>
             )}
 
-            <div className="space-y-4">
+            <div className="space-y-2.5 sm:space-y-4">
                 {queue.map(user => (
-                    <div key={user.userId} className="rounded-2xl border border-slate-200/70 bg-slate-50 p-4 flex items-center justify-between">
-                        <div>
-                            <h3 className="font-bold text-[#0F172A]">{user.fullName}</h3>
-                            <p className="text-sm text-[#64748B]">{user.email}</p>
-                            <p className="text-sm text-slate-400">ID: {user.userId}</p>
+                    <div key={user.userId} className="rounded-2xl border border-slate-200/70 bg-slate-50 p-3 sm:flex sm:items-center sm:justify-between sm:p-4">
+                        <div className="min-w-0">
+                            <h3 className="truncate text-sm font-black text-[#0F172A] sm:text-base">{user.fullName}</h3>
+                            <p className="mt-0.5 truncate text-xs font-medium text-[#64748B] sm:text-sm">{user.email}</p>
+                            <p className="mt-0.5 text-[11px] font-bold text-slate-400 sm:text-sm">ID: {user.userId}</p>
                         </div>
-                        <div className="flex items-center gap-4">
+                        <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-0 sm:flex sm:items-center sm:gap-4">
                             <button
                                 onClick={() => { setTransferringUser(user); setMessage(null); }}
-                                className="px-4 py-2 rounded-xl bg-sky-600 text-white text-sm font-bold hover:bg-sky-700"
+                                className="h-9 rounded-xl bg-sky-600 px-3 text-xs font-black text-white shadow-[0_8px_20px_rgba(2,132,199,0.18)] hover:bg-sky-700 sm:h-auto sm:px-4 sm:py-2 sm:text-sm"
                             >
                                 Transfer
                             </button>
                             <button
                                 onClick={() => { setSelectedUser(user); setMessage(null); }}
-                                className="px-4 py-2 rounded-xl bg-emerald-600 text-white text-sm font-bold hover:bg-emerald-700"
+                                className="h-9 rounded-xl bg-emerald-600 px-3 text-xs font-black text-white shadow-[0_8px_20px_rgba(5,150,105,0.18)] hover:bg-emerald-700 sm:h-auto sm:px-4 sm:py-2 sm:text-sm"
                             >
-                                Place User
+                                Place
                             </button>
                         </div>
                     </div>

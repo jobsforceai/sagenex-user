@@ -530,11 +530,13 @@ const DashboardPage = () => {
             </div>
           </section>
 
-          <LegGauges
-            earningsMultiplier={earningsMultiplier}
-            legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
-            kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
-          />
+          <div className="hidden md:block">
+            <LegGauges
+              earningsMultiplier={earningsMultiplier}
+              legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
+              kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
+            />
+          </div>
 
           {consecutiveMonthsMissed === 1 && (
             <Alert
@@ -565,7 +567,7 @@ const DashboardPage = () => {
 
           <TeamPulseSection />
 
-          <div className="grid grid-cols-1 gap-3 md:gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
+          <div className="hidden grid-cols-1 gap-3 md:grid md:gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
             <div className="space-y-3 md:space-y-5">
               <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3 md:mb-5">

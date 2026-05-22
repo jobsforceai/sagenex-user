@@ -151,35 +151,35 @@ export const OverviewTab = ({
       : cyclesList.find((cycle) => cycle.id === selectedCycleId)?.reason || "Selected cycle";
 
   return (
-    <div className="mt-4 space-y-4 sm:mt-5 sm:space-y-6">
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5">
-        <section className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
+    <div className="mt-3 space-y-3 sm:mt-5 sm:space-y-6">
+      <div className="grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5">
+        <section className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
           <div className="absolute right-3 top-3 opacity-90 sm:right-4 sm:top-4 sm:opacity-95">
             <Image
               src="/wallet/pink-wallet.png"
               alt="Wallet illustration"
               width={112}
               height={112}
-              className="h-14 w-14 object-contain sm:h-28 sm:w-28"
+              className="h-11 w-11 object-contain sm:h-28 sm:w-28"
             />
           </div>
-          <div className="relative max-w-[calc(100%-92px)] sm:max-w-none">
-            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B] sm:text-[11px] sm:tracking-[0.14em]">
+          <div className="relative max-w-[calc(100%-64px)] sm:max-w-none">
+            <p className="text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.14em]">
               Available Balance
             </p>
-            <p className="mt-2 truncate text-3xl font-black tracking-tight text-[#0F172A] sm:mt-3 sm:text-5xl">
+            <p className="mt-1.5 truncate text-2xl font-black tracking-tight text-[#0F172A] sm:mt-3 sm:text-5xl">
               {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
             </p>
           </div>
-          <div className="relative mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 pt-4 sm:mt-8 sm:gap-4 sm:pt-5 sm:divide-x sm:divide-slate-100">
+          <div className="relative mt-3 grid grid-cols-3 gap-1.5 border-t border-slate-100 pt-3 sm:mt-8 sm:gap-4 sm:pt-5 sm:divide-x sm:divide-slate-100">
             {[
               ["Locked", walletSummary?.capLockedBalance ?? 0],
               ["Can Withdraw", remainingWithdrawalLimit],
               ["Withdrawn", walletSummary?.totalLifetimeWithdrawals ?? 0],
             ].map(([label, value]) => (
               <div key={label} className="min-w-0 sm:px-4 first:sm:pl-0">
-                <p className="truncate text-[8px] font-bold uppercase tracking-[0.06em] text-[#64748B] sm:text-xs sm:tracking-[0.08em]">{label}</p>
-                <p className="mt-1 truncate text-sm font-black text-[#0F172A] sm:text-lg">
+                <p className="truncate text-[7px] font-bold uppercase tracking-[0.04em] text-[#64748B] sm:text-xs sm:tracking-[0.08em]">{label}</p>
+                <p className="mt-1 truncate text-xs font-black text-[#0F172A] sm:text-lg">
                   {summaryLoading ? "—" : formatCompactCurrency(Number(value))}
                 </p>
               </div>
@@ -187,14 +187,14 @@ export const OverviewTab = ({
           </div>
         </section>
 
-        <section className="fixed inset-x-3 bottom-[86px] z-40 rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur lg:static lg:rounded-3xl lg:bg-white lg:p-6 lg:shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+        <section className="fixed inset-x-3 bottom-[86px] z-40 rounded-2xl border border-slate-200/80 bg-white/95 p-1.5 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur lg:static lg:rounded-3xl lg:bg-white lg:p-6 lg:shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
           <p className="hidden text-lg font-black text-[#0F172A] lg:block">Quick Actions</p>
-          <div className="grid grid-cols-2 gap-2 lg:mt-5 lg:block lg:space-y-3">
+          <div className="grid grid-cols-2 gap-1.5 lg:mt-5 lg:block lg:space-y-3">
             <button
               type="button"
               onClick={onWithdrawClick}
               disabled={!walletSummary}
-              className="wallet-red-control flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-3 text-xs font-black text-white shadow-[0_10px_24px_rgba(200,16,62,0.22)] transition hover:from-[#C8103E] hover:to-[#68001A] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:gap-2 lg:rounded-2xl lg:px-5 lg:text-sm lg:shadow-[0_14px_30px_rgba(200,16,62,0.22)]"
+              className="wallet-red-control flex h-9 w-full items-center justify-center gap-1 rounded-xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-2 text-[10px] font-black text-white shadow-[0_10px_24px_rgba(200,16,62,0.22)] transition hover:from-[#C8103E] hover:to-[#68001A] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:gap-2 lg:rounded-2xl lg:px-5 lg:text-sm lg:shadow-[0_14px_30px_rgba(200,16,62,0.22)]"
             >
               <ArrowUp className="h-4 w-4" />
               Withdraw
@@ -203,7 +203,7 @@ export const OverviewTab = ({
               type="button"
               onClick={onTransferClick}
               disabled={!walletSummary}
-              className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-[#C8103E]/25 bg-white px-3 text-xs font-black text-[#C8103E] transition hover:bg-[#FFF1F4] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:gap-2 lg:rounded-2xl lg:px-5 lg:text-sm"
+              className="flex h-9 w-full items-center justify-center gap-1 rounded-xl border border-[#C8103E]/25 bg-white px-2 text-[10px] font-black text-[#C8103E] transition hover:bg-[#FFF1F4] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:gap-2 lg:rounded-2xl lg:px-5 lg:text-sm"
             >
               <Image src="/wallet/transfer-arrows-crimson.png" alt="" width={22} height={22} className="h-4 w-4 object-contain lg:h-5 lg:w-5" />
               Transfer
@@ -231,7 +231,7 @@ export const OverviewTab = ({
         </Card>
       )}
 
-      <div className="flex items-start gap-2 rounded-2xl border border-indigo-100 bg-indigo-50/70 px-3 py-2.5 text-xs text-indigo-900 sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
+      <div className="flex items-start gap-2 rounded-2xl border border-indigo-100 bg-indigo-50/70 px-2.5 py-2 text-[10px] text-indigo-900 sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
         <p><span className="sm:hidden">Locked earnings release after reinvestment.</span><span className="hidden sm:inline">Locked earnings are released when you reinvest and count toward your new cap.</span></p>
       </div>
@@ -242,7 +242,7 @@ export const OverviewTab = ({
         onViewAll={onViewAllTransactions}
       />
 
-      <section className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
         <Image
           src="/wallet/red_wave_no_background.png"
           alt=""
@@ -252,8 +252,8 @@ export const OverviewTab = ({
         />
         <div className="relative flex flex-wrap items-center justify-between gap-2 sm:gap-3">
           <div>
-            <p className="text-base font-black text-[#0F172A] sm:text-lg">Earnings This Cycle</p>
-            <p className="mt-1 text-xs text-[#64748B]">
+            <p className="text-sm font-black text-[#0F172A] sm:text-lg">Earnings This Cycle</p>
+            <p className="mt-0.5 text-[10px] text-[#64748B] sm:mt-1 sm:text-xs">
               {formatDate(cycleSummary?.cycleStart)} - {formatDate(cycleSummary?.cycleEnd)}
             </p>
           </div>
@@ -284,7 +284,7 @@ export const OverviewTab = ({
                       .catch(() => setCycleError("Unable to load cycle earnings."))
                       .finally(() => setCycleLoading(false));
                   }}
-                  className="h-10 max-w-44 appearance-none rounded-full border border-slate-200 bg-white px-4 pr-9 text-xs font-bold text-[#0F172A] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+                  className="h-8 max-w-36 appearance-none rounded-full border border-slate-200 bg-white px-3 pr-8 text-[10px] font-bold text-[#0F172A] focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 sm:h-10 sm:max-w-44 sm:px-4 sm:pr-9 sm:text-xs"
                   aria-label="Select earnings cycle"
                 >
                   <option value="current">Current cycle</option>
@@ -300,23 +300,23 @@ export const OverviewTab = ({
             <button
               type="button"
               onClick={() => setCycleOpen(!cycleOpen)}
-              className="inline-flex h-10 items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-4 text-xs font-bold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20"
+              className="inline-flex h-8 items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-3 text-[10px] font-bold text-emerald-700 transition hover:border-emerald-300 hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 sm:h-10 sm:gap-2 sm:px-4 sm:text-xs"
             >
               {cycleOpen ? "Hide details" : "Show details"}
               {cycleOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
             </button>
           </div>
         </div>
-        <div className="relative mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 lg:grid-cols-4">
+        <div className="relative mt-3 grid grid-cols-4 gap-1.5 sm:mt-5 sm:gap-3 lg:grid-cols-4">
           {[
             ["Earned So Far", formatOptionalCurrency(cycleSummary?.currentCycleEarnings)],
             ["Daily Avg", formatCurrency(dailyAvg)],
             ["Weekly Avg", formatCurrency(weeklyAvg)],
             ["Best Day", formatCurrency(bestDay)],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-xl border border-emerald-100 bg-[#ECFDF5]/80 p-3 sm:rounded-2xl sm:p-4">
-              <p className="text-[9px] font-black uppercase tracking-[0.08em] text-emerald-700 sm:text-[11px] sm:tracking-[0.1em]">{label}</p>
-              <p className="mt-1 truncate text-sm font-black text-[#0F172A] sm:mt-2 sm:text-lg">{cycleLoading ? "—" : value}</p>
+            <div key={label} className="rounded-xl border border-emerald-100 bg-[#ECFDF5]/80 p-2 sm:rounded-2xl sm:p-4">
+              <p className="truncate text-[6.5px] font-black uppercase tracking-[0.04em] text-emerald-700 sm:text-[11px] sm:tracking-[0.1em]">{label}</p>
+              <p className="mt-1 truncate text-[10px] font-black text-[#0F172A] sm:mt-2 sm:text-lg">{cycleLoading ? "—" : value}</p>
             </div>
           ))}
         </div>

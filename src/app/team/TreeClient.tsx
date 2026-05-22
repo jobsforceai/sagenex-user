@@ -119,27 +119,27 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
   }, [searchInput, tree, expandNode, flow]);
 
   return (
-    <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+    <section className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
+      <div className="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
         <div>
-          <h2 className="text-lg font-black text-[#0F172A]">Team Structure</h2>
-          <p className="mt-1 text-xs text-[#64748B]">Click any node to expand the next 2 levels.</p>
-          <div className="mt-3 flex flex-wrap items-center gap-5 text-xs text-[#64748B]">
+          <h2 className="text-sm font-black text-[#0F172A] sm:text-lg">Team Structure</h2>
+          <p className="mt-1 hidden text-xs text-[#64748B] sm:block">Click any node to expand the next 2 levels.</p>
+          <div className="mt-2 flex flex-wrap items-center gap-3 text-[10px] text-[#64748B] sm:mt-3 sm:gap-5 sm:text-xs">
             <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-emerald-500" />Active</span>
             <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-slate-300" />Inactive</span>
             <span className="inline-flex items-center gap-2"><span className="h-2 w-2 rounded-full bg-[#C8103E]" />Left</span>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 shadow-sm focus-within:border-[#C8103E] focus-within:ring-2 focus-within:ring-[#C8103E]/20">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3">
+          <div className="flex h-9 min-w-0 flex-1 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-2 shadow-sm focus-within:border-[#C8103E] focus-within:ring-2 focus-within:ring-[#C8103E]/20 sm:h-11 sm:flex-none sm:gap-2 sm:px-3">
             <Search className="h-4 w-4 text-slate-400" />
             <input
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value.toUpperCase())}
               onKeyDown={(e) => e.key === "Enter" && handleSearch()}
-              placeholder="Find user ID e.g. U3458"
-              className="w-44 bg-transparent text-sm font-semibold text-[#0F172A] placeholder:text-slate-400 focus:outline-none"
+              placeholder="Find ID"
+              className="w-full min-w-0 bg-transparent text-xs font-semibold text-[#0F172A] placeholder:text-slate-400 focus:outline-none sm:w-44 sm:text-sm"
             />
             <button
               type="button"
@@ -153,15 +153,15 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
           <button
             type="button"
             onClick={() => flow?.fitView({ padding: 0.2, duration: 500 })}
-            className="inline-flex h-11 items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold text-[#0F172A] shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+            className="inline-flex h-9 items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3 text-xs font-bold text-[#0F172A] shadow-sm transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:h-11 sm:gap-2 sm:px-4 sm:text-sm"
           >
             <Expand className="h-4 w-4" />
-            Fit View
+            Fit
           </button>
         </div>
       </div>
 
-      <div className="relative mt-5 h-[640px] overflow-hidden rounded-3xl border border-slate-100 bg-[radial-gradient(circle_at_50%_0%,rgba(236,253,245,0.65),transparent_34%),linear-gradient(180deg,#ffffff_0%,#fbfdff_100%)]">
+      <div className="relative mt-3 h-[430px] overflow-hidden rounded-2xl border border-slate-100 bg-[radial-gradient(circle_at_50%_0%,rgba(236,253,245,0.65),transparent_34%),linear-gradient(180deg,#ffffff_0%,#fbfdff_100%)] sm:mt-5 sm:h-[640px] sm:rounded-3xl">
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -180,7 +180,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
           <Background color="#E2E8F0" gap={22} size={1} />
         </ReactFlow>
 
-        <div className="absolute bottom-8 left-7 z-10 flex flex-col gap-2">
+        <div className="absolute bottom-4 left-3 z-10 flex flex-col gap-1.5 sm:bottom-8 sm:left-7 sm:gap-2">
           {[
             { label: "Zoom in", icon: Plus, onClick: () => flow?.zoomIn({ duration: 220 }) },
             { label: "Zoom out", icon: Minus, onClick: () => flow?.zoomOut({ duration: 220 }) },
@@ -191,22 +191,22 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
               type="button"
               onClick={onClick}
               aria-label={label}
-              className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F172A] shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+              className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-[#0F172A] shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:h-11 sm:w-11 sm:rounded-xl"
             >
-              <Icon className="h-4 w-4" />
+              <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </button>
           ))}
           <button
             type="button"
             onClick={() => setLocked((value) => !value)}
             aria-label={locked ? "Unlock tree" : "Lock tree"}
-            className="flex h-11 w-11 items-center justify-center rounded-xl border border-slate-200 bg-white text-[#0F172A] shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 bg-white text-[#0F172A] shadow-[0_8px_18px_rgba(15,23,42,0.08)] transition hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:h-11 sm:w-11 sm:rounded-xl"
           >
-            {locked ? <Lock className="h-4 w-4" /> : <Unlock className="h-4 w-4" />}
+            {locked ? <Lock className="h-3.5 w-3.5 sm:h-4 sm:w-4" /> : <Unlock className="h-3.5 w-3.5 sm:h-4 sm:w-4" />}
           </button>
         </div>
 
-        <div className="absolute bottom-8 right-7 z-10 rounded-2xl border border-slate-200 bg-white/95 p-4 text-xs text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur">
+        <div className="absolute bottom-4 right-3 z-10 hidden rounded-2xl border border-slate-200 bg-white/95 p-4 text-xs text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.08)] backdrop-blur sm:bottom-8 sm:right-7 sm:block">
           <div className="space-y-2">
             <p><span className="mr-2 inline-block rounded-full bg-emerald-50 px-2 py-1 text-[10px] font-bold text-emerald-600">Green</span> Active Members</p>
             <p><span className="mr-2 inline-block rounded-full bg-slate-100 px-2 py-1 text-[10px] font-bold text-slate-500">Gray</span> Inactive Members</p>
@@ -216,11 +216,11 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
 
         {/* Selected-member action panel (Call / WhatsApp) */}
         {selected && (
-          <div className="absolute right-7 top-7 z-20 w-72 rounded-2xl border border-slate-200 bg-white p-4 shadow-[0_18px_40px_rgba(15,23,42,0.12)]">
+          <div className="absolute inset-x-3 top-3 z-20 rounded-2xl border border-slate-200 bg-white p-3 shadow-[0_18px_40px_rgba(15,23,42,0.12)] sm:inset-x-auto sm:right-7 sm:top-7 sm:w-72 sm:p-4">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B]">Selected member</p>
-                <p className="mt-1 truncate text-base font-black text-[#0F172A]">{maskName(selected.fullName ?? selected.userId)}</p>
+                <p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#64748B] sm:text-[10px]">Selected member</p>
+                <p className="mt-1 truncate text-sm font-black text-[#0F172A] sm:text-base">{selected.fullName ?? selected.userId}</p>
                 <p className="text-xs font-bold text-[#64748B]">{selected.userId}</p>
                 {typeof selected.packageUSD === "number" && selected.packageUSD > 0 && (
                   <p className="mt-1 text-[11px] text-[#0F172A]">
@@ -248,7 +248,8 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
                   onClick={() => track("tree_node_call_clicked", { userId: selected.userId })}
                   className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-[#0F172A] !text-white hover:opacity-90" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
                 >
-                  <PhoneCall className="h-3.5 w-3.5" />Call
+                  <PhoneCall className="h-4 w-4" />
+                  <span className="hidden sm:inline">Call</span>
                 </a>
                 <a
                   href={selected.phone ? `https://wa.me/${(selected.phone.replace(/\\D/g, "").length === 10 ? "91" : "") + selected.phone.replace(/\\D/g, "")}?text=${encodeURIComponent(`Hi ${(selected.fullName ?? "").split(" ")[0] || "there"}, wanted to chat about your Sagenex journey.`)}` : undefined}
@@ -257,7 +258,8 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
                   onClick={() => track("tree_node_whatsapp_clicked", { userId: selected.userId })}
                   className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-3 py-2 text-xs font-black transition ${selected.phone ? "bg-emerald-500 !text-white hover:bg-emerald-600" : "cursor-not-allowed bg-slate-100 text-slate-400"}`}
                 >
-                  <MessageCircle className="h-3.5 w-3.5" />WhatsApp
+                  <MessageCircle className="h-4 w-4" />
+                  <span className="hidden sm:inline">WhatsApp</span>
                 </a>
               </div>
             )}
@@ -292,11 +294,4 @@ function mergeNodeInTree(root: UserNode, subtree: UserNode): UserNode {
     ...root,
     children: (root.children || []).map((c) => mergeNodeInTree(c, subtree)),
   };
-}
-
-
-function maskName(value: string): string {
-  const clean = (value || '').trim();
-  if (clean.length <= 2) return clean;
-  return `${clean.charAt(0)}${"*".repeat(Math.min(5, Math.max(2, clean.length - 2)))}${clean.charAt(clean.length - 1)}`;
 }

@@ -15,8 +15,8 @@ type FlowData = {
   label: React.ReactNode;
 };
 
-const nodeWidth = 148;
-const nodeHeight = 126;
+const nodeWidth = 132;
+const nodeHeight = 112;
 
 // Small helpers to satisfy dagre's loose typings
 type DagrePos = { x: number; y: number };
@@ -41,7 +41,7 @@ export const transformDataToFlow = (
 ): { nodes: Node<FlowData>[]; edges: Edge[] } => {
   const dagreGraph = new dagre.graphlib.Graph();
   dagreGraph.setDefaultEdgeLabel(() => ({}));
-  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 36, ranksep: 86 });
+  dagreGraph.setGraph({ rankdir: 'TB', nodesep: 26, ranksep: 68 });
 
   const nodes: Node<FlowData>[] = [];
   const edges: Edge[] = [];
@@ -128,7 +128,7 @@ export const transformDataToFlow = (
     const isRoot = user.userId === tree.userId;
     const isActive = Number(user.packageUSD || 0) > 0;
     const teamCount = countTeamMembers(user);
-    const maskedName = maskName(user.fullName || user.userId);
+    const displayName = user.fullName || user.userId;
     const initial = (user.fullName || user.userId || "S").charAt(0).toUpperCase();
     const borderColor = isRoot ? '#D4143F' : isActive ? '#6EE7B7' : '#CBD5E1';
 
@@ -137,33 +137,33 @@ export const transformDataToFlow = (
       position: { x: graphNode.x - nodeWidth / 2, y: graphNode.y - nodeHeight / 2 },
       data: {
         label: (
-          <div className="relative flex h-full flex-col items-center justify-center px-3 py-3 text-center text-[#0F172A]">
+          <div className="relative flex h-full flex-col items-center justify-center px-2.5 py-2.5 text-center text-[#0F172A]">
             <span
-              className={`absolute right-3 top-3 h-2.5 w-2.5 rounded-full ${
+              className={`absolute right-2.5 top-2.5 h-2.5 w-2.5 rounded-full ${
                 isActive ? "bg-emerald-500" : "bg-slate-300"
               }`}
             />
             <div
-              className={`mb-2 flex h-11 w-11 items-center justify-center rounded-full text-base font-black text-white ${
+              className={`mb-1.5 flex h-9 w-9 items-center justify-center rounded-full text-sm font-black text-white ${
                 isRoot ? "bg-[#D4143F]" : isActive ? "bg-emerald-500" : "bg-slate-400"
               }`}
             >
               {initial}
             </div>
-            <strong className="max-w-full truncate text-sm font-black tracking-tight">
-              {maskedName}
+            <strong className="max-w-full truncate text-[12px] font-black tracking-tight">
+              {displayName}
             </strong>
-            <small className="mt-1 text-[11px] font-medium text-[#64748B]">ID: {user.userId}</small>
-            <small className="mt-1 text-[11px] font-medium text-[#64748B]">
+            <small className="mt-0.5 text-[10px] font-medium text-[#64748B]">ID: {user.userId}</small>
+            <small className="mt-0.5 text-[10px] font-medium text-[#64748B]">
               Team: {teamCount.toLocaleString("en-IN")}
             </small>
             {isRoot && (
-              <span className="mt-1 rounded-full bg-[#FFF1F4] px-2 py-0.5 text-[10px] font-bold text-[#C8103E]">
+              <span className="mt-0.5 rounded-full bg-[#FFF1F4] px-2 py-0.5 text-[9px] font-bold text-[#C8103E]">
                 You
               </span>
             )}
             {user.isSplitSponsor && (
-              <small className="mt-1 max-w-full truncate text-[10px] font-semibold text-amber-600">
+              <small className="mt-0.5 max-w-full truncate text-[9px] font-semibold text-amber-600">
                 Sponsor: {user.originalSponsorId}
               </small>
             )}
@@ -202,10 +202,4 @@ export const transformDataToFlow = (
 
 function countTeamMembers(node: UserNode): number {
   return (node.children || []).reduce((total, child) => total + 1 + countTeamMembers(child), 0);
-}
-
-function maskName(value: string): string {
-  const clean = value.trim();
-  if (clean.length <= 2) return clean;
-  return `${clean.charAt(0)}${"*".repeat(Math.min(5, Math.max(2, clean.length - 2)))}${clean.charAt(clean.length - 1)}`;
 }
