@@ -1,34 +1,26 @@
 /**
- * PostHog product analytics — single source of truth.
+ * PostHog wrapper — single source of truth for analytics.
+ *
+ * Uses the official posthog-js/react integration. The PostHogProvider
+ * (in src/app/posthog-provider.tsx) handles init via React context so
+ * the SDK isn't bundled in a way that breaks its internal state in
+ * Next.js 16 Turbopack builds.
  */
 "use client";
 
+import { usePostHog } from "posthog-js/react";
 import posthog from "posthog-js";
 
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
-
-let initialised = false;
-
-export function initPosthog() {
-  if (typeof window === "undefined") return;
-  if (initialised || !POSTHOG_KEY) return;
-  initialised = true;
-  // Absolute-minimum init — just api_host. No autocapture flags, no recorder,
-  // no decide overrides. Anything beyond this has caused silent event-drop
-  // bugs in v1.375 where capture() returns ok but no network POST fires.
-  posthog.init(POSTHOG_KEY, { api_host: POSTHOG_HOST });
-  // Expose for console debugging
-  (window as unknown as { posthog?: typeof posthog }).posthog = posthog;
-}
+export const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
+export const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
 
 export function identifyUser(userId: string, traits?: Record<string, unknown>) {
-  if (typeof window === "undefined" || !initialised) return;
+  if (typeof window === "undefined") return;
   posthog.identify(userId, traits);
 }
 
 export function resetUser() {
-  if (typeof window === "undefined" || !initialised) return;
+  if (typeof window === "undefined") return;
   posthog.reset();
 }
 
@@ -46,6 +38,9 @@ export type AnalyticsEvent =
   | "team_loaded";
 
 export function track(event: AnalyticsEvent, props?: Record<string, unknown>) {
-  if (typeof window === "undefined" || !initialised) return;
+  if (typeof window === "undefined") return;
   posthog.capture(event, props);
 }
+
+// Re-export for components that prefer the hook
+export { usePostHog };
