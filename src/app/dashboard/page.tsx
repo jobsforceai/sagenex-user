@@ -526,6 +526,24 @@ const DashboardPage = () => {
                     </div>
                   )}
                 </div>
+
+                {/* Referral link — compact share affordance pinned inside the hero */}
+                {referralLink && (
+                  <div className="mt-2 md:mt-4">
+                    <p className="text-[8px] font-black uppercase tracking-[0.1em] !text-white/60 md:text-[10px] md:tracking-[0.12em]">Your referral link</p>
+                    <div className="mt-1 flex items-center gap-1.5 rounded-lg border border-white/15 bg-black/25 p-1 md:mt-1.5 md:rounded-2xl md:p-1.5">
+                      <span className="min-w-0 flex-1 truncate px-2 font-mono text-[10px] !text-white/85 md:text-xs">{referralLink}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopy}
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md bg-white px-2 py-1 text-[10px] font-black text-[#C41E3A] transition hover:bg-white/90 md:rounded-xl md:px-3 md:py-1.5 md:text-xs"
+                      >
+                        <Copy className="h-3 w-3 md:h-3.5 md:w-3.5" />
+                        {copied ? "Copied" : "Copy"}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           </section>
