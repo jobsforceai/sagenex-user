@@ -151,35 +151,35 @@ export const OverviewTab = ({
       : cyclesList.find((cycle) => cycle.id === selectedCycleId)?.reason || "Selected cycle";
 
   return (
-    <div className="mt-5 space-y-6">
-      <div className="grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_360px]">
-        <section className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-          <div className="absolute right-4 top-4 opacity-95">
+    <div className="mt-4 space-y-4 sm:mt-5 sm:space-y-6">
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,1fr)_360px] lg:gap-5">
+        <section className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
+          <div className="absolute right-3 top-3 opacity-90 sm:right-4 sm:top-4 sm:opacity-95">
             <Image
               src="/wallet/pink-wallet.png"
               alt="Wallet illustration"
               width={112}
               height={112}
-              className="h-20 w-20 object-contain sm:h-28 sm:w-28"
+              className="h-14 w-14 object-contain sm:h-28 sm:w-28"
             />
           </div>
           <div className="relative max-w-[calc(100%-92px)] sm:max-w-none">
-            <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#64748B]">
+            <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B] sm:text-[11px] sm:tracking-[0.14em]">
               Available Balance
             </p>
-            <p className="mt-3 text-4xl font-black tracking-tight text-[#0F172A] sm:text-5xl">
+            <p className="mt-2 truncate text-3xl font-black tracking-tight text-[#0F172A] sm:mt-3 sm:text-5xl">
               {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
             </p>
           </div>
-          <div className="relative mt-8 grid gap-4 border-t border-slate-100 pt-5 sm:grid-cols-3 sm:divide-x sm:divide-slate-100">
+          <div className="relative mt-4 grid grid-cols-3 gap-2 border-t border-slate-100 pt-4 sm:mt-8 sm:gap-4 sm:pt-5 sm:divide-x sm:divide-slate-100">
             {[
               ["Locked", walletSummary?.capLockedBalance ?? 0],
               ["Can Withdraw", remainingWithdrawalLimit],
               ["Withdrawn", walletSummary?.totalLifetimeWithdrawals ?? 0],
             ].map(([label, value]) => (
-              <div key={label} className="sm:px-4 first:sm:pl-0">
-                <p className="text-xs font-bold uppercase tracking-[0.08em] text-[#64748B]">{label}</p>
-                <p className="mt-1 text-lg font-black text-[#0F172A]">
+              <div key={label} className="min-w-0 sm:px-4 first:sm:pl-0">
+                <p className="truncate text-[8px] font-bold uppercase tracking-[0.06em] text-[#64748B] sm:text-xs sm:tracking-[0.08em]">{label}</p>
+                <p className="mt-1 truncate text-sm font-black text-[#0F172A] sm:text-lg">
                   {summaryLoading ? "—" : formatCompactCurrency(Number(value))}
                 </p>
               </div>
@@ -187,14 +187,14 @@ export const OverviewTab = ({
           </div>
         </section>
 
-        <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-          <p className="text-lg font-black text-[#0F172A]">Quick Actions</p>
-          <div className="mt-5 space-y-3">
+        <section className="fixed inset-x-3 bottom-[86px] z-40 rounded-2xl border border-slate-200/80 bg-white/95 p-2 shadow-[0_18px_45px_rgba(15,23,42,0.16)] backdrop-blur lg:static lg:rounded-3xl lg:bg-white lg:p-6 lg:shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <p className="hidden text-lg font-black text-[#0F172A] lg:block">Quick Actions</p>
+          <div className="grid grid-cols-2 gap-2 lg:mt-5 lg:block lg:space-y-3">
             <button
               type="button"
               onClick={onWithdrawClick}
               disabled={!walletSummary}
-              className="wallet-red-control flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-5 text-sm font-black text-white shadow-[0_14px_30px_rgba(200,16,62,0.22)] transition hover:from-[#C8103E] hover:to-[#68001A] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 disabled:cursor-not-allowed disabled:opacity-50"
+              className="wallet-red-control flex h-10 w-full items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-3 text-xs font-black text-white shadow-[0_10px_24px_rgba(200,16,62,0.22)] transition hover:from-[#C8103E] hover:to-[#68001A] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:gap-2 lg:rounded-2xl lg:px-5 lg:text-sm lg:shadow-[0_14px_30px_rgba(200,16,62,0.22)]"
             >
               <ArrowUp className="h-4 w-4" />
               Withdraw
@@ -203,13 +203,13 @@ export const OverviewTab = ({
               type="button"
               onClick={onTransferClick}
               disabled={!walletSummary}
-              className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl border border-[#C8103E]/25 bg-white px-5 text-sm font-black text-[#C8103E] transition hover:bg-[#FFF1F4] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 disabled:cursor-not-allowed disabled:opacity-50"
+              className="flex h-10 w-full items-center justify-center gap-1.5 rounded-xl border border-[#C8103E]/25 bg-white px-3 text-xs font-black text-[#C8103E] transition hover:bg-[#FFF1F4] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 disabled:cursor-not-allowed disabled:opacity-50 lg:h-14 lg:gap-2 lg:rounded-2xl lg:px-5 lg:text-sm"
             >
-              <Image src="/wallet/transfer-arrows-crimson.png" alt="" width={22} height={22} className="h-5 w-5 object-contain" />
+              <Image src="/wallet/transfer-arrows-crimson.png" alt="" width={22} height={22} className="h-4 w-4 object-contain lg:h-5 lg:w-5" />
               Transfer
             </button>
           </div>
-          <div className="mt-5 rounded-2xl bg-[#FFF1F4] p-4">
+          <div className="mt-5 hidden rounded-2xl bg-[#FFF1F4] p-4 lg:block">
             <div className="flex items-start gap-3">
               <SendHorizontal className="mt-0.5 h-4 w-4 text-[#C8103E]" />
               <p className="text-sm leading-6 text-[#64748B]">
@@ -231,9 +231,9 @@ export const OverviewTab = ({
         </Card>
       )}
 
-      <div className="flex items-start gap-3 rounded-2xl border border-indigo-100 bg-indigo-50/70 px-4 py-3 text-sm text-indigo-900">
+      <div className="flex items-start gap-2 rounded-2xl border border-indigo-100 bg-indigo-50/70 px-3 py-2.5 text-xs text-indigo-900 sm:gap-3 sm:px-4 sm:py-3 sm:text-sm">
         <Info className="mt-0.5 h-4 w-4 shrink-0 text-indigo-500" />
-        <p>Locked earnings are released when you reinvest and count toward your new cap.</p>
+        <p><span className="sm:hidden">Locked earnings release after reinvestment.</span><span className="hidden sm:inline">Locked earnings are released when you reinvest and count toward your new cap.</span></p>
       </div>
 
       <RecentTransactions
@@ -242,7 +242,7 @@ export const OverviewTab = ({
         onViewAll={onViewAllTransactions}
       />
 
-      <section className="relative overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+      <section className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
         <Image
           src="/wallet/red_wave_no_background.png"
           alt=""
@@ -250,9 +250,9 @@ export const OverviewTab = ({
           height={260}
           className="pointer-events-none absolute -bottom-20 right-0 w-[520px] max-w-none opacity-20 hue-rotate-90"
         />
-        <div className="relative flex flex-wrap items-center justify-between gap-3">
+        <div className="relative flex flex-wrap items-center justify-between gap-2 sm:gap-3">
           <div>
-            <p className="text-lg font-black text-[#0F172A]">Earnings This Cycle</p>
+            <p className="text-base font-black text-[#0F172A] sm:text-lg">Earnings This Cycle</p>
             <p className="mt-1 text-xs text-[#64748B]">
               {formatDate(cycleSummary?.cycleStart)} - {formatDate(cycleSummary?.cycleEnd)}
             </p>
@@ -307,16 +307,16 @@ export const OverviewTab = ({
             </button>
           </div>
         </div>
-        <div className="relative mt-5 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="relative mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:gap-3 lg:grid-cols-4">
           {[
             ["Earned So Far", formatOptionalCurrency(cycleSummary?.currentCycleEarnings)],
             ["Daily Avg", formatCurrency(dailyAvg)],
             ["Weekly Avg", formatCurrency(weeklyAvg)],
             ["Best Day", formatCurrency(bestDay)],
           ].map(([label, value]) => (
-            <div key={label} className="rounded-2xl border border-emerald-100 bg-[#ECFDF5]/80 p-4">
-              <p className="text-[11px] font-black uppercase tracking-[0.1em] text-emerald-700">{label}</p>
-              <p className="mt-2 text-lg font-black text-[#0F172A]">{cycleLoading ? "—" : value}</p>
+            <div key={label} className="rounded-xl border border-emerald-100 bg-[#ECFDF5]/80 p-3 sm:rounded-2xl sm:p-4">
+              <p className="text-[9px] font-black uppercase tracking-[0.08em] text-emerald-700 sm:text-[11px] sm:tracking-[0.1em]">{label}</p>
+              <p className="mt-1 truncate text-sm font-black text-[#0F172A] sm:mt-2 sm:text-lg">{cycleLoading ? "—" : value}</p>
             </div>
           ))}
         </div>

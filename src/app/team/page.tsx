@@ -152,20 +152,25 @@ const percent = (value: number, total: number) => (total > 0 ? Math.round((value
 
 const TeamStatCard = ({
   label,
+  shortLabel,
   value,
   subtitle,
   icon,
 }: {
   label: string;
+  shortLabel?: string;
   value: string | number;
   subtitle: string;
   icon: string;
 }) => (
-  <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)]">
-    <Image src={icon} alt="" width={54} height={54} className="h-14 w-14 object-contain" />
-    <p className="mt-5 text-sm font-medium text-[#64748B]">{label}</p>
-    <p className="mt-2 text-3xl font-black leading-none text-[#0F172A]">{value}</p>
-    <p className="mt-2 text-sm text-[#64748B]">{subtitle}</p>
+  <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)] sm:rounded-3xl sm:p-5 sm:shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+    <Image src={icon} alt="" width={54} height={54} className="h-8 w-8 object-contain sm:h-14 sm:w-14" />
+    <p className="mt-2 truncate text-[9px] font-black uppercase tracking-[0.06em] text-[#64748B] sm:mt-5 sm:text-sm sm:font-medium sm:normal-case sm:tracking-normal">
+      <span className="sm:hidden">{shortLabel || label}</span>
+      <span className="hidden sm:inline">{label}</span>
+    </p>
+    <p className="mt-1 truncate text-base font-black leading-none text-[#0F172A] sm:mt-2 sm:text-3xl">{value}</p>
+    <p className="mt-1 hidden text-sm text-[#64748B] sm:block">{subtitle}</p>
   </div>
 );
 
@@ -253,7 +258,7 @@ const TeamPage = () => {
   if (authLoading || dataLoading) {
     return (
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-7xl space-y-6">
+        <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
           {/* Loading hero with explicit copy so users understand why they're waiting */}
           <div className="rounded-3xl border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-8">
             <div className="flex items-center gap-4">
@@ -335,27 +340,31 @@ const TeamPage = () => {
             </div>
           </header>
 
-          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <section className="grid grid-cols-4 gap-2 sm:gap-4">
             <TeamStatCard
               label="Total Team"
+              shortLabel="Total"
               value={totalTeam.toLocaleString("en-IN")}
               subtitle="Members"
               icon={teamAsset.total}
             />
             <TeamStatCard
               label="Active Team"
+              shortLabel="Active"
               value={activeTeam.toLocaleString("en-IN")}
               subtitle="Active"
               icon={teamAsset.active}
             />
             <TeamStatCard
               label="Left Team"
+              shortLabel="Inactive"
               value={inactiveTeam.toLocaleString("en-IN")}
               subtitle="Inactive"
               icon={teamAsset.left}
             />
             <TeamStatCard
               label="Team Bonus"
+              shortLabel="Bonus"
               value={formatCurrency(teamBonus)}
               subtitle="This Cycle"
               icon={teamAsset.bonus}

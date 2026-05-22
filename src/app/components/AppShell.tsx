@@ -60,23 +60,6 @@ export default function AppShell({
         />
       </div>
 
-      {/* Mobile top bar */}
-      <div className="fixed inset-x-0 top-0 z-50 flex h-14 items-center justify-between border-b border-[#e8e8e8] bg-white px-4 md:hidden">
-        <div className="min-w-0">
-          <span className="block text-sm font-black tracking-widest text-[#C41E3A]">SAGENEX</span>
-          {userName && (
-            <span className="block max-w-[190px] truncate text-[11px] font-medium text-slate-500">
-              {userName}
-            </span>
-          )}
-        </div>
-        {formattedBalance && (
-          <div className="rounded-full bg-[#FFF0F2] px-3 py-1 text-xs font-black text-[#C41E3A]">
-            {formattedBalance}
-          </div>
-        )}
-      </div>
-
       {/* Mobile more menu */}
       {moreOpen && (
         <div
@@ -192,7 +175,7 @@ export default function AppShell({
       </nav>
 
       {/* Main content area */}
-      <main className="min-w-0 flex-1 pb-24 pt-14 md:ml-60 md:pb-0 md:pt-0">
+      <main className="min-w-0 flex-1 pb-24 md:ml-60 md:pb-0">
         {children}
       </main>
     </div>

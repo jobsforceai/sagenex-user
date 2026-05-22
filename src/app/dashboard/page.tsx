@@ -395,8 +395,8 @@ const DashboardPage = () => {
           Error: {error}
         </div>
       ) : (
-        <div className="min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
-          <div className="mx-auto max-w-7xl space-y-6">
+        <div className="min-h-screen bg-[#F8FAFC] px-4 py-4 sm:px-6 md:py-5 lg:px-8">
+          <div className="mx-auto max-w-7xl space-y-3 md:space-y-6">
           <ScheduledCashBanner />
           <section className="relative overflow-hidden rounded-[28px] bg-[#0F172A] text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] md:rounded-3xl">
             <Image
@@ -416,8 +416,8 @@ const DashboardPage = () => {
               priority
             />
             <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(196,30,58,0.95)_0%,rgba(122,0,31,0.78)_42%,rgba(15,23,42,0.96)_100%)]" />
-            <div className="relative grid gap-2.5 p-3.5 sm:p-4 md:gap-8 md:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
-              <div className="space-y-2.5 md:space-y-7">
+            <div className="relative grid gap-2 p-3 md:gap-8 md:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
+              <div className="space-y-2 md:space-y-7">
                 <div>
                   <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/12 px-2 py-0.5 text-[8px] font-black uppercase tracking-[0.1em] text-white/80 backdrop-blur md:gap-2 md:px-3 md:py-1.5 md:text-xs md:tracking-[0.12em]">
                     <Sparkles className="h-3 w-3 text-amber-200 md:h-4 md:w-4" />
@@ -473,19 +473,23 @@ const DashboardPage = () => {
               </div>
 
               <div className="rounded-xl border border-white/15 bg-white/14 p-2.5 backdrop-blur-md md:rounded-3xl md:p-5">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-[8px] font-black uppercase tracking-[0.1em] text-white/60 md:text-xs">Next rank</p>
                     <p className="text-base font-black text-white md:mt-1 md:text-2xl">
                       {rankProgress?.progress?.nextRankName ?? "Max rank"}
                     </p>
                   </div>
+                  <div className="min-w-[70px] text-right md:hidden">
+                    <p className="text-[8px] font-black uppercase tracking-[0.1em] text-white/55">Progress</p>
+                    <p className="text-lg font-black text-emerald-200">{Math.round(progressPercentage)}%</p>
+                  </div>
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#C41E3A] md:h-16 md:w-16 md:rounded-2xl">
                     <Crown className="h-4 w-4 md:h-8 md:w-8" />
                   </div>
                 </div>
                 <div className="mt-2 md:mt-6">
-                  <div className="mb-1 flex items-center justify-between text-[10px] font-bold text-white/80 md:mb-2 md:text-sm">
+                  <div className="mb-1 hidden items-center justify-between text-[10px] font-bold text-white/80 md:mb-2 md:flex md:text-sm">
                     <span>Completion</span>
                     <span>{Math.round(progressPercentage)}%</span>
                   </div>
@@ -561,63 +565,63 @@ const DashboardPage = () => {
 
           <TeamPulseSection />
 
-          <div className="grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
-            <div className="space-y-5">
-              <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-                <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+          <div className="grid grid-cols-1 gap-3 md:gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
+            <div className="space-y-3 md:space-y-5">
+              <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3 md:mb-5">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Money flow</p>
-                    <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Earnings Snapshot</h2>
+                    <h2 className="mt-1 text-xl font-black text-[#0F172A] md:text-2xl">Earnings Snapshot</h2>
                   </div>
-                  <Link href="/wallet" className="inline-flex items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-bold text-[#0F172A] hover:bg-slate-50">
+                  <Link href="/wallet" className="hidden items-center gap-2 rounded-2xl border border-slate-200 px-4 py-2 text-sm font-bold text-[#0F172A] hover:bg-slate-50 md:inline-flex">
                     Open wallet <ArrowRight className="h-4 w-4" />
                   </Link>
                 </div>
-                <div className="grid gap-3 md:grid-cols-3">
+                <div className="grid grid-cols-3 gap-2 md:gap-3">
                   {financialCards.map(({ label, value, icon: Icon, color }) => (
-                    <div key={label} className="relative overflow-hidden rounded-3xl border border-slate-100 bg-[#F8FAFC] p-5">
+                    <div key={label} className="relative min-w-0 overflow-hidden rounded-2xl border border-slate-100 bg-[#F8FAFC] p-3 md:rounded-3xl md:p-5">
                       <div className="absolute -right-8 -top-8 h-24 w-24 rounded-full opacity-10" style={{ background: color }} />
-                      <Icon className="h-6 w-6" style={{ color }} />
-                      <p className="mt-5 text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">{label}</p>
-                      <p className="mt-2 truncate text-2xl font-black text-[#0F172A]">{formatCurrencyCompact(value)}</p>
+                      <Icon className="h-4 w-4 md:h-6 md:w-6" style={{ color }} />
+                      <p className="mt-3 truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] md:mt-5 md:text-[11px] md:tracking-[0.1em]">{label}</p>
+                      <p className="mt-1 truncate text-sm font-black text-[#0F172A] md:mt-2 md:text-2xl">{formatCurrencyCompact(value)}</p>
                     </div>
                   ))}
                 </div>
               </section>
 
-              <section className="grid gap-5 lg:grid-cols-2">
-                <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+              <section className="grid gap-3 md:gap-5 lg:grid-cols-2">
+                <div className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Team engine</p>
-                      <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Referral Pulse</h2>
+                      <h2 className="mt-1 text-xl font-black text-[#0F172A] md:text-2xl">Referral Pulse</h2>
                     </div>
-                    <Image src="/teams/icon-active-team-mint.png" alt="" width={56} height={56} className="h-14 w-14 object-contain" />
+                    <Image src="/teams/icon-active-team-mint.png" alt="" width={56} height={56} className="h-10 w-10 object-contain md:h-14 md:w-14" />
                   </div>
-                  <div className="mt-6 grid grid-cols-2 gap-3">
+                  <div className="mt-4 grid grid-cols-2 gap-2 md:mt-6 md:gap-3">
                     {[
                       { label: "Direct referrals", value: referralSummary?.totalReferrals ?? 0 },
                       { label: "Invested", value: referralSummary?.investedCount ?? 0 },
                       { label: "Active agents", value: activeReferrals },
                       { label: "Downline volume", value: formatCurrencyCompact(referralSummary?.totalDownlineVolume) },
                     ].map(({ label, value }) => (
-                      <div key={label} className="rounded-2xl bg-slate-50 p-4">
-                        <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">{label}</p>
-                        <p className="mt-2 truncate text-xl font-black text-[#0F172A]">{value}</p>
+                      <div key={label} className="rounded-2xl bg-slate-50 p-3 md:p-4">
+                        <p className="truncate text-[9px] font-black uppercase tracking-[0.08em] text-[#64748B] md:text-[11px]">{label}</p>
+                        <p className="mt-1 truncate text-base font-black text-[#0F172A] md:mt-2 md:text-xl">{value}</p>
                       </div>
                     ))}
                   </div>
                 </div>
 
-                <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+                <div className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Rank path</p>
-                      <h2 className="mt-1 text-2xl font-black text-[#0F172A]">What Matters Next</h2>
+                      <h2 className="mt-1 text-xl font-black text-[#0F172A] md:text-2xl">What Matters Next</h2>
                     </div>
-                    <Image src="/salary/rank-elite-director-crown.png" alt="" width={60} height={60} className="h-14 w-14 object-contain" />
+                    <Image src="/salary/rank-elite-director-crown.png" alt="" width={60} height={60} className="h-10 w-10 object-contain md:h-14 md:w-14" />
                   </div>
-                  <div className="mt-6 space-y-3">
+                  <div className="mt-4 space-y-3 md:mt-6">
                     {[
                       rankRequirements?.directs
                         ? { label: "Directs", current: rankRequirements.directs.current, required: rankRequirements.directs.required }
@@ -652,48 +656,11 @@ const DashboardPage = () => {
                 </div>
               </section>
 
-              {wallet?.bonuses && wallet.bonuses.length > 0 && (
-                <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-                  <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
-                    <div>
-                      <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Level income</p>
-                      <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Unilevel Bonuses</h2>
-                    </div>
-                    <span className="rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.08em] text-emerald-700">
-                      L1 – L{wallet.bonuses.length}
-                    </span>
-                  </div>
-                  <div className="grid divide-y divide-slate-100">
-                    {wallet.bonuses.map((bonus) => (
-                      <div key={bonus.level} className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 sm:px-6">
-                        <div className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black ${bonus.isUnlocked ? "bg-emerald-50 text-emerald-600" : "bg-amber-50 text-amber-600"}`}>
-                          L{bonus.level}
-                        </div>
-                        <div className="min-w-0">
-                          <p className="truncate text-sm font-black text-[#0F172A]">{bonus.name}</p>
-                          <p className="text-xs font-semibold text-[#64748B]">
-                            {bonus.isUnlocked ? "Unlocked · credited to wallet" : bonus.unlockRequirement}
-                          </p>
-                        </div>
-                        <div className="text-right">
-                          <p className={`text-sm font-black ${bonus.isUnlocked ? "text-emerald-600" : "text-amber-600"}`}>
-                            {formatCurrencyCompact(bonus.lockedAmount)}
-                          </p>
-                          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[#94A3B8]">
-                            {bonus.isUnlocked ? "Earned" : "Locked"}
-                          </p>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </section>
-              )}
-
               <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-5 py-4 sm:px-6">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-100 px-4 py-3 sm:px-6 md:py-4">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Leaderboard</p>
-                    <h2 className="mt-1 text-2xl font-black text-[#0F172A]">Top Performers</h2>
+                    <h2 className="mt-1 text-xl font-black text-[#0F172A] md:text-2xl">Top Performers</h2>
                   </div>
                   <span className="rounded-full bg-amber-50 px-3 py-1.5 text-xs font-black uppercase tracking-[0.08em] text-amber-700">
                     This month
@@ -704,7 +671,7 @@ const DashboardPage = () => {
                     {leaderboardData.slice(0, 6).map((entry, index) => (
                       <div
                         key={`${entry.rank}-${entry.userId ?? entry.fullName}`}
-                        className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-4 px-5 py-4 transition hover:bg-slate-50 sm:px-6"
+                        className="grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 transition hover:bg-slate-50 sm:px-6 md:gap-4 md:py-4"
                       >
                         <div
                           className={`flex h-10 w-10 items-center justify-center rounded-2xl text-sm font-black ${
@@ -759,17 +726,17 @@ const DashboardPage = () => {
               </section>
             </div>
 
-            <div className="space-y-5">
+            <div className="space-y-3 md:space-y-5">
               <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-                <div className="relative bg-[#FFF1F4] p-5">
+                <div className="relative bg-[#FFF1F4] p-4 md:p-5">
                   <Image src="/dashboard/availbalance.png" alt="" fill className="object-cover opacity-50" sizes="360px" />
                   <div className="relative">
                     <p className="text-xs font-black uppercase tracking-[0.1em] text-[#C41E3A]">Wallet limits</p>
-                    <p className="mt-2 text-3xl font-black text-[#C41E3A]">{formatCurrencyCompact(wallet?.remainingWithdrawalLimit)}</p>
+                    <p className="mt-1 text-2xl font-black text-[#C41E3A] md:mt-2 md:text-3xl">{formatCurrencyCompact(wallet?.remainingWithdrawalLimit)}</p>
                     <p className="mt-1 text-sm font-bold text-[#C41E3A]/70">available to withdraw</p>
                   </div>
                 </div>
-                <div className="space-y-4 p-5">
+                <div className="space-y-3 p-4 md:space-y-4 md:p-5">
                   {[
                     { label: "Withdrawal cap", value: formatCurrencyCompact(wallet?.withdrawalCap), pct: withdrawalUsedPct },
                     { label: "Earnings cap used", value: `${earningsUsedPct}%`, pct: earningsUsedPct },
@@ -797,7 +764,7 @@ const DashboardPage = () => {
                 </div>
               </section>
 
-              <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+              <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:p-5">
                 <div className="flex items-center justify-between gap-3">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Referral link</p>
@@ -817,7 +784,7 @@ const DashboardPage = () => {
                 </button>
               </section>
 
-              <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+              <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:p-5">
                 <div className="flex items-start justify-between gap-4">
                   <div>
                     <p className="text-xs font-black uppercase tracking-[0.1em] text-[#64748B]">Rewards fuel</p>
