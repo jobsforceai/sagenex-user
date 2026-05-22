@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, Flame, PhoneCall, MessageCircle, Trophy, Activity, Sparkles, ChevronRight } from "lucide-react";
 import { getTeamPulse } from "@/actions/user";
+import { track } from "@/lib/posthog";
 
 interface AtRiskMember {
   userId: string;
@@ -314,6 +315,7 @@ export default function TeamPulseSection() {
                       <a
                         href={m.phone ? `tel:${m.phone}` : undefined}
                         aria-disabled={!m.phone}
+                        onClick={() => track("team_pulse_call_clicked", { source: "at_risk", userId: m.userId, severity: m.severity })}
                         className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-black transition ${m.phone ? 'bg-[#0F172A] !text-white hover:opacity-90' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
                         <PhoneCall className="h-3 w-3" />Call
@@ -322,6 +324,7 @@ export default function TeamPulseSection() {
                         href={w ?? undefined}
                         target="_blank" rel="noopener noreferrer"
                         aria-disabled={!w}
+                        onClick={() => track("team_pulse_whatsapp_clicked", { source: "at_risk", userId: m.userId, severity: m.severity })}
                         className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-black transition ${w ? 'bg-emerald-500 !text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
                         <MessageCircle className="h-3 w-3" />WhatsApp
@@ -358,6 +361,7 @@ export default function TeamPulseSection() {
                       <a
                         href={o.phone ? `tel:${o.phone}` : undefined}
                         aria-disabled={!o.phone}
+                        onClick={() => track("team_pulse_call_clicked", { source: "opportunity", userId: o.userId, type: o.type })}
                         className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-black transition ${o.phone ? 'bg-[#0F172A] !text-white hover:opacity-90' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
                         <PhoneCall className="h-3 w-3" />Call
@@ -366,6 +370,7 @@ export default function TeamPulseSection() {
                         href={w ?? undefined}
                         target="_blank" rel="noopener noreferrer"
                         aria-disabled={!w}
+                        onClick={() => track("team_pulse_whatsapp_clicked", { source: "opportunity", userId: o.userId, type: o.type })}
                         className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-black transition ${w ? 'bg-emerald-500 !text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
                         <MessageCircle className="h-3 w-3" />WhatsApp
@@ -436,6 +441,7 @@ export default function TeamPulseSection() {
                       <a
                         href={a.targetPhone ? `tel:${a.targetPhone}` : undefined}
                         aria-disabled={!a.targetPhone}
+                        onClick={() => track("team_pulse_action_call_clicked", { headline: a.headline, userId: a.targetUserId, priority: a.priority })}
                         className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${a.targetPhone ? 'bg-[#0F172A] !text-white hover:opacity-90' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
                         <PhoneCall className="h-3 w-3" />Call
@@ -444,6 +450,7 @@ export default function TeamPulseSection() {
                         href={w ?? undefined}
                         target="_blank" rel="noopener noreferrer"
                         aria-disabled={!w}
+                        onClick={() => track("team_pulse_action_whatsapp_clicked", { headline: a.headline, userId: a.targetUserId, priority: a.priority })}
                         className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${w ? 'bg-emerald-500 !text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
                         <MessageCircle className="h-3 w-3" />WhatsApp

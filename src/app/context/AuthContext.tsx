@@ -1,5 +1,6 @@
 "use client";
 
+import { identifyUser, resetUser } from "@/lib/posthog";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -48,6 +49,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
     setToken(authToken);
     setUser(authUser);
+    if (authUser?.userId) identifyUser(authUser.userId, { fullName: authUser.fullName, email: authUser.email });
   };
 
   const fetchProfileWithToken = async (authToken: string) => {
@@ -87,11 +89,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const parsedUser = JSON.parse(storedUser) as User;
           setToken(storedToken);
           setUser(parsedUser);
+          if (parsedUser?.userId) identifyUser(parsedUser.userId, { fullName: parsedUser.fullName, email: parsedUser.email });
 
           const profile = await fetchProfileWithToken(storedToken);
           if (!("error" in profile)) {
             localStorage.setItem("user", JSON.stringify(profile));
             setUser(profile);
+            if (profile?.userId) identifyUser(profile.userId, { fullName: profile.fullName, email: profile.email });
           }
         } else if (!storedToken && storedUser) {
           localStorage.removeItem("user");
@@ -144,6 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const logout = () => {
+    resetUser();
     Cookies.remove("authToken");
     localStorage.removeItem("user");
     setToken(null);
