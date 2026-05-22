@@ -1,27 +1,28 @@
 /**
- * PostHog wrapper — single source of truth for analytics.
- *
- * Uses the official posthog-js/react integration. The PostHogProvider
- * (in src/app/posthog-provider.tsx) handles init via React context so
- * the SDK isn't bundled in a way that breaks its internal state in
- * Next.js 16 Turbopack builds.
+ * Analytics wrapper using PostHog loaded via the HTML bootstrap snippet
+ * (see src/app/posthog-provider.tsx). The SDK lives on window.posthog;
+ * we never import posthog-js at module-scope so there's no bundler hazard.
  */
 "use client";
 
-import { usePostHog } from "posthog-js/react";
-import posthog from "posthog-js";
+type PostHogClient = {
+  identify: (id: string, props?: Record<string, unknown>) => void;
+  reset: () => void;
+  capture: (event: string, props?: Record<string, unknown>) => void;
+};
 
-export const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-export const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
+function ph(): PostHogClient | null {
+  if (typeof window === "undefined") return null;
+  const c = (window as unknown as { posthog?: PostHogClient }).posthog;
+  return c ?? null;
+}
 
 export function identifyUser(userId: string, traits?: Record<string, unknown>) {
-  if (typeof window === "undefined") return;
-  posthog.identify(userId, traits);
+  ph()?.identify(userId, traits);
 }
 
 export function resetUser() {
-  if (typeof window === "undefined") return;
-  posthog.reset();
+  ph()?.reset();
 }
 
 export type AnalyticsEvent =
@@ -38,9 +39,5 @@ export type AnalyticsEvent =
   | "team_loaded";
 
 export function track(event: AnalyticsEvent, props?: Record<string, unknown>) {
-  if (typeof window === "undefined") return;
-  posthog.capture(event, props);
+  ph()?.capture(event, props);
 }
-
-// Re-export for components that prefer the hook
-export { usePostHog };
