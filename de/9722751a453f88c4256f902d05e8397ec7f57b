@@ -1,0 +1,11 @@
+src/lib/posthog.ts
+  ai_agent 2-4,8-12,14-18,21,25,42
+src/app/posthog-provider.tsx
+  ai_agent 3,6-15,18-34
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "de9722751a453f88c4256f902d05e8397ec7f57b",
+  "prompts": {}
+}
