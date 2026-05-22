@@ -1,0 +1,21 @@
+src/lib/posthog.ts
+  s_964e0d3fba450c::t_538023667fff25 2-7,11,14-15,18,23,41,44-46
+src/app/posthog-provider.tsx
+  s_964e0d3fba450c::t_538023667fff25 4-6,9-11,14-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "c3278f73d6d128a834e679e28bfc5597ab608c16",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
