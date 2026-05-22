@@ -1,0 +1,27 @@
+src/app/dashboard/page.tsx
+  s_964e0d3fba450c::t_69ac18dbd08734 401,422,426,430,434,465,469,478-479,484,492,506-507,514-515,522-523,780
+src/app/team/TreeClient.tsx
+  s_964e0d3fba450c::t_69ac18dbd08734 148
+src/app/rewards/page.tsx
+  s_964e0d3fba450c::t_3ce80e8261e7b0 207,209,243,245,249,262,271,274,278,357,499,516,519,530,536,546-547,552,584,720,725,834
+src/app/wallet/page.tsx
+  s_964e0d3fba450c::t_69ac18dbd08734 383,392,405,407,409,426,428,432,509,515,521,527,533
+src/app/dashboard/TeamPulseSection.tsx
+  s_964e0d3fba450c::t_69ac18dbd08734 431
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.4.11",
+  "base_commit_sha": "c6ca1df0eae701a1d3d516d149cb9b09d67e4c78",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
