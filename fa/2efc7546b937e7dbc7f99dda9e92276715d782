@@ -1,0 +1,23 @@
+src/app/dashboard/TeamPulseSection.tsx
+  s_964e0d3fba450c::t_f89351399fe3e1 448-455
+src/app/rank-simulator/page.tsx
+  s_964e0d3fba450c::t_84baf7464a3a53 1-237
+src/actions/user.ts
+  s_964e0d3fba450c::t_84baf7464a3a53 1042-1048
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "fa2efc7546b937e7dbc7f99dda9e92276715d782",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
