@@ -157,13 +157,13 @@ const TeamStatCard = ({
   subtitle: string;
   icon: string;
 }) => (
-  <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)] sm:rounded-3xl sm:p-5 sm:shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-    <Image src={icon} alt="" width={54} height={54} className="h-6 w-6 object-contain sm:h-14 sm:w-14" />
-    <p className="mt-1.5 truncate text-[8px] font-black uppercase tracking-[0.04em] text-[#64748B] sm:mt-5 sm:text-sm sm:font-medium sm:normal-case sm:tracking-normal">
+  <div className="min-w-0 rounded-2xl border border-slate-200/70 bg-white p-2.5 shadow-[0_8px_22px_rgba(15,23,42,0.05)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)] sm:rounded-3xl sm:p-5 sm:shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+    <Image src={icon} alt="" width={54} height={54} className="h-8 w-8 object-contain sm:h-14 sm:w-14" />
+    <p className="mt-2 truncate text-[9px] font-black uppercase tracking-[0.06em] text-[#64748B] sm:mt-5 sm:text-sm sm:font-medium sm:normal-case sm:tracking-normal">
       <span className="sm:hidden">{shortLabel || label}</span>
       <span className="hidden sm:inline">{label}</span>
     </p>
-    <p className="mt-0.5 truncate text-[13px] font-black leading-none text-[#0F172A] sm:mt-2 sm:text-3xl">{value}</p>
+    <p className="mt-1 truncate text-base font-black leading-none text-[#0F172A] sm:mt-2 sm:text-3xl">{value}</p>
     <p className="mt-1 hidden text-sm text-[#64748B] sm:block">{subtitle}</p>
   </div>
 );
@@ -251,7 +251,7 @@ const TeamPage = () => {
 
   if (authLoading || dataLoading) {
     return (
-      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8">
+      <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
           {/* Loading hero with explicit copy so users understand why they're waiting */}
           <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-8">

@@ -345,21 +345,21 @@ const WalletPage = () => {
     : 0;
 
   return (
-    <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-2.5 py-3 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-5">
-      <div className="mx-auto max-w-7xl space-y-3 sm:space-y-6">
-      <header className="flex flex-row items-start justify-between gap-2 sm:flex-row sm:items-start sm:justify-between">
+    <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-5">
+      <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-black tracking-tight text-[#0F172A] sm:text-4xl">Wallet</h1>
+          <h1 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-4xl">Wallet</h1>
           <p className="mt-1 hidden text-sm text-[#64748B] sm:block sm:text-base">
             Manage your balance, transfers and history
           </p>
         </div>
-        <div className="grid shrink-0 grid-cols-2 gap-1.5 sm:flex sm:flex-wrap sm:items-center sm:gap-2.5">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center sm:gap-2.5">
           {kycStatus && (
             <button
               type="button"
               onClick={() => router.push("/kyc")}
-              className={`inline-flex h-8 items-center justify-center gap-1 rounded-full px-2 text-[8px] font-bold uppercase tracking-[0.04em] shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 sm:h-11 sm:gap-2 sm:px-4 sm:text-xs sm:tracking-[0.08em] ${
+              className={`inline-flex h-10 items-center justify-center gap-2 rounded-full px-3 text-[10px] font-bold uppercase tracking-[0.06em] shadow-[0_10px_30px_rgba(15,23,42,0.04)] transition focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 sm:h-11 sm:px-4 sm:text-xs sm:tracking-[0.08em] ${
                 kycStatus.status === "VERIFIED"
                   ? "bg-emerald-50 text-emerald-700 hover:bg-emerald-100"
                   : "bg-amber-50 text-amber-700 hover:bg-amber-100"
@@ -376,11 +376,11 @@ const WalletPage = () => {
           <button
             type="button"
             onClick={() => setCompoundingModalOpen(true)}
-            className="inline-flex h-8 items-center justify-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-2 text-[9px] font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 sm:h-11 sm:gap-2 sm:px-4 sm:text-sm"
+            className="inline-flex h-10 items-center justify-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-xs font-bold text-emerald-700 shadow-sm transition hover:bg-emerald-100 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 sm:h-11 sm:gap-2 sm:px-4 sm:text-sm"
           >
-            <TrendingUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+            <TrendingUp className="h-4 w-4" />
             <span className="hidden sm:inline">Compounding</span>
-            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${compoundingEnabled ? 'bg-emerald-600 !text-white' : 'bg-slate-200 text-slate-600'}`}>
+            <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${compoundingEnabled ? 'bg-emerald-600 text-white' : 'bg-slate-200 text-slate-600'}`}>
               {compoundingEnabled === null ? '...' : compoundingEnabled ? 'ON' : 'OFF'}
             </span>
           </button>
@@ -391,7 +391,7 @@ const WalletPage = () => {
         <ScheduledCashBanner />
       </div>
 
-      <section className="wallet-red-surface relative overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_55%,#430010_100%)] p-3.5 !text-white shadow-[0_22px_55px_rgba(122,0,31,0.25)] sm:p-4 md:rounded-3xl md:p-7 lg:p-8">
+      <section className="wallet-red-surface relative overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_55%,#430010_100%)] p-3.5 text-white shadow-[0_22px_55px_rgba(122,0,31,0.25)] sm:p-4 md:rounded-3xl md:p-7 lg:p-8">
         <Image
           src={walletAsset.heroWave}
           alt=""
@@ -408,7 +408,7 @@ const WalletPage = () => {
                 Available Balance
                 <Eye className="h-3 w-3 !text-white/60 md:h-4 md:w-4" aria-hidden="true" />
               </div>
-              <div className="mt-1.5 truncate text-[2rem] font-black leading-none tracking-tight !text-white sm:text-4xl md:mt-3 md:text-5xl lg:text-6xl">
+              <div className="mt-1.5 truncate text-[2rem] font-black leading-none tracking-tight text-white sm:text-4xl md:mt-3 md:text-5xl lg:text-6xl">
                 {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
               </div>
               <div className="wallet-red-soft mt-1.5 inline-flex items-center gap-1 rounded-full border border-white/15 bg-emerald-400/15 px-2 py-0.5 text-[8px] font-bold text-emerald-100 md:mt-4 md:gap-2 md:px-3 md:py-1.5 md:text-xs">
@@ -451,50 +451,50 @@ const WalletPage = () => {
         </div>
       </section>
 
-      <section className="grid grid-cols-3 gap-1.5 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
-        <div className="rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
+      <section className="grid grid-cols-3 gap-2 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
+        <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
           <div className="flex items-start justify-between gap-2 sm:gap-4">
             <div className="min-w-0">
-              <p className="truncate text-[6.5px] font-black uppercase tracking-[0.05em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Withdrawal Cap</p>
-              <p className="mt-1 truncate text-[13px] font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
+              <p className="truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Withdrawal Cap</p>
+              <p className="mt-1 truncate text-base font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
                 {summaryLoading ? "—" : formatCompactCurrency(walletSummary?.withdrawalCap ?? 0)}
               </p>
               <p className="mt-0.5 hidden text-sm text-[#64748B] sm:block">Total limit</p>
             </div>
-            <Image src={walletAsset.moneyBag} alt="" width={58} height={58} className="h-6 w-6 object-contain sm:h-14 sm:w-14" />
+            <Image src={walletAsset.moneyBag} alt="" width={58} height={58} className="h-8 w-8 object-contain sm:h-14 sm:w-14" />
           </div>
-          <div className="mt-1.5 h-1 overflow-hidden rounded-full bg-slate-100 sm:mt-5 sm:h-2">
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 sm:mt-5 sm:h-2">
             <div className="h-full rounded-full bg-emerald-500" style={{ width: `${capUsedPct}%` }} />
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
+        <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
           <div className="flex items-start justify-between gap-2 sm:gap-4">
             <div className="min-w-0">
-              <p className="truncate text-[6.5px] font-black uppercase tracking-[0.05em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Withdrawn</p>
-              <p className="mt-1 truncate text-[13px] font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
+              <p className="truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Withdrawn</p>
+              <p className="mt-1 truncate text-base font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
                 {summaryLoading ? "—" : formatCompactCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
               </p>
               <p className="mt-0.5 hidden text-sm text-[#64748B] sm:block">{formatCompactCurrency(remainingWithdrawalLimit)} remaining</p>
             </div>
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-amber-50 text-amber-600 sm:h-14 sm:w-14 sm:rounded-2xl">
-              <ArrowUp className="h-3.5 w-3.5 sm:h-6 sm:w-6" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 sm:h-14 sm:w-14 sm:rounded-2xl">
+              <ArrowUp className="h-4 w-4 sm:h-6 sm:w-6" />
             </div>
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5 md:col-span-2 xl:col-span-1">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5 md:col-span-2 xl:col-span-1">
           <div className="absolute -bottom-8 right-0 h-24 w-40 rounded-full bg-violet-100 blur-2xl" />
           <div className="relative flex items-start justify-between gap-2 sm:gap-4">
             <div className="min-w-0">
-              <p className="truncate text-[6.5px] font-black uppercase tracking-[0.05em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Cycle Earned</p>
-              <p className="mt-1 truncate text-[13px] font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
+              <p className="truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Cycle Earned</p>
+              <p className="mt-1 truncate text-base font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
                 {cycleLoading ? "—" : formatCompactCurrency(cycleHistory?.summary?.currentCycleEarnings ?? 0)}
               </p>
               <p className="mt-0.5 hidden text-sm text-[#64748B] sm:block">Current performance</p>
             </div>
-            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-violet-50 text-violet-600 sm:h-14 sm:w-14 sm:rounded-2xl">
-              <TrendingUp className="h-3.5 w-3.5 sm:h-6 sm:w-6" />
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 sm:h-14 sm:w-14 sm:rounded-2xl">
+              <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6" />
             </div>
           </div>
           <svg className="relative mt-2 hidden h-10 w-full text-violet-500 sm:mt-5 sm:block" viewBox="0 0 280 48" fill="none" aria-hidden="true">
@@ -504,35 +504,35 @@ const WalletPage = () => {
       </section>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-white p-1 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-2">
-          <TabsList className="h-auto w-max min-w-full justify-start gap-1 rounded-none bg-transparent p-0 sm:gap-2">
+        <div className="overflow-x-auto rounded-2xl border border-slate-200/70 bg-white p-1.5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-2">
+          <TabsList className="h-auto w-max min-w-full justify-start gap-1.5 rounded-none bg-transparent p-0 sm:gap-2">
             <TabsTrigger
               value="overview"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               Overview
             </TabsTrigger>
             <TabsTrigger
               value="transfer"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               SGChain
             </TabsTrigger>
             <TabsTrigger
               value="rewards"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               Rewards
             </TabsTrigger>
             <TabsTrigger
               value="history"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               History
             </TabsTrigger>
             <TabsTrigger
               value="lp"
-              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:!text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
+              className="wallet-red-tab rounded-full px-3 py-2 text-xs font-bold text-slate-500 shadow-none transition hover:bg-[#FFF1F4] data-[state=active]:bg-[#C8103E] data-[state=active]:text-white data-[state=active]:shadow-none sm:px-5 sm:py-2.5 sm:text-sm"
             >
               LP Pool
             </TabsTrigger>

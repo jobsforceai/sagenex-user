@@ -12,6 +12,7 @@
  * Pre-filled tel: and wa.me/ links — no extra backend work needed.
  */
 import { useCallback, useEffect, useState } from "react";
+import Image from "next/image";
 import { Activity, AlertTriangle, BarChart3, Flame, IndianRupee, MessageCircle, PhoneCall, Sparkles, Trophy, UserPlus, Users, Zap, ChevronRight } from "lucide-react";
 import { getTeamPulse } from "@/actions/user";
 import { track } from "@/lib/posthog";
@@ -95,6 +96,10 @@ const inrCompact = (n: number) => {
 };
 
 const displayName = (name: string) => (name || "").trim() || "Unknown";
+
+const WhatsAppLogo = ({ className = "h-5 w-5" }: { className?: string }) => (
+  <Image src="/whatsapp.png" alt="" width={18} height={18} className={className} />
+);
 
 const wapp = (phone: string | null | undefined, text: string) => {
   if (!phone) return null;
@@ -242,8 +247,8 @@ export default function TeamPulseSection() {
                       <a href={a.targetPhone ? `tel:${a.targetPhone}` : undefined} aria-label={`Call ${a.targetUserId || a.headline}`} onClick={() => track("team_pulse_action_call_clicked", { source: "mobile_command", headline: a.headline, userId: a.targetUserId, priority: a.priority })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-[#0F172A] !text-white">
                         <PhoneCall className="h-3.5 w-3.5" />
                       </a>
-                      <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${a.targetUserId || a.headline}`} onClick={() => track("team_pulse_action_whatsapp_clicked", { source: "mobile_command", headline: a.headline, userId: a.targetUserId, priority: a.priority })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-emerald-500 !text-white">
-                        <MessageCircle className="h-3.5 w-3.5" />
+                      <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${a.targetUserId || a.headline}`} onClick={() => track("team_pulse_action_whatsapp_clicked", { source: "mobile_command", headline: a.headline, userId: a.targetUserId, priority: a.priority })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-yellow-100 !text-white">
+                        <WhatsAppLogo />
                       </a>
                     </div>
                   )}
@@ -274,7 +279,7 @@ export default function TeamPulseSection() {
                   </div>
                   <div className="mt-1.5 flex gap-1">
                     <a href={o.phone ? `tel:${o.phone}` : undefined} aria-label={`Call ${o.userId}`} onClick={() => track("team_pulse_call_clicked", { source: "mobile_opportunity", userId: o.userId, type: o.type })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-[#0F172A] !text-white"><PhoneCall className="h-3.5 w-3.5" /></a>
-                    <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${o.userId}`} onClick={() => track("team_pulse_whatsapp_clicked", { source: "mobile_opportunity", userId: o.userId, type: o.type })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-emerald-500 !text-white"><MessageCircle className="h-3.5 w-3.5" /></a>
+                    <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${o.userId}`} onClick={() => track("team_pulse_whatsapp_clicked", { source: "mobile_opportunity", userId: o.userId, type: o.type })} className="flex h-7 flex-1 items-center justify-center rounded-lg bg-yellow-100 !text-white"><WhatsAppLogo /></a>
                   </div>
                 </div>
               );
@@ -304,7 +309,7 @@ export default function TeamPulseSection() {
                   </div>
                   <div className="mt-1 flex justify-end gap-1">
                     <a href={m.phone ? `tel:${m.phone}` : undefined} aria-label={`Call ${m.userId}`} onClick={() => track("team_pulse_call_clicked", { source: "mobile_at_risk", userId: m.userId, severity: m.severity })} className="flex h-6 w-7 items-center justify-center rounded-lg bg-rose-50 text-rose-600"><PhoneCall className="h-3.5 w-3.5" /></a>
-                    <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${m.userId}`} onClick={() => track("team_pulse_whatsapp_clicked", { source: "mobile_at_risk", userId: m.userId, severity: m.severity })} className="flex h-6 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"><MessageCircle className="h-3.5 w-3.5" /></a>
+                    <a href={w ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`WhatsApp ${m.userId}`} onClick={() => track("team_pulse_whatsapp_clicked", { source: "mobile_at_risk", userId: m.userId, severity: m.severity })} className="flex h-6 w-7 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600"><WhatsAppLogo /></a>
                   </div>
                 </div>
               );
@@ -533,7 +538,7 @@ export default function TeamPulseSection() {
                         onClick={() => track("team_pulse_whatsapp_clicked", { source: "at_risk", userId: m.userId, severity: m.severity })}
                         className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-black transition ${w ? 'bg-emerald-500 !text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
-                        <MessageCircle className="h-3 w-3" />WhatsApp
+                        <WhatsAppLogo className="h-3 w-3" />WhatsApp
                       </a>
                     </div>
                   </li>
@@ -584,7 +589,7 @@ export default function TeamPulseSection() {
                         onClick={() => track("team_pulse_whatsapp_clicked", { source: "opportunity", userId: o.userId, type: o.type })}
                         className={`inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-2 py-1.5 text-xs font-black transition ${w ? 'bg-emerald-500 !text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
-                        <MessageCircle className="h-3 w-3" />WhatsApp
+                        <WhatsAppLogo className="h-3 w-3" />WhatsApp
                       </a>
                     </div>
                   </li>
@@ -631,7 +636,7 @@ export default function TeamPulseSection() {
       {data.actionPlan?.length > 0 && (
         <div className="mt-3 rounded-2xl border border-slate-200 bg-gradient-to-br from-[#FFF7ED] via-white to-[#F0F9FF] p-3 md:mt-5 md:p-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] !text-white md:h-8 md:w-8">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#0F172A] text-white md:h-8 md:w-8">
               <Sparkles className="h-3.5 w-3.5 md:h-4 md:w-4" />
             </div>
             <p className="text-[11px] font-black uppercase tracking-[0.1em] text-[#64748B]">What to do today</p>
@@ -670,7 +675,7 @@ export default function TeamPulseSection() {
                         onClick={() => track("team_pulse_action_whatsapp_clicked", { headline: a.headline, userId: a.targetUserId, priority: a.priority })}
                         className={`inline-flex items-center justify-center gap-1.5 rounded-lg px-2.5 py-1.5 text-[11px] font-black transition ${w ? 'bg-emerald-500 !text-white hover:bg-emerald-600' : 'cursor-not-allowed bg-slate-100 text-slate-400'}`}
                       >
-                        <MessageCircle className="h-3 w-3" />WhatsApp
+                        <WhatsAppLogo className="h-3 w-3" />WhatsApp
                       </a>
                     </div>
                   )}

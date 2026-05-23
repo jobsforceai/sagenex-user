@@ -481,7 +481,7 @@ const DashboardPage = () => {
                     </p>
                   </div>
                   <div className="min-w-[70px] text-right md:hidden">
-                    <p className="text-[8px] font-black uppercase tracking-[0.1em] !text-white/55">Progress</p>
+                    <p className="text-[8px] font-black uppercase tracking-[0.1em] text-white/55">Progress</p>
                     <p className="text-lg font-black text-emerald-200">{Math.round(progressPercentage)}%</p>
                   </div>
                   <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-white text-[#C41E3A] md:h-16 md:w-16 md:rounded-2xl">
@@ -489,7 +489,7 @@ const DashboardPage = () => {
                   </div>
                 </div>
                 <div className="mt-2 md:mt-6">
-                  <div className="mb-1 hidden items-center justify-between text-[10px] font-bold !text-white/80 md:mb-2 md:flex md:text-sm">
+                  <div className="mb-1 hidden items-center justify-between text-[10px] font-bold text-white/80 md:mb-2 md:flex md:text-sm">
                     <span>Completion</span>
                     <span>{Math.round(progressPercentage)}%</span>
                   </div>
@@ -548,7 +548,7 @@ const DashboardPage = () => {
             </div>
           </section>
 
-          <div className="hidden md:block">
+          <div className="hidden">
             <LegGauges
               earningsMultiplier={earningsMultiplier}
               legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
@@ -585,7 +585,7 @@ const DashboardPage = () => {
 
           <TeamPulseSection />
 
-          <div className="hidden grid-cols-1 gap-3 md:grid md:gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
+          <div className="grid grid-cols-1 gap-3 md:gap-5 xl:grid-cols-[minmax(0,1.35fr)_minmax(340px,0.65fr)]">
             <div className="space-y-3 md:space-y-5">
               <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-3 md:mb-5">

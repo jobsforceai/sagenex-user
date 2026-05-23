@@ -53,20 +53,20 @@ export const RecentTransactions = ({
 
   return (
     <Card className="rounded-2xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl">
-      <CardHeader className="flex flex-row items-center justify-between gap-2 px-3 pb-2 pt-3 sm:px-6 sm:pb-3 sm:pt-6">
-        <CardTitle className="text-sm font-black text-[#0F172A] sm:text-lg">Recent Transactions</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between gap-3 px-4 pb-2 pt-4 sm:px-6 sm:pb-3 sm:pt-6">
+        <CardTitle className="text-base font-black text-[#0F172A] sm:text-lg">Recent Transactions</CardTitle>
         {transactions.length > 5 && (
           <Button
             variant="outline"
             size="sm"
             onClick={onViewAll}
-            className="h-7 rounded-full border-slate-200 bg-white px-2.5 text-[10px] font-bold text-[#0F172A] hover:bg-slate-50 sm:h-8 sm:px-3 sm:text-xs"
+            className="h-8 rounded-full border-slate-200 bg-white px-3 text-xs font-bold text-[#0F172A] hover:bg-slate-50"
           >
             View all
           </Button>
         )}
       </CardHeader>
-      <CardContent className="px-3 pb-3 sm:px-6 sm:pb-6">
+      <CardContent className="px-4 pb-4 sm:px-6 sm:pb-6">
         {loading ? (
           <div className="space-y-3">
             <Skeleton className="h-16 w-full" />
@@ -88,24 +88,24 @@ export const RecentTransactions = ({
             </p>
           </div>
         ) : (
-          <div className="space-y-1.5 sm:space-y-3">
+          <div className="space-y-2.5 sm:space-y-3">
             {recentTx.map((tx) => (
               <div
                 key={tx._id}
-                className="flex items-center justify-between gap-1.5 rounded-xl border border-slate-200/80 bg-[#F8FAFC] p-2 transition hover:border-slate-300 hover:bg-white sm:gap-3 sm:rounded-2xl sm:p-4"
+                className="flex items-center justify-between gap-2 rounded-xl border border-slate-200/80 bg-[#F8FAFC] p-2.5 transition hover:border-slate-300 hover:bg-white sm:gap-3 sm:rounded-2xl sm:p-4"
               >
-                <div className="flex min-w-0 items-center gap-2 sm:gap-3">
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white shadow-sm sm:h-11 sm:w-11">
+                <div className="flex min-w-0 items-center gap-2.5 sm:gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white shadow-sm sm:h-11 sm:w-11">
                     <Image
                       src={getTransactionIcon(tx)}
                       alt=""
                       width={32}
                       height={32}
-                      className="h-5 w-5 object-contain sm:h-8 sm:w-8"
+                      className="h-6 w-6 object-contain sm:h-8 sm:w-8"
                     />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-[10px] font-bold text-[#0F172A] sm:text-sm">
+                    <p className="truncate text-xs font-bold text-[#0F172A] sm:text-sm">
                       {getTransactionTitle(tx)}
                     </p>
                     <p className="mt-0.5 hidden text-xs text-[#64748B] sm:block">
@@ -115,13 +115,13 @@ export const RecentTransactions = ({
                 </div>
                 <div className="shrink-0 text-right">
                   <p
-                    className={`text-[10px] font-black sm:text-sm ${
+                    className={`text-xs font-black sm:text-sm ${
                       tx.amount >= 0 ? "text-emerald-600" : "text-[#C8103E]"
                     }`}
                   >
                     {formatCurrency(tx.amount, tx.currency)}
                   </p>
-                  <p className="mt-0.5 text-[7px] font-bold uppercase tracking-[0.04em] text-[#64748B] sm:text-[11px] sm:tracking-[0.08em]">
+                  <p className="mt-0.5 text-[9px] font-bold uppercase tracking-[0.06em] text-[#64748B] sm:text-[11px] sm:tracking-[0.08em]">
                     {tx.status || "POSTED"}
                   </p>
                 </div>
