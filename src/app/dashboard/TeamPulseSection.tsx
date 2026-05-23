@@ -452,6 +452,9 @@ export default function TeamPulseSection() {
             <a href="/rank-simulator" className="inline-flex items-center gap-1.5 rounded-full bg-[#0F172A] px-3 py-1 text-[11px] font-black !text-white hover:opacity-90">
               Try simulator
             </a>
+            <a href="/predicted-income" className="inline-flex items-center gap-1.5 rounded-full bg-[#C8103E] px-3 py-1 text-[11px] font-black !text-white hover:opacity-90">
+              Predict income
+            </a>
           </div>
         </div>
 
