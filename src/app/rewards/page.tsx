@@ -1162,7 +1162,15 @@ const RewardsPage = () => {
           />
 
           <section>
-            <h2 className="mb-3 text-xs font-black uppercase tracking-[0.12em] text-[#0F172A] sm:mb-4 sm:text-sm">Luxury Reward Tiers</h2>
+            <div className="mb-3 flex items-center justify-between sm:mb-4">
+              <h2 className="text-xs font-black uppercase tracking-[0.12em] text-[#0F172A] sm:text-sm">Luxury Reward Tiers</h2>
+              <a
+                href="/rewards/luxury"
+                className="rounded-full bg-[#C8103E] px-4 py-1.5 text-xs font-bold !text-white shadow-sm hover:bg-[#a00d33] sm:text-sm"
+              >
+                View my progress →
+              </a>
+            </div>
             <div className="grid grid-cols-2 gap-3 md:gap-5 xl:grid-cols-4">
               {tierCards.map((tier, index) => (
                 <RewardTierCard key={tier.name} tier={tier} index={index} />
