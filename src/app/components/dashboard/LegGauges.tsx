@@ -1,6 +1,5 @@
 "use client";
 
-import { useState } from "react";
 import MultiplierProgress from "./MultiplierProgress";
 
 type Leg = {
@@ -28,29 +27,30 @@ const formatCompact = (n: number) => {
 
 function Gauge({ value, max, name, userId }: { value: number; max: number; name: string; userId: string }) {
   const pct = Math.max(0, Math.min(1, value / max));
-  const cx = 50, cy = 48, r = 38;
-  // Arc from 180° (left) to 0° (right) — semi-circle on top
-  const endAngle = 180 - pct * 180;
-  const rad = (endAngle * Math.PI) / 180;
-  const x2 = cx + r * Math.cos(rad);
-  const y2 = cy - r * Math.sin(rad);
-  const x1 = cx - r;
-  const largeArc = pct > 0.5 ? 1 : 0;
-  const path = `M ${x1} ${cy} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2}`;
+  const arcPath = "M 12 48 A 38 38 0 0 1 88 48";
   const done = value >= max;
   const color = done ? "#10b981" : pct >= 0.5 ? "#f59e0b" : "#fb923c";
   return (
     <div className="flex flex-col items-center min-w-0">
       <svg viewBox="0 0 100 56" className="w-full max-w-[110px]">
         <path
-          d={`M 12 48 A 38 38 0 0 1 88 48`}
+          d={arcPath}
           fill="none"
           stroke="#e2e8f0"
           strokeWidth="7"
           strokeLinecap="round"
+          pathLength={100}
         />
         {pct > 0 && (
-          <path d={path} fill="none" stroke={color} strokeWidth="7" strokeLinecap="round" />
+          <path
+            d={arcPath}
+            fill="none"
+            stroke={color}
+            strokeWidth="7"
+            strokeLinecap="round"
+            pathLength={100}
+            strokeDasharray={`${pct * 100} 100`}
+          />
         )}
         <text
           x="50"
@@ -122,7 +122,7 @@ export default function LegGauges({ earningsMultiplier = 2.5, legDetails = [], k
       </div>
       {sorted.length > 4 && (
         <p className="mt-3 text-center text-[11px] text-slate-500">
-          Showing top 4 of {sorted.length} legs — tap "View details" for the full list.
+          Showing top 4 of {sorted.length} legs. Tap View details for the full list.
         </p>
       )}
     </section>

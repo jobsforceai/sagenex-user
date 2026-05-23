@@ -530,11 +530,13 @@ const DashboardPage = () => {
             </div>
           </section>
 
-          <LegGauges
-            earningsMultiplier={earningsMultiplier}
-            legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
-            kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
-          />
+          <div className="hidden">
+            <LegGauges
+              earningsMultiplier={earningsMultiplier}
+              legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
+              kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
+            />
+          </div>
 
           {consecutiveMonthsMissed === 1 && (
             <Alert
