@@ -1,0 +1,19 @@
+src/app/dashboard/LuxuryPathSection.tsx
+  s_964e0d3fba450c::t_0801daf68ee05b 5,11-21,23-28,43-46,49,53-56,59-66,69-90,93-94,96-97,99-100,102-103,105-109,113,117,119-124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "8ec4b7ab6231a6ce8d4755a8ff77d5c10ebf7f1b",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
