@@ -1,0 +1,22 @@
+src/app/dashboard/page.tsx
+  s_964e0d3fba450c::t_2316b5c6eb63b9 589-590
+  s_964e0d3fba450c::t_a2bae64abed2cd 3
+src/app/dashboard/LuxuryPathSection.tsx
+  s_964e0d3fba450c::t_70c50f2394e045 1-199
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "d8db0caf9b68454606ba163837075c1ab70e131e",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
