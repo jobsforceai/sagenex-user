@@ -1,35 +1,28 @@
 /**
- * PostHog product analytics — single source of truth.
+ * Analytics wrapper using PostHog loaded via the HTML bootstrap snippet
+ * (see src/app/posthog-provider.tsx). The SDK lives on window.posthog;
+ * we never import posthog-js at module-scope so there's no bundler hazard.
  */
 "use client";
 
-import posthog from "posthog-js";
+type PostHogClient = {
+  identify: (id: string, props?: Record<string, unknown>) => void;
+  reset: () => void;
+  capture: (event: string, props?: Record<string, unknown>) => void;
+};
 
-const POSTHOG_KEY = process.env.NEXT_PUBLIC_POSTHOG_KEY;
-const POSTHOG_HOST = process.env.NEXT_PUBLIC_POSTHOG_HOST || "https://us.i.posthog.com";
-
-let initialised = false;
-
-export function initPosthog() {
-  if (typeof window === "undefined") return;
-  if (initialised || !POSTHOG_KEY) return;
-  initialised = true;
-  // Absolute-minimum init — just api_host. No autocapture flags, no recorder,
-  // no decide overrides. Anything beyond this has caused silent event-drop
-  // bugs in v1.375 where capture() returns ok but no network POST fires.
-  posthog.init(POSTHOG_KEY, { api_host: POSTHOG_HOST });
-  // Expose for console debugging
-  (window as unknown as { posthog?: typeof posthog }).posthog = posthog;
+function ph(): PostHogClient | null {
+  if (typeof window === "undefined") return null;
+  const c = (window as unknown as { posthog?: PostHogClient }).posthog;
+  return c ?? null;
 }
 
 export function identifyUser(userId: string, traits?: Record<string, unknown>) {
-  if (typeof window === "undefined" || !initialised) return;
-  posthog.identify(userId, traits);
+  ph()?.identify(userId, traits);
 }
 
 export function resetUser() {
-  if (typeof window === "undefined" || !initialised) return;
-  posthog.reset();
+  ph()?.reset();
 }
 
 export type AnalyticsEvent =
@@ -46,6 +39,5 @@ export type AnalyticsEvent =
   | "team_loaded";
 
 export function track(event: AnalyticsEvent, props?: Record<string, unknown>) {
-  if (typeof window === "undefined" || !initialised) return;
-  posthog.capture(event, props);
+  ph()?.capture(event, props);
 }

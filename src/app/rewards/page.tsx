@@ -204,9 +204,9 @@ const ProgressRing = ({ percent, label }: { percent: number; label?: string }) =
           strokeDashoffset={offset}
         />
       </svg>
-      <div className="absolute inset-0 flex flex-col items-center justify-center text-white">
+      <div className="absolute inset-0 flex flex-col items-center justify-center !text-white">
         <span className="text-sm font-black sm:text-xl">{percent}%</span>
-        {label && <span className="text-[8px] font-bold uppercase tracking-[0.08em] text-white/70 sm:text-[10px]">{label}</span>}
+        {label && <span className="text-[8px] font-bold uppercase tracking-[0.08em] !text-white/70 sm:text-[10px]">{label}</span>}
       </div>
     </div>
   );
@@ -240,13 +240,13 @@ const ShowcaseCard = ({ program, rewards }: { program: RewardProgram; rewards: R
         sizes="(min-width: 1024px) 50vw, 100vw"
       />
       <div className="absolute inset-0 bg-gradient-to-t from-[#12020A]/95 via-[#300615]/62 to-black/18" />
-      <div className="relative flex h-full min-h-[320px] flex-col justify-between p-4 text-white sm:min-h-[430px] sm:p-7">
+      <div className="relative flex h-full min-h-[320px] flex-col justify-between p-4 !text-white sm:min-h-[430px] sm:p-7">
         <div className="flex items-center justify-between gap-3">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] text-white backdrop-blur sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.1em]">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-white/15 px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.08em] !text-white backdrop-blur sm:gap-2 sm:px-3 sm:py-1.5 sm:text-xs sm:tracking-[0.1em]">
             {PROGRAM_ICONS[program.programId] ?? <Gift className="h-4 w-4" />}
             {program.status}
           </span>
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10px] font-bold text-white backdrop-blur sm:px-3 sm:py-1.5 sm:text-xs">
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-black/35 px-2.5 py-1 text-[10px] font-bold !text-white backdrop-blur sm:px-3 sm:py-1.5 sm:text-xs">
             <Calendar className="h-3.5 w-3.5" />
             <span className="sm:hidden">{promo.lastDate}</span>
             <span className="hidden sm:inline">Last Date: {promo.lastDate}</span>
@@ -259,7 +259,7 @@ const ShowcaseCard = ({ program, rewards }: { program: RewardProgram; rewards: R
               <p className="line-clamp-1 text-[10px] font-bold uppercase tracking-[0.12em] text-amber-200 sm:text-sm sm:tracking-[0.16em]">
                 {promo.subtitle}
               </p>
-              <h3 className="mt-1 text-2xl font-black tracking-tight text-white sm:mt-2 sm:text-4xl">
+              <h3 className="mt-1 text-2xl font-black tracking-tight !text-white sm:mt-2 sm:text-4xl">
                 {program.name || promo.title}
               </h3>
             </div>
@@ -268,14 +268,14 @@ const ShowcaseCard = ({ program, rewards }: { program: RewardProgram; rewards: R
           <div className="grid gap-1.5 sm:gap-2">
             {promo.details.map((d, index) => (
               <div key={d.label} className={`${index > 1 ? "hidden sm:block" : "block"} rounded-xl border border-white/12 bg-white/12 px-3 py-2 backdrop-blur sm:rounded-2xl sm:px-4 sm:py-3`}>
-                <p className="text-[9px] font-black uppercase tracking-[0.08em] text-white/58 sm:text-[11px] sm:tracking-[0.1em]">
+                <p className="text-[9px] font-black uppercase tracking-[0.08em] !text-white/58 sm:text-[11px] sm:tracking-[0.1em]">
                   {d.label}
                 </p>
-                <p className="mt-0.5 line-clamp-1 text-xs font-bold text-white sm:mt-1 sm:text-sm">{d.value}</p>
+                <p className="mt-0.5 line-clamp-1 text-xs font-bold !text-white sm:mt-1 sm:text-sm">{d.value}</p>
               </div>
             ))}
           </div>
-          <div className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[#C81E4A] px-4 py-2 text-xs font-black text-white shadow-[0_8px_20px_rgba(200,30,74,0.45)] ring-1 ring-white/20 transition group-hover:bg-[#A8163C] sm:mt-5 sm:gap-2 sm:rounded-2xl sm:px-5 sm:py-3 sm:text-sm">
+          <div className="mt-3 inline-flex items-center gap-1.5 rounded-xl bg-[#C81E4A] px-4 py-2 text-xs font-black !text-white shadow-[0_8px_20px_rgba(200,30,74,0.45)] ring-1 ring-white/20 transition group-hover:bg-[#A8163C] sm:mt-5 sm:gap-2 sm:rounded-2xl sm:px-5 sm:py-3 sm:text-sm">
             {promo.cta}
             <ChevronRight className="h-4 w-4" />
           </div>
@@ -354,7 +354,7 @@ const RewardCard = ({
         return (
           <Button
             onClick={() => onUploadDocuments(reward)}
-            className="wallet-red-control w-full rounded-xl bg-[#C81E4A] font-semibold text-white hover:bg-[#A90D32]"
+            className="wallet-red-control w-full rounded-xl bg-[#C81E4A] font-semibold !text-white hover:bg-[#A90D32]"
             disabled={isProgramLocked}
           >
             <FileClock className="w-4 h-4 mr-2" />
@@ -496,7 +496,7 @@ const RewardsHeroBanner = ({
     initial={{ opacity: 0, y: 14 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.35 }}
-    className="rewards-dark-surface relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#0E2A2C] via-[#0A1F22] to-[#06181A] p-4 text-white shadow-[0_24px_70px_rgba(6,24,26,0.32)] sm:rounded-3xl sm:p-8 lg:p-10"
+    className="rewards-dark-surface relative overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-[#0E2A2C] via-[#0A1F22] to-[#06181A] p-4 !text-white shadow-[0_24px_70px_rgba(6,24,26,0.32)] sm:rounded-3xl sm:p-8 lg:p-10"
   >
     <Image
       src={REWARD_ASSETS.hero}
@@ -513,10 +513,10 @@ const RewardsHeroBanner = ({
           <Sparkles className="h-4 w-4" />
           SAGENEX Rewards
         </span>
-        <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-tight text-white sm:mt-5 sm:text-5xl lg:text-6xl">
+        <h2 className="mt-3 max-w-3xl text-3xl font-black tracking-tight !text-white sm:mt-5 sm:text-5xl lg:text-6xl">
           GLOBAL FLY REWARDS
         </h2>
-        <p className="mt-2 text-sm font-semibold text-white/86 sm:mt-4 sm:text-lg">
+        <p className="mt-2 text-sm font-semibold !text-white/86 sm:mt-4 sm:text-lg">
           Achieve this month, fly next month
         </p>
         <div className="mt-4 grid grid-cols-3 gap-2 sm:mt-7 sm:gap-3">
@@ -527,13 +527,13 @@ const RewardsHeroBanner = ({
           ].map(({ icon: Icon, label }) => (
             <div key={label} className="rounded-xl border border-white/12 bg-white/12 p-2.5 backdrop-blur sm:rounded-2xl sm:p-4">
               <Icon className="h-4 w-4 text-amber-100 sm:h-5 sm:w-5" />
-              <p className="mt-2 text-[10px] font-black leading-tight text-white sm:mt-3 sm:text-sm">{label}</p>
+              <p className="mt-2 text-[10px] font-black leading-tight !text-white sm:mt-3 sm:text-sm">{label}</p>
             </div>
           ))}
         </div>
       </div>
       <div className="rounded-2xl border border-white/16 bg-white/14 p-4 backdrop-blur-md sm:rounded-3xl sm:p-5">
-        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-white/70 sm:text-sm sm:tracking-[0.12em]">
+        <p className="text-[10px] font-black uppercase tracking-[0.1em] !text-white/70 sm:text-sm sm:tracking-[0.12em]">
           Progress Summary
         </p>
         <div className="mt-3 space-y-3 sm:mt-5 sm:space-y-5">
@@ -543,13 +543,13 @@ const RewardsHeroBanner = ({
           ].map(({ label, progress, color }) => (
             <div key={label}>
               <div className="mb-2 flex items-center justify-between gap-3">
-                <span className="text-xs font-bold text-white sm:text-sm">{label}</span>
-                <span className="text-xs font-black text-white sm:text-sm">{progress.percent}%</span>
+                <span className="text-xs font-bold !text-white sm:text-sm">{label}</span>
+                <span className="text-xs font-black !text-white sm:text-sm">{progress.percent}%</span>
               </div>
               <div className="h-2.5 overflow-hidden rounded-full bg-white/18">
                 <div className={`h-full rounded-full ${color}`} style={{ width: `${progress.percent}%` }} />
               </div>
-              <p className="mt-1 truncate text-[10px] font-semibold text-white/70 sm:mt-2 sm:text-xs">
+              <p className="mt-1 truncate text-[10px] font-semibold !text-white/70 sm:mt-2 sm:text-xs">
                 {formatCurrency(progress.current)} / {progress.target ? formatCurrency(progress.target) : "Target pending"}
               </p>
             </div>
@@ -581,7 +581,7 @@ const QualificationPathSection = ({
           {remainingForNext > 0 ? formatCurrency(remainingForNext) : formatCurrency(directProgress.target ?? 0)}
         </p>
         <p className="text-sm font-semibold text-[#475569]">away from your dream!</p>
-        <Button className="mt-4 h-10 w-full max-w-xs rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-sm font-bold text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:from-emerald-700 hover:to-emerald-600 sm:mt-6 sm:h-11 sm:rounded-2xl sm:text-base">
+        <Button className="mt-4 h-10 w-full max-w-xs rounded-xl bg-gradient-to-r from-emerald-600 to-emerald-500 text-sm font-bold !text-white shadow-[0_10px_30px_rgba(5,150,105,0.25)] hover:from-emerald-700 hover:to-emerald-600 sm:mt-6 sm:h-11 sm:rounded-2xl sm:text-base">
           Keep Going 🚀
         </Button>
       </div>
@@ -717,12 +717,12 @@ const AchievementsCard = ({ activeLegs }: { activeLegs: number }) => {
 };
 
 const MotivationCard = () => (
-  <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-[#0F172A] p-4 text-white shadow-[0_10px_30px_rgba(15,23,42,0.12)] sm:rounded-3xl sm:p-5">
+  <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-[#0F172A] p-4 !text-white shadow-[0_10px_30px_rgba(15,23,42,0.12)] sm:rounded-3xl sm:p-5">
     <Image src={REWARD_ASSETS.trophy} alt="Trophy motivation reward" fill className="object-cover opacity-58" sizes="(min-width: 1024px) 33vw, 100vw" />
     <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/95 via-[#0F172A]/72 to-[#0F172A]/20" />
     <div className="relative flex min-h-44 flex-col justify-end sm:min-h-72">
       <Trophy className="mb-3 h-7 w-7 text-amber-300 sm:mb-4 sm:h-9 sm:w-9" />
-      <p className="text-xl font-black leading-tight text-white sm:text-2xl">
+      <p className="text-xl font-black leading-tight !text-white sm:text-2xl">
         “Don’t wait for opportunity. Create it.”
       </p>
       <p className="mt-3 text-sm font-bold text-amber-100">– Sagenex SGX</p>
@@ -831,7 +831,7 @@ const TransferModal = ({
           <Button
             onClick={handleConfirm}
             disabled={isTransferring || !selectedRecipient}
-            className="wallet-red-control bg-[#C81E4A] text-white hover:bg-[#A90D32]"
+            className="wallet-red-control bg-[#C81E4A] !text-white hover:bg-[#A90D32]"
           >
             {isTransferring ? (
               <Loader2 className="w-4 h-4 animate-spin" />

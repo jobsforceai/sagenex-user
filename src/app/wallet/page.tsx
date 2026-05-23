@@ -387,7 +387,9 @@ const WalletPage = () => {
         </div>
       </header>
 
-      <ScheduledCashBanner />
+      <div className="hidden sm:block">
+        <ScheduledCashBanner />
+      </div>
 
       <section className="wallet-red-surface relative overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_55%,#430010_100%)] p-3.5 text-white shadow-[0_22px_55px_rgba(122,0,31,0.25)] sm:p-4 md:rounded-3xl md:p-7 lg:p-8">
         <Image
@@ -399,22 +401,22 @@ const WalletPage = () => {
           priority
         />
         <div className="absolute right-4 top-4 h-28 w-28 rounded-full bg-[#F59E0B]/20 blur-3xl md:right-8 md:top-8 md:h-48 md:w-48 md:bg-[#F59E0B]/25" />
-        <div className="relative grid gap-2.5 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
-          <div className="space-y-2.5 md:space-y-7">
+        <div className="relative grid gap-2 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-center">
+          <div className="space-y-2 md:space-y-7">
             <div>
-              <div className="wallet-red-muted flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.12em] text-white/70 md:gap-2 md:text-[11px] md:tracking-[0.18em]">
+              <div className="wallet-red-muted flex items-center gap-1.5 text-[8px] font-black uppercase tracking-[0.12em] !text-white/70 md:gap-2 md:text-[11px] md:tracking-[0.18em]">
                 Available Balance
-                <Eye className="h-3 w-3 text-white/60 md:h-4 md:w-4" aria-hidden="true" />
+                <Eye className="h-3 w-3 !text-white/60 md:h-4 md:w-4" aria-hidden="true" />
               </div>
               <div className="mt-1.5 truncate text-[2rem] font-black leading-none tracking-tight text-white sm:text-4xl md:mt-3 md:text-5xl lg:text-6xl">
                 {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
               </div>
-              <div className="wallet-red-soft mt-2 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-emerald-400/15 px-2 py-0.5 text-[10px] font-bold text-emerald-100 md:mt-4 md:gap-2 md:px-3 md:py-1.5 md:text-xs">
+              <div className="wallet-red-soft mt-1.5 inline-flex items-center gap-1 rounded-full border border-white/15 bg-emerald-400/15 px-2 py-0.5 text-[8px] font-bold text-emerald-100 md:mt-4 md:gap-2 md:px-3 md:py-1.5 md:text-xs">
                 <span className="h-1.5 w-1.5 rounded-full bg-emerald-300" />
                 {capUsedPct}% cap used
               </div>
             </div>
-            <div className="grid grid-cols-4 gap-1.5 md:gap-3">
+            <div className="grid grid-cols-4 gap-1 md:gap-3">
               {[
                 { label: "Locked", shortLabel: "Locked", value: walletSummary?.capLockedBalance ?? 0, icon: LockKeyhole },
                 { label: "Can Withdraw", shortLabel: "Can", value: remainingWithdrawalLimit, icon: WalletIcon },
@@ -423,26 +425,26 @@ const WalletPage = () => {
               ].map(({ label, shortLabel, value, suffix, icon: Icon }) => (
                 <div key={label} className="min-w-0 rounded-xl border border-white/10 bg-white/10 p-2 backdrop-blur md:rounded-2xl md:p-3">
                   <div className="mb-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white/15 md:mb-2 md:h-8 md:w-8">
-                    <Icon className="h-3.5 w-3.5 text-white md:h-4 md:w-4" />
+                    <Icon className="h-3.5 w-3.5 !text-white md:h-4 md:w-4" />
                   </div>
-                  <p className="wallet-red-muted truncate text-[7px] font-bold uppercase tracking-[0.06em] text-white/60 md:text-[11px] md:tracking-[0.08em]">
+                  <p className="wallet-red-muted truncate text-[7px] font-bold uppercase tracking-[0.06em] !text-white/60 md:text-[11px] md:tracking-[0.08em]">
                     <span className="md:hidden">{shortLabel}</span>
                     <span className="hidden md:inline">{label}</span>
                   </p>
-                  <p className="mt-0.5 truncate text-[11px] font-black text-white sm:text-xs md:mt-1 md:text-sm">
+                  <p className="mt-0.5 truncate text-[11px] font-black !text-white sm:text-xs md:mt-1 md:text-sm">
                     {summaryLoading ? "—" : suffix ? `${value}${suffix}` : formatCompactCurrency(Number(value))}
                   </p>
                 </div>
               ))}
             </div>
           </div>
-          <div className="pointer-events-none absolute right-2 top-4 h-24 w-36 opacity-45 sm:opacity-55 md:relative md:right-auto md:top-auto md:min-h-48 md:w-auto md:opacity-100 lg:min-h-64">
+          <div className="pointer-events-none absolute right-2 top-3 h-20 w-28 opacity-35 sm:opacity-55 md:relative md:right-auto md:top-auto md:min-h-48 md:w-auto md:opacity-100 lg:min-h-64">
             <Image
               src={walletAsset.goldCard}
               alt="SAGENEX gold wallet card"
               width={480}
               height={330}
-              className="absolute right-0 top-1/2 w-36 -translate-y-1/2 rotate-[-5deg] drop-shadow-2xl sm:w-44 md:w-64 lg:w-[360px]"
+              className="absolute right-0 top-1/2 w-28 -translate-y-1/2 rotate-[-5deg] drop-shadow-2xl sm:w-44 md:w-64 lg:w-[360px]"
               priority
             />
           </div>
