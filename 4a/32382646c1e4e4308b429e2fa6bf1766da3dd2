@@ -1,0 +1,20 @@
+src/app/rewards/luxury/page.tsx
+  s_964e0d3fba450c::t_7aeebe47b140e3 19-25
+  s_964e0d3fba450c::t_cea1dc347e0543 6-7
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "4a32382646c1e4e4308b429e2fa6bf1766da3dd2",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
