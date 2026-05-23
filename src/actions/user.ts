@@ -1039,3 +1039,10 @@ export async function getTeamMemberContact(userId: string) {
     );
     return handleApiResponse(res);
 }
+
+export async function getRankSimulatorState() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/rank-simulator-state`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}

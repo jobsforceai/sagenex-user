@@ -445,9 +445,14 @@ export default function TeamPulseSection() {
                 : <>You’re at <span className="text-emerald-600">{rp.currentMultiplier}x</span> — max tier</>}
             </p>
           </div>
-          {hasNextMultiplier && (
-            <span className="rounded-full bg-slate-50 px-3 py-1 text-[11px] font-black text-[#0F172A]">{rp.blockers.length} thing{rp.blockers.length === 1 ? '' : 's'} left</span>
-          )}
+          <div className="flex items-center gap-2">
+            {hasNextMultiplier && (
+              <span className="rounded-full bg-slate-50 px-3 py-1 text-[11px] font-black text-[#0F172A]">{rp.blockers.length} thing{rp.blockers.length === 1 ? '' : 's'} left</span>
+            )}
+            <a href="/rank-simulator" className="inline-flex items-center gap-1.5 rounded-full bg-[#0F172A] px-3 py-1 text-[11px] font-black !text-white hover:opacity-90">
+              Try simulator
+            </a>
+          </div>
         </div>
 
         {hasNextMultiplier ? (
