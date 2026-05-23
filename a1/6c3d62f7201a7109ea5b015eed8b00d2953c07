@@ -1,0 +1,21 @@
+src/app/predicted-income/page.tsx
+  s_964e0d3fba450c::t_59b4afda0c00cc 1-251
+src/app/dashboard/TeamPulseSection.tsx
+  s_964e0d3fba450c::t_53fdd7b2f4cc7b 455-457
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "a16c3d62f7201a7109ea5b015eed8b00d2953c07",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
