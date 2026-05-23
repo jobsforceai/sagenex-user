@@ -2,29 +2,30 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { Crown, Sparkles, Trophy, Target, ArrowRight, Clock } from "lucide-react";
+import { Crown, IndianRupee, Users, Award } from "lucide-react";
 import { getLuxuryProgress } from "@/actions/luxury-rewards";
 
 type TierId = "10L" | "30L" | "50L" | "1CR";
 
-const TIER_META: Record<TierId, { label: string; icon: any; ringColor: string; chipBg: string; chipFg: string }> = {
-  "10L": { label: "Starter",  icon: Sparkles, ringColor: "#D97706", chipBg: "bg-amber-50",   chipFg: "text-amber-700"   },
-  "30L": { label: "Mid",      icon: Trophy,   ringColor: "#059669", chipBg: "bg-emerald-50", chipFg: "text-emerald-700" },
-  "50L": { label: "Elite",    icon: Target,   ringColor: "#0284C7", chipBg: "bg-sky-50",     chipFg: "text-sky-700"     },
-  "1CR": { label: "Crown",    icon: Crown,    ringColor: "#C81E4A", chipBg: "bg-rose-50",    chipFg: "text-rose-700"    },
+const lakh = (n: number) =>
+  n >= 10_000_000 ? "₹" + (n / 10_000_000).toFixed(2).replace(/\.00$/, "") + " Cr"
+  : n >= 100_000  ? "₹" + (n / 100_000).toFixed(2).replace(/\.00$/, "") + " L"
+  : n >= 1_000    ? "₹" + (n / 1_000).toFixed(1).replace(/\.0$/, "") + "K"
+  : "₹" + Math.round(n).toLocaleString("en-IN");
+
+const TIER_REQ: Record<TierId, { teamBiz: number; directBiz: number; legs: number; label: string }> = {
+  "10L": { teamBiz:  1_000_000, directBiz:  50_000, legs: 2, label: "Starter" },
+  "30L": { teamBiz:  3_000_000, directBiz: 150_000, legs: 3, label: "Mid"     },
+  "50L": { teamBiz:  5_000_000, directBiz: 250_000, legs: 4, label: "Elite"   },
+  "1CR": { teamBiz: 10_000_000, directBiz: 500_000, legs: 5, label: "Crown"   },
 };
 
-const lakh = (n: number) =>
-  n >= 10_000_000 ? `₹${(n / 10_000_000).toFixed(2)}Cr`
-  : n >= 100_000  ? `₹${(n / 100_000).toFixed(2)}L`
-  : n >= 1_000    ? `₹${(n / 1_000).toFixed(1)}K`
-  : `₹${Math.round(n).toLocaleString("en-IN")}`;
-
-function daysLeft(endsAt: string | Date | null | undefined): number | null {
-  if (!endsAt) return null;
-  const ms = new Date(endsAt).getTime() - Date.now();
-  return Math.ceil(ms / 86_400_000);
-}
+const TIER_RING: Record<TierId, { stroke: string; chipBg: string; chipFg: string }> = {
+  "10L": { stroke: "stroke-amber-500",   chipBg: "bg-amber-50",   chipFg: "text-amber-700"   },
+  "30L": { stroke: "stroke-emerald-500", chipBg: "bg-emerald-50", chipFg: "text-emerald-700" },
+  "50L": { stroke: "stroke-sky-500",     chipBg: "bg-sky-50",     chipFg: "text-sky-700"     },
+  "1CR": { stroke: "stroke-rose-500",    chipBg: "bg-rose-50",    chipFg: "text-rose-700"    },
+};
 
 export default function LuxuryPathSection() {
   const [data, setData] = useState<any>(null);
@@ -39,161 +40,88 @@ export default function LuxuryPathSection() {
     })();
   }, []);
 
-  if (loading) {
-    return (
-      <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-        <p className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">Luxury Path</p>
-        <p className="mt-2 text-sm text-slate-400">Loading your luxury rewards…</p>
-      </section>
-    );
+  if (loading || !data?.snapshot?.hasAnchor) {
+    // For unauthenticated/no-cycle users we just don't render — keeps the
+    // dashboard clean. The full page at /rewards/luxury handles onboarding.
+    return null;
   }
 
-  const snap = data?.snapshot;
-  const cycle = data?.cycle;
-
-  // No cycle yet — small CTA card
-  if (!snap?.hasAnchor) {
-    return (
-      <section className="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-[#FFF7ED] via-white to-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-        <div className="flex items-center justify-between gap-3">
-          <div className="min-w-0">
-            <p className="text-xs font-black uppercase tracking-[0.12em] text-[#C81E4A]">Luxury Path</p>
-            <h3 className="mt-1 text-base font-black text-[#0F172A] sm:text-lg">Unlock your first tier</h3>
-            <p className="mt-1 text-xs text-slate-500 sm:text-sm">Make your first new-plan deposit to start the 120-day cycle.</p>
-          </div>
-          <Crown className="h-8 w-8 shrink-0 text-[#C81E4A]" />
-        </div>
-      </section>
-    );
-  }
-
-  // Find chasing tier (first unqualified) + its team-biz progress
+  const snap = data.snapshot;
   const tiers: TierId[] = ["10L", "30L", "50L", "1CR"];
   const progByTier: Record<string, any> = {};
   for (const tp of (snap.tierProgress ?? [])) progByTier[tp.tierId] = tp;
-  const qualifiedSet = new Set(tiers.filter(t => progByTier[t]?.qualified));
-  const chasing: TierId | null = tiers.find(t => !qualifiedSet.has(t)) ?? null;
-  const chasingProg = chasing ? progByTier[chasing] : null;
-  const pct = chasing ? Math.min(100, Math.round(chasingProg?.teamBizPct ?? 0)) : 100;
-
-  // Per-tier numbers (from config — kept in sync with backend luxury.rewards.ts)
-  const TIER_REQ: Record<TierId, { teamBiz: number; directBiz: number; legs: number }> = {
-    "10L": { teamBiz:  1_000_000, directBiz:  50_000, legs: 2 },
-    "30L": { teamBiz:  3_000_000, directBiz: 150_000, legs: 3 },
-    "50L": { teamBiz:  5_000_000, directBiz: 250_000, legs: 4 },
-    "1CR": { teamBiz: 10_000_000, directBiz: 500_000, legs: 5 },
-  };
-
-  const meta = chasing ? TIER_META[chasing] : TIER_META["1CR"];
-  const dLeft = daysLeft(cycle?.cycleEndsAt);
-  const Icon = meta.icon;
-
-  // SVG circle math
-  const radius = 42;
-  const circ = 2 * Math.PI * radius;
-  const dash = (pct / 100) * circ;
+  const chasing: TierId | null = tiers.find(t => !progByTier[t]?.qualified) ?? null;
+  const pct = chasing ? Math.min(100, Math.round(progByTier[chasing]?.teamBizPct ?? 0)) : 100;
+  const ring = chasing ? TIER_RING[chasing] : TIER_RING["1CR"];
+  const req = chasing ? TIER_REQ[chasing] : null;
 
   return (
-    <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-      <div className="mb-3 flex items-center justify-between gap-2 sm:mb-4">
-        <div className="flex items-center gap-2">
-          <p className="text-xs font-black uppercase tracking-[0.12em] text-[#64748B]">Luxury Path</p>
-          {chasing && (
-            <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-black ${meta.chipBg} ${meta.chipFg}`}>
-              <Icon className="h-3 w-3" /> Chasing {chasing} {meta.label}
-            </span>
-          )}
-          {!chasing && (
-            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-black text-emerald-700">
-              All tiers ✓
-            </span>
-          )}
+    <Link href="/rewards/luxury" className="block">
+      <div className="rounded-[22px] border border-slate-200/70 bg-white p-2.5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:shadow-[0_14px_40px_rgba(15,23,42,0.1)]">
+        <div className="mb-2.5 flex items-center justify-between gap-2">
+          <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#64748B]">Luxury Path</p>
+          <span className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[9px] font-black ${ring.chipBg} ${ring.chipFg}`}>
+            <Crown className="h-3 w-3" />
+            {chasing ? `Chasing ${chasing} ${req?.label}` : "All tiers ✓"}
+          </span>
         </div>
-        <Link
-          href="/rewards/luxury"
-          className="hidden items-center gap-1 rounded-full bg-[#0F172A] px-3 py-1.5 text-xs font-bold !text-white hover:bg-[#1e293b] sm:inline-flex"
-        >
-          View full progress <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
 
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:gap-6">
-        {/* Speedometer-style ring */}
-        <div className="relative mx-auto h-32 w-32 shrink-0 sm:mx-0">
-          <svg viewBox="0 0 100 100" className="h-32 w-32 -rotate-90">
-            <circle cx="50" cy="50" r={radius} fill="none" stroke="#F1F5F9" strokeWidth="9" />
-            <circle
-              cx="50"
-              cy="50"
-              r={radius}
-              fill="none"
-              stroke={meta.ringColor}
-              strokeWidth="9"
-              strokeLinecap="round"
-              strokeDasharray={`${dash} ${circ}`}
-              style={{ transition: "stroke-dasharray 600ms ease" }}
-            />
-          </svg>
-          <div className="absolute inset-0 flex flex-col items-center justify-center">
-            <span className="text-2xl font-black text-[#0F172A]">{pct}%</span>
-            <span className="text-[10px] font-black uppercase tracking-[0.08em] text-[#64748B]">
-              {chasing ? `to ${chasing}` : "complete"}
-            </span>
+        <div className="grid grid-cols-4 gap-1.5">
+          {/* Ring tile */}
+          <div className="rounded-2xl border border-slate-100 bg-white p-1.5 text-center">
+            <div className="relative mx-auto h-11 w-11">
+              <svg viewBox="0 0 36 36" className="h-11 w-11 -rotate-90">
+                <circle cx="18" cy="18" r="15.9" fill="none" stroke="#F1F5F9" strokeWidth="3" />
+                <circle
+                  cx="18"
+                  cy="18"
+                  r="15.9"
+                  fill="none"
+                  strokeWidth="3"
+                  strokeLinecap="round"
+                  className={ring.stroke}
+                  strokeDasharray={`${pct} 100`}
+                />
+              </svg>
+              <div className="absolute inset-0 flex items-center justify-center text-xs font-black text-[#0F172A]">{pct}%</div>
+            </div>
+            <p className="mt-1 text-[7px] font-black uppercase tracking-[0.06em] text-[#64748B]">
+              {chasing ? `To ${chasing}` : "Done"}
+            </p>
           </div>
-        </div>
 
-        {/* Stats */}
-        <div className="grid flex-1 grid-cols-3 gap-2 sm:gap-3">
-          <Stat
-            label="Team biz"
+          <StatTile
+            label="Team Biz"
             value={lakh(snap.cappedTeamBusinessINR ?? 0)}
-            sub={chasing ? `/ ${lakh(TIER_REQ[chasing].teamBiz)}` : ""}
-            ok={chasing ? (snap.cappedTeamBusinessINR ?? 0) >= TIER_REQ[chasing].teamBiz : true}
+            icon={IndianRupee}
+            tone="text-emerald-700 bg-emerald-50"
           />
-          <Stat
-            label="Direct biz"
+          <StatTile
+            label="Direct"
             value={lakh(snap.directBusinessINR ?? 0)}
-            sub={chasing ? `/ ${lakh(TIER_REQ[chasing].directBiz)}` : ""}
-            ok={chasing ? (snap.directBusinessINR ?? 0) >= TIER_REQ[chasing].directBiz : true}
+            icon={Award}
+            tone="text-violet-600 bg-violet-50"
           />
-          <Stat
-            label="Active legs"
-            value={String(snap.activeLegsCount ?? 0)}
-            sub={chasing ? `/ ${TIER_REQ[chasing].legs}` : ""}
-            ok={chasing ? (snap.activeLegsCount ?? 0) >= TIER_REQ[chasing].legs : true}
+          <StatTile
+            label="Legs"
+            value={`${snap.activeLegsCount ?? 0}${req ? `/${req.legs}` : ""}`}
+            icon={Users}
+            tone="text-blue-600 bg-blue-50"
           />
         </div>
       </div>
-
-      {/* Cycle clock + mobile CTA */}
-      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 sm:mt-4">
-        <div className="inline-flex items-center gap-1.5 rounded-full bg-slate-50 px-3 py-1 text-[11px] font-bold text-slate-700">
-          <Clock className="h-3 w-3" />
-          {dLeft == null
-            ? "No deadline"
-            : dLeft < 0
-              ? <span className="text-rose-700">Cycle expired</span>
-              : dLeft <= 7
-                ? <span className="text-amber-700">{dLeft} days left ⚠</span>
-                : <>{dLeft} days left</>}
-        </div>
-        <Link
-          href="/rewards/luxury"
-          className="inline-flex items-center gap-1 rounded-full bg-[#C8103E] px-3 py-1.5 text-xs font-bold !text-white hover:bg-[#a00d33] sm:hidden"
-        >
-          View full progress <ArrowRight className="h-3 w-3" />
-        </Link>
-      </div>
-    </section>
+    </Link>
   );
 }
 
-function Stat({ label, value, sub, ok }: { label: string; value: string; sub?: string; ok?: boolean }) {
+function StatTile({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone: string }) {
   return (
-    <div className="rounded-2xl border border-slate-100 bg-[#F8FAFC] p-2 text-center sm:p-3">
-      <p className="text-[10px] font-black uppercase tracking-[0.06em] text-[#64748B]">{label}</p>
-      <p className={`mt-1 truncate text-sm font-black sm:text-base ${ok ? "text-emerald-700" : "text-[#0F172A]"}`}>{value}</p>
-      {sub && <p className="text-[9px] font-bold text-slate-400">{sub}</p>}
+    <div className="min-w-0 rounded-2xl border border-slate-100 bg-white p-1.5 text-center">
+      <div className={`mx-auto flex h-7 w-7 items-center justify-center rounded-xl ${tone}`}>
+        <Icon className="h-3.5 w-3.5" />
+      </div>
+      <p className="mt-1 break-words text-[12px] font-black leading-none text-[#0F172A]">{value}</p>
+      <p className="mt-1 text-[7px] font-black uppercase tracking-[0.04em] text-[#64748B]">{label}</p>
     </div>
   );
 }
