@@ -1,0 +1,19 @@
+src/components/landing/fancy-ids-section.tsx
+  s_964e0d3fba450c::t_878c212c0df91b 12-15,28-29,41-42,44-47,56-57,72-73,75-76,88-89,103-104,125-126,129,136-138,140,147,157,160,163-168,170,173-184,192-195,201,204-210,218,223,226-228,236-246,250-251,253,260-271,273-276
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "0297b73ccec17e1c81543a8bbad0077e35e56e65",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
