@@ -1,0 +1,28 @@
+src/app/dashboard/TeamPulseSection.tsx
+  s_964e0d3fba450c::t_6874f19d7b796c 19
+  s_964e0d3fba450c::t_beb59a12ff97b8 247-251
+  s_964e0d3fba450c::t_c9a2a334341d5e 283-285
+  s_964e0d3fba450c::t_69b714fa89cdff 315-317
+  s_964e0d3fba450c::t_dd4049e721bb0d 541
+  s_964e0d3fba450c::t_f1d29726fd1968 81
+  s_964e0d3fba450c::t_57a632264b9dcc 343-345
+  s_964e0d3fba450c::t_d643b551d52c9c 60
+  s_964e0d3fba450c::t_3514d2b3562e79 596
+  s_964e0d3fba450c::t_b3245d6dfa5e86 30,35
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "587f4e6ef5eb7eff8b40ae27d6f26a5d87394dd1",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
