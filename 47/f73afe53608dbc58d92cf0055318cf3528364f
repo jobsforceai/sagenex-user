@@ -1,0 +1,20 @@
+src/app/fancy-ids/page.tsx
+  s_964e0d3fba450c::t_22b3da2970cb0a 29
+  s_964e0d3fba450c::t_3a44d7d1846b21 99,104,114-137
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "47f73afe53608dbc58d92cf0055318cf3528364f",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
