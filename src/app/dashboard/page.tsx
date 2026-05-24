@@ -549,7 +549,7 @@ const DashboardPage = () => {
             </div>
           </section>
 
-          <div className="hidden">
+          <div className="hidden md:block">
             <LegGauges
               earningsMultiplier={earningsMultiplier}
               legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}

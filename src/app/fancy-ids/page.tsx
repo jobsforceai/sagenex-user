@@ -64,6 +64,12 @@ type RequestTarget = {
   monthlyPrice: number;
   source: "catalog" | "custom" | "astrology";
   note?: string;
+  /**
+   * For astrology requests, captures the exact name + DOB inputs that produced
+   * the matched displayId at preview time. Submitted as-is so the user can't
+   * silently change inputs between previewing and confirming.
+   */
+  astrologyInputs?: { name: string; dob: string };
 };
 
 export default function FancyIdsPage() {
@@ -88,40 +94,45 @@ export default function FancyIdsPage() {
     if (quiet) setRefreshing(true);
     else setLoading(true);
 
-    const [catalogRes, requestsRes, profileRes, walletRes] = await Promise.all([
-      getFancyIdCatalog(14),
-      getMyFancyIdRequests(),
-      getProfileData(),
-      getWalletData(),
-    ]);
+    try {
+      const [catalogRes, requestsRes, profileRes, walletRes] = await Promise.all([
+        getFancyIdCatalog(14),
+        getMyFancyIdRequests(),
+        getProfileData(),
+        getWalletData(),
+      ]);
 
-    if (catalogRes?.error) toast.error(catalogRes.error);
-    else setCatalog(catalogRes as FancyIdCatalogResponse);
+      if (catalogRes?.error) toast.error(catalogRes.error);
+      else setCatalog(catalogRes as FancyIdCatalogResponse);
 
-    if (requestsRes?.error) toast.error(requestsRes.error);
-    else setRequests((requestsRes.rows ?? []) as FancyIdRequestRow[]);
+      if (requestsRes?.error) toast.error(requestsRes.error);
+      else setRequests((requestsRes.rows ?? []) as FancyIdRequestRow[]);
 
-    if (!profileRes?.error) setProfile(profileRes);
-    if (!walletRes?.error) {
-      const walletPayload = walletRes as {
-        availableBalance?: number;
-        balance?: number;
-        summary?: { availableBalance?: number; balance?: number };
-        wallet?: { availableBalance?: number; balance?: number };
-      };
-      setBalance(Number(
-        walletPayload.summary?.availableBalance ??
-        walletPayload.summary?.balance ??
-        walletPayload.wallet?.availableBalance ??
-        walletPayload.wallet?.balance ??
-        walletPayload.availableBalance ??
-        walletPayload.balance ??
-        0
-      ));
+      if (!profileRes?.error) setProfile(profileRes);
+      if (!walletRes?.error) {
+        const walletPayload = walletRes as {
+          availableBalance?: number;
+          balance?: number;
+          summary?: { availableBalance?: number; balance?: number };
+          wallet?: { availableBalance?: number; balance?: number };
+        };
+        setBalance(Number(
+          walletPayload.summary?.availableBalance ??
+          walletPayload.summary?.balance ??
+          walletPayload.wallet?.availableBalance ??
+          walletPayload.wallet?.balance ??
+          walletPayload.availableBalance ??
+          walletPayload.balance ??
+          0
+        ));
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to load Fancy IDs.";
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
     }
-
-    setLoading(false);
-    setRefreshing(false);
   }, []);
 
   useEffect(() => {
@@ -152,22 +163,27 @@ export default function FancyIdsPage() {
     const trimmed = query.trim();
     if (!trimmed) return;
     setChecking(true);
-    const res = await checkFancyIdAvailability(trimmed);
-    setChecking(false);
-    if (res?.error) {
-      toast.error(res.error);
-      return;
-    }
-
-    const nextAvailability = res as FancyIdAvailability;
-    setAvailability(nextAvailability);
-    if (nextAvailability.state === "available") {
-      openRequest({
-        displayId: nextAvailability.displayId,
-        type: nextAvailability.type,
-        monthlyPrice: nextAvailability.monthlyPriceINR,
-        source: "custom",
-      });
+    try {
+      const res = await checkFancyIdAvailability(trimmed);
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+      const nextAvailability = res as FancyIdAvailability;
+      setAvailability(nextAvailability);
+      if (nextAvailability.state === "available") {
+        openRequest({
+          displayId: nextAvailability.displayId,
+          type: nextAvailability.type,
+          monthlyPrice: nextAvailability.monthlyPriceINR,
+          source: "custom",
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Availability check failed.";
+      toast.error(msg);
+    } finally {
+      setChecking(false);
     }
   };
 
@@ -178,36 +194,54 @@ export default function FancyIdsPage() {
       return;
     }
     setSubmitting(true);
-    const res =
-      requestTarget.source === "astrology"
-        ? await claimFancyIdAstrology(astroName.trim(), astroDob)
-        : await requestFancyId(requestTarget.displayId);
-    setSubmitting(false);
+    try {
+      // Astrology: submit the snapshotted inputs that produced the previewed
+      // match, NOT the current state of the form (the user may have edited
+      // name/DOB after preview opened the modal).
+      const res =
+        requestTarget.source === "astrology" && requestTarget.astrologyInputs
+          ? await claimFancyIdAstrology(
+              requestTarget.astrologyInputs.name,
+              requestTarget.astrologyInputs.dob,
+            )
+          : await requestFancyId(requestTarget.displayId);
 
-    if (res?.error) {
-      toast.error(res.error);
-      return;
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+
+      toast.success("Request submitted. First month has been reserved from your wallet.");
+      setRequestTarget(null);
+      setPurchaseAcknowledged(false);
+      setAvailability(null);
+      setAstroPreview(null);
+      setQuery("");
+      void load(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to submit request.";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
     }
-
-    toast.success("Request submitted. First month has been reserved from your wallet.");
-    setRequestTarget(null);
-    setPurchaseAcknowledged(false);
-    setAvailability(null);
-    setAstroPreview(null);
-    setQuery("");
-    void load(true);
   };
 
   const handleCancel = async (requestId: string) => {
     setSubmitting(true);
-    const res = await cancelFancyIdRequest(requestId);
-    setSubmitting(false);
-    if (res?.error) {
-      toast.error(res.error);
-      return;
+    try {
+      const res = await cancelFancyIdRequest(requestId);
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+      toast.success("Request cancelled and refunded.");
+      void load(true);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to cancel request.";
+      toast.error(msg);
+    } finally {
+      setSubmitting(false);
     }
-    toast.success("Request cancelled and refunded.");
-    void load(true);
   };
 
   const handleAstrologyPreview = async () => {
@@ -216,22 +250,33 @@ export default function FancyIdsPage() {
       return;
     }
     setAstroLoading(true);
-    const res = await previewFancyIdAstrology(astroName.trim(), astroDob);
-    setAstroLoading(false);
-    if (res?.error) {
-      toast.error(res.error);
-      return;
-    }
-    const preview = res as FancyIdAstrologyPreview;
-    setAstroPreview(preview);
-    if (preview.status === "available" && preview.matched) {
-      openRequest({
-        displayId: preview.matched.id,
-        type: "NUMEROLOGY",
-        monthlyPrice: preview.matched.priceINR,
-        source: "astrology",
-        note: preview.matched.reasonForShift,
-      });
+    try {
+      const res = await previewFancyIdAstrology(astroName.trim(), astroDob);
+      if (res?.error) {
+        toast.error(res.error);
+        return;
+      }
+      const preview = res as FancyIdAstrologyPreview;
+      setAstroPreview(preview);
+      if (preview.status === "available" && preview.matched) {
+        // Snapshot the inputs that produced THIS match — submission later
+        // uses these snapshotted values, not the latest state of the form,
+        // so the user can't change name/DOB between preview and confirm and
+        // end up paying for a different ID than they saw.
+        openRequest({
+          displayId: preview.matched.id,
+          type: "NUMEROLOGY",
+          monthlyPrice: preview.matched.priceINR,
+          source: "astrology",
+          note: preview.matched.reasonForShift,
+          astrologyInputs: { name: astroName.trim(), dob: astroDob },
+        });
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Astrology preview failed.";
+      toast.error(msg);
+    } finally {
+      setAstroLoading(false);
     }
   };
 
