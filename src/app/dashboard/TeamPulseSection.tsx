@@ -16,6 +16,7 @@ import Image from "next/image";
 import { Activity, AlertTriangle, BarChart3, Flame, IndianRupee, MessageCircle, PhoneCall, Sparkles, Trophy, UserPlus, Users, Zap, ChevronRight } from "lucide-react";
 import { getTeamPulse } from "@/actions/user";
 import { track } from "@/lib/posthog";
+import { UserIdLabel } from "@/components/common/UserIdLabel";
 
 interface AtRiskMember {
   userId: string;
@@ -26,10 +27,12 @@ interface AtRiskMember {
   packageUSD: number;
   daysSinceActivity: number | null;
   daysSinceTopUp: number | null;
+  fancyId?: string | null;
 }
 
 interface HotOpportunity {
   userId: string;
+  fancyId?: string | null;
   fullName: string;
   phone?: string | null;
   type: "TO_3X_LEG" | "TO_4X_LEG" | "INACTIVE_HIGH_PACKAGE";
@@ -54,6 +57,7 @@ interface RankProgress {
 
 interface RecentWin {
   userId: string;
+  fancyId?: string | null;
   fullName: string;
   amount: number;
   daysAgo: number;
@@ -74,6 +78,7 @@ interface ActionPlanItem {
   headline: string;
   detail?: string;
   targetUserId?: string;
+  targetFancyId?: string | null;
   targetPhone?: string | null;
   whatsappMessage?: string;
   priority: "high" | "medium" | "low";
@@ -239,7 +244,11 @@ export default function TeamPulseSection() {
                     <span className={`mt-1 h-1.5 w-1.5 shrink-0 rounded-full ${a.priority === "high" ? "bg-rose-500" : a.priority === "medium" ? "bg-amber-500" : "bg-emerald-500"}`} />
                     <div className="min-w-0 flex-1">
                       <p className="line-clamp-3 text-[8px] font-black leading-[1.12] text-[#0F172A]">{a.headline}</p>
-                      {a.targetUserId && <p className="mt-1 inline-flex rounded-full bg-slate-50 px-1.5 py-0.5 text-[7px] font-black text-[#0F172A]">{a.targetUserId}</p>}
+                      {a.targetUserId && (
+                        <p className="mt-1 inline-flex rounded-full bg-slate-50 px-1.5 py-0.5 text-[7px] font-black text-[#0F172A]">
+                          <UserIdLabel userId={a.targetUserId} fancyId={a.targetFancyId ?? null} variant="fancy-only" />
+                        </p>
+                      )}
                     </div>
                   </div>
                   {(a.targetPhone || w) && (
@@ -271,7 +280,9 @@ export default function TeamPulseSection() {
                 <div key={o.userId} className="rounded-xl border border-amber-100 bg-white p-1.5">
                   <div className="flex items-start justify-between gap-1">
                     <p className="min-w-0 flex-1 break-words text-[8px] font-black leading-[1.1] text-[#0F172A]">{displayName(o.fullName)}</p>
-                    <span className="shrink-0 rounded-full bg-amber-50 px-1.5 py-0.5 text-[7px] font-black text-[#0F172A]">{o.userId}</span>
+                    <span className="shrink-0 rounded-full bg-amber-50 px-1.5 py-0.5 text-[7px] font-black text-[#0F172A]">
+                      <UserIdLabel userId={o.userId} fancyId={o.fancyId ?? null} variant="fancy-only" />
+                    </span>
                   </div>
                   <p className="mt-0.5 line-clamp-3 text-[8px] font-bold leading-[1.12] text-amber-700">{o.headline}</p>
                   <div className="mt-1 h-1.5 overflow-hidden rounded-full bg-amber-100">
@@ -301,7 +312,9 @@ export default function TeamPulseSection() {
                     <div className="min-w-0 flex-1">
                       <div>
                         <p className="break-words text-[8px] font-black leading-[1.1] text-[#0F172A]">{displayName(m.fullName)}</p>
-                        <p className="mt-0.5 text-[7px] font-black text-[#0F172A]">{m.userId}</p>
+                        <p className="mt-0.5 text-[7px] font-black text-[#0F172A]">
+                          <UserIdLabel userId={m.userId} fancyId={m.fancyId ?? null} variant="fancy-only" />
+                        </p>
                       </div>
                       <p className="line-clamp-2 text-[7.5px] font-bold leading-[1.1] text-rose-700">{m.reason}</p>
                     </div>
@@ -327,7 +340,9 @@ export default function TeamPulseSection() {
               <div key={`${w.userId}-${w.amount}`} className="flex items-center justify-between gap-1 p-1.5">
                 <div className="min-w-0 flex-1">
                   <p className="break-words text-[8px] font-black leading-[1.1] text-[#0F172A]">{displayName(w.fullName)}</p>
-                  <p className="truncate text-[7.5px] font-bold text-[#64748B]">{w.userId} · {w.daysAgo}d</p>
+                  <p className="truncate text-[7.5px] font-bold text-[#64748B]">
+                    <UserIdLabel userId={w.userId} fancyId={w.fancyId ?? null} variant="fancy-only" /> · {w.daysAgo}d
+                  </p>
                 </div>
                 <span className="rounded-full bg-emerald-50 px-1 py-0.5 text-[7px] font-black text-emerald-700">+{inrCompact(w.amount)}</span>
               </div>
@@ -445,9 +460,17 @@ export default function TeamPulseSection() {
                 : <>You’re at <span className="text-emerald-600">{rp.currentMultiplier}x</span> — max tier</>}
             </p>
           </div>
-          {hasNextMultiplier && (
-            <span className="rounded-full bg-slate-50 px-3 py-1 text-[11px] font-black text-[#0F172A]">{rp.blockers.length} thing{rp.blockers.length === 1 ? '' : 's'} left</span>
-          )}
+          <div className="flex items-center gap-2">
+            {hasNextMultiplier && (
+              <span className="rounded-full bg-slate-50 px-3 py-1 text-[11px] font-black text-[#0F172A]">{rp.blockers.length} thing{rp.blockers.length === 1 ? '' : 's'} left</span>
+            )}
+            <a href="/rank-simulator" className="inline-flex items-center gap-1.5 rounded-full bg-[#0F172A] px-3 py-1 text-[11px] font-black !text-white hover:opacity-90">
+              Try simulator
+            </a>
+            <a href="/predicted-income" className="inline-flex items-center gap-1.5 rounded-full bg-[#C8103E] px-3 py-1 text-[11px] font-black !text-white hover:opacity-90">
+              Predict income
+            </a>
+          </div>
         </div>
 
         {hasNextMultiplier ? (
@@ -515,7 +538,7 @@ export default function TeamPulseSection() {
                   <li key={m.userId} className="rounded-xl border border-rose-100 bg-white p-3">
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-black text-[#0F172A]">{displayName(m.fullName)} <span className="text-xs font-bold text-[#64748B]">· {m.userId}</span></p>
+                        <p className="truncate text-sm font-black text-[#0F172A]">{displayName(m.fullName)} <span className="text-xs font-bold text-[#64748B]">· <UserIdLabel userId={m.userId} fancyId={m.fancyId ?? null} variant="fancy-only" /></span></p>
                         <p className="mt-0.5 text-[11px] text-rose-700">{m.reason}</p>
                       </div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black ${m.severity === 'high' ? 'bg-rose-100 text-rose-700' : 'bg-amber-100 text-amber-800'}`}>
@@ -570,7 +593,7 @@ export default function TeamPulseSection() {
                 const w = wapp(o.phone, text);
                 return (
                   <li key={o.userId} className="rounded-xl border border-amber-100 bg-white p-3">
-                    <p className="truncate text-sm font-black text-[#0F172A]">{displayName(o.fullName)} <span className="text-xs font-bold text-[#64748B]">· {o.userId}</span></p>
+                    <p className="truncate text-sm font-black text-[#0F172A]">{displayName(o.fullName)} <span className="text-xs font-bold text-[#64748B]">· <UserIdLabel userId={o.userId} fancyId={o.fancyId ?? null} variant="fancy-only" /></span></p>
                     <p className="mt-0.5 text-[11px] font-bold text-amber-700">{o.headline}</p>
                     <p className="mt-1 line-clamp-2 text-[11px] text-[#64748B]">{o.detail}</p>
                     <div className="mt-2 flex gap-1.5">

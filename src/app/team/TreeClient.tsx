@@ -7,6 +7,7 @@ import { transformDataToFlow } from "@/lib/utils";
 import { UserNode } from "@/types";
 import { Expand, Lock, Maximize2, Minus, Plus, Search, Unlock, PhoneCall, MessageCircle, X } from "lucide-react";
 import { getTeamNodeSubtree, findUserInDownline, getTeamMemberContact } from "@/actions/user";
+import { UserIdLabel } from "@/components/common/UserIdLabel";
 import { track } from "@/lib/posthog";
 import { toast } from "sonner";
 
@@ -22,7 +23,7 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
   const [searchInput, setSearchInput] = useState("");
   const [searching, setSearching] = useState(false);
   // Selected-member action bar
-  const [selected, setSelected] = useState<{ userId: string; fullName?: string; phone?: string | null; packageUSD?: number; isPackageActive?: boolean; sponsor?: { userId: string; fullName: string } | null; totalLifetimeEarnings?: number; lastMonthEarnings?: number } | null>(null);
+  const [selected, setSelected] = useState<{ userId: string; fancyId?: string | null; fullName?: string; phone?: string | null; packageUSD?: number; isPackageActive?: boolean; sponsor?: { userId: string; fancyId?: string | null; fullName: string } | null; totalLifetimeEarnings?: number; lastMonthEarnings?: number } | null>(null);
   const [selectedLoading, setSelectedLoading] = useState(false);
 
   const { nodes, edges } = useMemo(() => transformDataToFlow(tree), [tree]);
@@ -67,11 +68,14 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
             } else {
               setSelected({
                 userId: res.member.userId,
+                fancyId: (res.member as any).fancyId ?? null,
                 fullName: res.member.fullName,
                 phone: res.member.phone,
                 packageUSD: res.member.packageUSD,
                 isPackageActive: res.member.isPackageActive,
-                sponsor: res.member.sponsor ?? null,
+                sponsor: res.member.sponsor
+                  ? { userId: res.member.sponsor.userId, fancyId: (res.member.sponsor as any).fancyId ?? null, fullName: res.member.sponsor.fullName }
+                  : null,
                 totalLifetimeEarnings: res.member.totalLifetimeEarnings,
                 lastMonthEarnings: res.member.lastMonthEarnings,
               });
@@ -224,12 +228,18 @@ const TreeClient = ({ tree: initialTree }: TreeClientProps) => {
               <div className="min-w-0">
                 {selected.sponsor && (
                   <p className="mb-1 truncate text-[10px] text-[#64748B]">
-                    Sponsor · <span className="font-bold text-[#0F172A]">{selected.sponsor.userId}</span> {selected.sponsor.fullName ? `· ${selected.sponsor.fullName}` : ""}
+                    Sponsor ·{" "}
+                    <span className="font-bold text-[#0F172A]">
+                      <UserIdLabel userId={selected.sponsor.userId} fancyId={selected.sponsor.fancyId ?? null} variant="fancy-only" />
+                    </span>
+                    {selected.sponsor.fullName ? ` · ${selected.sponsor.fullName}` : ""}
                   </p>
                 )}
                 <p className="text-[9px] font-black uppercase tracking-[0.1em] text-[#64748B] sm:text-[10px]">Selected member</p>
                 <p className="mt-1 truncate text-sm font-black text-[#0F172A] sm:text-base">{selected.fullName ?? selected.userId}</p>
-                <p className="text-xs font-bold text-[#64748B]">{selected.userId}</p>
+                <p className="text-xs font-bold text-[#64748B]">
+                  <UserIdLabel userId={selected.userId} fancyId={selected.fancyId ?? null} variant="fancy-only" />
+                </p>
                 {typeof selected.packageUSD === "number" && selected.packageUSD > 0 && (
                   <p className="mt-1 text-[11px] text-[#0F172A]">
                     Package ₹{selected.packageUSD.toLocaleString("en-IN")} · {selected.isPackageActive ? <span className="font-bold text-emerald-700">Active</span> : <span className="font-bold text-slate-500">Inactive</span>}

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "@/app/context/AuthContext";
 import { useRouter } from "next/navigation";
+import { UserIdLabel } from "@/components/common/UserIdLabel";
 import {
   Card,
   CardContent,
@@ -367,7 +368,12 @@ const ProfilePage = () => {
                 <CardTitle className="text-xs uppercase tracking-wide text-gray-400">User ID</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-lg font-semibold">{profile.userId}</p>
+                <UserIdLabel
+                  userId={profile.userId}
+                  fancyId={(profile as any).fancyId ?? null}
+                  variant="big"
+                  className="text-lg font-semibold"
+                />
               </CardContent>
             </Card>
             {ticketBalance && (
