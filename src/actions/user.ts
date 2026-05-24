@@ -410,6 +410,154 @@ export async function executeTransfer(
     return handleApiResponse(res);
 }
 
+export type FancyIdReason =
+    | "short-id"
+    | "all-same-digit"
+    | "triple-streak"
+    | "quad-streak"
+    | "penta-streak"
+    | "round-1000"
+    | "big-round"
+    | "palindrome"
+    | "sequential-asc"
+    | "sequential-desc"
+    | "mirror-pair"
+    | "double-pair";
+
+export type FancyIdStatus = "available" | "taken";
+export type FancyIdType = "PATTERN" | "CUSTOM" | "NUMEROLOGY";
+
+export interface FancyIdCatalogItem {
+    id: string;
+    numeric: number;
+    monthlyPriceINR?: number;
+    priceINR?: number;
+    billingPeriod?: "monthly";
+    status?: FancyIdStatus;
+    reasons: FancyIdReason[];
+}
+
+export interface FancyIdCatalogTier {
+    key: string;
+    label: string;
+    badge: string;
+    minMonthlyPriceINR?: number;
+    minPriceINR?: number;
+    items: FancyIdCatalogItem[];
+}
+
+export interface FancyIdCatalogResponse {
+    counterAt: number;
+    tiers: FancyIdCatalogTier[];
+    generatedAt: string;
+}
+
+export type FancyIdAvailability =
+    | { state: "invalid"; error: string }
+    | { state: "taken"; displayId: string }
+    | {
+        state: "mine-pending";
+        displayId: string;
+        type: FancyIdType;
+        monthlyPriceINR: number;
+    }
+    | {
+        state: "available";
+        displayId: string;
+        type: FancyIdType;
+        monthlyPriceINR: number;
+        billingPeriod: "monthly";
+    };
+
+export interface FancyIdRequestRow {
+    _id: string;
+    requestedId: string;
+    displayId: string;
+    type: FancyIdType;
+    status: "PENDING" | "APPROVED" | "REJECTED" | "CANCELLED";
+    topBidAmount: number;
+    myBidAmount: number;
+    myBidStatus: "ACTIVE" | "OUTBID" | "REFUNDED" | "WON" | null;
+    iAmTopBidder: boolean;
+    updatedAt: string;
+}
+
+export interface FancyIdAstrologyPreview {
+    profile: {
+        lifePath: number;
+        nameNumber: number;
+        rawLuckyNumber: number;
+        coreNumber: number;
+        meaning: string;
+    };
+    matched: {
+        id: string;
+        numeric: number;
+        priceINR: number;
+        reasonForShift?: string;
+    } | null;
+    status: "available" | "no-match";
+    message?: string;
+}
+
+export async function getFancyIdCatalog(perTier: number = 16) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/catalog?perTier=${perTier}`, {
+        cache: "no-store",
+    });
+    return handleApiResponse(res);
+}
+
+export async function checkFancyIdAvailability(id: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/availability?id=${encodeURIComponent(id)}`, {
+        headers: await getAuthHeaders(),
+        cache: "no-store",
+    });
+    return handleApiResponse(res);
+}
+
+export async function requestFancyId(fancyId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/request`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ fancyId }),
+    });
+    return handleApiResponse(res);
+}
+
+export async function cancelFancyIdRequest(requestId: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/requests/${encodeURIComponent(requestId)}/cancel`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
+export async function previewFancyIdAstrology(name: string, dob: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/astrology/preview`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ name, dob }),
+    });
+    return handleApiResponse(res);
+}
+
+export async function claimFancyIdAstrology(name: string, dob: string) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/astrology/claim`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ name, dob }),
+    });
+    return handleApiResponse(res);
+}
+
+export async function getMyFancyIdRequests() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/my-requests`, {
+        headers: await getAuthHeaders(),
+        cache: "no-store",
+    });
+    return handleApiResponse(res);
+}
+
 export async function createCryptoDepositInvoice(amount: number, roiPlanType?: 'old' | 'new') {
     const res = await fetch(`${API_BASE_URL}/api/v1/wallet/deposits/crypto`, {
         method: "POST",

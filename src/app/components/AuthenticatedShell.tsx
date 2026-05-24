@@ -17,6 +17,7 @@ const SHELL_ROUTES = [
   "/payouts",
   "/salary",
   "/sgnx-gold",
+  "/fancy-ids",
   "/courses",
   "/kyc",
   "/profile",
