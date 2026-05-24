@@ -1,0 +1,26 @@
+src/app/fancy-ids/page.tsx
+  s_964e0d3fba450c::t_d9ae4874b95431 259-279
+  s_964e0d3fba450c::t_6f432d51eff98e 253-258
+  s_964e0d3fba450c::t_d8dbcf2985e1c8 97-106,108-134
+  s_964e0d3fba450c::t_0e35f2a846153c 166-186
+  s_964e0d3fba450c::t_ba0a60f83aed68 67-72
+  s_964e0d3fba450c::t_bf4aab75c21ff5 197-207,209-226,231-243
+src/app/dashboard/page.tsx
+  s_964e0d3fba450c::t_1375d788610b10 552
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "d8b494e49bd8728ed6da6ce174ed526a8ea8a008",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
