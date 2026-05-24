@@ -2,7 +2,7 @@
 
 /**
  * Rank Simulator — interactive "what-if" tool. Leader sees each of their
- * directs as a row with a slider that adds hypothetical 120-day business
+ * directs as a row with a slider that adds hypothetical 30-day business
  * to that leg. As they drag, the simulator recomputes:
  *   - qualifying legs at the 3x threshold (₹1.5L)
  *   - qualifying legs at the 4x threshold (₹2L)
@@ -21,12 +21,14 @@ interface Direct {
   fullName: string;
   packageUSD: number;
   isPackageActive: boolean;
-  legBusiness120d: number;
+  legBusiness30d: number;
 }
 
 interface State {
   currentMultiplier: number;
   isKycVerified: boolean;
+  multiplierDeadline?: string | null;
+  isWindowClosed?: boolean;
   thresholds: {
     threeX: { legs: number; legBusiness: number; teamBusiness: number };
     fourX:  { legs: number; legBusiness: number; teamBusiness: number };
@@ -51,7 +53,7 @@ export default function RankSimulatorPage() {
   const [data, setData] = useState<State | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  /** per-direct extra 120d business they'd add (in ₹) */
+  /** per-direct extra 30d business they'd add (in ₹) */
   const [extra, setExtra] = useState<Record<string, number>>({});
 
   useEffect(() => {
@@ -77,7 +79,7 @@ export default function RankSimulatorPage() {
     let teamBiz = 0;
     const simulatedLegs = data.directs.map((d) => {
       const boost = d.isPackageActive ? (extra[d.userId] ?? 0) : 0;
-      const newBiz = d.legBusiness120d + boost;
+      const newBiz = d.legBusiness30d + boost;
       if (d.isPackageActive) {
         if (newBiz >= t4.legBusiness) qualifying4 += 1;
         if (newBiz >= t3.legBusiness) qualifying3 += 1;
@@ -111,6 +113,10 @@ export default function RankSimulatorPage() {
 
   const t = sim.target === 3 ? data.thresholds.threeX : data.thresholds.fourX;
   const totalBoost = Object.values(extra).reduce((s, v) => s + v, 0);
+  const isFrozen = !!data.isWindowClosed;
+  const deadlineDate = data.multiplierDeadline
+    ? new Date(data.multiplierDeadline).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" })
+    : null;
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
@@ -132,8 +138,16 @@ export default function RankSimulatorPage() {
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/12 px-3 py-1 text-[10px] font-black uppercase tracking-[0.1em] !text-white/80">
                 <Sparkles className="h-3.5 w-3.5 text-amber-300" /> Rank Simulator
               </span>
-              <h1 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">What if you could unlock {sim.unlocks === data.currentMultiplier ? "the next tier" : `${sim.unlocks}x today`}?</h1>
-              <p className="mt-1.5 text-xs !text-white/65 sm:text-sm">Drag the sliders below to see how much each leg needs to push you to 3x or 4x.</p>
+              <h1 className="mt-3 text-2xl font-black leading-tight sm:text-3xl">
+                {isFrozen
+                  ? `Your tier is locked at ${data.currentMultiplier}x`
+                  : `What if you could unlock ${sim.unlocks === data.currentMultiplier ? "the next tier" : `${sim.unlocks}x today`}?`}
+              </h1>
+              <p className="mt-1.5 text-xs !text-white/65 sm:text-sm">
+                {isFrozen
+                  ? "The simulator below is a hypothetical view — your window has closed, so it won't change your live multiplier."
+                  : "Drag the sliders below to see how much each leg needs to push you to 3x or 4x."}
+              </p>
             </div>
             <div className="flex flex-col items-end gap-1">
               <span className="text-[10px] font-black uppercase tracking-[0.1em] !text-white/55">Right now</span>
@@ -148,20 +162,43 @@ export default function RankSimulatorPage() {
               <p className="mt-1.5 text-xl font-black">{sim.target === 4 ? sim.qualifying4 : sim.qualifying3}/{t.legs}</p>
             </div>
             <div className="rounded-2xl border border-white/15 bg-white/12 p-3 backdrop-blur">
-              <p className="text-[10px] font-black uppercase tracking-[0.08em] !text-white/60">Team business · 120d</p>
+              <p className="text-[10px] font-black uppercase tracking-[0.08em] !text-white/60">Team business · 30d</p>
               <p className="mt-1.5 text-xl font-black">{inrCompact(sim.teamBiz)} <span className="text-[10px] font-bold !text-white/55">/ {inrCompact(t.teamBusiness)}</span></p>
             </div>
-            <div className={`rounded-2xl border p-3 backdrop-blur ${sim.unlocks > data.currentMultiplier ? "border-emerald-300/40 bg-emerald-400/20" : "border-white/15 bg-white/12"}`}>
-              <p className="text-[10px] font-black uppercase tracking-[0.08em] !text-white/60">You unlock</p>
-              <p className={`mt-1.5 text-xl font-black ${sim.unlocks > data.currentMultiplier ? "text-emerald-200" : ""}`}>
-                {sim.unlocks}x
-                {sim.unlocks > data.currentMultiplier && <span className="ml-2 text-[10px] font-black uppercase tracking-[0.1em] text-emerald-200">UNLOCKED!</span>}
+            <div className={`rounded-2xl border p-3 backdrop-blur ${
+              isFrozen ? "border-white/15 bg-white/12"
+              : sim.unlocks > data.currentMultiplier ? "border-emerald-300/40 bg-emerald-400/20"
+              : "border-white/15 bg-white/12"
+            }`}>
+              <p className="text-[10px] font-black uppercase tracking-[0.08em] !text-white/60">
+                {isFrozen ? "Frozen at" : "You unlock"}
+              </p>
+              <p className={`mt-1.5 text-xl font-black ${!isFrozen && sim.unlocks > data.currentMultiplier ? "text-emerald-200" : ""}`}>
+                {isFrozen ? `${data.currentMultiplier}x` : `${sim.unlocks}x`}
+                {!isFrozen && sim.unlocks > data.currentMultiplier && (
+                  <span className="ml-2 text-[10px] font-black uppercase tracking-[0.1em] text-emerald-200">UNLOCKED!</span>
+                )}
+                {isFrozen && (
+                  <span className="ml-2 text-[10px] font-black uppercase tracking-[0.1em] !text-white/60">LOCKED</span>
+                )}
               </p>
             </div>
           </div>
 
-          {/* Gap pill */}
-          {sim.gaps.length > 0 && sim.unlocks < 4 && (
+          {/* Frozen-window banner (takes precedence over the gap pill) */}
+          {isFrozen && (
+            <div className="mt-3 rounded-2xl border border-rose-300/40 bg-rose-400/15 px-3 py-2.5 text-xs !text-white/95">
+              <p className="font-black uppercase tracking-[0.08em] text-rose-200">Qualification window closed</p>
+              <p className="mt-1 !text-white/85">
+                Your multiplier window {deadlineDate ? <>closed on <span className="font-black">{deadlineDate}</span></> : "has closed"}. Your multiplier is frozen at <span className="font-black">{data.currentMultiplier}x</span> permanently —
+                even hitting the 3x / 4x bar after this date won&apos;t auto-promote you.
+                The numbers below show what you <em>would</em> qualify for if the window were open. Please contact admin if you believe you&apos;re eligible for review.
+              </p>
+            </div>
+          )}
+
+          {/* Gap pill — only shown when the window is still open */}
+          {!isFrozen && sim.gaps.length > 0 && sim.unlocks < 4 && (
             <div className="mt-3 rounded-2xl border border-amber-300/30 bg-amber-400/15 px-3 py-2 text-xs !text-white/90">
               <span className="font-black">To unlock {sim.target}x you still need:</span>
               <ul className="mt-1 space-y-0.5">
@@ -170,7 +207,7 @@ export default function RankSimulatorPage() {
             </div>
           )}
           {totalBoost > 0 && (
-            <p className="mt-3 text-[11px] !text-white/70">You're projecting an extra <span className="font-black !text-white">{inrCompact(totalBoost)}</span> across {Object.values(extra).filter(v => v > 0).length} leg{Object.values(extra).filter(v => v > 0).length === 1 ? "" : "s"} in the next 120 days.</p>
+            <p className="mt-3 text-[11px] !text-white/70">You're projecting an extra <span className="font-black !text-white">{inrCompact(totalBoost)}</span> across {Object.values(extra).filter(v => v > 0).length} leg{Object.values(extra).filter(v => v > 0).length === 1 ? "" : "s"} in the next 30 days.</p>
           )}
         </section>
 
@@ -200,7 +237,7 @@ export default function RankSimulatorPage() {
                         <p className="truncate text-sm font-black text-[#0F172A]">{maskName(d.fullName)} <span className="text-xs font-bold text-[#64748B]">· {d.userId}</span></p>
                         <p className="mt-0.5 text-[11px] text-[#64748B]">
                           {inactive ? <span className="inline-flex items-center gap-1 font-bold text-slate-500"><Lock className="h-3 w-3" /> Inactive — reactivate to include</span>
-                            : <>Current 120d business: <span className="font-black text-[#0F172A]">{inrCompact(d.legBusiness120d)}</span></>}
+                            : <>Current 30d business: <span className="font-black text-[#0F172A]">{inrCompact(d.legBusiness30d)}</span></>}
                         </p>
                       </div>
                       <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.05em] ${tier === "4x" ? "bg-emerald-100 text-emerald-700" : tier === "3x" ? "bg-sky-100 text-sky-700" : "bg-slate-100 text-slate-500"}`}>
@@ -222,7 +259,7 @@ export default function RankSimulatorPage() {
                           />
                           <span className="shrink-0 rounded-lg bg-[#0F172A] px-2.5 py-1 text-[11px] font-black !text-white">+ {inrCompact(extra[d.userId] ?? 0)}</span>
                         </div>
-                        <p className="mt-1.5 text-[10px] text-[#64748B]">Drag to add hypothetical business for this leg in the next 120 days. Projected: <span className="font-bold text-[#0F172A]">{inrCompact(d.simulatedBiz)}</span></p>
+                        <p className="mt-1.5 text-[10px] text-[#64748B]">Drag to add hypothetical business for this leg in the next 30 days. Projected: <span className="font-bold text-[#0F172A]">{inrCompact(d.simulatedBiz)}</span></p>
                       </>
                     )}
                   </div>
