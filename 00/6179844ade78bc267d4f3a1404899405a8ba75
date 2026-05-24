@@ -1,0 +1,23 @@
+src/app/rank-simulator/page.tsx
+  s_964e0d3fba450c::t_bcce78c7c6c887 116-119
+  s_964e0d3fba450c::t_eb0bd4aa938048 141-150
+  s_964e0d3fba450c::t_a29d149ea01512 168-183,188-201
+  s_964e0d3fba450c::t_1bf5678839a86d 5,24,56,82,165,210,240,262
+  s_964e0d3fba450c::t_d76c62253008ca 30-31
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.0",
+  "base_commit_sha": "006179844ade78bc267d4f3a1404899405a8ba75",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
