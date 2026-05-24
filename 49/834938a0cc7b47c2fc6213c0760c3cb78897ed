@@ -1,0 +1,27 @@
+src/components/common/UserIdLabel.tsx
+  s_964e0d3fba450c::t_f3c581ab594aef 1-91
+src/app/team/TreeClient.tsx
+  s_964e0d3fba450c::t_67f7a3a073f3bf 71,76-78
+  s_964e0d3fba450c::t_d73b41a006cf54 10
+  s_964e0d3fba450c::t_8ba9d7371f8013 26
+  s_964e0d3fba450c::t_a0d871ca30b929 231-235,240-242
+src/app/profile/page.tsx
+  s_964e0d3fba450c::t_4a2cb492a95631 371-376
+  s_964e0d3fba450c::t_14a9a2ef8264f2 6
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.1",
+  "base_commit_sha": "49834938a0cc7b47c2fc6213c0760c3cb78897ed",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
