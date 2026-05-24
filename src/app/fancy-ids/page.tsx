@@ -26,6 +26,7 @@ import {
   FancyIdRequestRow,
   getFancyIdCatalog,
   getMyFancyIdRequests,
+  getDashboardData,
   getProfileData,
   getWalletData,
   previewFancyIdAstrology,
@@ -95,11 +96,12 @@ export default function FancyIdsPage() {
     else setLoading(true);
 
     try {
-      const [catalogRes, requestsRes, profileRes, walletRes] = await Promise.all([
+      const [catalogRes, requestsRes, profileRes, walletRes, dashboardRes] = await Promise.all([
         getFancyIdCatalog(14),
         getMyFancyIdRequests(),
         getProfileData(),
         getWalletData(),
+        getDashboardData(),
       ]);
 
       if (catalogRes?.error) toast.error(catalogRes.error);
@@ -109,23 +111,30 @@ export default function FancyIdsPage() {
       else setRequests((requestsRes.rows ?? []) as FancyIdRequestRow[]);
 
       if (!profileRes?.error) setProfile(profileRes);
-      if (!walletRes?.error) {
-        const walletPayload = walletRes as {
-          availableBalance?: number;
-          balance?: number;
-          summary?: { availableBalance?: number; balance?: number };
-          wallet?: { availableBalance?: number; balance?: number };
-        };
-        setBalance(Number(
-          walletPayload.summary?.availableBalance ??
-          walletPayload.summary?.balance ??
-          walletPayload.wallet?.availableBalance ??
-          walletPayload.wallet?.balance ??
-          walletPayload.availableBalance ??
-          walletPayload.balance ??
-          0
-        ));
-      }
+
+      // Wallet balance — try dashboard payload first (which is what the
+      // sidebar uses and is known reliable), fall back to the wallet
+      // endpoint payload across all the field shapes the backend has
+      // used over time.
+      const walletPayload = (!walletRes?.error ? walletRes : null) as {
+        availableBalance?: number;
+        balance?: number;
+        summary?: { availableBalance?: number; balance?: number };
+        wallet?: { availableBalance?: number; balance?: number };
+      } | null;
+      const dashPayload = (!dashboardRes?.error ? dashboardRes : null) as {
+        wallet?: { availableBalance?: number };
+      } | null;
+      setBalance(Number(
+        dashPayload?.wallet?.availableBalance ??
+        walletPayload?.summary?.availableBalance ??
+        walletPayload?.summary?.balance ??
+        walletPayload?.wallet?.availableBalance ??
+        walletPayload?.wallet?.balance ??
+        walletPayload?.availableBalance ??
+        walletPayload?.balance ??
+        0
+      ));
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to load Fancy IDs.";
       toast.error(msg);
