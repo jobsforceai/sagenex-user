@@ -93,18 +93,23 @@ export default function LuxuryPathSection() {
           <StatTile
             label="Team Biz"
             value={lakh(snap.cappedTeamBusinessINR ?? 0)}
+            target={req ? `/ ${lakh(req.teamBiz)}` : undefined}
+            ok={req ? (snap.cappedTeamBusinessINR ?? 0) >= req.teamBiz : true}
             icon={IndianRupee}
             tone="text-emerald-700 bg-emerald-50"
           />
           <StatTile
             label="Direct"
             value={lakh(snap.directBusinessINR ?? 0)}
+            target={req ? `/ ${lakh(req.directBiz)}` : undefined}
+            ok={req ? (snap.directBusinessINR ?? 0) >= req.directBiz : true}
             icon={Award}
             tone="text-violet-600 bg-violet-50"
           />
           <StatTile
             label="Legs"
             value={`${snap.activeLegsCount ?? 0}${req ? `/${req.legs}` : ""}`}
+            ok={req ? (snap.activeLegsCount ?? 0) >= req.legs : true}
             icon={Users}
             tone="text-blue-600 bg-blue-50"
           />
@@ -114,13 +119,14 @@ export default function LuxuryPathSection() {
   );
 }
 
-function StatTile({ label, value, icon: Icon, tone }: { label: string; value: string; icon: any; tone: string }) {
+function StatTile({ label, value, target, ok, icon: Icon, tone }: { label: string; value: string; target?: string; ok?: boolean; icon: any; tone: string }) {
   return (
     <div className="min-w-0 rounded-2xl border border-slate-100 bg-white p-1.5 text-center">
       <div className={`mx-auto flex h-7 w-7 items-center justify-center rounded-xl ${tone}`}>
         <Icon className="h-3.5 w-3.5" />
       </div>
-      <p className="mt-1 break-words text-[12px] font-black leading-none text-[#0F172A]">{value}</p>
+      <p className={`mt-1 break-words text-[12px] font-black leading-none ${ok ? "text-emerald-700" : "text-[#0F172A]"}`}>{value}</p>
+      {target && <p className="mt-0.5 text-[8px] font-bold leading-none text-slate-400">{target}</p>}
       <p className="mt-1 text-[7px] font-black uppercase tracking-[0.04em] text-[#64748B]">{label}</p>
     </div>
   );
