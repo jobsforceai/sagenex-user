@@ -89,8 +89,11 @@ export async function setPassword(password: string, confirmPassword: string) {
   return handleApiResponse(res);
 }
 export async function getProfileData() {
+    // Avoid Next.js fetch caching — profile state (fancyId, package, etc.)
+    // can change at any time and stale reads cause confusing UI.
     const res = await fetch(`${API_BASE_URL}/api/v1/user/profile`, {
         headers: await getAuthHeaders(),
+        cache: "no-store",
       });
       return handleApiResponse(res);
 }
