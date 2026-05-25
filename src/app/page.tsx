@@ -20,7 +20,7 @@ export default function Home() {
       <MarqueeTicker />
       <AboutSection />
       <InvestmentPillars />
-      <FancyIdsSection />
+      {/* <FancyIdsSection /> */}
       <ProfitCalculator />
       <EcosystemSection />
       {/* <SagenexAcademy /> */}
