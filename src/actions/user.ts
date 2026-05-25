@@ -522,11 +522,11 @@ export async function checkFancyIdAvailability(id: string) {
     return handleApiResponse(res);
 }
 
-export async function requestFancyId(fancyId: string) {
+export async function requestFancyId(fancyId: string, couponCode?: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/request`, {
         method: "POST",
         headers: await getAuthHeaders(),
-        body: JSON.stringify({ fancyId }),
+        body: JSON.stringify({ fancyId, ...(couponCode ? { couponCode } : {}) }),
     });
     return handleApiResponse(res);
 }
@@ -548,11 +548,36 @@ export async function previewFancyIdAstrology(name: string, dob: string) {
     return handleApiResponse(res);
 }
 
-export async function claimFancyIdAstrology(name: string, dob: string) {
+export async function claimFancyIdAstrology(name: string, dob: string, couponCode?: string) {
     const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/astrology/claim`, {
         method: "POST",
         headers: await getAuthHeaders(),
-        body: JSON.stringify({ name, dob }),
+        body: JSON.stringify({ name, dob, ...(couponCode ? { couponCode } : {}) }),
+    });
+    return handleApiResponse(res);
+}
+
+export interface FancyIdCouponPreview {
+    code: string;
+    type: 'ONE_TIME' | 'LIFETIME';
+    originalDiscountINR: number;
+    discountINR: number;
+    firstMonthPriceINR: number;
+    everyMonthPriceINR: number;
+    monthlyPriceINR: number;
+    error?: string;
+}
+
+/**
+ * Preview a coupon code against a given monthly price without redeeming.
+ * Returns the discounted first-month price (and lifetime monthly price for
+ * LIFETIME coupons) so the request modal can show "Pay ₹X" before submit.
+ */
+export async function previewFancyIdCoupon(code: string, monthlyPriceINR: number) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/coupon/check`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify({ code, monthlyPriceINR }),
     });
     return handleApiResponse(res);
 }
