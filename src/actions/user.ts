@@ -504,7 +504,11 @@ export interface FancyIdAstrologyPreview {
 }
 
 export async function getFancyIdCatalog(perTier: number = 16) {
+    // Catalog endpoint is auth-gated — match the rest of the fancy-id actions
+    // (availability/request/my-requests). Without headers an authenticated user
+    // would 401 and get bounced to /login by handleApiResponse.
     const res = await fetch(`${API_BASE_URL}/api/v1/fancy-ids/catalog?perTier=${perTier}`, {
+        headers: await getAuthHeaders(),
         cache: "no-store",
     });
     return handleApiResponse(res);
