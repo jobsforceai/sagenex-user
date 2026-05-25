@@ -21,6 +21,7 @@ import {
   cancelFancyIdRequest,
   checkFancyIdAvailability,
   claimFancyIdAstrology,
+  previewFancyIdCoupon,
   FancyIdAstrologyPreview,
   FancyIdAvailability,
   FancyIdCatalogItem,
@@ -197,6 +198,21 @@ export default function FancyIdsPage() {
   const [expandedTiers, setExpandedTiers] = useState<Record<string, boolean>>({});
   const [activeFilter, setActiveFilter] = useState<FilterKey>("all");
 
+  // Coupon state scoped to the open request modal. Cleared every time the
+  // modal opens (see openRequest) so a code applied to one request doesn't
+  // bleed into the next purchase.
+  const [couponInput, setCouponInput] = useState("");
+  const [couponPreview, setCouponPreview] = useState<{
+    code: string;
+    type: "ONE_TIME" | "LIFETIME";
+    originalDiscountINR: number;
+    discountINR: number;
+    firstMonthPriceINR: number;
+    everyMonthPriceINR: number;
+    monthlyPriceINR: number;
+  } | null>(null);
+  const [couponChecking, setCouponChecking] = useState(false);
+
   const load = useCallback(async (quiet = false) => {
     if (quiet) setRefreshing(true);
     else setLoading(true);
@@ -292,7 +308,39 @@ export default function FancyIdsPage() {
 
   const openRequest = (target: RequestTarget) => {
     setPurchaseAcknowledged(false);
+    setCouponInput("");
+    setCouponPreview(null);
     setRequestTarget(target);
+  };
+
+  // Validate a code against the currently-open request's price. Does NOT
+  // redeem — that happens on Confirm. Server returns clamped discount so
+  // the previewed numbers match what the actual debit will be.
+  const handleApplyCoupon = async () => {
+    if (!requestTarget) return;
+    const trimmed = couponInput.trim().toUpperCase();
+    if (!trimmed) { toast.error("Enter a coupon code"); return; }
+    setCouponChecking(true);
+    try {
+      const res = await previewFancyIdCoupon(trimmed, requestTarget.monthlyPrice);
+      if (res?.error) {
+        toast.error(res.error);
+        setCouponPreview(null);
+        return;
+      }
+      setCouponPreview(res);
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : "Failed to check coupon.";
+      toast.error(msg);
+      setCouponPreview(null);
+    } finally {
+      setCouponChecking(false);
+    }
+  };
+
+  const clearCoupon = () => {
+    setCouponInput("");
+    setCouponPreview(null);
   };
 
   const handleCatalogRequest = (item: FancyIdCatalogItem) => {
@@ -344,25 +392,35 @@ export default function FancyIdsPage() {
       // Astrology: submit the snapshotted inputs that produced the previewed
       // match, NOT the current state of the form (the user may have edited
       // name/DOB after preview opened the modal).
+      // Only submit a coupon code if we have a successful PREVIEW for it —
+      // otherwise stale input text could cause an unintended redemption.
+      const appliedCouponCode = couponPreview?.code;
       const res =
         requestTarget.source === "astrology" && requestTarget.astrologyInputs
           ? await claimFancyIdAstrology(
               requestTarget.astrologyInputs.name,
               requestTarget.astrologyInputs.dob,
+              appliedCouponCode,
             )
-          : await requestFancyId(requestTarget.displayId);
+          : await requestFancyId(requestTarget.displayId, appliedCouponCode);
 
       if (res?.error) {
         toast.error(res.error);
         return;
       }
 
-      toast.success("Request submitted. First month has been reserved from your wallet.");
+      toast.success(
+        couponPreview
+          ? `Request submitted. Coupon ${couponPreview.code} applied (₹${couponPreview.discountINR.toLocaleString("en-IN")} off).`
+          : "Request submitted. First month has been reserved from your wallet."
+      );
       setRequestTarget(null);
       setPurchaseAcknowledged(false);
       setAvailability(null);
       setAstroPreview(null);
       setQuery("");
+      setCouponInput("");
+      setCouponPreview(null);
       void load(true);
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : "Failed to submit request.";
@@ -811,6 +869,72 @@ export default function FancyIdsPage() {
                 {requestTarget.note}
               </div>
             )}
+            {/* Coupon input — applied at submit-time, not redeemed until Confirm */}
+            <div className="mt-3 rounded-2xl border border-slate-200 bg-white p-3">
+              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#64748B]">Have a coupon code?</p>
+              {!couponPreview ? (
+                <div className="mt-2 flex gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="ENTER CODE"
+                    maxLength={32}
+                    className="flex-1 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-sm font-bold uppercase tracking-wide text-[#0F172A] placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/40"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleApplyCoupon}
+                    disabled={couponChecking || !couponInput.trim()}
+                    className="inline-flex h-10 items-center justify-center rounded-xl bg-[#0F172A] px-4 text-xs font-black uppercase tracking-wide text-white disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    {couponChecking ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
+                  </button>
+                </div>
+              ) : (
+                <div className="mt-2 rounded-xl bg-emerald-50 p-3 text-xs font-semibold leading-5 text-emerald-800">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="font-mono font-black tracking-wide">{couponPreview.code}</span>
+                    <button
+                      type="button"
+                      onClick={clearCoupon}
+                      className="text-[10px] font-bold uppercase tracking-wide text-emerald-700/70 underline-offset-2 hover:underline"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                  {couponPreview.type === "LIFETIME" ? (
+                    <p className="mt-1.5 text-[11px] leading-snug">
+                      Lifetime discount · −{formatCurrency(couponPreview.discountINR)} off every month
+                    </p>
+                  ) : (
+                    <p className="mt-1.5 text-[11px] leading-snug">
+                      First-month discount · −{formatCurrency(couponPreview.discountINR)} off this month only
+                    </p>
+                  )}
+                  <div className="mt-2 flex items-baseline justify-between">
+                    <span className="text-[10px] uppercase tracking-wide text-emerald-700/70">Pay now</span>
+                    <span className="text-base font-black">
+                      {couponPreview.firstMonthPriceINR === 0 ? "FREE" : formatCurrency(couponPreview.firstMonthPriceINR)}
+                      {couponPreview.firstMonthPriceINR < couponPreview.monthlyPriceINR && (
+                        <span className="ml-2 text-xs font-bold text-emerald-700/70 line-through">
+                          {formatCurrency(couponPreview.monthlyPriceINR)}
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  {couponPreview.type === "LIFETIME" && (
+                    <div className="mt-1 flex items-baseline justify-between">
+                      <span className="text-[10px] uppercase tracking-wide text-emerald-700/70">Every month after</span>
+                      <span className="text-sm font-black">
+                        {couponPreview.everyMonthPriceINR === 0 ? "FREE" : formatCurrency(couponPreview.everyMonthPriceINR)}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
             <label className="mt-3 flex cursor-pointer items-start gap-3 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs font-bold leading-5 text-[#0F172A]">
               <input
                 type="checkbox"
@@ -819,7 +943,10 @@ export default function FancyIdsPage() {
                 className="mt-1 h-4 w-4 shrink-0 accent-[#C8103E]"
               />
               <span>
-                I understand this will debit {formatCurrency(requestTarget.monthlyPrice)} from my wallet now as the first month&apos;s Fancy ID subscription.
+                I understand this will debit {formatCurrency(couponPreview?.firstMonthPriceINR ?? requestTarget.monthlyPrice)} from my wallet now as the first month&apos;s Fancy ID subscription.
+                {couponPreview?.type === "LIFETIME" && couponPreview.everyMonthPriceINR !== requestTarget.monthlyPrice && (
+                  <> Every following month will be {couponPreview.everyMonthPriceINR === 0 ? "free" : formatCurrency(couponPreview.everyMonthPriceINR)}.</>
+                )}
               </span>
             </label>
             <button
