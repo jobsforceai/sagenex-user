@@ -270,10 +270,15 @@ export default function FancyIdsPage() {
   const catalogStats = useMemo(() => {
     const tiers = catalog?.tiers ?? [];
     const allItems = tiers.flatMap((tier) => tier.items);
+    // "available" is rendered as "live IDs available" — only count items
+    // whose status is actually available (filter out taken/reserved). The
+    // starting price is still computed across all priced items so the
+    // "From ₹X / mo" badge stays accurate even if every cheap ID is taken.
+    const availableItems = allItems.filter((item) => catalogItemStatus(item) === "available");
     const prices = allItems.map(catalogItemMonthlyPrice).filter((price) => price > 0);
     return {
       tiers: tiers.length,
-      available: allItems.length,
+      available: availableItems.length,
       startingPrice: prices.length ? Math.min(...prices) : 0,
     };
   }, [catalog]);
