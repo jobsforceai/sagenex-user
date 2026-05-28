@@ -89,12 +89,15 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
 
     const filteredRecipients = useMemo(() => {
         if (!searchTerm) return [];
+        const q = searchTerm.toLowerCase();
         return allRecipients.filter(r => {
             if (!r.fullName || !r.userId) {
                 return false;
             }
-            return r.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                   r.userId.toLowerCase().includes(searchTerm.toLowerCase());
+            const fancy = (r.fancyId ?? '').toLowerCase();
+            return r.fullName.toLowerCase().includes(q) ||
+                   r.userId.toLowerCase().includes(q) ||
+                   (fancy && fancy.includes(q));
         });
     }, [searchTerm, allRecipients]);
 
@@ -378,7 +381,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             value={searchTerm}
                             onChange={handleSearchChange}
                             onFocus={() => setIsDropdownVisible(true)}
-                            placeholder="Search by name or user ID"
+                            placeholder="Search by name, user ID, or Fancy ID"
                             className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C41E3A]"
                             autoComplete="off"
                         />
@@ -390,7 +393,9 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                                         onClick={() => handleRecipientSelect(r)}
                                         className="cursor-pointer px-4 py-2 text-[#111827] hover:bg-zinc-50"
                                     >
-                                        {r.fullName} ({r.userId}){r.userId === user?.userId ? " • You" : ""}
+                                        {r.fullName} ({r.userId})
+                                        {r.fancyId ? <span className="ml-1 text-[#C41E3A]">• {r.fancyId}</span> : null}
+                                        {r.userId === user?.userId ? " • You" : ""}
                                     </li>
                                 ))}
                             </ul>
