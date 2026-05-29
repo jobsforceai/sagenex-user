@@ -1,9 +1,10 @@
 "use client";
 
-import React from "react";
+import React, { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { motion } from "framer-motion";
+import { ArrowRight, Box, Headphones, Mouse, Play, ShieldCheck, Users } from "lucide-react";
 import CashCardSection from "../../components/landing/cash-card";
 import SagenexAcademy from "@/components/landing/sagenex-academy";
 
@@ -62,66 +63,88 @@ const Badge: React.FC<React.PropsWithChildren<{ tone?: BadgeTone }>> = ({ tone =
 // ---- 1) HERO ----
 export default function LandingPage() {
   return (
-    <main className="relative min-h-screen text-white  from-black via-zinc-900 to-black">
+    <main className="relative min-h-screen bg-[#050505] text-white">
       {/* Top sheen */}
       <div className="pointer-events-none absolute inset-x-0 top-0">
         <div className="mx-auto h-px w-full max-w-7xl bg-gradient-to-r from-transparent via-white/60 to-transparent"/>
       </div>
 
       {/* HERO */}
-      <Section className="pt-28 pb-16">
-        <div className="grid items-center gap-10 lg:grid-cols-2">
-          <div className="flex flex-col gap-6">
-            <Badge tone="violet">Innovation · Security · Growth</Badge>
-            <h1 className="text-[clamp(2rem,5vw,3.75rem)] font-semibold leading-tight tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-200 via-white to-emerald-200">
-              Redefining the Future of Digital Finance
-            </h1>
-            <p className="text-zinc-300 max-w-prose">
-              A global ecosystem uniting AI, blockchain and real‑world assets. Learn, lead and scale with academy tracks, transparent KYC, and a simple unilevel plan designed for duplication.
-            </p>
-            <div className="flex flex-wrap gap-3">
-              <CTA href="#academy" label="Explore Academy"/>
-              <CTA href="#plan" variant="secondary" label="View Plan"/>
-            </div>
-            <div className="flex items-center gap-4 pt-3 text-sm text-zinc-400">
-              <div className="flex -space-x-2">
-                {[
-                  "/tenkimg/056c85d23f30445c4ad7889967e6d9a1.jpg",
-                  "/tenkimg/1c852ea928150dfcf54c5457dbca0a35.jpg",
-                  "/tenkimg/a31b2ee2bdf3a8c5e65f99d935e64055.jpg",
-                  "/tenkimg/bd3b16868f55313d5d70415d8b969a91.jpg",
-                ].map((src, i) => (
-                  <span
-                    key={i}
-                    className="relative inline-block h-7 w-7 overflow-hidden rounded-full ring-2 ring-black/80"
-                  >
-                    <Image
-                      src={src}
-                      alt="member"
-                      fill
-                      className="object-cover"
-                    />
-                  </span>
-                ))}
+      <section className="relative overflow-hidden bg-[#F8FAFC] pt-24 text-[#0F172A] sm:pt-28">
+        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_8%_20%,rgba(200,16,62,0.08),transparent_26%),radial-gradient(circle_at_82%_18%,rgba(5,150,105,0.10),transparent_28%)]" />
+        <div className="pointer-events-none absolute right-0 top-16 h-[520px] w-[58vw] opacity-[0.08] [background-image:radial-gradient(#0F172A_1px,transparent_1px)] [background-size:10px_10px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
+        <div className={`${container} relative`}>
+          <div className="grid min-h-[560px] items-center gap-10 pb-12 lg:grid-cols-[minmax(0,0.92fr)_minmax(440px,1fr)]">
+            <motion.div
+              initial={{ opacity: 0, y: 18 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.45 }}
+              className="max-w-3xl"
+            >
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#C8103E]/15 bg-white px-3 py-1.5 text-xs font-bold text-[#A50D33] shadow-sm">
+                <Image src="/logo5.png" alt="" width={18} height={18} className="h-4 w-4 object-contain" />
+                A Civilization of Heritage & Innovation
               </div>
-              <span>10k+ members growing worldwide</span>
+              <h1 className="mt-7 text-5xl font-black leading-[0.98] tracking-tight sm:text-6xl lg:text-7xl">
+                Building a Legacy
+                <span className="block text-[#C8103E]">Empowering</span>
+                <span className="block">Generations</span>
+              </h1>
+              <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-slate-600 sm:text-lg">
+                At Sagenex, we blend trust, technology, and vision to create impact that lasts. Together, we grow, we evolve, and we lead.
+              </p>
+              <div className="mt-8 flex flex-wrap gap-4">
+                <Link
+                  href="#academy"
+                  className="inline-flex h-14 items-center justify-center gap-2 rounded-xl bg-[#C8103E] px-7 text-sm font-black text-white shadow-[0_16px_35px_rgba(200,16,62,0.24)] transition hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30"
+                >
+                  Explore Ecosystem
+                  <ArrowRight className="h-4 w-4" />
+                </Link>
+                <Link
+                  href="#plan"
+                  className="inline-flex h-14 items-center justify-center gap-3 rounded-xl border border-slate-200 bg-white px-6 text-sm font-black text-[#0F172A] shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+                >
+                  <span className="grid h-9 w-9 place-items-center rounded-full border border-slate-200">
+                    <Play className="h-4 w-4 fill-[#C8103E] text-[#C8103E]" />
+                  </span>
+                  Watch Overview
+                </Link>
+              </div>
+            </motion.div>
+
+            <HeroVideo />
+          </div>
+
+          <div className="relative z-10 -mb-11 rounded-[1.75rem] border border-slate-200/70 bg-white/95 p-4 shadow-[0_20px_55px_rgba(15,23,42,0.09)] backdrop-blur sm:p-5">
+            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              {[
+                { icon: Box, value: "5+", label: "Ecosystem Products", tone: "emerald" },
+                { icon: Users, value: "100K+", label: "Global Community", tone: "crimson" },
+                { icon: ShieldCheck, value: "1M+", label: "Transactions Secured", tone: "emerald" },
+                { icon: Headphones, value: "24/7", label: "Dedicated Support", tone: "crimson" },
+              ].map(({ icon: Icon, value, label, tone }) => (
+                <div key={label} className="flex items-center gap-4 rounded-2xl px-4 py-4 lg:border-r lg:border-slate-200/70 last:lg:border-r-0">
+                  <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ${tone === "emerald" ? "bg-emerald-50 text-emerald-700" : "bg-[#FFF1F4] text-[#C8103E]"}`}>
+                    <Icon className="h-6 w-6" />
+                  </span>
+                  <div>
+                    <p className={`text-2xl font-black ${tone === "emerald" ? "text-emerald-700" : "text-[#C8103E]"}`}>{value}</p>
+                    <p className="text-sm font-semibold text-slate-500">{label}</p>
+                  </div>
+                </div>
+              ))}
             </div>
           </div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: "-80px" }}
-            transition={{ duration: 0.5 }}
-            className={`${glass} relative overflow-hidden`}
-          >
-            <div className="absolute -top-24 -right-24 h-72 w-72 rounded-full blur-3xl bg-gradient-to-br from-emerald-400/30 via-white/20 to-violet-400/30"/>
-            <div className="relative grid place-items-center aspect-[16/9]">
-              <Image src="/dashboard-preview2.png" alt="Sagenex dashboard preview" fill className="object-cover"/>
-            </div>
-          </motion.div>
+          <div className="hidden justify-center pb-5 pt-20 text-sm font-semibold text-slate-500 sm:flex">
+            <span className="inline-flex items-center gap-2">
+              <Mouse className="h-5 w-5" />
+              Scroll to explore
+            </span>
+          </div>
         </div>
-      </Section>
+      </section>
 
       {/* 2) RIBBON / TRUST KPIs */}
       <div className="border-y border-white/10 bg-white/5">
@@ -163,6 +186,53 @@ export default function LandingPage() {
       {/* 9) Footer */}
       <Footer />
     </main>
+  );
+}
+
+function HeroVideo() {
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+
+  const playVideo = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.play().catch(() => undefined);
+  };
+
+  const pauseVideo = () => {
+    const video = videoRef.current;
+    if (!video) return;
+    video.pause();
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, scale: 0.96, y: 18 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ duration: 0.55, delay: 0.08 }}
+      className="relative min-h-[360px] lg:min-h-[500px]"
+      onMouseEnter={playVideo}
+      onMouseLeave={pauseVideo}
+      onFocus={playVideo}
+      onBlur={pauseVideo}
+      tabIndex={0}
+      aria-label="Sagenex heritage and innovation visual. Hover or focus to play video."
+    >
+      <div className="absolute inset-x-8 bottom-8 h-24 rounded-full bg-slate-900/10 blur-2xl" />
+      <div className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle_at_50%_52%,rgba(200,16,62,0.09),transparent_28%),radial-gradient(circle_at_44%_44%,rgba(5,150,105,0.12),transparent_30%)]" />
+      <div className="absolute inset-x-6 bottom-10 h-24 rounded-[100%] border border-slate-200/70 bg-white/70 shadow-[0_18px_45px_rgba(15,23,42,0.08)]" />
+      <div className="relative flex h-full min-h-[360px] items-center justify-center lg:min-h-[500px]">
+        <video
+          ref={videoRef}
+          src="/hero.mp4"
+          muted
+          loop
+          playsInline
+          preload="metadata"
+          className="relative z-10 max-h-[440px] w-full max-w-[620px] object-contain drop-shadow-[0_28px_45px_rgba(15,23,42,0.20)]"
+          aria-hidden="true"
+        />
+      </div>
+    </motion.div>
   );
 }
 
