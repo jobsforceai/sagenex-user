@@ -1192,18 +1192,9 @@ export async function withdrawFromLP(amount: number, credentials: { type: 'OTP' 
 }
 
 
-export async function askChatbot(message: string, history: Array<{ role: string; content: string }> = []) {
-  try {
-    const res = await fetch(`${API_BASE_URL}/api/v1/chatbot/ask`, {
-      method: 'POST',
-      headers: { ...(await getAuthHeaders()), 'Content-Type': 'application/json' },
-      body: JSON.stringify({ message, history }),
-    });
-    return handleApiResponse(res);
-  } catch {
-    return { error: 'chatbot_failed' };
-  }
-}
+// askChatbot was the legacy non-streaming chatbot client. It now lives as
+// SSE-streaming logic inside src/app/components/ChatbotAssistant.tsx hitting
+// POST /api/v1/ai-agent/chat/stream directly. Removed here on 2026-05-29.
 
 export async function getTeamPulse() {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/team-pulse`, {
