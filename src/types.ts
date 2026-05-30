@@ -90,6 +90,9 @@ export interface QueuedUser {
 
 export interface Recipient {
     userId: string;
+    /** Optional Fancy ID like "u99999" or "tiger" the user has purchased.
+     *  Recipients can be searched/selected by this too. */
+    fancyId?: string | null;
     fullName: string;
     packageUSD?: number;
     roiPlanType?: 'old' | 'new';
