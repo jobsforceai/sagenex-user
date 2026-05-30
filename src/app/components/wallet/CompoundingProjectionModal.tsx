@@ -10,7 +10,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { TrendingUp, Zap } from "lucide-react";
 import { getCompoundingStatus, toggleCompounding } from "@/actions/user";
-import { getNewTieredROIRate, getTieredROIRate } from "@/lib/roi";
+import { getNewTieredROIRate, getTieredROIRate, getLegacyTieredROIRate } from "@/lib/roi";
 import { toast } from "sonner";
 
 interface Snapshot {
@@ -61,6 +61,7 @@ export function CompoundingProjectionModal({ manualOpen, onManualClose, onCompou
   const [packageUSD, setPackageUSD] = useState(0);
   const [compoundingEnabled, setCompoundingEnabled] = useState(false);
   const [roiPlanType, setRoiPlanType] = useState<"old" | "new" | undefined>(undefined);
+  const [roiRate, setRoiRate] = useState(0);
   const [enabling, setEnabling] = useState(false);
 
   // Auto-open once on mount for active-package users (first-time pitch)
@@ -70,7 +71,8 @@ export function CompoundingProjectionModal({ manualOpen, onManualClose, onCompou
       if (!res?.error && res?.isPackageActive && (res?.packageUSD ?? 0) > 0) {
         setPackageUSD(res.packageUSD);
         setCompoundingEnabled(res.compoundingEnabled ?? false);
-        setRoiPlanType(res.roiPlanType);
+        setRoiPlanType(res.roiPlanType ?? undefined);
+        setRoiRate(res.roiRate ?? 0);
         setOpen(true);
       }
     });
@@ -84,7 +86,8 @@ export function CompoundingProjectionModal({ manualOpen, onManualClose, onCompou
       if (!res?.error) {
         setPackageUSD(res.packageUSD ?? 0);
         setCompoundingEnabled(res.compoundingEnabled ?? false);
-        setRoiPlanType(res.roiPlanType);
+        setRoiPlanType(res.roiPlanType ?? undefined);
+        setRoiRate(res.roiRate ?? 0);
         setOpen(true);
       }
     });
@@ -95,8 +98,17 @@ export function CompoundingProjectionModal({ manualOpen, onManualClose, onCompou
     if (!next) onManualClose?.();
   };
 
-  const rateFn = roiPlanType === "new" ? getNewTieredROIRate : getTieredROIRate;
-  const monthlyRate = rateFn(packageUSD);
+  // Headline rate is the authoritative value from the backend (it alone knows
+  // the user's plan-start date → legacy vs current table). For the multi-year
+  // projection we still need a rate-as-package-grows function, so pick the tier
+  // table that matches the backend rate at the current package.
+  const rateFn =
+    roiPlanType === "new"
+      ? getNewTieredROIRate
+      : Math.abs(getLegacyTieredROIRate(packageUSD) - roiRate) < 1e-9
+        ? getLegacyTieredROIRate
+        : getTieredROIRate;
+  const monthlyRate = roiRate;
   const monthlyEarning = packageUSD * monthlyRate;
   const snapshots = buildProjection(packageUSD, rateFn);
 
