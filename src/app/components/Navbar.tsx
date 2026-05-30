@@ -116,12 +116,12 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
     [
       "relative px-2 py-1 text-sm md:text-[15px] transition",
       isLandingNavbar
-        ? "text-white/75 hover:text-white"
+        ? "text-slate-700 hover:text-[#0F172A]"
         : scrolled
           ? "text-zinc-700 hover:text-zinc-900"
           : "text-zinc-800 hover:text-zinc-900",
       "focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50 rounded-md",
-      isActive(href) && (isLandingNavbar ? "text-emerald-300 font-semibold" : "text-[#00b386] font-semibold"),
+      isActive(href) && (isLandingNavbar ? "text-[#C8103E] font-semibold" : "text-[#00b386] font-semibold"),
     ]
       .filter(Boolean)
       .join(" ");
@@ -293,8 +293,8 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
             "mt-3 rounded-2xl border transition-all duration-300",
             isLandingNavbar
               ? scrolled
-                ? "border-white/25 bg-[#6f0011]/80 backdrop-blur-xl shadow-[0_10px_40px_rgba(0,0,0,0.32)]"
-                : "border-white/20 bg-[#7b0012]/45 backdrop-blur-xl shadow-[0_12px_50px_rgba(0,0,0,0.25)]"
+                ? "border-white/75 bg-[linear-gradient(135deg,rgba(255,253,248,0.93)_0%,rgba(255,244,247,0.88)_45%,rgba(244,248,250,0.90)_100%)] backdrop-blur-xl shadow-[0_16px_50px_rgba(15,23,42,0.12)]"
+                : "border-white/65 bg-[linear-gradient(135deg,rgba(255,255,255,0.78)_0%,rgba(255,243,246,0.68)_48%,rgba(245,248,250,0.76)_100%)] backdrop-blur-xl shadow-[0_14px_42px_rgba(15,23,42,0.08)]"
               : scrolled
                 ? "border-(--border-light) bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
                 : "border-white/10 bg-white/0 backdrop-blur-xl shadow-none",
@@ -318,7 +318,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   priority
                 />
               </span>
-              <span className={`text-base font-semibold tracking-tight group-hover:opacity-90 ${isLandingNavbar ? "text-white" : "text-zinc-900"}`}>
+              <span className={`text-base font-semibold tracking-tight group-hover:opacity-90 ${isLandingNavbar ? "text-slate-900" : "text-zinc-900"}`}>
                 Sagenex
               </span>
             </Link>
@@ -401,7 +401,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
               <button
                 className={`md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50 ${
                   isLandingNavbar
-                    ? "border-white/30 bg-white/10 text-white hover:bg-white/20"
+                    ? "border-white/60 bg-white/55 text-[#0F172A] hover:bg-white/80"
                     : "border-[#e8e8e8] bg-white text-zinc-700 hover:bg-[#f7f8fa]"
                 }`}
                 aria-label="Toggle navigation"
@@ -431,7 +431,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
               initial={false}
               animate={open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`md:hidden overflow-hidden rounded-b-2xl ${isLandingNavbar ? "bg-[#3f0912]/95 border-t border-white/10" : "bg-white"}`}
+              className={`md:hidden overflow-hidden rounded-b-2xl ${isLandingNavbar ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(255,246,248,0.92)_100%)] border-t border-slate-200/70" : "bg-white"}`}
             >
               <div className="px-4 pb-4 pt-1">
                 <nav className="flex flex-col">
@@ -447,10 +447,10 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                         className={[
                           "flex items-center justify-between rounded-lg px-3 py-2 text-sm",
                           isLandingNavbar
-                            ? "text-white/80 hover:text-white hover:bg-white/10"
+                            ? "text-slate-700 hover:text-[#0F172A] hover:bg-white/80"
                             : "text-zinc-700 hover:text-zinc-900 hover:bg-[#f7f8fa]",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70",
-                          isActive(l.href) && (isLandingNavbar ? "bg-white/12 text-emerald-300" : "bg-[#e6f7f3] text-[#00b386]"),
+                          isActive(l.href) && (isLandingNavbar ? "bg-[#FFF1F4] text-[#C8103E]" : "bg-[#e6f7f3] text-[#00b386]"),
                         ]
                           .filter(Boolean)
                           .join(" ")}
