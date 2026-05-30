@@ -16,7 +16,7 @@ export default function HomePage() {
   return (
     <section className="relative min-h-screen overflow-hidden bg-[#F8FAFC] pt-28 text-[#0F172A] sm:pt-32">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_9%_24%,rgba(200,16,62,0.08),transparent_26%),radial-gradient(circle_at_82%_22%,rgba(5,150,105,0.10),transparent_29%),linear-gradient(180deg,#ffffff_0%,#F8FAFC_74%,#ffffff_100%)]" />
-      <div className="pointer-events-none absolute right-0 top-20 h-[520px] w-[58vw] opacity-[0.09] [background-image:radial-gradient(#0F172A_1px,transparent_1px)] [background-size:10px_10px] [mask-image:radial-gradient(ellipse_at_center,black,transparent_70%)]" />
+      <div className="pointer-events-none absolute right-0 top-20 h-[520px] w-[58vw] opacity-[0.09] bg-[radial-gradient(#0F172A_1px,transparent_1px)] bg-size-[10px_10px] mask-[radial-gradient(ellipse_at_center,black,transparent_70%)]" />
       <div className="pointer-events-none absolute bottom-0 right-0 h-[460px] w-[46vw] bg-[linear-gradient(90deg,transparent,rgba(5,150,105,0.08),rgba(200,16,62,0.08))] [clip-path:polygon(58%_0,100%_0,100%_100%,0_100%)]" />
 
       <div className="relative mx-auto flex min-h-[calc(100vh-7rem)] w-full max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
@@ -70,22 +70,24 @@ export default function HomePage() {
             aria-label="Sagenex heritage and innovation visual."
           >
             <div className="absolute inset-x-10 bottom-11 h-24 rounded-full bg-slate-900/10 blur-2xl" />
-            <div className="absolute inset-0 rounded-[2rem] bg-[radial-gradient(circle_at_50%_52%,rgba(200,16,62,0.08),transparent_28%),radial-gradient(circle_at_44%_44%,rgba(5,150,105,0.12),transparent_30%)]" />
+            <div className="absolute inset-0 rounded-4xl bg-[radial-gradient(circle_at_50%_52%,rgba(200,16,62,0.08),transparent_28%),radial-gradient(circle_at_44%_44%,rgba(5,150,105,0.12),transparent_30%)]" />
             <div className="absolute inset-x-8 bottom-12 h-24 rounded-[100%] border border-slate-200/70 bg-white/70 shadow-[0_18px_45px_rgba(15,23,42,0.08)]" />
-            <div className="relative flex h-full min-h-[340px] items-center justify-center lg:min-h-[500px]">
+            <div className="relative flex h-full min-h-[340px] items-center justify-center px-4 py-6 lg:min-h-[500px]">
               {/*
                 Video hero temporarily disabled.
                 Restore this block when we want hover-play again:
                 <video src="/hero.mp4" muted loop playsInline preload="metadata" />
               */}
-              <Image
-                src="/hero.png"
-                alt="Sagenex heritage and innovation emblem"
-                width={680}
-                height={520}
-                priority
-                className="relative z-10 max-h-[440px] w-full max-w-[620px] object-contain drop-shadow-[0_28px_45px_rgba(15,23,42,0.20)]"
-              />
+              <div className="relative z-10 w-full max-w-[660px] rounded-[2.35rem] border border-white/80 bg-[linear-gradient(180deg,#FFFFFF_0%,#FDFDFC_46%,#F3F5F7_100%)] p-5 shadow-[0_22px_60px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/40">
+                <Image
+                  src="/hero.png"
+                  alt="Sagenex heritage and innovation emblem"
+                  width={680}
+                  height={520}
+                  priority
+                  className="relative z-10 max-h-[410px] w-full object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.16)]"
+                />
+              </div>
             </div>
           </motion.div>
         </div>
