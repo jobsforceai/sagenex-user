@@ -14,6 +14,8 @@ interface MonthlyRecord {
 
 interface PaymentProgressProps {
   enrollmentId: string;
+  /** Optional plan label shown in the card header, e.g. "Gold · $10,000/month · Apr 29, 2026". */
+  planLabel?: string;
 }
 
 const statusStyles: Record<string, { bg: string; border: string; label: string }> = {
@@ -24,7 +26,7 @@ const statusStyles: Record<string, { bg: string; border: string; label: string }
   UPCOMING: { bg: "bg-gray-700", border: "border-gray-600", label: "Upcoming" },
 };
 
-export default function PaymentProgress({ enrollmentId }: PaymentProgressProps) {
+export default function PaymentProgress({ enrollmentId, planLabel }: PaymentProgressProps) {
   const [records, setRecords] = useState<MonthlyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -97,6 +99,9 @@ export default function PaymentProgress({ enrollmentId }: PaymentProgressProps) 
           <CalendarCheck className="h-5 w-5 text-[#C41E3A]" />
           11-Month Payment Progress
         </CardTitle>
+        {planLabel && (
+          <div className="mt-1 text-xs font-medium text-zinc-500">{planLabel}</div>
+        )}
       </CardHeader>
       <CardContent>
         {/* Month grid */}
