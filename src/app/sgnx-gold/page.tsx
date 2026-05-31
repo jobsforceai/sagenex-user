@@ -223,8 +223,19 @@ export default function SgnxGoldPage() {
     );
   }
 
-  const activeEnrollment = enrollments.find((e) => e.status === "ACTIVE") ?? null;
+  const activeEnrollments = enrollments.filter((e) => e.status === "ACTIVE");
   const hasEnrollment = enrollments.length > 0;
+
+  // Build a short human-readable label per enrollment so users can tell
+  // which payment-progress card belongs to which plan. Only shown when
+  // there are 2+ active enrollments — single-enrollment users get the
+  // unchanged "11-Month Payment Progress" header.
+  const formatPlanLabel = (e: Enrollment) => {
+    const planName = e.planType === "gold" ? "Gold" : "Cash";
+    const amount = `$${e.monthlyAmountUsd.toLocaleString("en-US")}/month`;
+    const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
+    return `${planName} · ${amount}${date ? ` · enrolled ${date}` : ""}`;
+  };
 
   const handleEnrollSuccess = () => {
     setEnrollModalOpen(false);
@@ -285,10 +296,16 @@ export default function SgnxGoldPage() {
         {/* City Prices - own loading */}
         {cityLoading ? null : <CityPricesGrid prices={cityPrices} />}
 
-        {/* Payment Progress */}
-        {!heroLoading && activeEnrollment && (
-          <PaymentProgress enrollmentId={activeEnrollment._id} />
-        )}
+        {/* Payment Progress — render one card per active enrollment.
+            For multi-enrollment users, each card gets a plan label so they
+            can tell which plan the progress bar belongs to. */}
+        {!heroLoading && activeEnrollments.map((e) => (
+          <PaymentProgress
+            key={e._id}
+            enrollmentId={e._id}
+            planLabel={activeEnrollments.length > 1 ? formatPlanLabel(e) : undefined}
+          />
+        ))}
 
         {/* Transaction History (toggle) */}
         {showHistory && hasEnrollment && (
