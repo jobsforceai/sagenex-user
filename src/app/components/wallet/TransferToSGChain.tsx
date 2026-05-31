@@ -100,7 +100,7 @@ const TransferToSGChain = ({ currentBalance, className }: TransferToSGChainProps
                 className="bg-gray-800 border-gray-700 text-white"
               />
               <p className="text-xs text-gray-500 mt-1">
-                Available Balance: ${currentBalance.toFixed(2)}
+                Available Balance: ₹{currentBalance.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </p>
             </div>
             <Button onClick={handleTransfer} disabled={loading} className="w-full mt-auto">

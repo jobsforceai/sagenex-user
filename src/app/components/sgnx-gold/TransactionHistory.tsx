@@ -11,11 +11,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { History } from "lucide-react";
+import { formatINR } from "@/lib/currency";
 
 interface Enrollment {
   _id: string;
   planType: "gold" | "cash";
   monthlyAmountUsd: number;
+  monthlyAmountInr?: number;
   status: string;
   completedMonths: number;
   totalMonths: number;
@@ -27,8 +29,6 @@ interface TransactionHistoryProps {
   enrollments: Enrollment[];
 }
 
-const formatUSD = (v: number) =>
-  v.toLocaleString("en-US", { style: "currency", currency: "USD" });
 const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US");
 
 const statusBadgeClass: Record<string, string> = {
@@ -78,9 +78,8 @@ export default function TransactionHistory({ enrollments }: TransactionHistoryPr
           <TableBody>
             {enrollments.map((enrollment) => {
               const isGold = enrollment.planType === "gold";
-              const bonusValue = isGold
-                ? enrollment.monthlyAmountUsd * 3
-                : enrollment.monthlyAmountUsd * 4;
+              const monthlyAmount = enrollment.monthlyAmountInr ?? enrollment.monthlyAmountUsd;
+              const bonusValue = isGold ? monthlyAmount * 3 : monthlyAmount * 4;
 
               return (
                 <TableRow
@@ -96,7 +95,7 @@ export default function TransactionHistory({ enrollments }: TransactionHistoryPr
                     </Badge>
                   </TableCell>
                   <TableCell className="text-zinc-600">
-                    {formatUSD(enrollment.monthlyAmountUsd)}
+                    {formatINR(monthlyAmount)}
                   </TableCell>
                   <TableCell className="text-zinc-600">
                     <span className="font-medium text-[#C41E3A]">
@@ -117,7 +116,7 @@ export default function TransactionHistory({ enrollments }: TransactionHistoryPr
                   <TableCell className="text-zinc-600">
                     {isGold
                       ? `${(enrollment.bonusGoldQuantityGrams ?? 0).toFixed(4)} g`
-                      : formatUSD(bonusValue)}
+                      : formatINR(bonusValue)}
                   </TableCell>
                 </TableRow>
               );

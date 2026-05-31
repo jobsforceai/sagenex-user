@@ -10,7 +10,7 @@ interface FinancialData {
   monthlyIncentive: number;
 }
 
-// Helper function to format numbers into USD currency format without decimals
+// Helper function to format numbers into INR currency format without decimals
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat("en-IN", {
     style: "currency",

@@ -197,7 +197,7 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
                   </div>
                   {goldRate && (
                     <p className="text-xs text-amber-400/60">
-                      Exchange rate: 1 USD = {goldRate.exchangeRate.toFixed(2)} INR
+                      Pricing shown in INR, inclusive of the live gold rate and GST.
                     </p>
                   )}
                 </div>

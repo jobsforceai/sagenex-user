@@ -40,7 +40,7 @@ const SGBN_PLANS = [
 
 const couponErrorMessages: Record<string, string> = {
   PLAN_REQUIRED: "Please select a plan to continue.",
-  INSUFFICIENT_USD_BALANCE: "Insufficient USD balance to create this coupon.",
+  INSUFFICIENT_USD_BALANCE: "Insufficient wallet balance to create this coupon.",
   CODE_EXPIRED: "This coupon code has expired.",
   CODE_ALREADY_CLAIMED: "This coupon has already been claimed.",
   PLAN_MISMATCH: "The selected plan does not match this coupon.",
@@ -116,7 +116,7 @@ export const TransferTab = ({ currentBalance, onSuccess }: TransferTabProps) => 
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-zinc-500">
-            Create a coupon for SGBN plans. Coupons are valid for 10 minutes (USD only).
+            Create a coupon for SGBN plans. Coupons are valid for 10 minutes.
           </p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {SGBN_PLANS.map((plan) => (

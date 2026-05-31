@@ -6,9 +6,13 @@ import { Lock, Gem, DollarSign, TrendingUp, Sparkles } from "lucide-react";
 interface Vault {
   totalGoldQuantityGrams?: number;
   totalGoldValueLockedUsd?: number;
+  totalGoldValueLockedInr?: number;
   totalCashBonusUsd?: number;
+  totalCashBonusInr?: number;
   totalDepositedUsd?: number;
+  totalDepositedInr?: number;
   maturityValueUsd?: number;
+  maturityValueInr?: number;
 }
 
 interface GoldRate {
@@ -26,7 +30,7 @@ interface VaultSectionProps {
 }
 
 // Wallet migrated to INR — *Usd fields now carry INR values (legacy name)
-const formatUSD = (v: number) =>
+const formatINRLocal = (v: number) =>
   "₹" + v.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 
 
@@ -45,7 +49,7 @@ export default function VaultSection({ vault, planType, goldRate }: VaultSection
 
   if (isGold) {
     const totalGrams = vault.totalGoldQuantityGrams ?? 0;
-    const lockedValue = vault.totalGoldValueLockedUsd ?? 0;
+    const lockedValue = vault.totalGoldValueLockedInr ?? vault.totalGoldValueLockedUsd ?? 0;
     const liveValue =
       goldRate ? totalGrams * goldRate.pricePerGram : lockedValue;
 
@@ -67,28 +71,28 @@ export default function VaultSection({ vault, planType, goldRate }: VaultSection
             <VaultRow
               icon={<Lock className="h-4 w-4 text-gray-400" />}
               label="Locked Value"
-              value={formatUSD(lockedValue)}
+              value={formatINRLocal(lockedValue)}
             />
             <VaultRow
               icon={<DollarSign className="h-4 w-4 text-emerald-400" />}
               label="Total Deposited"
-              value={formatUSD(vault.totalDepositedUsd ?? 0)}
+              value={formatINRLocal(vault.totalDepositedInr ?? vault.totalDepositedUsd ?? 0)}
             />
             <VaultRow
               icon={<TrendingUp className="h-4 w-4 text-emerald-400" />}
               label="Live Value"
-              value={formatUSD(liveValue)}
+              value={formatINRLocal(liveValue)}
             />
             <VaultRow
               icon={<Sparkles className="h-4 w-4 text-purple-400" />}
               label="Maturity Value"
-              value={formatUSD(vault.maturityValueUsd ?? 0)}
+              value={formatINRLocal(vault.maturityValueInr ?? vault.maturityValueUsd ?? 0)}
             />
             {goldRate && (
               <VaultRow
                 icon={<DollarSign className="h-4 w-4 text-cyan-400" />}
                 label="Live Rate"
-                value={`${formatUSD(goldRate.pricePerGram)}/g`}
+                value={`${formatINRLocal(goldRate.pricePerGram)}/g`}
               />
             )}
           </div>
@@ -111,17 +115,17 @@ export default function VaultSection({ vault, planType, goldRate }: VaultSection
           <VaultRow
             icon={<DollarSign className="h-4 w-4 text-blue-400" />}
             label="Total Deposited"
-            value={formatUSD(vault.totalDepositedUsd ?? 0)}
+            value={formatINRLocal(vault.totalDepositedInr ?? vault.totalDepositedUsd ?? 0)}
           />
           <VaultRow
             icon={<Sparkles className="h-4 w-4 text-purple-400" />}
             label="Cash Bonus (4x)"
-            value={formatUSD(vault.totalCashBonusUsd ?? 0)}
+            value={formatINRLocal(vault.totalCashBonusInr ?? vault.totalCashBonusUsd ?? 0)}
           />
           <VaultRow
             icon={<TrendingUp className="h-4 w-4 text-amber-400" />}
             label="Maturity Value"
-            value={formatUSD(vault.maturityValueUsd ?? 0)}
+            value={formatINRLocal(vault.maturityValueInr ?? vault.maturityValueUsd ?? 0)}
           />
         </div>
       </CardContent>

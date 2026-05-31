@@ -18,6 +18,7 @@ import {
   getCityPrices,
 } from "@/actions/sgnxgold";
 import { getDashboardData } from "@/actions/user";
+import { formatINR } from "@/lib/currency";
 import { Loader2 } from "lucide-react";
 
 // Lazy-load the tree (heavy: React Flow + dagre)
@@ -79,6 +80,7 @@ interface Enrollment {
   _id: string;
   planType: "gold" | "cash";
   monthlyAmountUsd: number;
+  monthlyAmountInr?: number;
   status: string;
   completedMonths: number;
   totalMonths: number;
@@ -90,9 +92,13 @@ interface Enrollment {
 
 interface Vault {
   totalGoldQuantityGrams?: number;
+  totalGoldValueLockedInr?: number;
   totalGoldValueLockedUsd?: number;
+  totalCashBonusInr?: number;
   totalCashBonusUsd?: number;
+  totalDepositedInr?: number;
   totalDepositedUsd?: number;
+  maturityValueInr?: number;
   maturityValueUsd?: number;
 }
 
@@ -232,7 +238,7 @@ export default function SgnxGoldPage() {
   // unchanged "11-Month Payment Progress" header.
   const formatPlanLabel = (e: Enrollment) => {
     const planName = e.planType === "gold" ? "Gold" : "Cash";
-    const amount = `$${e.monthlyAmountUsd.toLocaleString("en-US")}/month`;
+    const amount = `${formatINR(e.monthlyAmountInr ?? e.monthlyAmountUsd)}/month`;
     const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
     return `${planName} · ${amount}${date ? ` · enrolled ${date}` : ""}`;
   };
@@ -249,10 +255,10 @@ export default function SgnxGoldPage() {
         {/* Hero Portfolio - own loading */}
         {heroLoading ? <HeroSkeleton /> : (
           <SgnxGoldHero
-            totalDepositedUsd={vault?.totalDepositedUsd ?? 0}
+            totalDepositedInr={vault?.totalDepositedInr ?? vault?.totalDepositedUsd ?? 0}
             totalGoldGrams={vault?.totalGoldQuantityGrams ?? 0}
-            maturityValueUsd={vault?.maturityValueUsd ?? 0}
-            totalCashBonusUsd={vault?.totalCashBonusUsd ?? 0}
+            maturityValueInr={vault?.maturityValueInr ?? vault?.maturityValueUsd ?? 0}
+            totalCashBonusInr={vault?.totalCashBonusInr ?? vault?.totalCashBonusUsd ?? 0}
             goldRateInr={goldRate?.pricePerGram ?? null}
             hasEnrollment={hasEnrollment}
           />

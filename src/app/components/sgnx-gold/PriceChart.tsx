@@ -16,7 +16,7 @@ import { Loader2 } from "lucide-react";
 const RANGES = ["1D", "1W", "1M", "5M", "1Y", "5Y"] as const;
 type Range = (typeof RANGES)[number];
 
-const CURRENCIES = ["INR", "USD", "EUR", "GBP", "AED"] as const;
+const CURRENCIES = ["INR"] as const;
 type Currency = (typeof CURRENCIES)[number];
 
 const GRAMS_PER_OUNCE = 31.1035;
@@ -41,10 +41,7 @@ function formatXAxis(value: string, range: Range) {
 
 function formatCurrencyValue(value: number, currency: Currency) {
   if (currency === "INR") return "₹" + value.toLocaleString("en-IN", { maximumFractionDigits: 2 });
-  if (currency === "USD") return "$" + value.toLocaleString("en-US", { maximumFractionDigits: 2 });
-  if (currency === "EUR") return "€" + value.toLocaleString("en-US", { maximumFractionDigits: 2 });
-  if (currency === "GBP") return "£" + value.toLocaleString("en-US", { maximumFractionDigits: 2 });
-  return value.toLocaleString("en-US", { maximumFractionDigits: 2 }) + " AED";
+  return "₹" + value.toLocaleString("en-IN", { maximumFractionDigits: 2 });
 }
 
 export default function PriceChart({ metal, onMetalChange }: PriceChartProps) {

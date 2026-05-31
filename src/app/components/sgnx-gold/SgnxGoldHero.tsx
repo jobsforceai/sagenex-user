@@ -1,10 +1,10 @@
 "use client";
 
 interface HeroProps {
-  totalDepositedUsd: number;
+  totalDepositedInr: number;
   totalGoldGrams: number;
-  maturityValueUsd: number;
-  totalCashBonusUsd: number;
+  maturityValueInr: number;
+  totalCashBonusInr: number;
   goldRateInr: number | null;
   hasEnrollment: boolean;
 }
@@ -14,16 +14,16 @@ function fmt(v: number) {
 }
 
 export default function SgnxGoldHero({
-  totalDepositedUsd,
+  totalDepositedInr,
   totalGoldGrams,
-  maturityValueUsd,
-  totalCashBonusUsd,
+  maturityValueInr,
+  totalCashBonusInr,
   goldRateInr,
   hasEnrollment,
 }: HeroProps) {
   const liveGoldValue = goldRateInr ? totalGoldGrams * goldRateInr : 0;
-  const profitUsd = maturityValueUsd - totalDepositedUsd;
-  const profitPct = totalDepositedUsd > 0 ? (profitUsd / totalDepositedUsd) * 100 : 0;
+  const profitInr = maturityValueInr - totalDepositedInr;
+  const profitPct = totalDepositedInr > 0 ? (profitInr / totalDepositedInr) * 100 : 0;
 
   return (
     <section className="relative overflow-hidden rounded-[30px] border border-[#E8E8E8] bg-white p-6 shadow-sm sm:p-8">
@@ -39,7 +39,7 @@ export default function SgnxGoldHero({
           </span>
 
           <h1 className="mt-4 text-3xl font-black tracking-tight text-[#111827] sm:text-5xl">
-            {fmt(maturityValueUsd)}
+            {fmt(maturityValueInr)}
             <span className="ml-2 text-lg font-semibold text-zinc-500 sm:text-2xl">Maturity Value</span>
           </h1>
           {hasEnrollment && profitPct > 0 && (
@@ -52,7 +52,7 @@ export default function SgnxGoldHero({
           <div className="mt-5 grid gap-3 sm:grid-cols-3">
             <div className="rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Total Invested</p>
-              <p className="mt-1 text-xl font-extrabold text-[#111827]">{fmt(totalDepositedUsd)}</p>
+              <p className="mt-1 text-xl font-extrabold text-[#111827]">{fmt(totalDepositedInr)}</p>
             </div>
             <div className="rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Gold Holdings</p>
@@ -61,7 +61,7 @@ export default function SgnxGoldHero({
             </div>
             <div className="rounded-2xl border border-[#E8E8E8] bg-[#F8F9FA] p-4">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-zinc-400">Cash Bonus</p>
-              <p className="mt-1 text-xl font-extrabold text-[#111827]">{fmt(totalCashBonusUsd)}</p>
+              <p className="mt-1 text-xl font-extrabold text-[#111827]">{fmt(totalCashBonusInr)}</p>
             </div>
           </div>
         </div>
