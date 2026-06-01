@@ -87,36 +87,50 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
     const isBelowPackageMinimum =
         transferType === 'TO_PACKAGE' && numericAmount > 0 && numericAmount < minPackageAmount;
 
-    const filteredRecipients = useMemo(() => {
-        if (!searchTerm) return [];
-        const q = searchTerm.toLowerCase();
-        return allRecipients.filter(r => {
-            if (!r.fullName || !r.userId) {
-                return false;
-            }
-            const fancy = (r.fancyId ?? '').toLowerCase();
-            return r.fullName.toLowerCase().includes(q) ||
-                   r.userId.toLowerCase().includes(q) ||
-                   (fancy && fancy.includes(q));
-        });
-    }, [searchTerm, allRecipients]);
-
+    // Debounced server-side search. We deliberately do not fetch the whole
+    // 14k-user list upfront — the backend supports `?q=` for paginated
+    // matches by userId / fancyId / fullName. Typing triggers a request
+    // 300ms after the user stops.
+    const filteredRecipients = allRecipients;
+    const [isSearchingRecipients, setIsSearchingRecipients] = useState(false);
     useEffect(() => {
-        const fetchRecipients = async () => {
+        const q = searchTerm.trim();
+        // If the user has selected someone (and we set the input to a
+        // "Name (Uxxx)" string), don't re-query.
+        if (selectedRecipient && searchTerm.startsWith(selectedRecipient.fullName ?? '')) {
+            setAllRecipients([]);
+            return;
+        }
+        if (!q) {
+            setAllRecipients([]);
+            return;
+        }
+        let cancelled = false;
+        setIsSearchingRecipients(true);
+        const timer = setTimeout(async () => {
             try {
-                const data = await getTransferRecipients(true);
-                if (data.error) {
+                const data = await getTransferRecipients(true, q, 20);
+                if (cancelled) return;
+                if (data && data.error) {
                     toast.error(`Could not load recipients: ${data.error}`);
+                    setAllRecipients([]);
                 } else {
-                    setAllRecipients(data);
+                    setAllRecipients((data ?? []) as Recipient[]);
                 }
             } catch (error) {
-                toast.error('An unexpected error occurred while fetching recipients.');
-                console.error(error);
+                if (!cancelled) {
+                    toast.error('An unexpected error occurred while fetching recipients.');
+                    console.error(error);
+                }
+            } finally {
+                if (!cancelled) setIsSearchingRecipients(false);
             }
+        }, 300);
+        return () => {
+            cancelled = true;
+            clearTimeout(timer);
         };
-        fetchRecipients();
-    }, []);
+    }, [searchTerm, selectedRecipient]);
 
     const isSelfRecipient = selectedRecipient?.userId && selectedRecipient.userId === user?.userId;
 
@@ -385,19 +399,25 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
                             className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827] focus:outline-none focus:ring-2 focus:ring-[#C41E3A]"
                             autoComplete="off"
                         />
-                        {isDropdownVisible && filteredRecipients.length > 0 && (
+                        {isDropdownVisible && (isSearchingRecipients || filteredRecipients.length > 0 || searchTerm.trim().length > 0) && (
                             <ul className="absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-md border border-[#E8E8E8] bg-white shadow-lg">
-                                {filteredRecipients.map(r => (
-                                    <li
-                                        key={r.userId}
-                                        onClick={() => handleRecipientSelect(r)}
-                                        className="cursor-pointer px-4 py-2 text-[#111827] hover:bg-zinc-50"
-                                    >
-                                        {r.fullName} ({r.userId})
-                                        {r.fancyId ? <span className="ml-1 text-[#C41E3A]">• {r.fancyId}</span> : null}
-                                        {r.userId === user?.userId ? " • You" : ""}
-                                    </li>
-                                ))}
+                                {isSearchingRecipients ? (
+                                    <li className="px-4 py-2 text-zinc-500">Searching…</li>
+                                ) : filteredRecipients.length === 0 ? (
+                                    <li className="px-4 py-2 text-zinc-500">No matching users found.</li>
+                                ) : (
+                                    filteredRecipients.map(r => (
+                                        <li
+                                            key={r.userId}
+                                            onClick={() => handleRecipientSelect(r)}
+                                            className="cursor-pointer px-4 py-2 text-[#111827] hover:bg-zinc-50"
+                                        >
+                                            {r.fullName} ({r.userId})
+                                            {r.fancyId ? <span className="ml-1 text-[#C41E3A]">• {r.fancyId}</span> : null}
+                                            {r.userId === user?.userId ? " • You" : ""}
+                                        </li>
+                                    ))
+                                )}
                             </ul>
                         )}
                     </div>
