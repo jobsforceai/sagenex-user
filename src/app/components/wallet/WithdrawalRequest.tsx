@@ -75,10 +75,11 @@ const WithdrawalRequest = ({
     if (!/^[0-9]+$/.test(cashAmount)) { toast.error("Enter a whole rupee amount (no paise)."); return; }
     const amt = parseInt(cashAmount, 10);
     if (!amt || amt <= 0) { toast.error("Enter a valid amount."); return; }
-    // Limit check on GROSS (net + 5% tax) — the actual wallet deduction.
-    const gross = Math.round(amt * 1.05 * 100) / 100;
-    if (gross > currentBalance) {
-      toast.error(`Insufficient balance. Need ₹${gross.toFixed(2)} (₹${amt.toFixed(2)} + 5% tax) but only have ₹${currentBalance.toFixed(2)}.`);
+    // Gross-input model (team directive 2026-06-01):
+    //   amt = wallet debit. tax = 5% × amt. user receives amt × 0.95.
+    if (amt > currentBalance) {
+      const netCash = Math.round(amt * 0.95 * 100) / 100;
+      toast.error(`Insufficient balance. Withdrawal of ₹${amt.toFixed(2)} (₹${netCash.toFixed(2)} in hand after 5% tax) but you only have ₹${currentBalance.toFixed(2)}.`);
       return;
     }
     setCashLoading(true);
@@ -115,10 +116,10 @@ const WithdrawalRequest = ({
     safeRemainingLimit !== null
       ? Math.min(currentBalance, safeRemainingLimit)
       : currentBalance;
-  // Max NET the user can actually receive after the 5% tax is taken from gross.
-  // gross = net × 1.05  →  net = gross / 1.05. Floor to 2dp so we never quote
-  // a number whose computed gross would round above maxWithdrawable.
-  const maxNetWithdrawable = Math.floor((maxWithdrawable / 1.05) * 100) / 100;
+  // Gross-input model: the amount the user enters IS the wallet debit (gross).
+  // What lands in their hand / bank = entered × 0.95 (5% tax kept by company).
+  // maxWithdrawable is already the max gross — use it as-is for the form input.
+  const maxNetReceivable = Math.floor((maxWithdrawable * 0.95) * 100) / 100;
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -188,16 +189,14 @@ const WithdrawalRequest = ({
       setError("Enter a whole rupee amount (no paise).");
       return;
     }
-    // Limits are on GROSS (what leaves the wallet), so apply 5% on top of the user-entered net.
-    const grossAmount = !isNaN(withdrawalAmount) && withdrawalAmount > 0
-      ? Math.round(withdrawalAmount * 1.05 * 100) / 100
-      : 0;
+    // Gross-input model: entered amount IS the wallet debit. Tax 5% deducted from it.
+    const grossAmount = !isNaN(withdrawalAmount) && withdrawalAmount > 0 ? withdrawalAmount : 0;
     if (!isNaN(withdrawalAmount) && grossAmount > maxWithdrawable) {
-      setError("Total deduction (incl. 5% tax) exceeds your remaining withdrawal limit.");
+      setError("Withdrawal amount exceeds your remaining withdrawal limit.");
     } else if (withdrawalType === "upi" && grossAmount > 500) {
-      setError(`UPI withdrawal cannot exceed ₹500 leaving the wallet (5% tax included). Max receive: ₹${Math.floor(500 / 1.05)}.`);
+      setError(`UPI withdrawal cannot exceed ₹500. (You will receive ₹${Math.floor(500 * 0.95)} after 5% tax.)`);
     } else if (withdrawalType === "bank" && grossAmount > 0 && grossAmount < 500) {
-      setError(`Bank withdrawal must be at least ₹500 leaving the wallet (5% tax included). Min receive: ₹${Math.ceil(500 / 1.05)}.`);
+      setError(`Bank withdrawal must be at least ₹500. (You will receive ₹${Math.ceil(500 * 0.95)} after 5% tax.)`);
     }
   };
 
@@ -213,21 +212,21 @@ const WithdrawalRequest = ({
       return null;
     }
 
-    // Limits are on GROSS (what leaves the wallet) — the user-entered net + 5% tax.
-    const grossAmount = Math.round(withdrawalAmount * 1.05 * 100) / 100;
+    // Gross-input model: entered amount IS the wallet debit. Tax 5% deducted from it.
+    const grossAmount = withdrawalAmount;
 
     if (grossAmount > maxWithdrawable) {
-      toast.error("Total deduction (incl. 5% tax) exceeds your remaining withdrawal limit.");
+      toast.error("Withdrawal amount exceeds your remaining withdrawal limit.");
       return null;
     }
 
     if (withdrawalType === "upi" && grossAmount > 500) {
-      toast.error(`UPI withdrawal cannot exceed ₹500 leaving the wallet. Max receive: ₹${(500 / 1.05).toFixed(2)}.`);
+      toast.error(`UPI withdrawal cannot exceed ₹500. You will receive ₹${(500 * 0.95).toFixed(2)} after 5% tax.`);
       return null;
     }
 
     if (withdrawalType === "bank" && grossAmount < 500) {
-      toast.error(`Bank withdrawal must be at least ₹500 leaving the wallet. Min receive: ₹${(500 / 1.05).toFixed(2)}.`);
+      toast.error(`Bank withdrawal must be at least ₹500. You will receive ₹${(500 * 0.95).toFixed(2)} after 5% tax.`);
       return null;
     }
 
@@ -414,18 +413,18 @@ const WithdrawalRequest = ({
                   type="number"
                   value={cashAmount}
                   onChange={(e) => setCashAmount(e.target.value)}
-                  placeholder={`Max receive: ₹${Math.floor(currentBalance / 1.05).toLocaleString('en-IN')}`}
+                  placeholder={`Max withdrawal: ₹${Math.floor(currentBalance).toLocaleString('en-IN')}`}
                   className="border-[#E8E8E8] bg-white text-[#111827]"
                   min="1"
                   step="1"
                 />
                 <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-emerald-50 px-3 py-2 text-xs">
                   <span className="font-bold text-emerald-700">
-                    Max withdrawable (after 5% tax): ₹{Math.floor(currentBalance / 1.05).toLocaleString('en-IN')}
+                    Max withdrawal: ₹{Math.floor(currentBalance).toLocaleString('en-IN')} (you receive ₹{Math.floor(currentBalance * 0.95).toLocaleString('en-IN')} after 5% tax)
                   </span>
                   <button
                     type="button"
-                    onClick={() => setCashAmount(String(Math.floor(currentBalance / 1.05)))}
+                    onClick={() => setCashAmount(String(Math.floor(currentBalance)))}
                     className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
                   >
                     Use Max
@@ -435,15 +434,16 @@ const WithdrawalRequest = ({
                   Amount is held immediately. Admin will contact you with pickup details.
                 </p>
                 {(() => {
-                  const a = parseFloat(cashAmount);
-                  if (!isFinite(a) || a <= 0) return null;
-                  const tax = Math.round(a * 0.05 * 100) / 100;
-                  const gross = Math.round((a + tax) * 100) / 100;
+                  // Gross-input model: entered amount = wallet debit. Tax = 5% of it. Net = 95%.
+                  const gross = parseFloat(cashAmount);
+                  if (!isFinite(gross) || gross <= 0) return null;
+                  const tax = Math.round(gross * 0.05 * 100) / 100;
+                  const net = Math.round((gross - tax) * 100) / 100;
                   return (
                     <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-                      <p>You will receive in cash: <span className="font-bold text-amber-900">₹{a.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-                      <p className="mt-0.5">5% tax (3% GST + 2% CGST): <span className="font-semibold">+₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-                      <p className="mt-0.5">Total deducted from your wallet: <span className="font-bold text-amber-900">₹{gross.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                      <p>Withdrawal from your wallet: <span className="font-bold text-amber-900">₹{gross.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                      <p className="mt-0.5">5% tax (3% GST + 2% CGST): <span className="font-semibold">−₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                      <p className="mt-0.5">You will receive in cash: <span className="font-bold text-amber-900">₹{net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
                     </div>
                   );
                 })()}
@@ -530,7 +530,7 @@ const WithdrawalRequest = ({
                 type="number"
                 value={amount}
                 onChange={handleAmountChange}
-                placeholder={`Max receive: ₹${Math.floor(maxNetWithdrawable).toLocaleString('en-IN')}`}
+                placeholder={`Max withdrawal: ₹${Math.floor(maxWithdrawable).toLocaleString('en-IN')}`}
                 className="w-full rounded-md border border-[#E8E8E8] bg-white px-4 py-2 text-[#111827]"
                 required
                 min="1"
@@ -538,35 +538,30 @@ const WithdrawalRequest = ({
               />
               <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-emerald-50 px-3 py-2 text-xs">
                 <span className="font-bold text-emerald-700">
-                  Max withdrawable (after 5% tax): ₹{Math.floor(maxNetWithdrawable).toLocaleString('en-IN')}
+                  Max withdrawal: ₹{Math.floor(maxWithdrawable).toLocaleString('en-IN')} (you receive ₹{maxNetReceivable.toLocaleString('en-IN')} after 5% tax)
                 </span>
                 <button
                   type="button"
-                  onClick={() => handleAmountChange({ target: { value: String(Math.floor(maxNetWithdrawable)) } } as React.ChangeEvent<HTMLInputElement>)}
+                  onClick={() => handleAmountChange({ target: { value: String(Math.floor(maxWithdrawable)) } } as React.ChangeEvent<HTMLInputElement>)}
                   className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
                 >
                   Use Max
                 </button>
               </div>
-              {safeRemainingLimit !== null && (
-                <p className="mt-1 text-[11px] text-zinc-500">
-                  Wallet limit (gross, incl. tax): ₹{maxWithdrawable.toFixed(2)}
-                </p>
-              )}
               {withdrawalType === "upi" && parseFloat(amount) > 500 && (
                 <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed ₹500.</p>
               )}
               {(() => {
-                const a = parseFloat(amount);
-                if (!isFinite(a) || a <= 0) return null;
-                // User entered NET (what they want to receive). Wallet debits gross = net × 1.05.
-                const tax = Math.round(a * 0.05 * 100) / 100;
-                const gross = Math.round((a + tax) * 100) / 100;
+                // Gross-input model: entered amount = wallet debit. Tax 5% deducted from it. Net = 95%.
+                const gross = parseFloat(amount);
+                if (!isFinite(gross) || gross <= 0) return null;
+                const tax = Math.round(gross * 0.05 * 100) / 100;
+                const net = Math.round((gross - tax) * 100) / 100;
                 return (
                   <div className="mt-3 rounded-lg bg-amber-50 border border-amber-200 px-3 py-2 text-xs text-amber-800">
-                    <p>You will receive: <span className="font-bold text-amber-900">₹{a.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-                    <p className="mt-0.5">5% tax (3% GST + 2% CGST): <span className="font-semibold">+₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
-                    <p className="mt-0.5">Total deducted from your wallet: <span className="font-bold text-amber-900">₹{gross.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                    <p>Withdrawal from your wallet: <span className="font-bold text-amber-900">₹{gross.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                    <p className="mt-0.5">5% tax (3% GST + 2% CGST): <span className="font-semibold">−₹{tax.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
+                    <p className="mt-0.5">You will receive: <span className="font-bold text-amber-900">₹{net.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></p>
                   </div>
                 );
               })()}
