@@ -33,7 +33,7 @@ const SingleTicketPage = () => {
   const [newItem, setNewItem] = useState({
     category: "",
     amountInLocalCurrency: "",
-    currency: "USD",
+    currency: "INR",
     note: "",
     file: null as File | null,
   });
@@ -98,7 +98,7 @@ const SingleTicketPage = () => {
         setError(res.error);
       } else {
         setTicket(res.ticket);
-        setNewItem({ category: "", amountInLocalCurrency: "", currency: "USD", note: "", file: null });
+        setNewItem({ category: "", amountInLocalCurrency: "", currency: "INR", note: "", file: null });
       }
     } catch (err) {
       setError("An unexpected error occurred.");

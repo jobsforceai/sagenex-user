@@ -204,7 +204,7 @@ const FundTransfer = ({ currentBalance, className }: { currentBalance: number; c
             return;
         }
         if (isBelowPackageMinimum) {
-            toast.error(`Minimum ${minPackageAmount} USD required for package top-up.`);
+            toast.error(`Minimum ₹${minPackageAmount} required for package top-up.`);
             return;
         }
         if (!selectedRecipient) {

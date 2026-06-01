@@ -34,7 +34,7 @@ export function Step1TransferDetails({ onNext, initialData }: Step1Props) {
   });
 
   const amount = watch('amount');
-  const isFixedAmount = amount === 50; // For U001 with fixed $50 transfer
+  const isFixedAmount = amount === 50; // For U001 with fixed ₹50 transfer
 
   return (
     <form onSubmit={handleSubmit(onNext)} className="space-y-6">
@@ -62,7 +62,7 @@ export function Step1TransferDetails({ onNext, initialData }: Step1Props) {
         {/* Amount */}
         <div>
           <Label htmlFor="amount" className="text-white/90">
-            Amount (USD) {isFixedAmount && <span className="text-xs text-emerald-300">(Fixed)</span>}
+            Amount (INR) {isFixedAmount && <span className="text-xs text-emerald-300">(Fixed)</span>}
           </Label>
           <Input
             id="amount"

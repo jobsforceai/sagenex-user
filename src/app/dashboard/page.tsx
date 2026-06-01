@@ -35,6 +35,7 @@ import MultiplierProgress from "../components/dashboard/MultiplierProgress";
 import LegGauges from "../components/dashboard/LegGauges";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeletons";
 import ScheduledCashBanner from "../components/wallet/ScheduledCashBanner";
+import { formatINR } from "@/lib/currency";
 
 // ─── Interfaces ────────────────────────────────────────────────────
 
@@ -73,6 +74,7 @@ interface WalletData {
 
 interface UserPackage {
   packageUSD: number;
+  packageINR?: number;
 }
 
 interface RankSnapshot {
@@ -178,16 +180,6 @@ const formatCurrencyCompact = (amount?: number) => {
   });
 };
 
-const formatUsdCompact = (amount?: number) => {
-  if (amount === undefined || amount === null) return "N/A";
-  return amount.toLocaleString("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 0,
-    maximumFractionDigits: 0,
-  });
-};
-
 const avatarStyle = (name: string) => {
   const hue = (name.charCodeAt(0) * 37) % 360;
   return {
@@ -209,6 +201,7 @@ const DashboardPage = () => {
   const [ticketBalance, setTicketBalance] = useState<{
     totalTickets: number;
     totalInvestedUSD: number;
+    totalInvestedINR?: number;
     lastCalculatedAt: string | null;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -779,7 +772,7 @@ const DashboardPage = () => {
                     </div>
                     <div className="rounded-2xl bg-slate-50 p-3">
                       <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Package</p>
-                      <p className="mt-1 truncate text-sm font-black text-[#0F172A]">{formatUsdCompact(dashboardData?.package?.packageUSD)}</p>
+                      <p className="mt-1 truncate text-sm font-black text-[#0F172A]">{formatINR(dashboardData?.package?.packageINR ?? dashboardData?.package?.packageUSD)}</p>
                     </div>
                   </div>
                 </div>
@@ -820,7 +813,7 @@ const DashboardPage = () => {
                   </div>
                   <div className="rounded-2xl bg-slate-50 p-4">
                     <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Invested</p>
-                    <p className="mt-1 truncate text-lg font-black text-[#0F172A]">{formatUsdCompact(ticketBalance?.totalInvestedUSD)}</p>
+                    <p className="mt-1 truncate text-lg font-black text-[#0F172A]">{formatINR(ticketBalance?.totalInvestedINR ?? ticketBalance?.totalInvestedUSD)}</p>
                   </div>
                 </div>
                 <p className="mt-3 text-xs font-semibold text-[#64748B]">

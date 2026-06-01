@@ -16,6 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Copy, BadgeCheck, XCircle, ShieldCheck, ShieldAlert, ShieldClose, Edit } from "lucide-react";
 import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess, getBiometricsStatus, getTicketBalance, getDashboardData } from "@/actions/user";
 import { KycStatus } from "@/types";
+import { formatINR } from "@/lib/currency";
 
 interface UserProfile {
   userId: string;
@@ -107,6 +108,7 @@ const ProfilePage = () => {
   const [ticketBalance, setTicketBalance] = useState<{
     totalTickets: number;
     totalInvestedUSD: number;
+    totalInvestedINR?: number;
     lastCalculatedAt: string | null;
   } | null>(null);
   const [rankData, setRankData] = useState<{ name?: string } | null>(null);
@@ -386,7 +388,7 @@ const ProfilePage = () => {
                     {ticketBalance.totalTickets}
                   </p>
                   <p className="text-xs text-gray-400">
-                    Invested: ${ticketBalance.totalInvestedUSD.toLocaleString()}
+                    Invested: {formatINR(ticketBalance.totalInvestedINR ?? ticketBalance.totalInvestedUSD)}
                   </p>
                   <p className="text-[10px] text-gray-500">
                     {ticketBalance.lastCalculatedAt

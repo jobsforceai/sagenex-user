@@ -15,6 +15,7 @@ interface Enrollment {
   _id: string;
   planType: "gold" | "cash";
   monthlyAmountUsd: number;
+  monthlyAmountInr?: number;
   status: string;
   completedMonths: number;
   totalMonths: number;
@@ -40,20 +41,21 @@ interface OverviewCardsProps {
 }
 
 // Wallet migrated to INR — *Usd fields now carry INR values (legacy name)
-const formatUSD = (v: number) =>
+const formatINRLocal = (v: number) =>
   "₹" + v.toLocaleString("en-IN", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
 const formatDate = (v: string) => new Date(v).toLocaleDateString("en-US");
 
 export default function OverviewCards({ enrollment, goldRate }: OverviewCardsProps) {
   const isGold = enrollment.planType === "gold";
-  const totalDeposited = enrollment.monthlyAmountUsd * enrollment.completedMonths;
+  const monthlyAmount = enrollment.monthlyAmountInr ?? enrollment.monthlyAmountUsd;
+  const totalDeposited = monthlyAmount * enrollment.completedMonths;
   const maturityMonths = 11;
 
   // Bonus = first deposit × multiplier; maturity = all deposits + bonus
   const bonusValue = isGold
-    ? enrollment.monthlyAmountUsd * 3
-    : enrollment.monthlyAmountUsd * 4;
-  const totalExpected = enrollment.monthlyAmountUsd * maturityMonths;
+    ? monthlyAmount * 3
+    : monthlyAmount * 4;
+  const totalExpected = monthlyAmount * maturityMonths;
   const maturityValue = totalExpected + bonusValue;
 
   const liveGoldValue =
@@ -84,17 +86,17 @@ export default function OverviewCards({ enrollment, goldRate }: OverviewCardsPro
     },
     {
       label: "Total Deposited",
-      value: formatUSD(totalDeposited),
+      value: formatINRLocal(totalDeposited),
       icon: <DollarSign className="h-4 w-4 text-blue-400" />,
     },
     {
       label: "Monthly Amount",
-      value: formatUSD(enrollment.monthlyAmountUsd),
+      value: formatINRLocal(monthlyAmount),
       icon: <Coins className="h-4 w-4 text-purple-400" />,
     },
     {
       label: "Maturity Value",
-      value: formatUSD(maturityValue),
+      value: formatINRLocal(maturityValue),
       icon: <TrendingUp className="h-4 w-4 text-amber-400" />,
     },
     {
@@ -115,7 +117,7 @@ export default function OverviewCards({ enrollment, goldRate }: OverviewCardsPro
     });
     cards.push({
       label: "Live Gold Value",
-      value: liveGoldValue !== null ? formatUSD(liveGoldValue) : "N/A",
+      value: liveGoldValue !== null ? formatINRLocal(liveGoldValue) : "N/A",
       icon: <DollarSign className="h-4 w-4 text-amber-400" />,
     });
   }

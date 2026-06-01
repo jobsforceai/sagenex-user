@@ -76,7 +76,7 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
           <form onSubmit={handleCreateInvoice} className="flex flex-col gap-4 h-full">
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-2">
-                Amount (USD)
+                Amount (INR)
               </label>
               <Input
                 id="amount"
@@ -100,7 +100,7 @@ const CryptoDeposit = ({ className }: { className?: string }) => {
           <div className="text-center space-y-6 flex flex-col h-full">
             <h3 className="text-lg font-semibold">Complete Your Deposit</h3>
             <p className="text-muted-foreground text-sm">
-              To credit your account with ${originalAmount.toFixed(2)} USD, please send the exact crypto amount to the address below.
+              To credit your account with ₹{originalAmount.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}, please send the exact crypto amount to the address below.
             </p>
 
             <div className="bg-white p-4 rounded-lg inline-block">
