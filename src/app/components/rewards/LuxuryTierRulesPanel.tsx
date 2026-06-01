@@ -164,6 +164,7 @@ export default function LuxuryTierRulesPanel({ defaultOpen = false }: { defaultO
                 return (
                   <article
                     key={tier.id}
+                    data-luxury-dark
                     className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${tier.gradient} p-5 text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)]`}
                   >
                     {/* subtle decorative noise / sparkle dots */}

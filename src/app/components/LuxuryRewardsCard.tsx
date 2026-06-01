@@ -179,7 +179,7 @@ export default function LuxuryRewardsCard() {
   return (
     <section className="overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <div className="grid gap-5 p-5 sm:p-7 xl:grid-cols-[0.85fr_1.15fr]">
-        <div className="rounded-3xl bg-gradient-to-br from-[#063B22] via-[#0B5A35] to-[#7A001F] p-5 text-white">
+        <div data-luxury-dark className="rounded-3xl bg-gradient-to-br from-[#063B22] via-[#0B5A35] to-[#7A001F] p-5 text-white">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div>
               <p className="text-[11px] font-black uppercase tracking-[0.16em] text-amber-100">Your Closest Reward</p>

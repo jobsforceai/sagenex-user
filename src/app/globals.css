@@ -227,6 +227,27 @@
   border-color: var(--card-border);
 }
 
+/*
+ * Luxury rewards dark-gradient cards opt out of the light-scope text overrides.
+ * Mark the dark card container with `data-luxury-dark` and any `text-white`,
+ * `text-white/70`, `text-gray-400`, `text-gray-500` inside it will render white
+ * instead of being flipped to near-black by the rules above.
+ */
+.auth-light-scope [data-luxury-dark],
+.dashboard-light-scope [data-luxury-dark],
+.auth-light-scope [data-luxury-dark] .text-white,
+.dashboard-light-scope [data-luxury-dark] .text-white {
+  color: #ffffff;
+}
+.auth-light-scope [data-luxury-dark] .text-white\/70,
+.dashboard-light-scope [data-luxury-dark] .text-white\/70,
+.auth-light-scope [data-luxury-dark] .text-gray-400,
+.dashboard-light-scope [data-luxury-dark] .text-gray-400,
+.auth-light-scope [data-luxury-dark] .text-gray-500,
+.dashboard-light-scope [data-luxury-dark] .text-gray-500 {
+  color: rgba(255, 255, 255, 0.72);
+}
+
 .auth-light-scope [class*="text-gray-"],
 .dashboard-light-scope [class*="text-gray-"],
 .auth-light-scope [class*="text-neutral-"],
