@@ -1,0 +1,23 @@
+src/app/components/LuxuryRewardsCard.tsx
+  s_964e0d3fba450c::t_297f8e96dbf2e3 182
+src/app/globals.css
+  s_964e0d3fba450c::t_59517ea99d7205 230-250
+src/app/components/rewards/LuxuryTierRulesPanel.tsx
+  s_964e0d3fba450c::t_63543fe36b92dc 167
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7a1c217b31738c9506eb970b8c4367b95272e076",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
