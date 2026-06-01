@@ -1,0 +1,20 @@
+src/app/rewards/page.tsx
+  s_964e0d3fba450c::t_8eaf6e51516cf8 755,757-762,764
+  s_964e0d3fba450c::t_6300d240a4fd89 873-880
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "7b11575fdaf2fdaf00502636825d88f4adcc9ab9",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
