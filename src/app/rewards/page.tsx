@@ -752,14 +752,16 @@ const RewardsPage = () => {
       return;
     }
     if (isAuthenticated) {
-      // Critical path: rewards / programs / KYC / leaderboard / active-legs
+      // Critical path: rewards / programs / KYC / active-legs
       fetchInitialData();
-      // Non-critical: recipients list for the transfer modal.
-      // Fired in the background so it doesn't block initial paint; arrives
-      // before the user can click into a transfer action in practice.
-      fetchRecipients();
+      // Recipients list is INTENTIONALLY NOT fetched here. The backend
+      // endpoint `/user/transfer-recipients` returns every user in the
+      // system (~14k rows, ~1.3MB) and takes ~22s on Render — that's the
+      // "second load 20s later" experience users were reporting. Instead
+      // we fetch on demand the moment a user clicks "Transfer" (see
+      // `onTransfer` handler below). Initial paint stays clean.
     }
-  }, [isAuthenticated, authLoading, router, fetchInitialData, fetchRecipients]);
+  }, [isAuthenticated, authLoading, router, fetchInitialData]);
 
   const handleTransferReward = async (
     rewardId: string,
@@ -868,7 +870,14 @@ const RewardsPage = () => {
                 rewards={rewardsByProgram[program.programId] ?? []}
                 recipients={recipients}
                 kycStatus={kycStatus}
-                onTransfer={setTransferModalReward}
+                onTransfer={(reward) => {
+                  // Fetch recipients on demand. The endpoint is slow (~22s,
+                  // 1.3MB) so we deliberately don't preload it. The user
+                  // sees the modal open instantly with a loading state for
+                  // the recipient picker.
+                  fetchRecipients();
+                  setTransferModalReward(reward);
+                }}
                 onUploadDocuments={(reward) => setUploadModalReward(reward)}
               />
             ))}
