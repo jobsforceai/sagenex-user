@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { getEnrollmentDetail } from "@/actions/sgnxgold";
-import { CalendarCheck, Loader2 } from "lucide-react";
+import { Banknote, CalendarCheck, Coins, Loader2 } from "lucide-react";
 
 interface MonthlyRecord {
   monthNumber: number;
@@ -14,8 +14,10 @@ interface MonthlyRecord {
 
 interface PaymentProgressProps {
   enrollmentId: string;
-  /** Optional plan label shown in the card header, e.g. "Gold · $10,000/month · Apr 29, 2026". */
+  /** Optional plan label shown in the card header, e.g. "₹10,000/month · enrolled 29 Apr 2026". */
   planLabel?: string;
+  /** Optional plan type — when set, renders a colored badge ("Gold" or "Cash") in the header so multi-enrollment users can tell cards apart at a glance. */
+  planType?: "gold" | "cash";
 }
 
 const statusStyles: Record<string, { bg: string; border: string; label: string }> = {
@@ -26,7 +28,7 @@ const statusStyles: Record<string, { bg: string; border: string; label: string }
   UPCOMING: { bg: "bg-gray-700", border: "border-gray-600", label: "Upcoming" },
 };
 
-export default function PaymentProgress({ enrollmentId, planLabel }: PaymentProgressProps) {
+export default function PaymentProgress({ enrollmentId, planLabel, planType }: PaymentProgressProps) {
   const [records, setRecords] = useState<MonthlyRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -95,10 +97,24 @@ export default function PaymentProgress({ enrollmentId, planLabel }: PaymentProg
   return (
     <Card className="bg-white border-[#E8E8E8] rounded-2xl">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 text-[#111827]">
-          <CalendarCheck className="h-5 w-5 text-[#C41E3A]" />
-          11-Month Payment Progress
-        </CardTitle>
+        <div className="flex flex-wrap items-center gap-2">
+          <CardTitle className="flex items-center gap-2 text-[#111827]">
+            <CalendarCheck className="h-5 w-5 text-[#C41E3A]" />
+            11-Month Payment Progress
+          </CardTitle>
+          {planType === "gold" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-800 ring-1 ring-amber-200">
+              <Coins className="h-3 w-3" />
+              Gold Plan
+            </span>
+          )}
+          {planType === "cash" && (
+            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-emerald-800 ring-1 ring-emerald-200">
+              <Banknote className="h-3 w-3" />
+              Cash Plan
+            </span>
+          )}
+        </div>
         {planLabel && (
           <div className="mt-1 text-xs font-medium text-zinc-500">{planLabel}</div>
         )}
