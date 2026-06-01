@@ -1,0 +1,9 @@
+src/app/components/wallet/tabs/TransferTab.tsx
+  ai_agent 6-10,108-112,115-124
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "bd61ffccb30f5245f705972ad39a441152ae6c2a",
+  "prompts": {}
+}
