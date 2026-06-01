@@ -1,0 +1,19 @@
+src/app/components/rewards/LuxuryTierRulesPanel.tsx
+  s_964e0d3fba450c::t_58c31602c2cc4f 17-18,24-25,37-39,48-50,59-61,70-72,157-158,161,163,167,169-179,181,183-196,198-200
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "c15111e8da7ce490fb4d5d26ae13501eb052d2f5",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
