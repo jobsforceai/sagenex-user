@@ -132,14 +132,12 @@ const RewardCard = ({
   reward,
   onTransfer,
   onUploadDocuments,
-  recipients,
   kycStatus,
   isProgramLocked,
 }: {
   reward: Reward;
   onTransfer: (reward: Reward) => void;
   onUploadDocuments: (reward: Reward) => void;
-  recipients: Recipient[];
   kycStatus: KycStatus | null;
   isProgramLocked: boolean;
 }) => {
@@ -151,12 +149,16 @@ const RewardCard = ({
     ? 100
     : Math.min(total > 0 ? (current / total) * 100 : 0, 100);
 
+  // The sender's full name used to come from the preloaded recipients list,
+  // but that list has been removed (it was a 22s / 1.3MB endpoint dump).
+  // We fall back to showing the sender's userId instead — accurate enough,
+  // and the name can be resolved on hover/click in a future iteration.
   const sender = reward.transferredFrom
-    ? recipients.find((r) => r.userId === reward.transferredFrom)
+    ? { fullName: reward.transferredFrom, userId: reward.transferredFrom }
     : null;
 
   const showTransferredStatus = reward.isTransferred;
-  const canTransferReward = recipients.length > 0 && !reward.isTransferred && !wasReceived && !isProgramLocked;
+  const canTransferReward = !reward.isTransferred && !wasReceived && !isProgramLocked;
   const kycLabel = kycStatus?.status === "VERIFIED" ? "KYC verified" : "KYC status pending";
 
   const renderStatus = () => {
@@ -415,12 +417,10 @@ const RewardProgramHub = ({
 
 const TransferModal = ({
   reward,
-  recipients,
   onClose,
   onConfirm,
 }: {
   reward: Reward;
-  recipients: Recipient[];
   onClose: () => void;
   onConfirm: (rewardId: string, recipientId: string) => Promise<void>;
 }) => {
@@ -428,13 +428,39 @@ const TransferModal = ({
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(
     null
   );
+  const [filteredRecipients, setFilteredRecipients] = useState<Recipient[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [isTransferring, setIsTransferring] = useState(false);
 
-  const filteredRecipients = recipients.filter(
-    (r) =>
-      r.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.userId.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Debounced server-side search. We deliberately do not fetch all 14k users
+  // upfront — the backend supports `?q=` for paginated matches. Typing a
+  // recipient's name or userId triggers a request 300ms after the user stops.
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q || (selectedRecipient && searchQuery.startsWith(selectedRecipient.fullName))) {
+      // Empty input, or the user just picked someone (we set the input to
+      // their name + id) — don't re-query.
+      setFilteredRecipients([]);
+      setIsSearching(false);
+      return;
+    }
+    let cancelled = false;
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      const data = await getTransferRecipients(false, q, 20);
+      if (cancelled) return;
+      if (data && !("error" in data)) {
+        setFilteredRecipients(data as Recipient[]);
+      } else {
+        setFilteredRecipients([]);
+      }
+      setIsSearching(false);
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, selectedRecipient]);
 
   const handleConfirm = async () => {
     if (!selectedRecipient) return;
@@ -481,7 +507,9 @@ const TransferModal = ({
             />
           </div>
           <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200">
-            {filteredRecipients.length > 0 ? (
+            {isSearching ? (
+              <p className="p-3 text-[#64748B]">Searching…</p>
+            ) : filteredRecipients.length > 0 ? (
               filteredRecipients.map((r) => (
                 <button
                   type="button"
@@ -500,8 +528,10 @@ const TransferModal = ({
                   <p className="text-sm text-[#64748B]">{r.userId}</p>
                 </button>
               ))
-            ) : (
+            ) : searchQuery.trim() ? (
               <p className="p-3 text-[#64748B]">No matching users found.</p>
+            ) : (
+              <p className="p-3 text-[#64748B]">Start typing a name or user ID…</p>
             )}
           </div>
         </div>
@@ -531,14 +561,12 @@ const TransferModal = ({
 const ProgramTracker = ({
   program,
   rewards,
-  recipients,
   kycStatus,
   onTransfer,
   onUploadDocuments,
 }: {
   program: RewardProgram;
   rewards: Reward[];
-  recipients: Recipient[];
   kycStatus: KycStatus | null;
   onTransfer: (reward: Reward) => void;
   onUploadDocuments: (reward: Reward) => void;
@@ -608,7 +636,6 @@ const ProgramTracker = ({
                 reward={reward}
                 onTransfer={onTransfer}
                 onUploadDocuments={onUploadDocuments}
-                recipients={recipients}
                 kycStatus={kycStatus}
                 isProgramLocked={isLocked}
               />
@@ -636,7 +663,8 @@ const RewardsPage = () => {
   const [programConfigs, setProgramConfigs] = useState<
     Record<string, RewardProgram>
   >({});
-  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  // Recipients are NOT preloaded — see comments around the auth-effect
+  // below. The TransferModal does its own debounced server-side search.
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
@@ -668,20 +696,8 @@ const RewardsPage = () => {
           teamBusinessTiers: [],
         }));
 
-  // Lazy-loaded — only fetched when the transfer panel opens.
-  const fetchRecipients = useCallback(async () => {
-    if (recipients.length > 0) return; // already loaded
-    try {
-      const recipientsData = await getTransferRecipients();
-      if (recipientsData && "error" in recipientsData) {
-        console.error("Could not load recipients:", recipientsData.error);
-      } else {
-        setRecipients(recipientsData as Recipient[]);
-      }
-    } catch (e) {
-      console.error("Could not load recipients:", e);
-    }
-  }, [recipients.length]);
+  // Recipients are NOT preloaded — TransferModal does its own
+  // debounced server-side search via `getTransferRecipients(false, q, 20)`.
 
   const fetchInitialData = useCallback(async () => {
     setDataLoading(true);
@@ -868,16 +884,8 @@ const RewardsPage = () => {
                 key={program.programId}
                 program={program}
                 rewards={rewardsByProgram[program.programId] ?? []}
-                recipients={recipients}
                 kycStatus={kycStatus}
-                onTransfer={(reward) => {
-                  // Fetch recipients on demand. The endpoint is slow (~22s,
-                  // 1.3MB) so we deliberately don't preload it. The user
-                  // sees the modal open instantly with a loading state for
-                  // the recipient picker.
-                  fetchRecipients();
-                  setTransferModalReward(reward);
-                }}
+                onTransfer={(reward) => setTransferModalReward(reward)}
                 onUploadDocuments={(reward) => setUploadModalReward(reward)}
               />
             ))}
@@ -888,7 +896,6 @@ const RewardsPage = () => {
       {transferModalReward && (
         <TransferModal
           reward={transferModalReward}
-          recipients={recipients}
           onClose={() => setTransferModalReward(null)}
           onConfirm={handleTransferReward}
         />
