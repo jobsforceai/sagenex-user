@@ -1,0 +1,25 @@
+src/app/sgnx-gold/page.tsx
+  s_964e0d3fba450c::t_b5ac9620813238 235-237,241
+  s_964e0d3fba450c::t_47c1860c6ebe64 304-306,312
+src/app/components/sgnx-gold/PaymentProgress.tsx
+  s_964e0d3fba450c::t_c7b5881d0d0b76 31
+  s_964e0d3fba450c::t_437f5b8cc5943b 17,19-20
+  s_964e0d3fba450c::t_e59aeb912326e5 6
+  s_964e0d3fba450c::t_7028b8d9e99b6c 100-117
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "53a6790093a5d9b833fc06292a9588fba5a2c5cf",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
