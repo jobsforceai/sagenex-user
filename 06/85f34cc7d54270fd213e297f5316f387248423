@@ -1,0 +1,9 @@
+src/app/components/wallet/WithdrawalRequest.tsx
+  ai_agent 78-82,119-122,192-193,195,197,199,215-216,219,224,229,416,423,427,437-441,444-446,533,541,545,555-559,562-564
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0685f34cc7d54270fd213e297f5316f387248423",
+  "prompts": {}
+}
