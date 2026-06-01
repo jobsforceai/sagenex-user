@@ -1,0 +1,29 @@
+src/actions/user.ts
+  s_964e0d3fba450c::t_087a0a85a1a0eb 372-393
+src/app/rewards/page.tsx
+  s_964e0d3fba450c::t_d5954a4727edde 431-432,435-463
+  s_964e0d3fba450c::t_ac4c9b6ba30cb5 152-155,157,161
+  s_964e0d3fba450c::t_11990636bc9f2e 510-512,531,533-534
+  s_964e0d3fba450c::t_b9342d4f65a142 666-667
+  s_964e0d3fba450c::t_d90bc933e73c53 888
+  s_964e0d3fba450c::t_6477c97b6e83f7 699-700
+src/app/components/wallet/FundTransfer.tsx
+  s_964e0d3fba450c::t_9ac82b0c2d63b2 402,404-420
+  s_964e0d3fba450c::t_8ff2d61e0eb8e6 90-95,97-110,112-114,116,118,121-126,128-131,133
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "0c6cad1dbc381293df53b50b5380dfb84e3e6822",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
