@@ -8,18 +8,21 @@
  * default so it doesn't dominate the main rewards layout; users can
  * expand it when they want to read the rules.
  */
-import Image from "next/image";
 import { useState } from "react";
 import {
   BadgeCheck,
   CalendarDays,
   ChevronDown,
   ClipboardCheck,
+  Coins,
+  Crown,
   Gift,
   Medal,
   RefreshCw,
   Scale,
   ShieldCheck,
+  Sparkles,
+  Target,
   Trophy,
 } from "lucide-react";
 
@@ -31,9 +34,9 @@ const tierRules = [
     directBusiness: "₹50,000",
     activeLegs: "2",
     cycle: "90 Days",
-    accent: "emerald",
-    image: "/rewards/luxury-tech-reward.png",
-    visualLabel: "Tech and travel reward",
+    tagline: "Tech & travel reward",
+    icon: Sparkles,
+    gradient: "from-emerald-600 via-emerald-700 to-emerald-900",
   },
   {
     id: "30L",
@@ -42,9 +45,9 @@ const tierRules = [
     directBusiness: "₹1,50,000",
     activeLegs: "3",
     cycle: "90 Days",
-    accent: "blue",
-    image: "/rewards/bike-travel-reward.png",
-    visualLabel: "Bike and travel reward",
+    tagline: "Bike & travel reward",
+    icon: Trophy,
+    gradient: "from-blue-600 via-blue-700 to-blue-900",
   },
   {
     id: "50L",
@@ -53,9 +56,9 @@ const tierRules = [
     directBusiness: "₹2,50,000",
     activeLegs: "4",
     cycle: "120 Days",
-    accent: "violet",
-    image: "/rewards/office-car-reward.png",
-    visualLabel: "Office and car reward",
+    tagline: "Office & car reward",
+    icon: Target,
+    gradient: "from-violet-600 via-violet-700 to-violet-900",
   },
   {
     id: "1CR",
@@ -64,9 +67,9 @@ const tierRules = [
     directBusiness: "₹5,00,000",
     activeLegs: "5",
     cycle: "120 Days",
-    accent: "amber",
-    image: "/rewards/crown-tier-reward.png",
-    visualLabel: "Crown luxury reward",
+    tagline: "Crown luxury reward",
+    icon: Crown,
+    gradient: "from-amber-500 via-amber-700 to-amber-900",
   },
 ];
 
@@ -125,13 +128,6 @@ const additionalRules = [
   },
 ];
 
-const tierTone: Record<string, { badge: string; soft: string; text: string }> = {
-  emerald: { badge: "bg-emerald-700 text-white", soft: "bg-emerald-50 border-emerald-100", text: "text-emerald-700" },
-  blue:    { badge: "bg-blue-700 text-white",    soft: "bg-blue-50 border-blue-100",       text: "text-blue-700"    },
-  violet:  { badge: "bg-violet-700 text-white",  soft: "bg-violet-50 border-violet-100",   text: "text-violet-700"  },
-  amber:   { badge: "bg-amber-600 text-white",   soft: "bg-amber-50 border-amber-100",     text: "text-amber-700"   },
-};
-
 export default function LuxuryTierRulesPanel({ defaultOpen = false }: { defaultOpen?: boolean }) {
   const [isOpen, setIsOpen] = useState(defaultOpen);
 
@@ -158,52 +154,50 @@ export default function LuxuryTierRulesPanel({ defaultOpen = false }: { defaultO
       </button>
 
       {isOpen && (
-        <div className="space-y-6 border-t border-slate-200/70 p-5 sm:p-6">
-          {/* Tier targets — 4 cards */}
+        <div className="space-y-7 border-t border-slate-200/70 p-5 sm:p-6">
+          {/* Tier targets — 4 gradient cards with white text */}
           <div>
             <p className="text-xs font-black uppercase tracking-[0.14em] text-slate-400">Luxury Reward Targets</p>
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               {tierRules.map((tier) => {
-                const tone = tierTone[tier.accent] ?? tierTone.emerald;
+                const Icon = tier.icon;
                 return (
                   <article
                     key={tier.id}
-                    className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_8px_18px_rgba(15,23,42,0.04)]"
+                    className={`relative overflow-hidden rounded-3xl bg-gradient-to-br ${tier.gradient} p-5 text-white shadow-[0_12px_30px_rgba(15,23,42,0.18)]`}
                   >
-                    <div className={`relative h-24 border-b ${tone.soft}`}>
-                      <div className={`absolute left-3 top-3 rounded-2xl px-2.5 py-1.5 text-xs font-black ${tone.badge}`}>
-                        {tier.id}
+                    {/* subtle decorative noise / sparkle dots */}
+                    <div className="pointer-events-none absolute inset-0 opacity-30 [background-image:radial-gradient(rgba(255,255,255,0.18)_1px,transparent_1px)] [background-size:18px_18px]" />
+
+                    <div className="relative flex items-start justify-between gap-3">
+                      <div>
+                        <div className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-3 py-1 text-[10px] font-black uppercase tracking-[0.16em] backdrop-blur">
+                          <Coins className="h-3 w-3" />
+                          {tier.id}
+                        </div>
+                        <h3 className="mt-3 text-2xl font-black leading-tight">{tier.name}</h3>
+                        <p className="mt-1 text-xs font-bold text-white/75">{tier.tagline}</p>
                       </div>
-                      <div className="absolute inset-x-4 bottom-0 top-2">
-                        <Image
-                          src={tier.image}
-                          alt={tier.visualLabel}
-                          fill
-                          className="object-contain"
-                          sizes="(min-width: 1280px) 240px, (min-width: 768px) 50vw, 100vw"
-                        />
-                      </div>
+                      <Icon className="h-9 w-9 shrink-0 rounded-2xl bg-white/15 p-1.5 text-white/90" />
                     </div>
-                    <div className="p-3">
-                      <h3 className="text-base font-black text-[#0F172A]">{tier.name}</h3>
-                      <div className="mt-3 space-y-1.5">
-                        <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-2.5 py-2 text-xs">
-                          <span className="font-black uppercase tracking-[0.1em] text-slate-400">Team</span>
-                          <span className={`font-black ${tone.text}`}>{tier.totalBusiness}</span>
+
+                    <div className="relative mt-5 space-y-2">
+                      <div className="flex items-center justify-between gap-3 rounded-xl bg-white/10 px-3 py-2 backdrop-blur">
+                        <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/70">Team Biz</span>
+                        <span className="text-base font-black">{tier.totalBusiness}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 rounded-xl bg-white/10 px-3 py-2 backdrop-blur">
+                        <span className="text-[10px] font-black uppercase tracking-[0.12em] text-white/70">Direct</span>
+                        <span className="text-base font-black">{tier.directBusiness}</span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2">
+                        <div className="rounded-xl bg-white/10 px-3 py-2 backdrop-blur">
+                          <p className="text-[9px] font-black uppercase tracking-[0.12em] text-white/70">Legs</p>
+                          <p className="text-base font-black">Min {tier.activeLegs}</p>
                         </div>
-                        <div className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-2.5 py-2 text-xs">
-                          <span className="font-black uppercase tracking-[0.1em] text-slate-400">Direct</span>
-                          <span className="font-black text-[#0F172A]">{tier.directBusiness}</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-1.5">
-                          <div className="rounded-xl bg-slate-50 px-2.5 py-2">
-                            <p className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">Legs</p>
-                            <p className="text-xs font-black text-[#0F172A]">Min {tier.activeLegs}</p>
-                          </div>
-                          <div className="rounded-xl bg-slate-50 px-2.5 py-2">
-                            <p className="text-[9px] font-black uppercase tracking-[0.1em] text-slate-400">Cycle</p>
-                            <p className="text-xs font-black text-[#0F172A]">{tier.cycle}</p>
-                          </div>
+                        <div className="rounded-xl bg-white/10 px-3 py-2 backdrop-blur">
+                          <p className="text-[9px] font-black uppercase tracking-[0.12em] text-white/70">Cycle</p>
+                          <p className="text-base font-black">{tier.cycle}</p>
                         </div>
                       </div>
                     </div>
