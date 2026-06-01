@@ -27,6 +27,10 @@ type TierProgress = {
 
 type LuxurySnapshot = {
   hasAnchor?: boolean;
+  // Backend sets this when the read path returned an empty placeholder and
+  // kicked a background recompute. The card uses it to show a "Calculating"
+  // state and poll until real data is available.
+  computing?: boolean;
   cappedTeamBusinessINR?: number;
   rawTeamBusinessINR?: number;
   directBusinessINR?: number;
@@ -88,15 +92,44 @@ export default function LuxuryRewardsCard() {
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
 
-  const load = async () => {
-    setLoading(true);
+  // The backend serves SWR data instantly. If it returns `computing: true`
+  // (no cached cycle yet, background recompute kicked off), we silently
+  // re-fetch every 4s up to 8 times until the real cycle appears. The user
+  // never waits on a synchronous compute — they see "Calculating…" briefly
+  // and then real progress lands without re-rendering the whole page.
+  const load = async (isPoll = false) => {
+    if (!isPoll) setLoading(true);
     const res = await getLuxuryProgress();
-    if (res?.error) toast.error(res.error);
-    else setData(res as LuxuryProgressResponse);
-    setLoading(false);
+    if (res?.error) {
+      if (!isPoll) toast.error(res.error);
+    } else {
+      setData(res as LuxuryProgressResponse);
+    }
+    if (!isPoll) setLoading(false);
+    return res as LuxuryProgressResponse;
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    let cancelled = false;
+    let attempts = 0;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const tick = async () => {
+      const res = await load(attempts > 0);
+      if (cancelled) return;
+      const stillComputing = res?.snapshot?.computing && !res?.cycle;
+      attempts += 1;
+      if (stillComputing && attempts < 8) {
+        timer = setTimeout(tick, 4000);
+      }
+    };
+    tick();
+
+    return () => {
+      cancelled = true;
+      if (timer) clearTimeout(timer);
+    };
+  }, []);
 
   const handleClaim = async () => {
     if (!data?.cycle?._id) return;
@@ -143,6 +176,7 @@ export default function LuxuryRewardsCard() {
   }
 
   if (!snap?.hasAnchor) {
+    const isComputing = !!snap?.computing;
     return (
       <section className="overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <div className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[0.9fr_1.1fr]">
@@ -151,11 +185,15 @@ export default function LuxuryRewardsCard() {
               <Lock className="h-11 w-11 rounded-2xl bg-white p-2.5 text-[#C81E4A] shadow-sm" />
               <div>
                 <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#C81E4A]">Your Progress</p>
-                <h2 className="text-2xl font-black text-[#0F172A]">Not started yet</h2>
+                <h2 className="text-2xl font-black text-[#0F172A]">
+                  {isComputing ? "Calculating progress…" : "Not started yet"}
+                </h2>
               </div>
             </div>
             <p className="mt-4 text-sm font-semibold leading-6 text-slate-600">
-              Make your first new-plan deposit to unlock Luxury Rewards tracking. Once unlocked, this panel will show your closest reward, missing business, active legs, and cycle deadline.
+              {isComputing
+                ? "We're crunching your team's numbers. This usually completes in a few seconds — your luxury progress will appear here automatically."
+                : "Make your first new-plan deposit to unlock Luxury Rewards tracking. Once unlocked, this panel will show your closest reward, missing business, active legs, and cycle deadline."}
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-4 lg:grid-cols-2">
