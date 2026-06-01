@@ -40,6 +40,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RewardDocumentModal } from "@/app/components/rewards/RewardDocumentModal";
+import LuxuryRewardsCard from "@/app/components/LuxuryRewardsCard";
+import LuxuryTierRulesPanel from "@/app/components/rewards/LuxuryTierRulesPanel";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -1057,6 +1059,12 @@ const RewardsPage = () => {
             teamProgress={teamProgress}
             activeLegs={activeLegs}
           />
+
+          {/* Luxury Rewards — merged from the old standalone /rewards/luxury page.
+              The card shows the user's live tier progress; the rules panel below
+              is collapsed by default and holds the tier-target reference content. */}
+          <LuxuryRewardsCard />
+          <LuxuryTierRulesPanel />
 
           <RewardProgramHub programs={displayPrograms} rewardsByProgram={rewardsByProgram} />
 
