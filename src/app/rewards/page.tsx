@@ -11,11 +11,9 @@ import {
   getRewardPrograms,
   transferReward,
   getTransferRecipients,
-  getProfileData,
   getKycStatus,
-  getDashboardData,
   getLeaderboard,
-  getReferralSummary,
+  getActiveLegsCount,
 } from "@/actions/user";
 import { Reward, Recipient, KycStatus, RewardProgram } from "@/types";
 import {
@@ -884,19 +882,36 @@ const RewardsPage = () => {
           teamBusinessTiers: [],
         }));
 
+  // Lazy-loaded — only fetched when the transfer panel opens.
+  const fetchRecipients = useCallback(async () => {
+    if (recipients.length > 0) return; // already loaded
+    try {
+      const recipientsData = await getTransferRecipients();
+      if (recipientsData && "error" in recipientsData) {
+        console.error("Could not load recipients:", recipientsData.error);
+      } else {
+        setRecipients(recipientsData as Recipient[]);
+      }
+    } catch (e) {
+      console.error("Could not load recipients:", e);
+    }
+  }, [recipients.length]);
+
   const fetchInitialData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const [rewardsData, programsData, recipientsData, , kycData, dashboardData, leaderboardData, summaryData] =
+      // Phase-1 cleanup: dropped 3 wasted calls from this hot path:
+      //   • getProfileData()         — result discarded (the destructure had `_`)
+      //   • getDashboardData()       — only .error was checked; expensive ($graphLookup-backed bonus context)
+      //   • getReferralSummary()     — full-tree walk, used only to count active legs → replaced with a single countDocuments
+      // Also moved getTransferRecipients() to lazy (`fetchRecipients` above) — only fires when user opens the transfer panel.
+      const [rewardsData, programsData, kycData, leaderboardData, activeLegsResp] =
         await Promise.all([
           getRewards(),
           getRewardPrograms(),
-          getTransferRecipients(),
-          getProfileData(),
           getKycStatus(),
-          getDashboardData(),
           getLeaderboard('team'),
-          getReferralSummary(),
+          getActiveLegsCount(),
         ]);
 
       if (Array.isArray(leaderboardData)) {
@@ -905,9 +920,8 @@ const RewardsPage = () => {
         setLeaders((leaderboardData as { leaderboard: LeaderboardEntry[] }).leaderboard ?? []);
       }
 
-      if (summaryData && !('error' in summaryData)) {
-        const directs = (summaryData as { directs?: Array<{ activityStatus?: string }> }).directs ?? [];
-        setActiveLegs(directs.filter((d) => d.activityStatus === 'Active').length);
+      if (activeLegsResp && !('error' in activeLegsResp)) {
+        setActiveLegs(activeLegsResp.count ?? 0);
       }
 
       if (kycData && "error" in kycData) setError(kycData.error as string);
@@ -944,14 +958,6 @@ const RewardsPage = () => {
 
         setRewardsByProgram(grouped);
       }
-
-      if (recipientsData && "error" in recipientsData) {
-        console.error("Could not load recipients:", recipientsData.error);
-      } else {
-        setRecipients(recipientsData as Recipient[]);
-      }
-      
-      if (dashboardData?.error) console.error("Could not load dashboard data:", dashboardData.error);
     } catch (e) {
       setError("An unexpected error occurred while fetching data.");
       console.error(e);
@@ -966,9 +972,14 @@ const RewardsPage = () => {
       return;
     }
     if (isAuthenticated) {
+      // Critical path: rewards / programs / KYC / leaderboard / active-legs
       fetchInitialData();
+      // Non-critical: recipients list for the transfer modal.
+      // Fired in the background so it doesn't block initial paint; arrives
+      // before the user can click into a transfer action in practice.
+      fetchRecipients();
     }
-  }, [isAuthenticated, authLoading, router, fetchInitialData]);
+  }, [isAuthenticated, authLoading, router, fetchInitialData, fetchRecipients]);
 
   const handleTransferReward = async (
     rewardId: string,

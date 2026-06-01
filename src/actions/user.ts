@@ -257,6 +257,19 @@ export async function getReferralSummary() {
   return handleApiResponse(res);
 }
 
+/**
+ * Lightweight: returns just `{ count: N }` for active direct legs.
+ * Backed by a single `countDocuments` on the backend — use this instead
+ * of `getReferralSummary` when the caller only needs the integer (e.g.,
+ * the rewards page's "Active Legs" stat).
+ */
+export async function getActiveLegsCount() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/team/active-legs-count`, {
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res) as Promise<{ count: number } | { error: string }>;
+}
+
 export async function createSgbnCoupon(planType: "BUSINESS" | "FREELANCER") {
   const res = await fetch(`${API_BASE_URL}/api/v1/wallet/sgbn/coupons`, {
     method: "POST",
