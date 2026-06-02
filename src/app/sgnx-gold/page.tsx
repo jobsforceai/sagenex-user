@@ -236,6 +236,7 @@ export default function SgnxGoldPage() {
   // The plan TYPE (Gold/Cash) is now shown as a colored badge in the card
   // header, so we drop the redundant "Gold · " / "Cash · " prefix.
   const formatPlanLabel = (e: Enrollment) => {
+    const planName = e.planType === "gold" ? "Gold" : "Cash";
     const amount = `${formatINR(e.monthlyAmountInr ?? e.monthlyAmountUsd)}/month`;
     const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
     return `${amount}${date ? ` · enrolled ${date}` : ""}`;

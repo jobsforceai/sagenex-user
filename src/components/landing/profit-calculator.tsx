@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { TrendingUp, Sparkles } from "lucide-react";
+import { getApiV1BaseUrl } from "@/lib/api-base";
 import {
   ResponsiveContainer,
   AreaChart,
@@ -93,7 +94,7 @@ export default function ProfitCalculator() {
 
   useEffect(() => {
     let cancelled = false;
-    const url = `${process.env.NEXT_PUBLIC_BACKEND_URL}/api/v1/config/roi-rates`;
+    const url = `${getApiV1BaseUrl()}/config/roi-rates`;
     fetch(url)
       .then((r) => r.json())
       .then((j: RoiResponse) => {

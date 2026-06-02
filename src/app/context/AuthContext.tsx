@@ -4,8 +4,9 @@ import { identifyUser, resetUser } from "@/lib/posthog";
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
+import { getBackendBaseUrl } from "@/lib/api-base";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+const API_BASE_URL = getBackendBaseUrl();
 
 interface User {
   userId: string;

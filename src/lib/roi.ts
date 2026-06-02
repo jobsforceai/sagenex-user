@@ -43,7 +43,7 @@ export function getLegacyTieredROIRate(packageUSD: number): number {
   if (packageUSD >= 90000)  return 0.10; // ₹90K+  → 10%
   if (packageUSD >= 45000)  return 0.08; // ₹45K+  → 8%
   if (packageUSD >= 9000)   return 0.06; // ₹9K+   → 6%
-  if (packageUSD >= 4500)   return 0.05; // ₹4.5K+ → 5%
+  if (packageUSD >= 5000)   return 0.05; // ₹5K+ → 5%
   return 0;
 }
 
@@ -55,7 +55,7 @@ export function getTieredROIRate(packageUSD: number): number {
   if (packageUSD >= 90000)  return 0.08; // ₹90K+  → 8%
   if (packageUSD >= 45000)  return 0.06; // ₹45K+  → 6%
   if (packageUSD >= 9000)   return 0.05; // ₹9K+   → 5%
-  if (packageUSD >= 4500)   return 0.04; // ₹4.5K+ → 4%
+  if (packageUSD >= 5000)   return 0.04; // ₹5K+ → 4%
   return 0;
 }
 

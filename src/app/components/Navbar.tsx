@@ -9,6 +9,7 @@ import { useAuth } from "../context/AuthContext";
 import { getRankProgress } from "@/actions/user";
 import { stopImpersonation } from "@/actions/auth";
 import { Crown, X, ShieldAlert, CornerUpLeft } from "lucide-react";
+import { getBackendBaseUrl } from "@/lib/api-base";
 
 type NavLink = { href: string; label: string };
 
@@ -154,7 +155,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
         .find(r => r.startsWith('authToken='))
         ?.split('=')[1];
 
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? '';
+      const backendUrl = getBackendBaseUrl();
       const res = await fetch(`${backendUrl}/api/v1/user/sync/stream`, {
         headers: { Authorization: `Bearer ${token}` },
       });

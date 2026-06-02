@@ -4,13 +4,9 @@
  * All requests include Authorization: Bearer {token}
  */
 
-const rawBaseUrl =
-  process.env.NEXT_PUBLIC_API_BASE_URL ||
-  process.env.NEXT_PUBLIC_BACKEND_URL ||
-  'http://localhost:8080';
-const API_BASE_URL = rawBaseUrl.endsWith('/api/v1')
-  ? rawBaseUrl
-  : `${rawBaseUrl.replace(/\/$/, '')}/api/v1`;
+import { getApiV1BaseUrl } from './api-base';
+
+const API_BASE_URL = getApiV1BaseUrl();
 
 interface FetchOptions extends RequestInit {
   headers?: Record<string, string>;
