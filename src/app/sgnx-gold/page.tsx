@@ -232,15 +232,14 @@ export default function SgnxGoldPage() {
   const activeEnrollments = enrollments.filter((e) => e.status === "ACTIVE");
   const hasEnrollment = enrollments.length > 0;
 
-  // Build a short human-readable label per enrollment so users can tell
-  // which payment-progress card belongs to which plan. Only shown when
-  // there are 2+ active enrollments — single-enrollment users get the
-  // unchanged "11-Month Payment Progress" header.
+  // Build a short label for each enrollment — amount + enrollment date.
+  // The plan TYPE (Gold/Cash) is now shown as a colored badge in the card
+  // header, so we drop the redundant "Gold · " / "Cash · " prefix.
   const formatPlanLabel = (e: Enrollment) => {
     const planName = e.planType === "gold" ? "Gold" : "Cash";
     const amount = `${formatINR(e.monthlyAmountInr ?? e.monthlyAmountUsd)}/month`;
     const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
-    return `${planName} · ${amount}${date ? ` · enrolled ${date}` : ""}`;
+    return `${amount}${date ? ` · enrolled ${date}` : ""}`;
   };
 
   const handleEnrollSuccess = () => {
@@ -303,13 +302,15 @@ export default function SgnxGoldPage() {
         {cityLoading ? null : <CityPricesGrid prices={cityPrices} />}
 
         {/* Payment Progress — render one card per active enrollment.
-            For multi-enrollment users, each card gets a plan label so they
-            can tell which plan the progress bar belongs to. */}
+            For multi-enrollment users, each card gets a colored plan-type
+            badge (Gold / Cash) + amount/date label so they can tell cards
+            apart at a glance. */}
         {!heroLoading && activeEnrollments.map((e) => (
           <PaymentProgress
             key={e._id}
             enrollmentId={e._id}
             planLabel={activeEnrollments.length > 1 ? formatPlanLabel(e) : undefined}
+            planType={activeEnrollments.length > 1 ? e.planType : undefined}
           />
         ))}
 

@@ -3,8 +3,11 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import TransferToSGChain from "@/app/components/wallet/TransferToSGChain";
-import RedeemFromSGChain from "@/app/components/wallet/RedeemFromSGChain";
+// Disabled by team directive 2026-06-01 — SGChain ↔ Sagenex money transfers
+// are temporarily hidden from the UI. Uncomment the two imports + the JSX
+// block below in this file to restore.
+// import TransferToSGChain from "@/app/components/wallet/TransferToSGChain";
+// import RedeemFromSGChain from "@/app/components/wallet/RedeemFromSGChain";
 import { createSgbnCoupon } from "@/actions/user";
 
 interface TransferTabProps {
@@ -102,12 +105,23 @@ export const TransferTab = ({ currentBalance, onSuccess }: TransferTabProps) => 
     }
   };
 
+  // currentBalance / onSuccess are still threaded through this component for
+  // when the SGChain transfer panels are re-enabled. Reference them once so
+  // TypeScript doesn't flag them as unused while the block below is commented.
+  void currentBalance; void onSuccess;
+
   return (
     <div className="space-y-6 mt-6">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <TransferToSGChain currentBalance={currentBalance} className="h-full" />
-        <RedeemFromSGChain onSuccess={onSuccess} className="h-full" />
-      </div>
+      {/*
+        Disabled by team directive 2026-06-01 — SGChain ↔ Sagenex money transfers
+        are temporarily hidden from the UI. Uncomment this block (and the two
+        imports at the top of this file) to restore.
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TransferToSGChain currentBalance={currentBalance} className="h-full" />
+          <RedeemFromSGChain onSuccess={onSuccess} className="h-full" />
+        </div>
+      */}
 
       {/* SGBN Coupons */}
       <Card className="rounded-2xl border border-[#E8E8E8] bg-white shadow-sm">

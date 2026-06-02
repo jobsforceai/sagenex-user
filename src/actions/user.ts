@@ -257,6 +257,19 @@ export async function getReferralSummary() {
   return handleApiResponse(res);
 }
 
+/**
+ * Lightweight: returns just `{ count: N }` for active direct legs.
+ * Backed by a single `countDocuments` on the backend — use this instead
+ * of `getReferralSummary` when the caller only needs the integer (e.g.,
+ * the rewards page's "Active Legs" stat).
+ */
+export async function getActiveLegsCount() {
+  const res = await fetch(`${API_BASE_URL}/api/v1/user/team/active-legs-count`, {
+    headers: await getAuthHeaders(),
+  });
+  return handleApiResponse(res) as Promise<{ count: number } | { error: string }>;
+}
+
 export async function createSgbnCoupon(planType: "BUSINESS" | "FREELANCER") {
   const res = await fetch(`${API_BASE_URL}/api/v1/wallet/sgbn/coupons`, {
     method: "POST",
@@ -356,9 +369,28 @@ export async function transferUser(userIdToTransfer: string, newSponsorId: strin
       return handleApiResponse(res);
 }
 
-export async function getTransferRecipients(includeSelf?: boolean) {
-    const query = includeSelf ? "?includeSelf=true" : "";
-    const res = await fetch(`${API_BASE_URL}/api/v1/user/transfer-recipients${query}`, {
+/**
+ * Get the list of users eligible to receive a transfer.
+ *
+ * Backend supports two modes — ALWAYS pass `q` from new code:
+ *   - `q` non-empty (search mode) → up to `limit` matches by userId /
+ *     fancyId / fullName regex, synthetic placeholder users excluded.
+ *     Fast (sub-second).
+ *   - `q` empty / omitted (legacy mode) → dumps every user in the system
+ *     (~14k, ~1.3MB, ~22s on Render). Kept only for backward compatibility
+ *     with old clients; do not use from new code.
+ */
+export async function getTransferRecipients(
+    includeSelf?: boolean,
+    q?: string,
+    limit?: number,
+) {
+    const params = new URLSearchParams();
+    if (includeSelf) params.set('includeSelf', 'true');
+    if (q && q.trim()) params.set('q', q.trim());
+    if (typeof limit === 'number' && Number.isFinite(limit)) params.set('limit', String(limit));
+    const qs = params.toString();
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/transfer-recipients${qs ? '?' + qs : ''}`, {
         headers: await getAuthHeaders(),
       });
       return handleApiResponse(res);

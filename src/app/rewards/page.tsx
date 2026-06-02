@@ -11,11 +11,8 @@ import {
   getRewardPrograms,
   transferReward,
   getTransferRecipients,
-  getProfileData,
   getKycStatus,
-  getDashboardData,
-  getLeaderboard,
-  getReferralSummary,
+  getActiveLegsCount,
 } from "@/actions/user";
 import { Reward, Recipient, KycStatus, RewardProgram } from "@/types";
 import {
@@ -27,21 +24,14 @@ import {
   FileClock,
   FileCheck,
   Lock,
-  Calendar,
-  Crown,
-  Clock,
-  Medal,
   Ship,
   Plane,
-  ShieldCheck,
   Sparkles,
-  TrendingUp,
-  Trophy,
-  Users,
-  Zap,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { RewardDocumentModal } from "@/app/components/rewards/RewardDocumentModal";
+import LuxuryRewardsCard from "@/app/components/LuxuryRewardsCard";
+import LuxuryTierRulesPanel from "@/app/components/rewards/LuxuryTierRulesPanel";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
 
@@ -90,23 +80,11 @@ const PROGRAM_ICONS: Record<string, React.ReactNode> = {
   "cruise-trip-2026": <Ship className="w-5 h-5" />,
 };
 
-const REWARD_ASSETS = {
-  hero: "/rewards/hero-travel-collage.png",
-  trophy: "/rewards/trophy-motivation.png",
-  global: "/rewards/global-rewards-collage.png",
-  tech: "/rewards/luxury-tech-reward.png",
-  bike: "/rewards/bike-travel-reward.png",
-  officeCar: "/rewards/office-car-reward.png",
-  crown: "/rewards/crown-tier-reward.png",
-} as const;
-
-const benefitItems = [
-  { icon: Trophy, label: "Performance Based Rewards" },
-  { icon: ShieldCheck, label: "Fair & Transparent" },
-  { icon: TrendingUp, label: "Carry Forward Eligible Volume" },
-  { icon: Zap, label: "Active & Sustainable System" },
-  { icon: Sparkles, label: "Reward Your Success" },
-];
+// REWARD_ASSETS was a catalogue of decorative imagery used by the
+// MotivationCard / RewardProgramHub-luxury-tile / etc. that were stripped
+// during the rewards-page cleanup. The travel-program tracker still uses
+// promo.image which it pulls from TRAVEL_PROMO above — no need for the
+// catalogue here.
 
 const formatCurrency = (value: number) =>
   value.toLocaleString("en-IN", {
@@ -114,12 +92,6 @@ const formatCurrency = (value: number) =>
     currency: "INR",
     maximumFractionDigits: 0,
   });
-
-const maskName = (value: string) => {
-  const clean = value.trim();
-  if (clean.length <= 2) return clean;
-  return `${clean.charAt(0)}${"*".repeat(Math.min(5, Math.max(2, clean.length - 2)))}${clean.charAt(clean.length - 1)}`;
-};
 
 const getRewardProgress = (rewards: Reward[]) => {
   if (!rewards.length) return { current: 0, target: 0, percent: 0 };
@@ -143,16 +115,9 @@ const getRewardProgress = (rewards: Reward[]) => {
   };
 };
 
-const getBestReward = (rewards: Reward[]) => {
-  if (!rewards.length) return null;
-  return rewards.reduce((chosen, reward) => {
-    const chosenTarget = chosen.rewardSnapshot.valueUSD ?? 0;
-    const rewardTarget = reward.rewardSnapshot.valueUSD ?? 0;
-    const chosenProgress = chosenTarget > 0 ? (chosen.currentValueUSD ?? 0) / chosenTarget : 0;
-    const rewardProgress = rewardTarget > 0 ? (reward.currentValueUSD ?? 0) / rewardTarget : 0;
-    return rewardProgress > chosenProgress ? reward : chosen;
-  }, rewards[0]);
-};
+// `getBestReward` was previously used by the Command Center's right-side
+// hero panel that we removed. Kept removed here too — `<LuxuryRewardsCard>`
+// is the page's "closest reward" surface now.
 
 // ─── Reward Tracker Card ─────────────────────────────────────────────────────
 
@@ -167,14 +132,12 @@ const RewardCard = ({
   reward,
   onTransfer,
   onUploadDocuments,
-  recipients,
   kycStatus,
   isProgramLocked,
 }: {
   reward: Reward;
   onTransfer: (reward: Reward) => void;
   onUploadDocuments: (reward: Reward) => void;
-  recipients: Recipient[];
   kycStatus: KycStatus | null;
   isProgramLocked: boolean;
 }) => {
@@ -186,12 +149,16 @@ const RewardCard = ({
     ? 100
     : Math.min(total > 0 ? (current / total) * 100 : 0, 100);
 
+  // The sender's full name used to come from the preloaded recipients list,
+  // but that list has been removed (it was a 22s / 1.3MB endpoint dump).
+  // We fall back to showing the sender's userId instead — accurate enough,
+  // and the name can be resolved on hover/click in a future iteration.
   const sender = reward.transferredFrom
-    ? recipients.find((r) => r.userId === reward.transferredFrom)
+    ? { fullName: reward.transferredFrom, userId: reward.transferredFrom }
     : null;
 
   const showTransferredStatus = reward.isTransferred;
-  const canTransferReward = recipients.length > 0 && !reward.isTransferred && !wasReceived && !isProgramLocked;
+  const canTransferReward = !reward.isTransferred && !wasReceived && !isProgramLocked;
   const kycLabel = kycStatus?.status === "VERIFIED" ? "KYC verified" : "KYC status pending";
 
   const renderStatus = () => {
@@ -331,118 +298,64 @@ const RewardCard = ({
   );
 };
 
-const RewardsHeader = ({ onRulesClick }: { onRulesClick: () => void }) => (
-  <header className="flex flex-row items-start justify-between gap-3">
-    <div>
-      <h1 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
-        Rewards <span aria-hidden="true">🏆</span>
-      </h1>
-      <p className="mt-1 hidden text-sm text-[#64748B] sm:block sm:text-base">
-        Unlock amazing travel experiences and luxury rewards.
-      </p>
-    </div>
-    <div className="flex shrink-0 flex-wrap items-center gap-3">
-      <Button
-        variant="outline"
-        onClick={onRulesClick}
-        className="h-10 rounded-xl border-slate-200 bg-white px-3 text-xs font-bold text-[#0F172A] shadow-[0_10px_30px_rgba(15,23,42,0.05)] hover:bg-slate-50 sm:h-12 sm:px-4 sm:text-sm"
-      >
-        <Info className="mr-2 h-4 w-4 text-[#C81E4A]" />
-        <span className="hidden sm:inline">Rules & </span>Info
-      </Button>
-    </div>
+const RewardsHeader = () => (
+  // The "Rules & Info" button previously here didn't open a modal — it just
+  // set a toast saying "rules are shown throughout this page." Removed
+  // because <LuxuryTierRulesPanel> below now holds the actual rules content.
+  <header>
+    <h1 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
+      Rewards <span aria-hidden="true">🏆</span>
+    </h1>
+    <p className="mt-1 hidden text-sm text-[#64748B] sm:block sm:text-base">
+      Unlock amazing travel experiences and luxury rewards.
+    </p>
   </header>
 );
 
 const RewardsCommandCenter = ({
-  rewards,
   directProgress,
   teamProgress,
   activeLegs,
 }: {
-  rewards: Reward[];
   directProgress: ReturnType<typeof getRewardProgress>;
   teamProgress: ReturnType<typeof getRewardProgress>;
   activeLegs: number;
 }) => {
-  const bestReward = getBestReward(rewards);
-  const bestTarget = bestReward?.rewardSnapshot.valueUSD ?? 0;
-  const bestCurrent = bestReward?.currentValueUSD ?? 0;
-  const bestPercent = bestTarget > 0 ? Math.min(100, Math.round((bestCurrent / bestTarget) * 100)) : 0;
-  const remaining = Math.max(0, bestTarget - bestCurrent);
-
+  // The right-side "Closest Reward" hero panel that used to live here was
+  // removed during the rewards-page cleanup — it duplicated the headline
+  // info that <LuxuryRewardsCard> shows directly below the Command Center,
+  // and its low-opacity trophy image was washing out the white text on top
+  // of the dark gradient. The `bestReward`/`bestPercent`/`remaining` locals
+  // it computed went away with it.
   return (
     <section className="relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_8%_10%,rgba(200,30,74,0.10),transparent_26%),radial-gradient(circle_at_85%_12%,rgba(16,185,129,0.12),transparent_28%)]" />
-      <div className="relative grid gap-5 p-5 sm:p-7 lg:grid-cols-[minmax(0,1fr)_390px] lg:p-8">
-        <div className="flex flex-col justify-between gap-6">
-          <div>
-            <span className="inline-flex items-center gap-2 rounded-full bg-[#FFF1F4] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#C81E4A]">
-              <Sparkles className="h-3.5 w-3.5" />
-              Rewards Command Center
-            </span>
-            <h2 className="mt-4 max-w-3xl text-4xl font-black leading-[0.96] text-[#0F172A] sm:text-5xl">
-              Track the next reward you can unlock.
-            </h2>
-            <p className="mt-3 max-w-2xl text-sm font-semibold leading-6 text-[#64748B] sm:text-base">
-              Your active reward programs, closest target, claim actions, and document status are organized in one place.
-            </p>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Direct Progress</p>
-              <p className="mt-1 text-2xl font-black text-[#0F172A]">{directProgress.percent}%</p>
-              <p className="truncate text-xs font-semibold text-slate-500">{formatCurrency(directProgress.current)}</p>
-            </div>
-            <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Team Progress</p>
-              <p className="mt-1 text-2xl font-black text-[#0F172A]">{teamProgress.percent}%</p>
-              <p className="truncate text-xs font-semibold text-slate-500">{formatCurrency(teamProgress.current)}</p>
-            </div>
-            <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Active Legs</p>
-              <p className="mt-1 text-2xl font-black text-[#0F172A]">{activeLegs}</p>
-              <p className="text-xs font-semibold text-slate-500">This cycle</p>
-            </div>
-          </div>
+      <div className="relative flex flex-col gap-6 p-5 sm:p-7 lg:p-8">
+        <div>
+          <span className="inline-flex items-center gap-2 rounded-full bg-[#FFF1F4] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#C81E4A]">
+            <Sparkles className="h-3.5 w-3.5" />
+            Rewards Overview
+          </span>
+          <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-[#0F172A] sm:text-4xl">
+            Your progress at a glance
+          </h2>
         </div>
 
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#063B22] via-[#0B5A35] to-[#7A001F] p-5 text-white">
-          <Image
-            src={REWARD_ASSETS.trophy}
-            alt="Reward progress trophy"
-            fill
-            className="object-cover opacity-25"
-            sizes="390px"
-          />
-          <div className="relative">
-            <p className="text-[10px] font-black uppercase tracking-[0.16em] text-amber-100">Closest Reward</p>
-            <h3 className="mt-2 text-2xl font-black">
-              {bestReward?.rewardSnapshot.reward ?? "No active reward yet"}
-            </h3>
-            <p className="mt-2 text-sm font-semibold text-white/70">
-              {bestReward ? `${formatCurrency(remaining)} remaining` : "Start building progress to activate reward tracking."}
-            </p>
-            <div className="mt-6">
-              <div className="flex items-end justify-between gap-4">
-                <p className="text-5xl font-black">{bestPercent}%</p>
-                <span className="rounded-full bg-white/12 px-3 py-1 text-xs font-black text-white">
-                  {bestReward?.type === "team" ? "Team" : bestReward?.type === "self" ? "Direct" : "Pending"}
-                </span>
-              </div>
-              <div className="mt-4 h-2 overflow-hidden rounded-full bg-white/18">
-                <div className="h-full rounded-full bg-emerald-400" style={{ width: `${bestPercent}%` }} />
-              </div>
-            </div>
-            <div className="mt-5 grid grid-cols-2 gap-2">
-              <a href="#reward-programs" className="rounded-2xl bg-white px-4 py-3 text-center text-sm font-black text-[#0F172A]">
-                Programs
-              </a>
-              <a href="#reward-operations" className="rounded-2xl bg-white/12 px-4 py-3 text-center text-sm font-black text-white">
-                Claims
-              </a>
-            </div>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Direct Progress</p>
+            <p className="mt-1 text-2xl font-black text-[#0F172A]">{directProgress.percent}%</p>
+            <p className="truncate text-xs font-semibold text-slate-500">{formatCurrency(directProgress.current)}</p>
+          </div>
+          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Team Progress</p>
+            <p className="mt-1 text-2xl font-black text-[#0F172A]">{teamProgress.percent}%</p>
+            <p className="truncate text-xs font-semibold text-slate-500">{formatCurrency(teamProgress.current)}</p>
+          </div>
+          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
+            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Active Legs</p>
+            <p className="mt-1 text-2xl font-black text-[#0F172A]">{activeLegs}</p>
+            <p className="text-xs font-semibold text-slate-500">This cycle</p>
           </div>
         </div>
       </div>
@@ -464,21 +377,11 @@ const RewardProgramHub = ({
         <h2 className="mt-1 text-2xl font-black text-[#0F172A] sm:text-3xl">Choose your track</h2>
       </div>
     </div>
-    <div className="grid gap-3 lg:grid-cols-3">
-      <a
-        href="/rewards/luxury"
-        className="group relative min-h-[230px] overflow-hidden rounded-3xl border border-slate-200/70 bg-[#0F172A] p-5 text-white shadow-[0_10px_30px_rgba(15,23,42,0.10)]"
-      >
-        <Image src="/rewards/crown-tier-reward.png" alt="Luxury rewards" fill className="object-contain object-right-bottom p-4 opacity-80 transition duration-300 group-hover:scale-105" sizes="33vw" />
-        <div className="absolute inset-0 bg-gradient-to-r from-[#0F172A] via-[#0F172A]/90 to-[#0F172A]/20" />
-        <div className="relative max-w-[240px]">
-          <Crown className="h-9 w-9 rounded-2xl bg-amber-400/15 p-2 text-amber-200" />
-          <h3 className="mt-4 text-2xl font-black">Luxury Rewards</h3>
-          <p className="mt-2 text-sm font-semibold leading-6 text-white/70">Track 10L, 30L, 50L and 1CR reward qualification.</p>
-          <span className="mt-5 inline-flex rounded-full bg-white px-4 py-2 text-xs font-black text-[#0F172A]">View progress →</span>
-        </div>
-      </a>
-
+    {/* The "Luxury Rewards" tile + "View progress →" CTA used to live here
+        and linked to /rewards/luxury. After Phase 2 that page now redirects
+        back to /rewards, so the tile was a dead circular link. Removed — the
+        live luxury progress is already shown by <LuxuryRewardsCard> higher up. */}
+    <div className="grid gap-3 lg:grid-cols-2">
       {programs.map((program) => {
         const promo = TRAVEL_PROMO[program.programId];
         const progress = getRewardProgress(rewardsByProgram[program.programId] ?? []);
@@ -510,132 +413,14 @@ const RewardProgramHub = ({
   </section>
 );
 
-const BenefitsStrip = () => (
-  <div className="grid grid-cols-2 gap-2 rounded-2xl border border-slate-200/70 bg-white p-2 shadow-[0_10px_30px_rgba(15,23,42,0.05)] sm:gap-3 sm:rounded-3xl sm:p-3 lg:grid-cols-5">
-    {benefitItems.map(({ icon: Icon, label }) => (
-      <div key={label} className="flex items-center gap-2 rounded-xl bg-slate-50 px-3 py-2.5 sm:gap-3 sm:rounded-2xl sm:px-4 sm:py-3">
-        <Icon className="h-4 w-4 shrink-0 text-[#C81E4A] sm:h-5 sm:w-5" />
-        <p className="text-[11px] font-bold leading-tight text-[#0F172A] sm:text-sm">{label}</p>
-      </div>
-    ))}
-  </div>
-);
-
-type LeaderboardEntry = {
-  rank: number;
-  userId: string;
-  fullName: string;
-  profilePicture: string | null;
-  packagesSold: number;
-  teamVolume: number;
-  earnings: number;
-};
-
-const TopPerformersCard = ({ leaders }: { leaders: LeaderboardEntry[] }) => {
-  const performers = leaders.slice(0, 4);
-
-  return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
-      <div className="flex items-center justify-between gap-3">
-        <h3 className="text-base font-black text-[#0F172A] sm:text-lg">Top Performers</h3>
-      </div>
-      <div className="mt-4 space-y-3 sm:mt-5 sm:space-y-4">
-        {performers.length > 0 ? (
-          performers.map((leader) => (
-            <div key={leader.userId} className="flex items-center justify-between gap-3">
-              <div className="flex min-w-0 items-center gap-3">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-amber-50 text-amber-600 overflow-hidden">
-                  {leader.profilePicture ? (
-                    <Image src={leader.profilePicture} alt={leader.fullName} width={40} height={40} className="h-10 w-10 rounded-2xl object-cover" />
-                  ) : (
-                    <Medal className="h-5 w-5" />
-                  )}
-                </span>
-                <div className="min-w-0">
-                  <p className="truncate text-sm font-black text-[#0F172A]">
-                    {maskName(leader.fullName)}
-                  </p>
-                  <p className="text-xs text-[#64748B]">{leader.packagesSold} packages · Rank #{leader.rank}</p>
-                </div>
-              </div>
-              <p className="shrink-0 text-sm font-black text-emerald-600">
-                +{formatCurrency(leader.teamVolume)}
-              </p>
-            </div>
-          ))
-        ) : (
-          <p className="rounded-2xl bg-slate-50 px-4 py-8 text-center text-sm text-[#64748B]">
-            No team activity yet this month.
-          </p>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const getDaysRemainingInMonth = () => {
-  const now = new Date();
-  const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-  const diff = Math.ceil((lastDay.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  return Math.max(0, diff);
-};
-
-const getCurrentCycleLabel = () => {
-  const now = new Date();
-  return now.toLocaleString("en-IN", { month: "long", year: "numeric" });
-};
-
-const AchievementsCard = ({ activeLegs }: { activeLegs: number }) => {
-  const requiredLegs = 5;
-  const days = getDaysRemainingInMonth();
-  const cycleLabel = getCurrentCycleLabel();
-
-  return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
-      <h3 className="text-base font-black text-[#0F172A] sm:text-lg">Status</h3>
-      <div className="mt-4 space-y-2.5 sm:mt-5 sm:space-y-3">
-        {[
-          { icon: Users, label: "Active Legs", value: `${activeLegs}/${requiredLegs}` },
-          { icon: Calendar, label: "Eligibility Cycle", value: cycleLabel },
-          { icon: Clock, label: "Days Remaining", value: `${days} Days` },
-        ].map(({ icon: Icon, label, value }) => (
-          <div key={label} className="flex items-center justify-between gap-3 rounded-xl bg-slate-50 px-3 py-2.5 sm:rounded-2xl sm:px-4 sm:py-3">
-            <div className="flex items-center gap-3">
-              <Icon className="h-5 w-5 text-[#C81E4A]" />
-              <span className="text-xs font-bold text-[#64748B] sm:text-sm">{label}</span>
-            </div>
-            <span className="text-xs font-black text-[#0F172A] sm:text-sm">{value}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-const MotivationCard = () => (
-  <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-[#0F172A] p-4 !text-white shadow-[0_10px_30px_rgba(15,23,42,0.12)] sm:rounded-3xl sm:p-5">
-    <Image src={REWARD_ASSETS.trophy} alt="Trophy motivation reward" fill className="object-cover opacity-58" sizes="(min-width: 1024px) 33vw, 100vw" />
-    <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/95 via-[#0F172A]/72 to-[#0F172A]/20" />
-    <div className="relative flex min-h-44 flex-col justify-end sm:min-h-72">
-      <Trophy className="mb-3 h-7 w-7 text-amber-300 sm:mb-4 sm:h-9 sm:w-9" />
-      <p className="text-xl font-black leading-tight !text-white sm:text-2xl">
-        “Don’t wait for opportunity. Create it.”
-      </p>
-      <p className="mt-3 text-sm font-bold text-amber-100">– Sagenex SGX</p>
-    </div>
-  </div>
-);
-
 // ─── Transfer Modal ──────────────────────────────────────────────────────────
 
 const TransferModal = ({
   reward,
-  recipients,
   onClose,
   onConfirm,
 }: {
   reward: Reward;
-  recipients: Recipient[];
   onClose: () => void;
   onConfirm: (rewardId: string, recipientId: string) => Promise<void>;
 }) => {
@@ -643,13 +428,39 @@ const TransferModal = ({
   const [selectedRecipient, setSelectedRecipient] = useState<Recipient | null>(
     null
   );
+  const [filteredRecipients, setFilteredRecipients] = useState<Recipient[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
   const [isTransferring, setIsTransferring] = useState(false);
 
-  const filteredRecipients = recipients.filter(
-    (r) =>
-      r.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.userId.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Debounced server-side search. We deliberately do not fetch all 14k users
+  // upfront — the backend supports `?q=` for paginated matches. Typing a
+  // recipient's name or userId triggers a request 300ms after the user stops.
+  useEffect(() => {
+    const q = searchQuery.trim();
+    if (!q || (selectedRecipient && searchQuery.startsWith(selectedRecipient.fullName))) {
+      // Empty input, or the user just picked someone (we set the input to
+      // their name + id) — don't re-query.
+      setFilteredRecipients([]);
+      setIsSearching(false);
+      return;
+    }
+    let cancelled = false;
+    setIsSearching(true);
+    const timer = setTimeout(async () => {
+      const data = await getTransferRecipients(false, q, 20);
+      if (cancelled) return;
+      if (data && !("error" in data)) {
+        setFilteredRecipients(data as Recipient[]);
+      } else {
+        setFilteredRecipients([]);
+      }
+      setIsSearching(false);
+    }, 300);
+    return () => {
+      cancelled = true;
+      clearTimeout(timer);
+    };
+  }, [searchQuery, selectedRecipient]);
 
   const handleConfirm = async () => {
     if (!selectedRecipient) return;
@@ -696,7 +507,9 @@ const TransferModal = ({
             />
           </div>
           <div className="max-h-48 overflow-y-auto rounded-xl border border-slate-200">
-            {filteredRecipients.length > 0 ? (
+            {isSearching ? (
+              <p className="p-3 text-[#64748B]">Searching…</p>
+            ) : filteredRecipients.length > 0 ? (
               filteredRecipients.map((r) => (
                 <button
                   type="button"
@@ -715,8 +528,10 @@ const TransferModal = ({
                   <p className="text-sm text-[#64748B]">{r.userId}</p>
                 </button>
               ))
-            ) : (
+            ) : searchQuery.trim() ? (
               <p className="p-3 text-[#64748B]">No matching users found.</p>
+            ) : (
+              <p className="p-3 text-[#64748B]">Start typing a name or user ID…</p>
             )}
           </div>
         </div>
@@ -746,14 +561,12 @@ const TransferModal = ({
 const ProgramTracker = ({
   program,
   rewards,
-  recipients,
   kycStatus,
   onTransfer,
   onUploadDocuments,
 }: {
   program: RewardProgram;
   rewards: Reward[];
-  recipients: Recipient[];
   kycStatus: KycStatus | null;
   onTransfer: (reward: Reward) => void;
   onUploadDocuments: (reward: Reward) => void;
@@ -823,7 +636,6 @@ const ProgramTracker = ({
                 reward={reward}
                 onTransfer={onTransfer}
                 onUploadDocuments={onUploadDocuments}
-                recipients={recipients}
                 kycStatus={kycStatus}
                 isProgramLocked={isLocked}
               />
@@ -851,7 +663,8 @@ const RewardsPage = () => {
   const [programConfigs, setProgramConfigs] = useState<
     Record<string, RewardProgram>
   >({});
-  const [recipients, setRecipients] = useState<Recipient[]>([]);
+  // Recipients are NOT preloaded — see comments around the auth-effect
+  // below. The TransferModal does its own debounced server-side search.
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
@@ -862,7 +675,6 @@ const RewardsPage = () => {
     null
   );
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
-  const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
   const [activeLegs, setActiveLegs] = useState<number>(0);
 
   // Active travel programs from backend, filtered to showcase IDs
@@ -884,30 +696,28 @@ const RewardsPage = () => {
           teamBusinessTiers: [],
         }));
 
+  // Recipients are NOT preloaded — TransferModal does its own
+  // debounced server-side search via `getTransferRecipients(false, q, 20)`.
+
   const fetchInitialData = useCallback(async () => {
     setDataLoading(true);
     try {
-      const [rewardsData, programsData, recipientsData, , kycData, dashboardData, leaderboardData, summaryData] =
+      // Critical-path fan-out for /rewards. Earlier cleanup history:
+      //   • Phase 1: dropped getProfileData / getDashboardData (both wasted) and
+      //     swapped getReferralSummary → getActiveLegsCount (lightweight count).
+      //     getTransferRecipients moved to lazy fetchRecipients() below.
+      //   • Phase 3: dropped getLeaderboard('team') — TopPerformersCard removed
+      //     from this page; that was the last heavy $graphLookup-backed call.
+      const [rewardsData, programsData, kycData, activeLegsResp] =
         await Promise.all([
           getRewards(),
           getRewardPrograms(),
-          getTransferRecipients(),
-          getProfileData(),
           getKycStatus(),
-          getDashboardData(),
-          getLeaderboard('team'),
-          getReferralSummary(),
+          getActiveLegsCount(),
         ]);
 
-      if (Array.isArray(leaderboardData)) {
-        setLeaders(leaderboardData as LeaderboardEntry[]);
-      } else if (leaderboardData && typeof leaderboardData === 'object' && 'leaderboard' in leaderboardData) {
-        setLeaders((leaderboardData as { leaderboard: LeaderboardEntry[] }).leaderboard ?? []);
-      }
-
-      if (summaryData && !('error' in summaryData)) {
-        const directs = (summaryData as { directs?: Array<{ activityStatus?: string }> }).directs ?? [];
-        setActiveLegs(directs.filter((d) => d.activityStatus === 'Active').length);
+      if (activeLegsResp && !('error' in activeLegsResp)) {
+        setActiveLegs(activeLegsResp.count ?? 0);
       }
 
       if (kycData && "error" in kycData) setError(kycData.error as string);
@@ -944,14 +754,6 @@ const RewardsPage = () => {
 
         setRewardsByProgram(grouped);
       }
-
-      if (recipientsData && "error" in recipientsData) {
-        console.error("Could not load recipients:", recipientsData.error);
-      } else {
-        setRecipients(recipientsData as Recipient[]);
-      }
-      
-      if (dashboardData?.error) console.error("Could not load dashboard data:", dashboardData.error);
     } catch (e) {
       setError("An unexpected error occurred while fetching data.");
       console.error(e);
@@ -966,7 +768,14 @@ const RewardsPage = () => {
       return;
     }
     if (isAuthenticated) {
+      // Critical path: rewards / programs / KYC / active-legs
       fetchInitialData();
+      // Recipients list is INTENTIONALLY NOT fetched here. The backend
+      // endpoint `/user/transfer-recipients` returns every user in the
+      // system (~14k rows, ~1.3MB) and takes ~22s on Render — that's the
+      // "second load 20s later" experience users were reporting. Instead
+      // we fetch on demand the moment a user clicks "Transfer" (see
+      // `onTransfer` handler below). Initial paint stays clean.
     }
   }, [isAuthenticated, authLoading, router, fetchInitialData]);
 
@@ -1027,7 +836,7 @@ const RewardsPage = () => {
     <>
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-5">
         <div className="mx-auto max-w-7xl space-y-4 sm:space-y-7">
-          <RewardsHeader onRulesClick={() => setMessage("Reward qualification rules are shown throughout this page.")} />
+          <RewardsHeader />
 
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
@@ -1041,21 +850,26 @@ const RewardsPage = () => {
           )}
 
           <RewardsCommandCenter
-            rewards={allVisibleRewards}
             directProgress={directProgress}
             teamProgress={teamProgress}
             activeLegs={activeLegs}
           />
 
+          {/* Luxury Rewards — merged from the old standalone /rewards/luxury page.
+              The card shows the user's live tier progress; the rules panel below
+              is collapsed by default and holds the tier-target reference content. */}
+          <LuxuryRewardsCard />
+          <LuxuryTierRulesPanel />
+
           <RewardProgramHub programs={displayPrograms} rewardsByProgram={rewardsByProgram} />
 
-          <BenefitsStrip />
-
-          <section className="grid gap-4 lg:grid-cols-3 lg:gap-5">
-            <TopPerformersCard leaders={leaders} />
-            <AchievementsCard activeLegs={activeLegs} />
-            <MotivationCard />
-          </section>
+          {/* Removed in the rewards-page cleanup:
+              - <BenefitsStrip /> — 5 marketing pills with no functional info
+              - <TopPerformersCard /> — team leaderboard belongs on /team (also was the only consumer of the heavy getLeaderboard call)
+              - <AchievementsCard /> — duplicated "Active Legs" already shown above in the Command Center + LuxuryRewardsCard
+              - <MotivationCard /> — decorative quote with no info value (also saved ~3MB image asset)
+              The component definitions remain in this file for now in case team
+              wants any of them back; nothing renders them. */}
 
           <section id="reward-operations" className="scroll-mt-6 space-y-4 sm:space-y-6">
             <div>
@@ -1070,9 +884,8 @@ const RewardsPage = () => {
                 key={program.programId}
                 program={program}
                 rewards={rewardsByProgram[program.programId] ?? []}
-                recipients={recipients}
                 kycStatus={kycStatus}
-                onTransfer={setTransferModalReward}
+                onTransfer={(reward) => setTransferModalReward(reward)}
                 onUploadDocuments={(reward) => setUploadModalReward(reward)}
               />
             ))}
@@ -1083,7 +896,6 @@ const RewardsPage = () => {
       {transferModalReward && (
         <TransferModal
           reward={transferModalReward}
-          recipients={recipients}
           onClose={() => setTransferModalReward(null)}
           onConfirm={handleTransferReward}
         />
