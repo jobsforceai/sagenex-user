@@ -33,6 +33,7 @@ import {
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 import MultiplierProgress from "../components/dashboard/MultiplierProgress";
 import LegGauges from "../components/dashboard/LegGauges";
+import TicketRulesPanel from "../components/dashboard/TicketRulesPanel";
 import { DashboardSkeleton } from "../components/dashboard/DashboardSkeletons";
 import ScheduledCashBanner from "../components/wallet/ScheduledCashBanner";
 import { formatINR } from "@/lib/currency";
@@ -821,6 +822,10 @@ const DashboardPage = () => {
                   {ticketBalance?.lastCalculatedAt ? new Date(ticketBalance.lastCalculatedAt).toLocaleString() : "N/A"}
                 </p>
               </section>
+
+              {/* Rules explainer directly under the Tickets card so users
+                  understand the per-direct ₹4L vs team-business eligibility. */}
+              <TicketRulesPanel />
 
               {earningsMultiplierDeadline && (
                 <section className="rounded-3xl border border-amber-100 bg-amber-50 p-5 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
