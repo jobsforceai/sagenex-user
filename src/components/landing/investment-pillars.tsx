@@ -8,8 +8,8 @@ const PILLARS = [
     tag: "Exclusive",
     desc: "For existing users. Monthly entry between ₹10,000 and ₹1,00,000.",
     features: [
-      "Gold Option: 3X Bonus + maturity in physical gold",
-      "Cash Option: 4X Bonus + cash payout"
+      "Gold Plan: 2X gold bonus at maturity",
+      "Fixed 11-month plan with monthly slab payments"
     ],
     color: "var(--crimson)"
   },

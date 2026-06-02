@@ -3,24 +3,25 @@ import { motion, Variants } from "framer-motion";
 import React, { useMemo } from "react";
 import { FiUser } from "react-icons/fi";
 import InvestorVsLeader from "./investor-leader";
+import { NEW_PLAN_DIRECT_BONUS_PCT, NEW_PLAN_UNILEVEL_PCTS } from "@/lib/roi";
 
 type LevelRow = {
   level: string;
   members: number;
-  rate: number; // % you earn at this level
+  rate: number;
 };
 
 const LEVELS: LevelRow[] = [
-  { level: "L1", members: 6, rate: 0.10 },
-  { level: "L2", members: 36, rate: 0.06 },
-  { level: "L3", members: 216, rate: 0.05 },
-  { level: "L4", members: 1296, rate: 0.04 },
-  { level: "L5", members: 7776, rate: 0.03 },
-  { level: "L6", members: 46656, rate: 0.02 },
+  { level: "Direct", members: 6, rate: NEW_PLAN_DIRECT_BONUS_PCT },
+  { level: "L1", members: 36, rate: NEW_PLAN_UNILEVEL_PCTS[0] },
+  { level: "L2", members: 216, rate: NEW_PLAN_UNILEVEL_PCTS[1] },
+  { level: "L3", members: 1296, rate: NEW_PLAN_UNILEVEL_PCTS[2] },
+  { level: "L4", members: 7776, rate: NEW_PLAN_UNILEVEL_PCTS[3] },
+  { level: "L5", members: 46656, rate: NEW_PLAN_UNILEVEL_PCTS[4] },
+  { level: "L6", members: 279936, rate: NEW_PLAN_UNILEVEL_PCTS[5] },
 ];
 
-// Each member package value (USD)
-const PACKAGE_USD = 1000;
+const SAMPLE_PACKAGE_INR = 5000;
 
 const container: Variants = {
   hidden: { opacity: 0, y: 16 },
@@ -43,7 +44,7 @@ const rowAnim: Variants = {
 export default function LevelsEarnings() {
   const rows = useMemo(() => {
     return LEVELS.map((r) => {
-      const packageValue = r.members * PACKAGE_USD;
+      const packageValue = r.members * SAMPLE_PACKAGE_INR;
       const bonus = packageValue * r.rate;
       return { ...r, packageValue, bonus };
     });
@@ -93,14 +94,14 @@ export default function LevelsEarnings() {
             Sagenex offers two earning paths: <strong className="text-white">Investor</strong> (passive) gains ROI from investment
             pools, capped at <strong className="text-white">2.5×</strong> capital—reinvest to continue. <strong className="text-white">Business Leader</strong>
             (active) earns ROI <em>plus</em> Direct Bonus and Unilevel incentives, with potential up to <strong className="text-white">4×</strong>
-            capital, sustained by team activity. Choose packages from <strong className="text-white">₹4,500–₹10,00,000</strong> with monthly ROI, daily
+            capital, sustained by team activity. Choose packages from <strong className="text-white">₹5,000–₹10,00,000+</strong> with monthly ROI, daily
             caps, and reinvest options. Duplicate smartly to scale multi-level bonuses.
           </p> */}
           <p className="mt-6 sm:mt-8 max-w-4xl text-center md:text-right md:ml-auto text-[15px] sm:text-[17px] text-white/85">
             <span className="font-semibold text-emerald-300">SAGENEX</span> offers two earning paths: <strong className="text-white">Investor</strong> (passive) gains ROI from investment
             pools, capped at <strong className="text-white">2.5×</strong> capital—reinvest to continue. <strong className="text-white">Business Leader</strong>
             (active) earns ROI <em>plus</em> Direct Bonus and Unilevel incentives, with potential up to <strong className="text-white">4×</strong>
-            capital, sustained by team activity. Choose packages from <strong className="text-white">₹4,500–₹10,00,000</strong> with monthly ROI, daily
+            capital, sustained by team activity. Choose packages from <strong className="text-white">₹5,000–₹10,00,000+</strong> with monthly ROI, daily
             caps, and reinvest options. Duplicate smartly to scale multi-level bonuses.
           </p>
 
@@ -155,10 +156,10 @@ export default function LevelsEarnings() {
             <div className="grid grid-cols-4 items-center bg-gradient-to-b from-[#d4b36a] to-[#b58a2b] px-3 sm:px-4 py-2 sm:py-3 text-xs sm:text-sm font-extrabold tracking-wide text-black sm:text-base">
               <div>Level</div>
               <div className="text-right">Members</div>
-              <div className="text-right hidden sm:block">Package Value ($)</div>
-              <div className="text-right sm:hidden">Package ($)</div>
-              <div className="text-right hidden sm:block">% / Your Bonus ($)</div>
-              <div className="text-right sm:hidden">Bonus ($)</div>
+              <div className="text-right hidden sm:block">Package Value (₹)</div>
+              <div className="text-right sm:hidden">Package (₹)</div>
+              <div className="text-right hidden sm:block">% / Your Bonus (₹)</div>
+              <div className="text-right sm:hidden">Bonus (₹)</div>
             </div>
 
             {/* Body */}

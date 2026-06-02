@@ -119,7 +119,7 @@ export default function VaultSection({ vault, planType, goldRate }: VaultSection
           />
           <VaultRow
             icon={<Sparkles className="h-4 w-4 text-purple-400" />}
-            label="Cash Bonus (4x)"
+            label="Cash Bonus"
             value={formatINRLocal(vault.totalCashBonusInr ?? vault.totalCashBonusUsd ?? 0)}
           />
           <VaultRow

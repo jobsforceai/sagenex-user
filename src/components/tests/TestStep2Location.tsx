@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { AlertCircle, MapPin } from 'lucide-react';
 import { getTestsCatalog } from '@/actions/user';
 import type { TestCatalogItem, TestCatalogLocation } from '@/types/tests';
+import { getApiV1BaseUrl } from '@/lib/api-base';
 
 interface TestStep2Props {
   onNext: (data: TestBookingLocation) => void;
@@ -26,15 +27,7 @@ export function TestStep2Location({ onNext, onBack, initialData }: TestStep2Prop
   const [selectedTest, setSelectedTest] = useState<TestCatalogItem | null>(initialData?.test || null);
   const [selectedLocation, setSelectedLocation] = useState<TestCatalogLocation | null>(initialData?.location || null);
   const catalogEndpoint = useMemo(() => {
-    const rawBase =
-      process.env.NEXT_PUBLIC_BACKEND_URL ||
-      process.env.NEXT_PUBLIC_API_BASE_URL ||
-      'http://localhost:8080';
-    const base = rawBase.replace(/\/$/, '');
-    if (base.endsWith('/api/v1')) {
-      return `${base}/tests/catalog`;
-    }
-    return `${base}/api/v1/tests/catalog`;
+    return `${getApiV1BaseUrl()}/tests/catalog`;
   }, []);
 
   const {

@@ -1,9 +1,17 @@
 import type { NextConfig } from "next";
 
-const backendBaseUrl = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
-const apiBaseUrl = backendBaseUrl.endsWith("/api")
-  ? backendBaseUrl
-  : `${backendBaseUrl.replace(/\/$/, "")}/api`;
+const backendBaseUrl =
+  process.env.NEXT_PUBLIC_API_BASE_URL ||
+  process.env.NEXT_PUBLIC_BACKEND_URL ||
+  process.env.API_BASE_URL ||
+  "http://localhost:8080";
+const normalizedBackendBaseUrl = backendBaseUrl
+  .replace(/\/+$/, "")
+  .replace(/\/api\/v1$/i, "/api")
+  .replace(/\/api$/i, "/api");
+const apiBaseUrl = normalizedBackendBaseUrl.endsWith("/api")
+  ? normalizedBackendBaseUrl
+  : `${normalizedBackendBaseUrl}/api`;
 
 const autoproctorOrigin = process.env.AUTOPROCTOR_ORIGIN;
 const frameAncestors = ["'self'", autoproctorOrigin].filter(Boolean).join(" ");

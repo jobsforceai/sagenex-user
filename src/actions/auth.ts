@@ -1,8 +1,9 @@
 "use server";
 
 import { cookies } from "next/headers";
+import { getBackendBaseUrl } from "@/lib/api-base";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:8080";
+const API_BASE_URL = getBackendBaseUrl("http://localhost:8080");
 
 async function handleApiResponse(response: Response) {
   if (response.status === 401) {

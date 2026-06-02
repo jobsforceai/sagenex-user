@@ -21,6 +21,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MessageCircle, Send, X, Loader2, Wrench, Sparkles } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
+import { getBackendBaseUrl } from "@/lib/api-base";
 
 type Msg = {
   role: "user" | "assistant";
@@ -37,7 +38,7 @@ const SUGGESTIONS = [
   "When is my next ROI?",
 ];
 
-const API_BASE = process.env.NEXT_PUBLIC_BACKEND_URL || "";
+const API_BASE = getBackendBaseUrl();
 
 /** Read auth token from document.cookie. Returns empty string if not present. */
 const getAuthToken = (): string => {

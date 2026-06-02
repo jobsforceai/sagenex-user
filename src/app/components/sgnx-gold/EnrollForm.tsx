@@ -5,13 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { enrollFromWallet, getLiveGoldRate } from "@/actions/sgnxgold";
 import { toast } from "sonner";
 import { Loader2, Gem, DollarSign, Sparkles, TrendingUp } from "lucide-react";
@@ -42,7 +35,6 @@ const formatINR = (v: number) =>
 export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
   const [targetUserId, setTargetUserId] = useState(userId);
   const [amountUsd, setAmountUsd] = useState<string>("");
-  const [planType, setPlanType] = useState<"gold" | "cash">("gold");
   const [submitting, setSubmitting] = useState(false);
   const [goldRate, setGoldRate] = useState<GoldRate | null>(null);
   const [loadingRate, setLoadingRate] = useState(false);
@@ -69,8 +61,8 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
   const totalDeposited = amount * maturityMonths;
 
   // Preview calculations
-  const isGold = planType === "gold";
-  const bonusMultiplier = isGold ? 3 : 4;
+  const isGold = true;
+  const bonusMultiplier = 2;
   const bonusAmount = amount * bonusMultiplier;
   const maturityValue = totalDeposited + bonusAmount;
 
@@ -98,7 +90,7 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
       const result = await enrollFromWallet({
         userId: targetUserId.trim(),
         amountUsd: amount,
-        planType,
+        planType: "gold",
       });
 
       if (result?.error) {
@@ -160,22 +152,9 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="planType" className="text-gray-300">
-                Plan Type
-              </Label>
-              <Select
-                value={planType}
-                onValueChange={(v) => setPlanType(v as "gold" | "cash")}
-              >
-                <SelectTrigger className="bg-gray-800/50 border-gray-700 text-white">
-                  <SelectValue placeholder="Select plan type" />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-900 border-gray-700">
-                  <SelectItem value="gold">Gold Plan</SelectItem>
-                  <SelectItem value="cash">Cash Plan</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3">
+              <p className="text-sm font-semibold text-amber-200">Gold Plan</p>
+              <p className="mt-1 text-xs text-amber-400/70">2x gold bonus at maturity</p>
             </div>
 
             {/* Live Gold Rate */}
@@ -267,7 +246,7 @@ export default function EnrollForm({ userId, onSuccess }: EnrollFormProps) {
                   />
                   <PreviewRow
                     icon={<Sparkles className="h-4 w-4 text-amber-300" />}
-                    label="Bonus Gold (3x)"
+                    label="Bonus Gold (2x)"
                     value={`${bonusGoldGrams.toFixed(4)} g`}
                   />
                 </>

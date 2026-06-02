@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { RefreshCw } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
+import { getBackendBaseUrl } from "@/lib/api-base";
 
 /**
  * Floating Sync Profile button — renders on every authenticated page
@@ -31,7 +32,7 @@ export default function SyncProfileFab() {
         .split("; ")
         .find((r) => r.startsWith("authToken="))
         ?.split("=")[1];
-      const backendUrl = process.env.NEXT_PUBLIC_BACKEND_URL ?? "";
+      const backendUrl = getBackendBaseUrl();
       const res = await fetch(`${backendUrl}/api/v1/user/sync/stream`, {
         headers: { Authorization: `Bearer ${token}` },
       });
