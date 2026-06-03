@@ -1,0 +1,26 @@
+src/app/components/wallet/WithdrawalRequest.tsx
+  s_964e0d3fba450c::t_9f2ce8502fd873 94,96-104
+  s_964e0d3fba450c::t_e8d09545e2f6a6 19-30
+  s_964e0d3fba450c::t_ae145ab7c5cca9 137-150,155-163
+  s_964e0d3fba450c::t_16e9065b69ea07 42-43
+  s_964e0d3fba450c::t_6af78fccc1a193 597-601
+src/app/wallet/page.tsx
+  s_964e0d3fba450c::t_35d4cc91eb105b 621-622
+  s_964e0d3fba450c::t_e8087b3862c56b 107-113
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.2",
+  "base_commit_sha": "e69d74fb37d00922fa9697cf179304696890ccd3",
+  "prompts": {},
+  "sessions": {
+    "s_964e0d3fba450c": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "6cc4812e-0c58-4bd8-81a3-ac2bd3fa1770",
+        "model": "claude-opus-4-7"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
