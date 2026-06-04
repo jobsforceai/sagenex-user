@@ -104,6 +104,13 @@ interface WalletSummary {
   withdrawalCap?: number;
   totalLifetimeWithdrawals?: number;
   remainingWithdrawalLimit?: number;
+  // Daily (rolling 24h) withdrawal limit — surfaced by the backend
+  // so the withdrawal form's MAX button can cap correctly instead of
+  // letting the user submit an amount the backend will reject with
+  // "daily limit exceeded". Backend rule: limit = packageUSD.
+  dailyWithdrawalLimit?: number;
+  withdrawnInLast24h?: number;
+  dailyWithdrawalRemaining?: number;
 }
 
 interface WalletLedgerResponse {
@@ -611,6 +618,8 @@ const WalletPage = () => {
               currentBalance={walletSummary?.availableBalance ?? 0}
               kycStatus={kycStatus?.status}
               remainingWithdrawalLimit={remainingWithdrawalLimit}
+              dailyWithdrawalLimit={walletSummary?.dailyWithdrawalLimit}
+              dailyWithdrawalRemaining={walletSummary?.dailyWithdrawalRemaining}
             />
           </div>
         </DrawerContent>

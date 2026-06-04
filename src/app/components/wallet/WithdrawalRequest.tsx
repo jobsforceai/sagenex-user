@@ -16,6 +16,18 @@ interface WithdrawalRequestProps {
   kycStatus: string | undefined;
   className?: string;
   remainingWithdrawalLimit?: number;
+  /**
+   * Daily (rolling 24-hour) withdrawal limit remaining, in INR.
+   * Backend rule: dailyLimit = packageUSD; reduced by gross of any
+   * WITHDRAWAL_REQUEST entries (PENDING|PAID) in the trailing 24h.
+   * When provided, the MAX button caps at min(balance, lifetimeLimit,
+   * dailyRemaining) instead of just the wallet balance — preventing
+   * the "daily limit exceeded" rejection on submit.
+   */
+  dailyWithdrawalRemaining?: number;
+  /** Total daily limit (= packageUSD) — shown in the UI so users
+   *  understand why a higher amount is blocked. */
+  dailyWithdrawalLimit?: number;
 }
 
 type WithdrawalType = "upi" | "bank" | "cash";
@@ -27,6 +39,8 @@ const WithdrawalRequest = ({
   kycStatus,
   className,
   remainingWithdrawalLimit,
+  dailyWithdrawalRemaining,
+  dailyWithdrawalLimit,
 }: WithdrawalRequestProps) => {
   const { user } = useAuth();
   const [amount, setAmount] = useState("");
@@ -77,9 +91,17 @@ const WithdrawalRequest = ({
     if (!amt || amt <= 0) { toast.error("Enter a valid amount."); return; }
     // Gross-input model (team directive 2026-06-01):
     //   amt = wallet debit. tax = 5% × amt. user receives amt × 0.95.
-    if (amt > currentBalance) {
+    if (amt > maxWithdrawable) {
       const netCash = Math.round(amt * 0.95 * 100) / 100;
-      toast.error(`Insufficient balance. Withdrawal of ₹${amt.toFixed(2)} (₹${netCash.toFixed(2)} in hand after 5% tax) but you only have ₹${currentBalance.toFixed(2)}.`);
+      let reason: string;
+      if (amt > currentBalance) {
+        reason = `but you only have ₹${currentBalance.toFixed(2)} in your wallet`;
+      } else if (typeof dailyWithdrawalRemaining === "number" && amt > dailyWithdrawalRemaining) {
+        reason = `exceeds your remaining 24-hour limit of ₹${dailyWithdrawalRemaining.toFixed(2)}`;
+      } else {
+        reason = `exceeds your remaining withdrawal cap of ₹${maxWithdrawable.toFixed(2)}`;
+      }
+      toast.error(`Cannot withdraw ₹${amt.toFixed(2)} (₹${netCash.toFixed(2)} in hand after 5% tax) — ${reason}.`);
       return;
     }
     setCashLoading(true);
@@ -112,14 +134,33 @@ const WithdrawalRequest = ({
     typeof remainingWithdrawalLimit === "number"
       ? Math.max(0, remainingWithdrawalLimit)
       : null;
-  const maxWithdrawable =
-    safeRemainingLimit !== null
-      ? Math.min(currentBalance, safeRemainingLimit)
-      : currentBalance;
+  const safeDailyRemaining =
+    typeof dailyWithdrawalRemaining === "number"
+      ? Math.max(0, dailyWithdrawalRemaining)
+      : null;
+  // Max withdrawable in one request = the tightest of:
+  //   - wallet available balance
+  //   - lifetime withdrawal cap remaining
+  //   - rolling-24h daily limit remaining (= packageUSD - withdrawnInLast24h)
+  // Prior bug: only the first two were considered, so MAX would fill in
+  // a number the backend rejected with "daily limit exceeded".
+  const candidates = [currentBalance];
+  if (safeRemainingLimit !== null) candidates.push(safeRemainingLimit);
+  if (safeDailyRemaining !== null) candidates.push(safeDailyRemaining);
+  const maxWithdrawable = Math.max(0, Math.min(...candidates));
   // Gross-input model: the amount the user enters IS the wallet debit (gross).
   // What lands in their hand / bank = entered × 0.95 (5% tax kept by company).
   // maxWithdrawable is already the max gross — use it as-is for the form input.
   const maxNetReceivable = Math.floor((maxWithdrawable * 0.95) * 100) / 100;
+  // Which limit is the binding constraint right now? (drives the helper
+  // text under the amount field so users understand WHY the max is what
+  // it is — particularly important when daily limit < wallet balance.)
+  const bindingLimit =
+    safeDailyRemaining !== null && maxWithdrawable === safeDailyRemaining
+      ? "daily"
+      : safeRemainingLimit !== null && maxWithdrawable === safeRemainingLimit
+        ? "lifetime"
+        : "balance";
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -413,23 +454,28 @@ const WithdrawalRequest = ({
                   type="number"
                   value={cashAmount}
                   onChange={(e) => setCashAmount(e.target.value)}
-                  placeholder={`Max withdrawal: ₹${Math.floor(currentBalance).toLocaleString('en-IN')}`}
+                  placeholder={`Max withdrawal: ₹${Math.floor(maxWithdrawable).toLocaleString('en-IN')}`}
                   className="border-[#E8E8E8] bg-white text-[#111827]"
                   min="1"
                   step="1"
                 />
                 <div className="mt-2 flex items-center justify-between gap-2 rounded-md bg-emerald-50 px-3 py-2 text-xs">
                   <span className="font-bold text-emerald-700">
-                    Max withdrawal: ₹{Math.floor(currentBalance).toLocaleString('en-IN')} (you receive ₹{Math.floor(currentBalance * 0.95).toLocaleString('en-IN')} after 5% tax)
+                    Max withdrawal: ₹{Math.floor(maxWithdrawable).toLocaleString('en-IN')} (you receive ₹{maxNetReceivable.toLocaleString('en-IN')} after 5% tax)
                   </span>
                   <button
                     type="button"
-                    onClick={() => setCashAmount(String(Math.floor(currentBalance)))}
+                    onClick={() => setCashAmount(String(Math.floor(maxWithdrawable)))}
                     className="rounded bg-emerald-600 px-2 py-1 text-[11px] font-bold text-white hover:bg-emerald-700"
                   >
                     Use Max
                   </button>
                 </div>
+                {bindingLimit === "daily" && typeof dailyWithdrawalLimit === "number" && (
+                  <p className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-800">
+                    Daily limit: ₹{Math.floor(dailyWithdrawalLimit).toLocaleString('en-IN')} in any 24-hour window. You can request the remaining ₹{Math.floor(Math.max(0, dailyWithdrawalLimit - maxWithdrawable)).toLocaleString('en-IN')} after 24 hours.
+                  </p>
+                )}
                 <p className="mt-1 text-xs text-zinc-500">
                   Amount is held immediately. Admin will contact you with pickup details.
                 </p>
@@ -548,6 +594,11 @@ const WithdrawalRequest = ({
                   Use Max
                 </button>
               </div>
+              {bindingLimit === "daily" && typeof dailyWithdrawalLimit === "number" && (
+                <p className="mt-1 rounded-md bg-amber-50 px-2 py-1 text-[11px] font-semibold text-amber-800">
+                  Daily limit: ₹{Math.floor(dailyWithdrawalLimit).toLocaleString('en-IN')} in any 24-hour window. You can request the remaining ₹{Math.floor(Math.max(0, dailyWithdrawalLimit - maxWithdrawable)).toLocaleString('en-IN')} after 24 hours.
+                </p>
+              )}
               {withdrawalType === "upi" && parseFloat(amount) > 500 && (
                 <p className="text-red-400 text-sm mt-2">UPI withdrawal amount cannot exceed ₹500.</p>
               )}
