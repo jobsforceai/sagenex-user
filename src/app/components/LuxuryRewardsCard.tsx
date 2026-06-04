@@ -346,9 +346,6 @@ export default function LuxuryRewardsCard() {
                 <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#64748B]">Level Map</p>
                 <h3 className="mt-1 text-xl font-black text-[#0F172A]">Reward ladder</h3>
               </div>
-              <Badge className="w-fit rounded-full bg-[#FFF1F4] px-3 py-1 text-[#C81E4A] hover:bg-[#FFF1F4]">
-                {cycleStatusLabel}
-              </Badge>
             </div>
 
             <div className="mt-6 grid gap-4 sm:grid-cols-4">
@@ -412,26 +409,26 @@ export default function LuxuryRewardsCard() {
                 <p className="mt-1 text-lg font-black text-[#0F172A]">{snap.activeLegsCount ?? 0}</p>
               </div>
             </div>
+
+            {(cycle?.kind === "CARRY" || pendingApproval || claimed) && (
+              <div className="mt-4 rounded-2xl border border-[#F4B4C4] bg-[#FFF8FA] p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-black text-[#7A001F]">{cycleStatusLabel}</p>
+                    <p className="text-xs font-semibold text-[#A90D32]">
+                      {claimable ? "Admin approved. Claim now to lock your reward." : "Reward status is being reviewed by admin."}
+                    </p>
+                  </div>
+                  {claimable && (
+                    <Button disabled={claiming} onClick={handleClaim}>
+                      {claiming ? "Claiming..." : "Claim reward"}
+                    </Button>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
         </div>
-
-        {(cycle?.kind === "CARRY" || pendingApproval || claimed) && (
-          <div className="rounded-2xl border border-[#F4B4C4] bg-[#FFF8FA] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <div>
-                <p className="text-sm font-black text-[#7A001F]">{cycleStatusLabel}</p>
-                <p className="text-xs font-semibold text-[#A90D32]">
-                  {claimable ? "Admin approved. Claim now to lock your reward." : "Reward status is being reviewed by admin."}
-                </p>
-              </div>
-              {claimable && (
-                <Button disabled={claiming} onClick={handleClaim}>
-                  {claiming ? "Claiming..." : "Claim reward"}
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
       </div>
     </section>
   );
