@@ -298,20 +298,6 @@ const RewardCard = ({
   );
 };
 
-const RewardsHeader = () => (
-  // The "Rules & Info" button previously here didn't open a modal — it just
-  // set a toast saying "rules are shown throughout this page." Removed
-  // because <LuxuryTierRulesPanel> below now holds the actual rules content.
-  <header>
-    <h1 className="text-2xl font-black tracking-tight text-[#0F172A] sm:text-4xl">
-      Rewards <span aria-hidden="true">🏆</span>
-    </h1>
-    <p className="mt-1 hidden text-sm text-[#64748B] sm:block sm:text-base">
-      Unlock amazing travel experiences and luxury rewards.
-    </p>
-  </header>
-);
-
 const RewardsCommandCenter = ({
   directProgress,
   teamProgress,
@@ -321,42 +307,69 @@ const RewardsCommandCenter = ({
   teamProgress: ReturnType<typeof getRewardProgress>;
   activeLegs: number;
 }) => {
-  // The right-side "Closest Reward" hero panel that used to live here was
-  // removed during the rewards-page cleanup — it duplicated the headline
-  // info that <LuxuryRewardsCard> shows directly below the Command Center,
-  // and its low-opacity trophy image was washing out the white text on top
-  // of the dark gradient. The `bestReward`/`bestPercent`/`remaining` locals
-  // it computed went away with it.
+  const progressCards = [
+    {
+      label: "Direct Progress",
+      value: `${directProgress.percent}%`,
+      helper: `${formatCurrency(directProgress.current)} completed`,
+      tone: "emerald",
+    },
+    {
+      label: "Team Progress",
+      value: `${teamProgress.percent}%`,
+      helper: `${formatCurrency(teamProgress.current)} completed`,
+      tone: "red",
+    },
+    {
+      label: "Active Legs",
+      value: activeLegs.toString(),
+      helper: "Qualified legs this cycle",
+      tone: "white",
+    },
+  ];
+
   return (
-    <section className="relative overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_8%_10%,rgba(200,30,74,0.10),transparent_26%),radial-gradient(circle_at_85%_12%,rgba(16,185,129,0.12),transparent_28%)]" />
-      <div className="relative flex flex-col gap-6 p-5 sm:p-7 lg:p-8">
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full bg-[#FFF1F4] px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-[#C81E4A]">
-            <Sparkles className="h-3.5 w-3.5" />
-            Rewards Overview
+    <section className="wallet-red-surface relative overflow-hidden rounded-[24px] bg-[linear-gradient(135deg,#B0002D_0%,#7A001F_55%,#430010_100%)] p-4 text-white shadow-[0_22px_55px_rgba(122,0,31,0.25)] sm:p-6 lg:p-8">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_12%_0%,rgba(255,255,255,0.18),transparent_28%),radial-gradient(circle_at_85%_20%,rgba(16,185,129,0.18),transparent_30%)]" />
+      <div className="relative grid gap-6 lg:grid-cols-[1.05fr_1fr] lg:items-end">
+        <div className="max-w-2xl">
+          <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-white/85 ring-1 ring-white/15">
+            <Sparkles className="h-3.5 w-3.5 text-emerald-300" />
+            Rewards Command Center
           </span>
-          <h2 className="mt-4 max-w-3xl text-3xl font-black leading-tight text-[#0F172A] sm:text-4xl">
-            Your progress at a glance
-          </h2>
+          <h1 className="mt-4 text-2xl font-black leading-tight sm:text-4xl lg:text-5xl">
+            Track rewards, claims, documents, and transfers in one place.
+          </h1>
+          <p className="mt-3 max-w-xl text-sm font-medium leading-6 text-white/70 sm:text-base">
+            Follow your direct and team milestones, open travel programs, and luxury reward progress with the same operating view used across your dashboard.
+          </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Direct Progress</p>
-            <p className="mt-1 text-2xl font-black text-[#0F172A]">{directProgress.percent}%</p>
-            <p className="truncate text-xs font-semibold text-slate-500">{formatCurrency(directProgress.current)}</p>
-          </div>
-          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Team Progress</p>
-            <p className="mt-1 text-2xl font-black text-[#0F172A]">{teamProgress.percent}%</p>
-            <p className="truncate text-xs font-semibold text-slate-500">{formatCurrency(teamProgress.current)}</p>
-          </div>
-          <div className="rounded-3xl border border-slate-100 bg-slate-50 p-4">
-            <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Active Legs</p>
-            <p className="mt-1 text-2xl font-black text-[#0F172A]">{activeLegs}</p>
-            <p className="text-xs font-semibold text-slate-500">This cycle</p>
-          </div>
+        <div className="grid gap-3 sm:grid-cols-3 lg:grid-cols-1 xl:grid-cols-3">
+          {progressCards.map((card) => (
+            <div
+              key={card.label}
+              className="rounded-2xl border border-white/10 bg-white/10 p-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.12)] backdrop-blur"
+            >
+              <p className="text-[10px] font-black uppercase tracking-[0.12em] text-white/50">
+                {card.label}
+              </p>
+              <p
+                className={`mt-2 text-2xl font-black ${
+                  card.tone === "emerald"
+                    ? "text-emerald-200"
+                    : card.tone === "red"
+                      ? "text-rose-100"
+                      : "text-white"
+                }`}
+              >
+                {card.value}
+              </p>
+              <p className="mt-1 truncate text-xs font-semibold text-white/60">
+                {card.helper}
+              </p>
+            </div>
+          ))}
         </div>
       </div>
     </section>
@@ -370,18 +383,24 @@ const RewardProgramHub = ({
   programs: RewardProgram[];
   rewardsByProgram: Record<string, Reward[]>;
 }) => (
-  <section id="reward-programs" className="scroll-mt-6">
-    <div className="mb-3 flex items-end justify-between gap-3 sm:mb-4">
+  <section id="reward-programs" className="scroll-mt-6 rounded-[24px] border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+    <div className="mb-4 flex flex-col gap-2 sm:mb-5 sm:flex-row sm:items-end sm:justify-between">
       <div>
         <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#C81E4A]">Reward Programs</p>
-        <h2 className="mt-1 text-2xl font-black text-[#0F172A] sm:text-3xl">Choose your track</h2>
+        <h2 className="mt-1 text-xl font-black text-[#0F172A] sm:text-2xl">Travel Tracks</h2>
+        <p className="mt-1 text-sm font-medium text-[#64748B]">
+          Jump into each active program and review the reward status below.
+        </p>
       </div>
+      <span className="w-fit rounded-full bg-[#FFF1F4] px-3 py-1 text-xs font-black text-[#C81E4A]">
+        {programs.length} active
+      </span>
     </div>
     {/* The "Luxury Rewards" tile + "View progress →" CTA used to live here
         and linked to /rewards/luxury. After Phase 2 that page now redirects
         back to /rewards, so the tile was a dead circular link. Removed — the
         live luxury progress is already shown by <LuxuryRewardsCard> higher up. */}
-    <div className="grid gap-3 lg:grid-cols-2">
+    <div className="grid gap-4 lg:grid-cols-2">
       {programs.map((program) => {
         const promo = TRAVEL_PROMO[program.programId];
         const progress = getRewardProgress(rewardsByProgram[program.programId] ?? []);
@@ -391,20 +410,39 @@ const RewardProgramHub = ({
             key={program.programId}
             type="button"
             onClick={() => document.getElementById(`tracker-${program.programId}`)?.scrollIntoView({ behavior: "smooth", block: "start" })}
-            className="group relative min-h-[230px] overflow-hidden rounded-3xl border border-slate-200/70 bg-white p-0 text-left shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
+            className="group overflow-hidden rounded-[22px] border border-slate-200/70 bg-white p-3 text-left shadow-[0_12px_32px_rgba(15,23,42,0.08)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_42px_rgba(15,23,42,0.12)]"
           >
-            <Image src={promo.image} alt={promo.title} fill className="object-cover transition duration-300 group-hover:scale-105" sizes="33vw" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/82 via-black/28 to-transparent" />
-            <div className="relative flex min-h-[230px] flex-col justify-between p-5 text-white">
-              <div className="flex items-center justify-between">
-                <span className="rounded-full bg-white/14 px-3 py-1 text-xs font-black backdrop-blur">{program.status}</span>
-                <span className="rounded-full bg-emerald-400 px-3 py-1 text-xs font-black text-[#063B22]">{progress.percent}%</span>
+            <div className="relative aspect-[16/8] overflow-hidden rounded-2xl bg-slate-100">
+              <Image
+                src={promo.image}
+                alt={promo.title}
+                fill
+                className="object-cover transition duration-300 group-hover:scale-105"
+                sizes="(min-width: 1024px) 50vw, 100vw"
+              />
+              <div className="absolute left-3 top-3 flex items-center gap-2">
+                <span className="rounded-full bg-white/90 px-3 py-1 text-xs font-black capitalize text-[#0F172A] shadow-sm backdrop-blur">
+                  {program.status}
+                </span>
+                <span className="rounded-full bg-emerald-500 px-3 py-1 text-xs font-black text-white shadow-sm">
+                  {progress.percent}%
+                </span>
               </div>
-              <div>
-                <h3 className="text-2xl font-black">{promo.title}</h3>
-                <p className="mt-1 text-sm font-semibold text-white/75">{promo.subtitle}</p>
-                <p className="mt-3 text-xs font-bold text-white/70">{formatCurrency(progress.current)} / {progress.target ? formatCurrency(progress.target) : "Target pending"}</p>
+            </div>
+            <div className="p-2 pt-4">
+              <h3 className="text-xl font-black text-[#0F172A] sm:text-2xl">{promo.title}</h3>
+              <p className="mt-1 text-sm font-semibold text-[#64748B]">{promo.subtitle}</p>
+              <div className="mt-4 grid gap-2 sm:grid-cols-2">
+                {promo.details.slice(0, 2).map((detail) => (
+                  <div key={detail.label} className="rounded-2xl border border-slate-200 bg-slate-50 p-3">
+                    <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B]">{detail.label}</p>
+                    <p className="mt-1 text-xs font-bold leading-5 text-[#0F172A]">{detail.value}</p>
+                  </div>
+                ))}
               </div>
+              <p className="mt-4 text-xs font-bold text-[#64748B]">
+                {formatCurrency(progress.current)} / {progress.target ? formatCurrency(progress.target) : "Target pending"}
+              </p>
             </div>
           </button>
         );
@@ -579,27 +617,34 @@ const ProgramTracker = ({
   const displayRewards = activeType === "self" ? selfRewards : teamRewards;
 
   return (
-    <section id={`tracker-${program.programId}`} className="scroll-mt-8 rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-6">
-      <div className="mb-3 flex items-center gap-2 sm:mb-4 sm:gap-3">
-        <span className="text-[#C81E4A]">
-          {PROGRAM_ICONS[program.programId] ?? <Gift className="w-5 h-5" />}
-        </span>
-        <h2 className="text-lg font-black text-[#0F172A] sm:text-2xl">{program.name}</h2>
-        {isLocked && (
-          <span className="rounded-full bg-red-50 px-2 py-0.5 text-xs font-medium text-red-700">
-            Ended
+    <section id={`tracker-${program.programId}`} className="scroll-mt-8 rounded-[24px] border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
+      <div className="mb-4 flex flex-col gap-3 sm:mb-5 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3">
+          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FFF1F4] text-[#C81E4A]">
+            {PROGRAM_ICONS[program.programId] ?? <Gift className="w-5 h-5" />}
           </span>
-        )}
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.12em] text-[#64748B]">Program Tracker</p>
+            <h2 className="text-lg font-black text-[#0F172A] sm:text-2xl">{program.name}</h2>
+          </div>
+        </div>
+        <span
+          className={`w-fit rounded-full px-3 py-1 text-xs font-black capitalize ${
+            isLocked ? "bg-red-50 text-red-700" : "bg-emerald-50 text-emerald-700"
+          }`}
+        >
+          {isLocked ? "Ended" : program.status}
+        </span>
       </div>
 
       {/* Self / Team toggle */}
-      <div className="mb-4 flex border-b border-slate-200 sm:mb-6">
+      <div className="mb-4 flex w-full rounded-2xl border border-slate-200 bg-slate-50 p-1 sm:mb-6 sm:w-fit">
         {selfRewards.length > 0 && (
           <button
             onClick={() => setActiveType("self")}
-            className={`px-3 py-2 text-sm font-semibold transition-colors duration-200 sm:px-4 sm:text-base ${
+            className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors duration-200 sm:flex-none ${
               activeType === "self"
-                ? "border-b-2 border-emerald-500 text-emerald-700"
+                ? "bg-white text-emerald-700 shadow-sm"
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
@@ -609,9 +654,9 @@ const ProgramTracker = ({
         {teamRewards.length > 0 && (
           <button
             onClick={() => setActiveType("team")}
-            className={`px-3 py-2 text-sm font-semibold transition-colors duration-200 sm:px-4 sm:text-base ${
+            className={`flex-1 rounded-xl px-4 py-2 text-sm font-black transition-colors duration-200 sm:flex-none ${
               activeType === "team"
-                ? "border-b-2 border-[#C81E4A] text-[#C81E4A]"
+                ? "bg-white text-[#C81E4A] shadow-sm"
                 : "text-[#64748B] hover:text-[#0F172A]"
             }`}
           >
@@ -836,8 +881,6 @@ const RewardsPage = () => {
     <>
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-5">
         <div className="mx-auto max-w-7xl space-y-4 sm:space-y-7">
-          <RewardsHeader />
-
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
               {error}
@@ -871,15 +914,15 @@ const RewardsPage = () => {
               The component definitions remain in this file for now in case team
               wants any of them back; nothing renders them. */}
 
-          <section id="reward-operations" className="scroll-mt-6 space-y-4 sm:space-y-6">
-            <div>
+          <section id="reward-operations" className="scroll-mt-6 space-y-4 sm:space-y-5">
+            <div className="rounded-[24px] border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
               <p className="text-[11px] font-black uppercase tracking-[0.14em] text-[#C81E4A]">Claims & Documents</p>
               <h2 className="mt-1 text-xl font-black text-[#0F172A] sm:text-2xl">Reward Operations</h2>
-              <p className="mt-1 hidden text-sm text-[#64748B] sm:block">
+              <p className="mt-1 text-sm font-medium text-[#64748B]">
                 Track claim status, upload documents, and transfer eligible rewards without leaving this page.
               </p>
             </div>
-          {displayPrograms.map((program) => (
+            {displayPrograms.map((program) => (
               <ProgramTracker
                 key={program.programId}
                 program={program}
