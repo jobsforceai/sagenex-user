@@ -378,6 +378,7 @@ const DashboardPage = () => {
     wallet?.earningsCapTotal && wallet.earningsCapTotal > 0
       ? Math.min(100, Math.round(((wallet.earnedSinceBaseline ?? 0) / wallet.earningsCapTotal) * 100))
       : 0;
+  const remainingEarningsCap = Math.max(0, wallet?.remainingEarningsCap ?? 0);
 
   return (
     <>
@@ -753,8 +754,8 @@ const DashboardPage = () => {
                 </div>
                 <div className="space-y-3 p-4 md:space-y-4 md:p-5">
                   {[
-                    { label: "Withdrawal cap", value: formatCurrencyCompact(wallet?.withdrawalCap), pct: withdrawalUsedPct },
-                    { label: "Earnings cap used", value: `${earningsUsedPct}%`, pct: earningsUsedPct },
+                    { label: "Withdrawal cap", value: formatCurrencyCompact(wallet?.withdrawalCap ?? 0), pct: withdrawalUsedPct },
+                    { label: "Earnings cap", value: formatCurrencyCompact(wallet?.earningsCapTotal ?? 0), pct: earningsUsedPct },
                   ].map((item) => (
                     <div key={item.label}>
                       <div className="mb-1 flex justify-between text-sm">
@@ -768,12 +769,12 @@ const DashboardPage = () => {
                   ))}
                   <div className="grid grid-cols-2 gap-3 pt-1">
                     <div className="rounded-2xl bg-slate-50 p-3">
-                      <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Withdrawn</p>
-                      <p className="mt-1 truncate text-sm font-black text-[#0F172A]">{formatCurrencyCompact(wallet?.totalLifetimeWithdrawals)}</p>
+                      <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Withdraw Limit</p>
+                      <p className="mt-1 truncate text-sm font-black text-[#0F172A]">{formatCurrencyCompact(wallet?.remainingWithdrawalLimit ?? 0)}</p>
                     </div>
                     <div className="rounded-2xl bg-slate-50 p-3">
-                      <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Package</p>
-                      <p className="mt-1 truncate text-sm font-black text-[#0F172A]">{formatINR(dashboardData?.package?.packageINR ?? dashboardData?.package?.packageUSD)}</p>
+                      <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Earnings Limit</p>
+                      <p className="mt-1 truncate text-sm font-black text-[#0F172A]">{formatCurrencyCompact(remainingEarningsCap)}</p>
                     </div>
                   </div>
                 </div>

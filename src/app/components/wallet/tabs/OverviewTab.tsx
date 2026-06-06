@@ -14,6 +14,9 @@ interface WalletSummary {
   capLockedBalance?: number;
   totalLifetimeWithdrawals?: number;
   remainingWithdrawalLimit?: number;
+  earningsCapTotal?: number;
+  earnedSinceBaseline?: number;
+  remainingEarningsCap?: number;
 }
 
 interface WalletTransaction {
@@ -137,6 +140,12 @@ export const OverviewTab = ({
   const cycleLedger = cycleHistory?.ledger ?? [];
   const showCycleNote = (cycleSummary?.delta ?? 0) > 0.01;
   const earnedSoFar = cycleSummary?.currentCycleEarnings ?? 0;
+  const earningsCapTotal = Math.max(0, walletSummary?.earningsCapTotal ?? 0);
+  const earnedSinceBaseline = Math.max(0, walletSummary?.earnedSinceBaseline ?? 0);
+  const remainingEarningsCap = Math.max(0, walletSummary?.remainingEarningsCap ?? 0);
+  const earningsUsedPct = earningsCapTotal
+    ? Math.min(100, Math.round((earnedSinceBaseline / earningsCapTotal) * 100))
+    : 0;
   const cycleStart = cycleSummary?.cycleStart ? new Date(cycleSummary.cycleStart) : null;
   const today = new Date();
   const elapsedDays = cycleStart
@@ -171,10 +180,11 @@ export const OverviewTab = ({
               {summaryLoading ? "—" : formatCurrency(walletSummary?.availableBalance ?? 0)}
             </p>
           </div>
-          <div className="relative mt-3 grid grid-cols-3 gap-1.5 border-t border-slate-100 pt-3 sm:mt-8 sm:gap-4 sm:pt-5 sm:divide-x sm:divide-slate-100">
+          <div className="relative mt-3 grid grid-cols-2 gap-1.5 border-t border-slate-100 pt-3 sm:mt-8 sm:grid-cols-4 sm:gap-4 sm:pt-5 sm:divide-x sm:divide-slate-100">
             {[
               ["Locked", walletSummary?.capLockedBalance ?? 0],
               ["Can Withdraw", remainingWithdrawalLimit],
+              ["Earn Limit", remainingEarningsCap],
               ["Withdrawn", walletSummary?.totalLifetimeWithdrawals ?? 0],
             ].map(([label, value]) => (
               <div key={label} className="min-w-0 sm:px-4 first:sm:pl-0">
@@ -221,6 +231,30 @@ export const OverviewTab = ({
       </div>
 
       <CompoundingToggle />
+
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <div className="mb-2 flex items-center justify-between gap-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Earnings Cap</p>
+            <p className="text-sm font-black text-[#0F172A]">{earningsUsedPct}% used</p>
+          </div>
+          <p className="truncate text-2xl font-black text-[#0F172A]">
+            {summaryLoading ? "—" : formatCompactCurrency(earningsCapTotal)}
+          </p>
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full rounded-full bg-violet-500" style={{ width: `${earningsUsedPct}%` }} />
+          </div>
+        </div>
+        <div className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+          <p className="text-[11px] font-black uppercase tracking-[0.08em] text-[#64748B]">Earnings Limit</p>
+          <p className="mt-2 truncate text-2xl font-black text-[#0F172A]">
+            {summaryLoading ? "—" : formatCompactCurrency(remainingEarningsCap)}
+          </p>
+          <p className="mt-1 text-sm font-semibold text-[#64748B]">
+            {summaryLoading ? "—" : `${formatCompactCurrency(earnedSinceBaseline)} earned this cycle`}
+          </p>
+        </div>
+      </section>
 
       {(walletError || dashboardError) && (
         <Card className="border border-red-200 bg-red-50">
