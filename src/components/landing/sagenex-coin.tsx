@@ -96,14 +96,7 @@ export default function SgCoinSection({ id = "coin", src = "/logo5.png" }: Props
               Buy SGCOIN
             </button>
             </a>
-            <a
-              href={
-                process.env.NEXT_PUBLIC_WHITEPAPER_URL ||
-                "https://sagenex-academy-videos.s3.ap-south-1.amazonaws.com/whitepaper/Sagenex+2026.pdf"
-              }
-              target="_blank"
-              rel="noopener noreferrer"
-            >
+            <a href="/whitepaper" target="_blank" rel="noopener noreferrer">
             <button className="rounded-xl border cursor-pointer border-white/20 px-6 py-3 text-sm font-semibold text-white hover:bg-white/5 active:bg-white/10">
               View Whitepaper
             </button>
