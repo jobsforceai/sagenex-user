@@ -14,7 +14,7 @@ const stats = [
 
 export default function HomePage() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#F8FAFC] pt-24 text-[#0F172A] sm:pt-32">
+    <section className="relative min-h-screen overflow-hidden bg-[#F8FAFC] pt-[7.75rem] text-[#0F172A] sm:pt-32">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_9%_24%,rgba(200,16,62,0.08),transparent_26%),radial-gradient(circle_at_82%_22%,rgba(5,150,105,0.10),transparent_29%),linear-gradient(180deg,#ffffff_0%,#F8FAFC_74%,#ffffff_100%)]" />
       <div className="pointer-events-none absolute right-0 top-20 h-[520px] w-[58vw] opacity-[0.09] bg-[radial-gradient(#0F172A_1px,transparent_1px)] bg-size-[10px_10px] mask-[radial-gradient(ellipse_at_center,black,transparent_70%)]" />
       <div className="pointer-events-none absolute bottom-0 right-0 h-[460px] w-[46vw] bg-[linear-gradient(90deg,transparent,rgba(5,150,105,0.08),rgba(200,16,62,0.08))] [clip-path:polygon(58%_0,100%_0,100%_100%,0_100%)]" />
@@ -27,7 +27,7 @@ export default function HomePage() {
             transition={{ duration: 0.45 }}
             className="max-w-3xl"
           >
-            <div className="inline-flex max-w-full items-center gap-2 rounded-full border border-[#C8103E]/15 bg-white px-3 py-1.5 text-[11px] font-bold text-[#A50D33] shadow-sm sm:text-xs">
+            <div className="relative z-10 inline-flex max-w-full items-center gap-2 rounded-full border border-[#C8103E]/20 bg-white/95 px-3 py-1.5 text-[11px] font-bold text-[#A50D33] shadow-[0_8px_22px_rgba(15,23,42,0.07)] sm:text-xs">
               <Image src="/logo5.png" alt="" width={18} height={18} className="h-4 w-4 object-contain" />
               <span className="truncate">A Civilization of Heritage & Innovation</span>
             </div>
