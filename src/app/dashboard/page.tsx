@@ -324,6 +324,10 @@ const DashboardPage = () => {
     profile?.earningsMultiplierDeadline ?? dashboardData?.earningsMultiplierDeadline ?? null;
   const earningsMultiplier =
     dashboardData?.earningsMultiplier ?? profile?.earningsMultiplier;
+  const dashboardLegDetails =
+    dashboardData?.multiplierLegDetails && dashboardData.multiplierLegDetails.length > 0
+      ? dashboardData.multiplierLegDetails
+      : dashboardData?.legDetails || [];
 
   const activeReferrals =
     referralSummary?.referrals?.filter((r) => r.activityStatus === "Active").length ?? 0;
@@ -434,7 +438,7 @@ const DashboardPage = () => {
                     {earningsMultiplier && earningsMultiplier > 0 && (
                       <MultiplierProgress
                         earningsMultiplier={earningsMultiplier}
-                        legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
+                        legDetails={dashboardLegDetails}
                         kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
                         trigger={
                           <button
@@ -546,7 +550,7 @@ const DashboardPage = () => {
 
           <LegGauges
             earningsMultiplier={earningsMultiplier}
-            legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
+            legDetails={dashboardLegDetails}
             kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
           />
 
