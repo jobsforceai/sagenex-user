@@ -82,8 +82,6 @@ export default function LegGauges({ earningsMultiplier = 2.5, legDetails = [], k
   const qualifying = sorted.filter((l) => (l.monthlyBusiness || 0) >= threshold).length;
   const visibleLegs = sorted.slice(0, at4x ? NEEDED_4X : needed);
 
-  if (sorted.length === 0) return null;
-
   return (
     <section className="rounded-[22px] border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:rounded-3xl md:p-5">
       <div className="mb-2.5 flex items-center justify-between gap-2 md:mb-3">
@@ -111,17 +109,23 @@ export default function LegGauges({ earningsMultiplier = 2.5, legDetails = [], k
       </div>
       <div
         className="grid gap-2 md:gap-3"
-        style={{ gridTemplateColumns: `repeat(${Math.max(1, Math.min(visibleLegs.length, 4))}, minmax(0, 1fr))` }}
+        style={{ gridTemplateColumns: `repeat(${Math.max(1, Math.min(visibleLegs.length || 1, 4))}, minmax(0, 1fr))` }}
       >
-        {visibleLegs.map((leg) => (
-          <Gauge
-            key={leg.userId}
-            value={leg.monthlyBusiness || 0}
-            max={threshold}
-            name={leg.fullName || leg.userId}
-            userId={leg.userId}
-          />
-        ))}
+        {visibleLegs.length > 0 ? (
+          visibleLegs.map((leg) => (
+            <Gauge
+              key={leg.userId}
+              value={leg.monthlyBusiness || 0}
+              max={threshold}
+              name={leg.fullName || leg.userId}
+              userId={leg.userId}
+            />
+          ))
+        ) : (
+          <p className="rounded-2xl bg-slate-50 px-3 py-4 text-center text-xs font-semibold text-slate-500">
+            Leg business will appear once direct team activity is available.
+          </p>
+        )}
       </div>
       {sorted.length > visibleLegs.length && (
         <p className="mt-3 text-center text-[11px] text-slate-500">
