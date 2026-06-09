@@ -544,13 +544,11 @@ const DashboardPage = () => {
             </div>
           </section>
 
-          <div className="hidden md:block">
-            <LegGauges
-              earningsMultiplier={earningsMultiplier}
-              legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
-              kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
-            />
-          </div>
+          <LegGauges
+            earningsMultiplier={earningsMultiplier}
+            legDetails={dashboardData?.multiplierLegDetails || dashboardData?.legDetails || []}
+            kycStatus={dashboardData?.kycStatus || profile?.kycStatus}
+          />
 
           {consecutiveMonthsMissed === 1 && (
             <Alert
