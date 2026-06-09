@@ -31,8 +31,8 @@ function Gauge({ value, max, name, userId }: { value: number; max: number; name:
   const done = value >= max;
   const color = done ? "#10b981" : pct >= 0.5 ? "#f59e0b" : "#fb923c";
   return (
-    <div className="flex flex-col items-center min-w-0">
-      <svg viewBox="0 0 100 56" className="w-full max-w-[110px]">
+    <div className="flex min-w-0 flex-col items-center">
+      <svg viewBox="0 0 100 56" className="w-full max-w-[88px] md:max-w-[110px]">
         <path
           d={arcPath}
           fill="none"
@@ -66,7 +66,7 @@ function Gauge({ value, max, name, userId }: { value: number; max: number; name:
       <p className="mt-0.5 w-full truncate text-center text-xs font-semibold text-slate-700" title={name}>
         {name || userId}
       </p>
-      <p className="text-[10px] text-slate-500">
+      <p className="text-center text-[9px] leading-tight text-slate-500 md:text-[10px]">
         {done ? "Qualified" : `${Math.round(pct * 100)}% of ${formatCompact(max)}`}
       </p>
     </div>
@@ -80,18 +80,18 @@ export default function LegGauges({ earningsMultiplier = 2.5, legDetails = [], k
   const threshold = target === 4 ? LEG_4X : LEG_3X;
   const needed = target === 4 ? NEEDED_4X : NEEDED_3X;
   const qualifying = sorted.filter((l) => (l.monthlyBusiness || 0) >= threshold).length;
-  const visibleLegs = sorted.slice(0, 4);
+  const visibleLegs = sorted.slice(0, at4x ? NEEDED_4X : needed);
 
   if (sorted.length === 0) return null;
 
   return (
-    <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+    <section className="rounded-[22px] border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:rounded-3xl md:p-5">
+      <div className="mb-2.5 flex items-center justify-between gap-2 md:mb-3">
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-slate-500">
+          <p className="text-[9px] font-bold uppercase tracking-[0.08em] text-slate-500 md:text-[11px]">
             {at4x ? "All targets met" : `Path to ${target}x`}
           </p>
-          <p className="text-base font-black text-[#0F172A]">
+          <p className="text-sm font-black leading-tight text-[#0F172A] md:text-base">
             {at4x ? "You're at maximum (4x)" : `${qualifying} / ${needed} legs at ${formatCompact(threshold)}`}
           </p>
         </div>
@@ -102,14 +102,17 @@ export default function LegGauges({ earningsMultiplier = 2.5, legDetails = [], k
           trigger={
             <button
               type="button"
-              className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700 hover:bg-slate-50"
+              className="shrink-0 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50 md:px-3 md:text-xs"
             >
               View details
             </button>
           }
         />
       </div>
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div
+        className="grid gap-2 md:gap-3"
+        style={{ gridTemplateColumns: `repeat(${Math.max(1, Math.min(visibleLegs.length, 4))}, minmax(0, 1fr))` }}
+      >
         {visibleLegs.map((leg) => (
           <Gauge
             key={leg.userId}
@@ -120,9 +123,9 @@ export default function LegGauges({ earningsMultiplier = 2.5, legDetails = [], k
           />
         ))}
       </div>
-      {sorted.length > 4 && (
+      {sorted.length > visibleLegs.length && (
         <p className="mt-3 text-center text-[11px] text-slate-500">
-          Showing top 4 of {sorted.length} legs. Tap View details for the full list.
+          Showing top {visibleLegs.length} of {sorted.length} legs. Tap View details for the full list.
         </p>
       )}
     </section>
