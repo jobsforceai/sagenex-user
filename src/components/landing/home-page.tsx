@@ -32,20 +32,21 @@ export default function HomePage() {
               <span className="truncate">A Civilization of Heritage & Innovation</span>
             </div>
 
-            <h1 className="mx-auto mt-5 max-w-[12ch] text-[clamp(2.35rem,10.5vw,3rem)] font-black leading-[0.98] tracking-tight min-[380px]:text-[clamp(2.55rem,10.8vw,3.18rem)] sm:mx-0 sm:mt-7 sm:max-w-none sm:text-6xl sm:leading-[0.96] lg:text-7xl">
-              Building a Legacy
-              <span className="block text-[#C8103E]">Empowering</span>
-              <span className="block">Generations</span>
+            <h1 className="mx-auto mt-5 max-w-none text-[clamp(1.78rem,7.55vw,2rem)] font-black leading-[1.04] tracking-tight min-[380px]:text-[clamp(1.86rem,7.65vw,2.08rem)] sm:mx-0 sm:mt-7 sm:text-6xl sm:leading-[0.96] lg:text-7xl">
+              <span className="block whitespace-nowrap">Building a Legacy</span>
+              <span className="block whitespace-nowrap text-[#C8103E] sm:text-inherit">
+                Empowering <span className="text-[#0F172A] sm:block">Generations</span>
+              </span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-[34rem] text-sm font-semibold leading-6 text-slate-600 min-[380px]:text-[15px] min-[380px]:leading-7 sm:mx-0 sm:mt-6 sm:text-lg sm:leading-8">
               At Sagenex, we blend trust, technology, and vision to create impact that lasts. Together, we grow, we evolve, and we lead.
             </p>
 
-            <div className="mx-auto mt-7 grid w-full max-w-sm grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:mx-0 sm:mt-8 sm:flex sm:max-w-none sm:flex-wrap sm:gap-4">
+            <div className="mx-auto mt-7 grid w-full max-w-[18rem] grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:mx-0 sm:mt-8 sm:flex sm:max-w-none sm:flex-wrap sm:gap-4">
               <Link
                 href="#ecosystem"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#C8103E] px-4 text-sm font-black text-white shadow-[0_16px_35px_rgba(200,16,62,0.24)] transition hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 sm:h-14 sm:px-7"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#C8103E] px-3 text-[13px] font-black text-white shadow-[0_16px_35px_rgba(200,16,62,0.24)] transition hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 sm:h-14 sm:px-7 sm:text-sm"
               >
                 <span className="sm:hidden">Explore</span>
                 <span className="hidden sm:inline">Explore Ecosystem</span>
@@ -53,7 +54,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="#about"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-[#0F172A] shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:h-14 sm:gap-3 sm:px-6"
+                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-black text-[#0F172A] shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:h-14 sm:gap-3 sm:px-6 sm:text-sm"
               >
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 sm:h-9 sm:w-9">
                   <Play className="h-4 w-4 fill-[#C8103E] text-[#C8103E]" />
