@@ -25,27 +25,27 @@ export default function HomePage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
-            className="max-w-3xl"
+            className="mx-auto max-w-3xl text-center sm:mx-0 sm:text-left"
           >
-            <div className="relative z-10 inline-flex max-w-full items-center gap-2 rounded-full border border-[#C8103E]/20 bg-white/95 px-3 py-1.5 text-[11px] font-bold text-[#A50D33] shadow-[0_8px_22px_rgba(15,23,42,0.07)] sm:text-xs">
+            <div className="relative z-10 inline-flex max-w-full items-center gap-2 rounded-full border border-[#C8103E]/20 bg-white/95 px-3 py-1.5 text-[10px] font-bold text-[#A50D33] shadow-[0_8px_22px_rgba(15,23,42,0.07)] min-[380px]:text-[11px] sm:text-xs">
               <Image src="/logo5.png" alt="" width={18} height={18} className="h-4 w-4 object-contain" />
               <span className="truncate">A Civilization of Heritage & Innovation</span>
             </div>
 
-            <h1 className="mt-5 max-w-[11ch] text-[clamp(2.75rem,12vw,3.45rem)] font-black leading-[0.96] tracking-tight sm:mt-7 sm:max-w-none sm:text-6xl lg:text-7xl">
+            <h1 className="mx-auto mt-5 max-w-[12ch] text-[clamp(2.35rem,10.5vw,3rem)] font-black leading-[0.98] tracking-tight min-[380px]:text-[clamp(2.55rem,10.8vw,3.18rem)] sm:mx-0 sm:mt-7 sm:max-w-none sm:text-6xl sm:leading-[0.96] lg:text-7xl">
               Building a Legacy
               <span className="block text-[#C8103E]">Empowering</span>
               <span className="block">Generations</span>
             </h1>
 
-            <p className="mt-5 max-w-xl text-[15px] font-semibold leading-7 text-slate-600 sm:mt-6 sm:text-lg sm:leading-8">
+            <p className="mx-auto mt-5 max-w-[34rem] text-sm font-semibold leading-6 text-slate-600 min-[380px]:text-[15px] min-[380px]:leading-7 sm:mx-0 sm:mt-6 sm:text-lg sm:leading-8">
               At Sagenex, we blend trust, technology, and vision to create impact that lasts. Together, we grow, we evolve, and we lead.
             </p>
 
-            <div className="mt-7 grid grid-cols-2 gap-3 sm:mt-8 sm:flex sm:flex-wrap sm:gap-4">
+            <div className="mx-auto mt-7 grid w-full max-w-sm grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:mx-0 sm:mt-8 sm:flex sm:max-w-none sm:flex-wrap sm:gap-4">
               <Link
                 href="#ecosystem"
-                className="inline-flex h-13 items-center justify-center gap-2 rounded-xl bg-[#C8103E] px-4 text-sm font-black text-white shadow-[0_16px_35px_rgba(200,16,62,0.24)] transition hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 sm:h-14 sm:px-7"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl bg-[#C8103E] px-4 text-sm font-black text-white shadow-[0_16px_35px_rgba(200,16,62,0.24)] transition hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 sm:h-14 sm:px-7"
               >
                 <span className="sm:hidden">Explore</span>
                 <span className="hidden sm:inline">Explore Ecosystem</span>
@@ -53,7 +53,7 @@ export default function HomePage() {
               </Link>
               <Link
                 href="#about"
-                className="inline-flex h-13 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-[#0F172A] shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:h-14 sm:gap-3 sm:px-6"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-sm font-black text-[#0F172A] shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:h-14 sm:gap-3 sm:px-6"
               >
                 <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 sm:h-9 sm:w-9">
                   <Play className="h-4 w-4 fill-[#C8103E] text-[#C8103E]" />
