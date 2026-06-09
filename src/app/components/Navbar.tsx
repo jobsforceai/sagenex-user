@@ -237,7 +237,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
     }
   };
 
-  const effectiveShowTopBanner = showTopBanner && showUpdateBanner;
+  const effectiveShowTopBanner = showTopBanner && showUpdateBanner && !isLandingNavbar;
 
   const headerTopClass = isImpersonated
     ? effectiveShowTopBanner
