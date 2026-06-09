@@ -48,9 +48,10 @@ interface NavbarProps {
   userLevel?: string;
   variant?: "full" | "minimal";
   theme?: "light" | "dark";
+  showUpdateBanner?: boolean;
 }
 
-export default function Navbar({ userLevel: propUserLevel, variant = "full", theme = "light" }: NavbarProps) {
+export default function Navbar({ userLevel: propUserLevel, variant = "full", theme = "light", showUpdateBanner = true }: NavbarProps) {
   const { isAuthenticated, logout, user, replaceSession } = useAuth();
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
@@ -236,11 +237,13 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
     }
   };
 
+  const effectiveShowTopBanner = showTopBanner && showUpdateBanner;
+
   const headerTopClass = isImpersonated
-    ? showTopBanner
+    ? effectiveShowTopBanner
       ? "top-20"
       : "top-10"
-    : showTopBanner
+    : effectiveShowTopBanner
       ? "top-10"
       : "top-0";
 
@@ -267,7 +270,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
           </div>
         </div>
       )}
-      {showTopBanner && (
+      {effectiveShowTopBanner && (
         <div className={`fixed inset-x-0 z-50 h-10 border-b border-amber-400/20 bg-amber-500/10 text-amber-100 ${isImpersonated ? "top-10" : "top-0"}`}>
           <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-3 text-[11px] sm:px-4 sm:text-sm">
             <span className="whitespace-nowrap overflow-x-auto flex-1">
@@ -291,10 +294,10 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
         role="banner"
       >
       {/* Glass shell */}
-      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-4 lg:px-6">
         <div
           className={[
-            "mt-3 rounded-2xl border transition-all duration-300",
+            "mt-2 rounded-2xl border transition-all duration-300 sm:mt-3",
             isLandingNavbar
               ? scrolled
                 ? "border-white/75 bg-[linear-gradient(135deg,rgba(255,253,248,0.93)_0%,rgba(255,244,247,0.88)_45%,rgba(244,248,250,0.90)_100%)] backdrop-blur-xl shadow-[0_16px_50px_rgba(15,23,42,0.12)]"
@@ -307,14 +310,14 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
           ].join(" ")}
         >
           {/* Top row */}
-          <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 md:px-6 md:py-3">
             {/* Logo + brand */}
             <Link
               href="/"
               className="group flex items-center gap-2.5"
               aria-label="Sagenex home"
             >
-              <span className="relative inline-block h-13 w-13">
+              <span className="relative inline-block h-10 w-10 md:h-13 md:w-13">
                 <Image
                   src="/logo5.png"
                   alt="Sagenex"
