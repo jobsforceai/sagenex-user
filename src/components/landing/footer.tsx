@@ -91,13 +91,13 @@ export default function Footer() {
 function FooterCol({ title, links }: { title: string; links: FooterLink[] }) {
   return (
     <div>
-      <h4 className="text-[#0A0A0A] font-bold mb-6 font-display">{title}</h4>
+      <h4 className="text-base text-[#0A0A0A] font-bold mb-6 font-display md:text-lg">{title}</h4>
       <ul className="space-y-4">
         {links.map((link) => (
           <li key={link.label}>
             <Link
               href={link.href}
-              className="text-sm text-[#52525b] hover:text-[var(--crimson)] transition-colors"
+              className="text-base text-[#52525b] hover:text-[var(--crimson)] transition-colors"
               {...(link.external ? { target: "_blank", rel: "noopener noreferrer" } : {})}
             >
               {link.label}
