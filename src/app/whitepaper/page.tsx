@@ -5,9 +5,7 @@ import { useRouter } from "next/navigation";
 import { EyeOff, Lock, Shield, TriangleAlert } from "lucide-react";
 import { useAuth } from "@/app/context/AuthContext";
 
-const PDF_PATH =
-  process.env.NEXT_PUBLIC_WHITEPAPER_URL ||
-  "https://sagenex-academy-videos.s3.ap-south-1.amazonaws.com/whitepaper/Sagenex+2026.pdf";
+const PDF_PATH = "/api/whitepaper";
 
 const blockedKeys = new Set(["s", "p", "o", "S", "P", "O"]);
 

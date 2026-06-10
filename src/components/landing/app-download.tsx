@@ -100,15 +100,21 @@ export default function AppDownloadSection() {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <Link href={apkUrl} target="_blank" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--emerald)] px-7 text-sm font-extrabold text-white shadow-[0_8px_24px_rgba(0,179,134,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#009b74] active:scale-[0.98]">
-                  <FaAndroid size={18} /> Android APK
-                </button>
+              <Link
+                href={apkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--emerald)] px-7 text-sm font-extrabold text-white shadow-[0_8px_24px_rgba(0,179,134,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#009b74] active:scale-[0.98]"
+              >
+                <FaAndroid size={18} /> Android APK
               </Link>
-              <Link href={iosUrl} target="_blank" className="w-full sm:w-auto">
-                <button className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-[var(--landing-border-light)] bg-white px-7 text-sm font-extrabold text-[var(--landing-text-dark)] shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 active:scale-[0.98]">
-                  <FaApple size={18} /> App Store
-                </button>
+              <Link
+                href={iosUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-[var(--landing-border-light)] bg-white px-7 text-sm font-extrabold text-[var(--landing-text-dark)] shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 active:scale-[0.98]"
+              >
+                <FaApple size={18} /> App Store
               </Link>
             </motion.div>
           </motion.div>
