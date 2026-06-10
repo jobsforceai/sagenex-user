@@ -148,8 +148,8 @@ export default function ProfitCalculator() {
   const isNew = activePlan === "new";
 
   return (
-    <section className="w-full bg-gradient-to-b from-white to-[#F8FAFC] py-20 md:py-28">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+    <section className="w-full landing-section-light py-16 sm:py-20 md:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 18 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -236,7 +236,7 @@ export default function ProfitCalculator() {
                     step={1000}
                     value={Math.min(amount, 2000000)}
                     onChange={(e) => setAmount(Number(e.target.value))}
-                    className={`mt-3 w-full ${isNew ? "accent-[#10B981]" : "accent-[#0F172A]"}`}
+                    className={`landing-range mt-3 ${isNew ? "" : "landing-range-crimson"}`}
                   />
                   <div className="flex justify-between text-[11px] text-[#64748B] mt-1">
                     <span>{inr(1000)}</span>
@@ -277,7 +277,7 @@ export default function ProfitCalculator() {
                     max={60}
                     value={months}
                     onChange={(e) => setMonths(Number(e.target.value))}
-                    className={`mt-4 w-full ${isNew ? "accent-[#10B981]" : "accent-[#0F172A]"}`}
+                    className={`landing-range mt-4 ${isNew ? "" : "landing-range-crimson"}`}
                   />
                   <div className="flex justify-between text-[11px] text-[#64748B] mt-1">
                     <span>1 mo</span>
@@ -369,7 +369,7 @@ export default function ProfitCalculator() {
                     </div>
                   </div>
                 </div>
-                <div className="h-64 sm:h-80">
+                <div className="h-48 sm:h-64 md:h-80">
                   <ResponsiveContainer>
                     <AreaChart data={chartData} margin={{ top: 10, right: 8, bottom: 0, left: 0 }}>
                       <defs>

@@ -11,7 +11,8 @@ const PILLARS = [
       "Gold Plan: 2X gold bonus at maturity",
       "Fixed 11-month plan with monthly slab payments"
     ],
-    color: "var(--crimson)"
+    color: "#C8103E",
+    accent: "from-[#C8103E]"
   },
   {
     title: "Portfolio Management (PMS)",
@@ -23,7 +24,8 @@ const PILLARS = [
       "Advanced (₹5,00,000-₹9,99,999): 8% Monthly Yield",
       "Elite (₹10,00,000+): 10% Monthly Yield"
     ],
-    color: "var(--emerald)"
+    color: "#059669",
+    accent: "from-[#059669]"
   },
   {
     title: "Liquidity Provider Program",
@@ -34,72 +36,90 @@ const PILLARS = [
       "2-3 working days settlement cycle",
       "High liquidity & transparent tracking"
     ],
-    color: "#6366f1"
+    color: "#6366f1",
+    accent: "from-[#6366f1]"
   }
 ];
 
 export default function InvestmentPillars() {
   return (
-    <section id="investment-pillars" className="section-dark w-full py-24 md:py-32 border-t border-[var(--border-dark)] relative">
-      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16">
-        
+    <section id="investment-pillars" className="landing-section-light w-full py-16 sm:py-20 md:py-28 relative overflow-hidden border-t border-[var(--landing-border-light)]">
+      {/* Subtle orb */}
+      <div className="pointer-events-none absolute -left-[10%] top-[20%] h-[40vw] w-[40vw] rounded-full bg-[radial-gradient(circle,rgba(0,179,134,0.05)_0%,transparent_60%)]" />
+
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 relative z-10">
+
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="text-center mb-20"
+          className="text-center mb-12 sm:mb-16"
         >
-          <p className="eyebrow mb-4">Capital Deployment</p>
-          <h2 className="display-headline max-w-3xl mx-auto">
+          <p className="landing-eyebrow mb-3">Capital Deployment</p>
+          <h2 className="landing-headline max-w-3xl mx-auto">
             Our Investment <span className="text-[var(--crimson)]">Pillars</span>
           </h2>
-          <p className="text-[var(--text-muted-dark)] mt-6 max-w-2xl mx-auto">
+          <p className="mt-4 landing-subtitle mx-auto text-center">
             Structured, capped, and diversified. We deploy capital across strictly managed verticals to ensure maximum ecosystem safety.
           </p>
         </motion.div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-5 lg:grid-cols-3">
           {PILLARS.map((pillar, i) => (
             <motion.div
               key={pillar.title}
-              initial={{ opacity: 0, y: 30 }}
+              initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: i * 0.15, duration: 0.6 }}
-              className="glass-card p-8 relative overflow-hidden group hover:border-[var(--border-light)] transition-colors"
+              transition={{ delay: i * 0.1, duration: 0.5 }}
+              className="landing-card relative overflow-hidden group"
             >
-              <div 
-                className="absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 pointer-events-none"
-                style={{ background: `radial-gradient(circle at top right, ${pillar.color}, transparent 60%)` }}
+              {/* Top accent line */}
+              <div
+                className={`absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r ${pillar.accent} to-transparent`}
               />
-              
-              <span 
-                className="inline-block px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider mb-6"
-                style={{ backgroundColor: `${pillar.color}20`, color: pillar.color }}
+
+              {/* Hover glow */}
+              <div
+                className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"
+                style={{ background: `radial-gradient(circle at top right, ${pillar.color}0A, transparent 60%)` }}
+              />
+
+              <span
+                className="inline-block px-3 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider mb-5"
+                style={{ backgroundColor: `${pillar.color}12`, color: pillar.color }}
               >
                 {pillar.tag}
               </span>
-              
-              <h3 className="text-2xl font-bold font-display mb-4 text-[var(--crimson)] leading-tight">
+
+              <h3
+                className="text-xl sm:text-2xl font-bold font-display mb-3 leading-tight"
+                style={{ color: pillar.color }}
+              >
                 {pillar.title}
               </h3>
-              
-              <p className="text-[var(--text-muted-dark)] text-sm mb-8 leading-relaxed">
+
+              <p className="text-[var(--landing-text-muted)] text-sm mb-6 leading-relaxed">
                 {pillar.desc}
               </p>
-              
-              <ul className="space-y-4">
+
+              <ul className="space-y-3">
                 {pillar.features.map((feature, idx) => (
-                  <li key={idx} className="flex items-start gap-3 text-sm text-white/80">
-                    <span className="mt-1 flex-shrink-0 text-black">✓</span>
-                    <span className="leading-relaxed text-black">{feature}</span>
+                  <li key={idx} className="flex items-start gap-3 text-sm">
+                    <span
+                      className="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-full text-[10px] font-bold text-white"
+                      style={{ backgroundColor: pillar.color }}
+                    >
+                      ✓
+                    </span>
+                    <span className="text-[var(--landing-text-dark)] leading-relaxed">{feature}</span>
                   </li>
                 ))}
               </ul>
             </motion.div>
           ))}
         </div>
-        
+
       </div>
     </section>
   );

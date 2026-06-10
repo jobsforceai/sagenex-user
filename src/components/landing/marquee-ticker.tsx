@@ -14,18 +14,18 @@ const ITEMS = [
 ];
 
 export default function MarqueeTicker() {
-  const doubled = [...ITEMS, ...ITEMS, ...ITEMS]; // Tripled to ensure smooth infinite scroll on wide screens
+  const doubled = [...ITEMS, ...ITEMS, ...ITEMS];
 
   return (
-    <div className="w-full section-dark py-5 overflow-hidden border-y border-[var(--border-dark)] relative z-10">
+    <div className="landing-fade-mask landing-section-light w-full py-4 sm:py-5 overflow-hidden border-y border-[var(--landing-border-light)] relative z-10">
       <div className="animate-marquee">
         {doubled.map((item, i) => (
-          <div key={i} className="flex items-center gap-4 mx-8 shrink-0">
-            <span className="h-2 w-2 rounded-full bg-[var(--crimson)] shrink-0" />
-            <span className="text-[14px] font-semibold text-[var(--text-primary-dark)] whitespace-nowrap tracking-wide font-display">
+          <div key={i} className="flex items-center gap-3 mx-5 sm:mx-8 shrink-0">
+            <span className="h-1.5 w-1.5 rounded-full bg-[var(--crimson)] shrink-0" />
+            <span className="text-[13px] sm:text-[14px] font-bold text-[var(--landing-text-dark)] whitespace-nowrap tracking-wide font-display">
               {item.name}
             </span>
-            <span className="text-[11px] font-bold text-[var(--emerald)] whitespace-nowrap tracking-wider uppercase bg-[var(--emerald-glow)] px-2 py-0.5 rounded-full">
+            <span className="text-[10px] sm:text-[11px] font-bold text-[var(--emerald)] whitespace-nowrap tracking-wider uppercase bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-100">
               {item.tag}
             </span>
           </div>

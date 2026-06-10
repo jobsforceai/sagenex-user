@@ -19,24 +19,23 @@ function FAQRow({ faq, index, open, onToggle }: { faq: { q: string; a: string };
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.4, delay: index * 0.05 }}
-      className="faq-row"
-      whileHover={{ x: 4 }}
+      className={`border-b border-[var(--landing-border-light)] transition-colors ${open ? "border-l-2 border-l-[var(--crimson)]" : "border-l-2 border-l-transparent"}`}
     >
       <button
-        className="faq-question py-2 text-(--text-primary-light) hover:text-(--crimson) transition-colors"
+        className="flex w-full items-center justify-between gap-4 py-5 px-2 sm:px-4 text-left text-[var(--landing-text-dark)] hover:text-[var(--crimson)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--emerald)]/30 rounded-lg"
         onClick={onToggle}
         aria-expanded={open}
       >
-        <span className="flex items-center gap-6">
-          <span className="text-[11px] font-bold tracking-widest text-(--emerald) shrink-0">
+        <span className="flex items-center gap-4 sm:gap-6">
+          <span className="text-[11px] font-bold tracking-widest text-[var(--emerald)] shrink-0">
             {String(index + 1).padStart(2, "0")}
           </span>
-          <span className="font-display font-bold text-xl md:text-2xl">{faq.q}</span>
+          <span className="font-display font-bold text-base sm:text-lg md:text-xl">{faq.q}</span>
         </span>
         <motion.span
           animate={{ rotate: open ? 45 : 0 }}
           transition={{ duration: 0.2 }}
-          className="shrink-0 text-xl text-(--text-muted-light)"
+          className="shrink-0 text-xl text-[var(--landing-text-muted)] h-8 w-8 flex items-center justify-center"
         >
           +
         </motion.span>
@@ -52,7 +51,7 @@ function FAQRow({ faq, index, open, onToggle }: { faq: { q: string; a: string };
             transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <p className="pl-11 pr-8 pt-4 pb-2 text-(--text-muted-light) leading-relaxed text-lg">
+            <p className="pl-10 sm:pl-14 pr-4 sm:pr-8 pt-1 pb-5 text-[var(--landing-text-muted)] leading-relaxed text-sm sm:text-base">
               {faq.a}
             </p>
           </motion.div>
@@ -68,49 +67,51 @@ export default function FAQSection() {
   const toggle = (i: number) => setOpen(open === i ? null : i);
   const prefersReducedMotion = useReducedMotion();
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ["start end", "end start"] });
-  const headingY = useTransform(scrollYProgress, [0, 1], [44, -24]);
+  const headingY = useTransform(scrollYProgress, [0, 1], [30, -16]);
 
   return (
-    <section ref={sectionRef} className="section-light w-full py-24 md:py-32 border-t border-(--border-light) relative overflow-hidden">
+    <section ref={sectionRef} className="landing-section-light w-full py-16 sm:py-20 md:py-28 border-t border-[var(--landing-border-light)] relative overflow-hidden">
+      {/* Progress bar */}
       <motion.div
         aria-hidden
-        className="pointer-events-none absolute left-0 right-0 top-0 h-[3px] origin-left bg-linear-to-r from-(--emerald) via-(--crimson) to-(--emerald)"
+        className="pointer-events-none absolute left-0 right-0 top-0 h-[3px] origin-left bg-gradient-to-r from-[var(--emerald)] via-[var(--crimson)] to-[var(--emerald)]"
         style={{ scaleX: prefersReducedMotion ? 1 : scrollYProgress }}
       />
 
-      <div className="mx-auto max-w-4xl px-6 sm:px-10 lg:px-16">
+      <div className="mx-auto max-w-4xl px-5 sm:px-6 lg:px-8">
 
         <motion.div
           initial={{ opacity: 0, y: 24 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-16 text-center"
+          className="mb-10 sm:mb-14 text-center"
           style={{ y: prefersReducedMotion ? 0 : headingY }}
         >
-          <p className="eyebrow mb-4">FAQ</p>
-          <h2 className="display-headline text-(--text-primary-light)">
+          <p className="landing-eyebrow mb-3">FAQ</p>
+          <h2 className="landing-headline">
             Questions,<br />
-            <span className="text-(--emerald)">answered.</span>
+            <span className="text-[var(--emerald)]">answered.</span>
           </h2>
         </motion.div>
 
-        <div className="border-t border-(--border-light)">
+        <div className="border-t border-[var(--landing-border-light)]">
           {FAQS.map((faq, i) => (
             <FAQRow key={i} faq={faq} index={i} open={open === i} onToggle={() => toggle(i)} />
           ))}
         </div>
 
+        {/* Bottom CTA */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ delay: 0.3 }}
-          className="mt-20 flex flex-col items-center justify-center p-8 glass-card border-(--border-light) bg-white/50 text-center"
+          className="mt-14 sm:mt-16 flex flex-col items-center justify-center p-6 sm:p-8 landing-card bg-gradient-to-br from-slate-50 via-white to-emerald-50/40 text-center"
         >
-          <h3 className="font-display font-extrabold text-2xl md:text-3xl text-(--text-primary-light) mb-2">
+          <h3 className="font-display font-extrabold text-xl sm:text-2xl md:text-3xl text-[var(--landing-text-dark)] mb-2">
             Sagenex is not built for speed.
           </h3>
-          <p className="text-(--emerald) font-bold text-xl md:text-2xl">
+          <p className="text-[var(--emerald)] font-bold text-lg sm:text-xl md:text-2xl">
             Built for survival, stability, and scale.
           </p>
         </motion.div>

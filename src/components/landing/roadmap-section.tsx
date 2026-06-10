@@ -64,52 +64,88 @@ export default function RoadmapSection() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   return (
-    <section id="roadmap" className="section-dark w-full py-24 md:py-32 relative overflow-hidden border-t border-[var(--border-dark)]">
-      <div className="absolute inset-0 pointer-events-none">
-         <div className="orb-emerald" style={{ bottom: '-10%', left: '-10%', width: '50vw', height: '50vw' }} />
-      </div>
+    <section id="roadmap" className="landing-section-light w-full py-16 sm:py-20 md:py-28 relative overflow-hidden border-t border-[var(--landing-border-light)]">
+      {/* Subtle orb */}
+      <div className="pointer-events-none absolute -right-[10%] bottom-[10%] h-[40vw] w-[40vw] rounded-full bg-[radial-gradient(circle,rgba(0,179,134,0.05)_0%,transparent_60%)]" />
 
-      <div className="mx-auto max-w-7xl px-6 sm:px-10 lg:px-16 relative z-10">
-        
+      <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8 relative z-10">
+
+        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-16 md:mb-24 flex flex-col md:flex-row md:items-end justify-between gap-8"
+          className="mb-10 sm:mb-14 md:mb-20 flex flex-col md:flex-row md:items-end justify-between gap-6"
         >
           <div>
-            <p className="eyebrow mb-4">Strategic Vision</p>
-            <h2 className="display-headline leading-none">
+            <p className="landing-eyebrow mb-3">Strategic Vision</p>
+            <h2 className="landing-headline leading-none">
               Roadmap <span className="text-[var(--emerald)]">2025–2030</span>
             </h2>
           </div>
-          <p className="text-[var(--text-muted-dark)] max-w-sm text-sm md:text-right">
+          <p className="landing-subtitle md:text-right md:max-w-sm">
             A step-by-step masterplan to build the most resilient and expansive wealth ecosystem of the decade.
           </p>
         </motion.div>
 
-        <motion.div 
+        {/* Mobile: Vertical timeline */}
+        <div className="lg:hidden">
+          <div className="relative pl-8 border-l-2 border-[var(--landing-border-light)] space-y-8">
+            {ROADMAP.map((phase, idx) => (
+              <motion.div
+                key={phase.year}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: idx * 0.08, duration: 0.5 }}
+                className="relative"
+              >
+                {/* Dot */}
+                <div className="absolute -left-[calc(2rem+5px)] top-1 h-3 w-3 rounded-full border-2 border-[var(--emerald)] bg-[var(--landing-bg-light)]" />
+                {/* Year badge */}
+                <span className="inline-block px-3 py-1 rounded-full bg-emerald-50 text-[var(--emerald)] text-sm font-black font-display mb-2 border border-emerald-100">
+                  {phase.year}
+                </span>
+                <h4 className="text-[var(--landing-text-dark)] font-bold text-lg font-display mb-3">{phase.title}</h4>
+                <ul className="space-y-2">
+                  {phase.items.map((item, i) => (
+                    <li key={i} className="text-sm text-[var(--landing-text-muted)] leading-relaxed flex items-start gap-2">
+                      <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[var(--emerald)] shrink-0" />
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
+        {/* Desktop: Horizontal scroll timeline */}
+        <motion.div
           ref={containerRef}
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          className="timeline-track"
+          className="hidden lg:flex gap-6 overflow-x-auto pb-6 snap-x snap-mandatory"
+          style={{ scrollbarWidth: "none" }}
         >
           {ROADMAP.map((phase, idx) => (
-            <motion.div 
+            <motion.div
               key={phase.year}
-              initial={{ opacity: 0, x: 50 }}
+              initial={{ opacity: 0, x: 40 }}
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.1, duration: 0.6 }}
-              className="timeline-item"
+              transition={{ delay: idx * 0.08, duration: 0.5 }}
+              className="landing-card min-w-[300px] flex-shrink-0 snap-start relative group"
             >
-              <div className="timeline-dot" />
-              <h3 className="timeline-year">{phase.year}</h3>
-              <h4 className="text-black font-bold text-lg mb-4">{phase.title}</h4>
-              <ul className="space-y-3">
+              {/* Top accent */}
+              <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[var(--emerald)] to-transparent rounded-t-[var(--landing-radius)]" />
+              <h3 className="font-display text-3xl font-black text-[var(--emerald)] mb-1">{phase.year}</h3>
+              <h4 className="text-[var(--landing-text-dark)] font-bold text-lg mb-4">{phase.title}</h4>
+              <ul className="space-y-2.5">
                 {phase.items.map((item, i) => (
-                  <li key={i} className="text-sm text-[var(--text-muted-dark)] leading-relaxed">
+                  <li key={i} className="text-sm text-[var(--landing-text-muted)] leading-relaxed flex items-start gap-2">
+                    <span className="mt-1.5 h-1.5 w-1.5 rounded-full bg-[var(--emerald)] shrink-0" />
                     {item}
                   </li>
                 ))}
@@ -117,6 +153,13 @@ export default function RoadmapSection() {
             </motion.div>
           ))}
         </motion.div>
+
+        {/* Scroll hint for desktop */}
+        <div className="hidden lg:flex justify-center mt-6 gap-1.5">
+          {ROADMAP.map((_, i) => (
+            <div key={i} className="h-1 w-6 rounded-full bg-[var(--landing-border-light)]" />
+          ))}
+        </div>
 
       </div>
     </section>

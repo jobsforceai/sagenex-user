@@ -15,7 +15,7 @@ import Navbar from "./components/Navbar";
 
 export default function Home() {
   return (
-    <main className="bg-[var(--ink)] min-h-screen">
+    <main className="bg-[var(--landing-bg-light)] min-h-screen">
       <Navbar />
       <HomePage />
       <MarqueeTicker />

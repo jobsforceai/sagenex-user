@@ -1,32 +1,37 @@
 "use client";
 
-import { Twitter, Youtube, Linkedin, Github } from "lucide-react";
+import { Twitter, Youtube, Linkedin, Github, ArrowUp } from "lucide-react";
 import Link from "next/link";
 
 export default function Footer() {
   const year = new Date().getFullYear();
 
+  const scrollToTop = () => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
   return (
-    <footer className="section-dark relative overflow-hidden border-t border-[var(--border-dark)] pt-20 pb-10">
-      <div className="absolute inset-0 pointer-events-none opacity-20">
-        <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent_0,rgba(255,255,255,.05)_1px,transparent_2px)] bg-[length:42px_100%]" />
+    <footer className="landing-section-light relative overflow-hidden border-t border-[var(--landing-border-light)] pt-14 sm:pt-16 pb-8">
+      {/* Subtle background line pattern */}
+      <div className="absolute inset-0 pointer-events-none opacity-[0.03]">
+        <div className="absolute inset-0 bg-[linear-gradient(to_right,transparent_0,rgba(15,23,42,0.5)_1px,transparent_2px)] bg-[length:42px_100%]" />
       </div>
 
-      <div className="relative mx-auto max-w-7xl px-6 sm:px-10 lg:px-16">
-        
+      <div className="relative mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
+
         {/* Top Brand & Links */}
-        <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-8 pb-16 border-b border-[var(--border-dark)]">
-          
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-10 lg:gap-8 pb-12 sm:pb-14 border-b border-[var(--landing-border-light)]">
+
           <div className="md:col-span-5 lg:col-span-4">
-            <Link href="/" className="inline-block mb-6">
-              <span className="font-display font-extrabold text-3xl tracking-tight text-black">
+            <Link href="/" className="inline-block mb-5">
+              <span className="font-display font-extrabold text-2xl tracking-tight text-[var(--landing-text-dark)]">
                 SAGE<span className="text-[var(--crimson)]">NEX</span>
               </span>
             </Link>
-            <p className="text-[var(--text-muted-dark)] mb-8 leading-relaxed max-w-xs text-sm">
+            <p className="text-[var(--landing-text-muted)] mb-6 leading-relaxed max-w-xs text-sm">
               A global wealth ecosystem uniting AI, real-world assets, and community power. Built with transparency and performance at its core.
             </p>
-            <div className="flex items-center gap-4">
+            <div className="flex items-center gap-3">
               <SocialLink icon={Twitter} />
               <SocialLink icon={Youtube} />
               <SocialLink icon={Linkedin} />
@@ -67,13 +72,22 @@ export default function Footer() {
         </div>
 
         {/* Bottom Banner */}
-        <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-[13px] text-[var(--text-muted-dark)]">
+        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <p className="text-[13px] text-[var(--landing-text-muted)]">
             &copy; {year} Sagenex. All rights reserved.
           </p>
-          <div className="text-[13px] text-[var(--text-muted-dark)] flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--emerald)]"></span>
-            All systems operational
+          <div className="flex items-center gap-4">
+            <div className="text-[13px] text-[var(--landing-text-muted)] flex items-center gap-2">
+              <span className="inline-block w-2 h-2 rounded-full bg-[var(--emerald)]" />
+              All systems operational
+            </div>
+            <button
+              onClick={scrollToTop}
+              className="h-9 w-9 rounded-xl border border-[var(--landing-border-light)] bg-white flex items-center justify-center text-[var(--landing-text-muted)] hover:text-[var(--crimson)] hover:border-[var(--crimson)]/30 transition-all shadow-sm"
+              aria-label="Back to top"
+            >
+              <ArrowUp className="h-4 w-4" />
+            </button>
           </div>
         </div>
 
@@ -82,10 +96,10 @@ export default function Footer() {
   );
 }
 
-function SocialLink({ icon: Icon }: { icon: any }) {
+function SocialLink({ icon: Icon }: { icon: typeof Twitter }) {
   return (
-    <Link href="#" className="w-10 h-10 rounded-full border border-[var(--border-dark)] flex items-center justify-center text-white/70 hover:text-[var(--emerald)] hover:border-[var(--emerald)] transition-all bg-white/5">
-      <Icon size={18} />
+    <Link href="#" className="w-9 h-9 rounded-xl border border-[var(--landing-border-light)] flex items-center justify-center text-[var(--landing-text-muted)] hover:text-[var(--emerald)] hover:border-[var(--emerald)] transition-all bg-white shadow-sm">
+      <Icon size={16} />
     </Link>
   );
 }
@@ -93,11 +107,11 @@ function SocialLink({ icon: Icon }: { icon: any }) {
 function FooterCol({ title, links }: { title: string; links: { label: string; href: string }[] }) {
   return (
     <div>
-      <h4 className="text-white font-bold mb-6 font-display">{title}</h4>
-      <ul className="space-y-4">
+      <h4 className="text-[var(--landing-text-dark)] font-bold mb-5 font-display text-sm">{title}</h4>
+      <ul className="space-y-3">
         {links.map((link) => (
           <li key={link.label}>
-            <Link href={link.href} className="text-sm text-[var(--text-muted-dark)] hover:text-white transition-colors">
+            <Link href={link.href} className="text-sm text-[var(--landing-text-muted)] hover:text-[var(--crimson)] transition-colors">
               {link.label}
             </Link>
           </li>
