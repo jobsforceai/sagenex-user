@@ -3,13 +3,13 @@
 import Image from "next/image";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { ArrowRight, Box, Headphones, Mouse, Play, ShieldCheck, Users } from "lucide-react";
+import { ArrowRight, Box, Headphones, Play, ShieldCheck, Users } from "lucide-react";
 
 const stats = [
-  { icon: Box, value: "5+", label: "Ecosystem Products", tone: "green" },
-  { icon: Users, value: "100K+", label: "Global Community", tone: "red" },
-  { icon: ShieldCheck, value: "1M+", label: "Transactions Secured", tone: "green" },
-  { icon: Headphones, value: "24/7", label: "Dedicated Support", tone: "red" },
+  { icon: Box, value: "5+", label: "Ecosystem Products", tone: "green" as const },
+  { icon: Users, value: "100K+", label: "Global Community", tone: "red" as const },
+  { icon: ShieldCheck, value: "1M+", label: "Transactions Secured", tone: "green" as const },
+  { icon: Headphones, value: "24/7", label: "Dedicated Support", tone: "red" as const },
 ];
 
 export default function HomePage() {
@@ -22,7 +22,7 @@ export default function HomePage() {
       <div className="relative mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
         <div className="grid flex-1 items-center gap-8 pb-12 sm:gap-10 sm:pb-24 lg:grid-cols-[minmax(0,0.92fr)_minmax(440px,1fr)]">
           <motion.div
-            initial={{ opacity: 0, y: 18 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.45 }}
             className="mx-auto max-w-3xl text-center sm:mx-0 sm:text-left"
@@ -66,7 +66,7 @@ export default function HomePage() {
           </motion.div>
 
           <motion.div
-            initial={{ opacity: 0, scale: 0.96, y: 18 }}
+            initial={{ opacity: 0, scale: 0.97, y: 18 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.55, delay: 0.08 }}
             className="relative min-h-[260px] sm:min-h-[340px] lg:min-h-[500px]"
@@ -96,29 +96,43 @@ export default function HomePage() {
         </div>
 
         <motion.div
-          initial={{ opacity: 0, y: 18 }}
+          initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.16 }}
           className="relative z-10 mt-2 rounded-[1.75rem] border border-slate-200/70 bg-white/95 p-4 shadow-[0_20px_55px_rgba(15,23,42,0.09)] backdrop-blur sm:-mt-20 sm:p-5"
         >
-          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid grid-cols-4 gap-1 sm:gap-3">
             {stats.map(({ icon: Icon, value, label, tone }) => (
-              <div key={label} className="flex items-center gap-4 rounded-2xl px-4 py-4 lg:border-r lg:border-slate-200/70 last:lg:border-r-0">
-                <span className={`grid h-14 w-14 shrink-0 place-items-center rounded-2xl ${tone === "green" ? "bg-emerald-50 text-emerald-700" : "bg-[#FFF1F4] text-[#C8103E]"}`}>
-                  <Icon className="h-6 w-6" />
+              <div
+                key={label}
+                className="flex flex-col sm:flex-row items-center text-center sm:text-left gap-1.5 sm:gap-3.5 rounded-2xl px-1 py-2 sm:px-4 sm:py-3.5 lg:border-r lg:border-[var(--landing-border-light)] lg:last:border-r-0"
+              >
+                <span className={`grid h-9 w-9 sm:h-12 sm:w-12 shrink-0 place-items-center rounded-xl ${tone === "green" ? "bg-emerald-50 text-emerald-600" : "bg-[#FFF1F4] text-[#C8103E]"}`}>
+                  <Icon className="h-4 w-4 sm:h-5 sm:w-5" />
                 </span>
                 <div>
-                  <p className={`text-2xl font-black ${tone === "green" ? "text-emerald-700" : "text-[#C8103E]"}`}>{value}</p>
-                  <p className="text-sm font-semibold text-slate-500">{label}</p>
+                  <p className={`text-[15px] sm:text-xl font-black leading-none sm:leading-tight ${tone === "green" ? "text-emerald-600" : "text-[#C8103E]"}`}>{value}</p>
+                  <p className="text-[9px] sm:text-[13px] font-semibold text-[var(--landing-text-muted)] leading-tight mt-1 sm:mt-0 max-w-[70px] sm:max-w-none mx-auto sm:mx-0">{label}</p>
                 </div>
               </div>
             ))}
           </div>
         </motion.div>
 
-        <div className="hidden justify-center pb-5 pt-14 text-sm font-semibold text-slate-500 sm:flex">
-          <span className="inline-flex items-center gap-2">
-            <Mouse className="h-5 w-5" />
+        <div className="hidden justify-center pb-5 pt-10 text-sm font-semibold text-[var(--landing-text-muted)] sm:flex">
+          <span className="inline-flex items-center gap-2 animate-bounce">
+            <svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M8 2v12M4 10l4 4 4-4" />
+            </svg>
             Scroll to explore
           </span>
         </div>

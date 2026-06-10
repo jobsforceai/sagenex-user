@@ -24,10 +24,7 @@ export default function Footer() {
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6 sm:px-10 lg:px-16">
-        
-        {/* Top Brand & Links */}
         <div className="grid grid-cols-1 md:grid-cols-12 gap-12 lg:gap-8 pb-16 border-b border-slate-200">
-          
           <div className="md:col-span-5 lg:col-span-4">
             <Link href="/" className="inline-block mb-6">
               <span className="font-display font-extrabold text-3xl tracking-tight text-black">
@@ -69,20 +66,17 @@ export default function Footer() {
               ]}
             />
           </div>
-
         </div>
 
-        {/* Bottom Banner */}
         <div className="pt-8 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-[13px] text-[#52525b]">
             &copy; {year} Sagenex. All rights reserved.
           </p>
           <div className="text-[13px] text-[#52525b] flex items-center gap-2">
-            <span className="inline-block w-2 h-2 rounded-full bg-[var(--emerald)]"></span>
+            <span className="inline-block w-2 h-2 rounded-full bg-[var(--emerald)]" />
             All systems operational
           </div>
         </div>
-
       </div>
     </footer>
   );
