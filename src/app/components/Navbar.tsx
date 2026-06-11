@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
@@ -237,15 +237,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
     }
   };
 
-  const effectiveShowTopBanner = showTopBanner && showUpdateBanner && !isLandingNavbar;
-
-  const headerTopClass = isImpersonated
-    ? effectiveShowTopBanner
-      ? "top-20"
-      : "top-10"
-    : effectiveShowTopBanner
-      ? "top-10"
-      : "top-0";
+  const headerTopClass = isImpersonated ? "top-10" : "top-0";
 
   return (
     <>
@@ -270,22 +262,31 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
           </div>
         </div>
       )}
-      {effectiveShowTopBanner && (
-        <div className={`fixed inset-x-0 z-50 h-10 border-b border-amber-400/20 bg-amber-500/10 text-amber-100 ${isImpersonated ? "top-10" : "top-0"}`}>
-          <div className="mx-auto flex h-full max-w-7xl items-center justify-between px-3 text-[11px] sm:px-4 sm:text-sm">
-            <span className="whitespace-nowrap overflow-x-auto flex-1">
-              Updates to investments or bonuses can take up to 24 hours to appear across the site. If you see old data, use the &quot;Sync Profile&quot; button to refresh.
-            </span>
-            <button
-              onClick={dismissTopBanner}
-              className="ml-2 shrink-0 rounded p-1 hover:bg-amber-500/20 transition-colors"
-              aria-label="Dismiss notification"
-            >
-              <X className="h-3.5 w-3.5" />
-            </button>
-          </div>
-        </div>
-      )}
+      <AnimatePresence>
+        {showUpdateBanner && showTopBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20, scale: 0.95 }}
+            transition={{ duration: 0.3 }}
+            className="fixed bottom-4 right-4 z-[100] max-w-[320px] rounded-xl border border-amber-200 bg-amber-50 p-4 text-amber-900 shadow-[0_8px_30px_rgb(0,0,0,0.12)] sm:bottom-6 sm:right-6"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="text-[13px] leading-relaxed">
+                <strong className="block mb-1 text-amber-950 font-bold">Data Sync Delay</strong>
+                Updates to investments or bonuses can take up to 24 hours to appear. Use &quot;Sync Profile&quot; to refresh.
+              </div>
+              <button
+                onClick={dismissTopBanner}
+                className="shrink-0 rounded-md p-1.5 text-amber-700 hover:bg-amber-200/50 hover:text-amber-950 transition-colors"
+                aria-label="Dismiss notification"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
       <motion.header
         variants={navbarVariants}
         initial={prefersReducedMotion ? undefined : "hidden"}
@@ -317,7 +318,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
               className="group flex items-center gap-2.5"
               aria-label="Sagenex home"
             >
-              <span className="relative inline-block h-10 w-10 md:h-13 md:w-13">
+              <span className="relative inline-block h-10 w-10 md:h-12 md:w-12">
                 <Image
                   src="/logo5.png"
                   alt="Sagenex"

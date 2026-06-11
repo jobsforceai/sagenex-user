@@ -14,39 +14,47 @@ const stats = [
 
 export default function HomePage() {
   return (
-    <section className="relative min-h-screen overflow-hidden bg-[#F8FAFC] pt-[7.75rem] text-[#0F172A] sm:pt-32">
-      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_9%_24%,rgba(200,16,62,0.08),transparent_26%),radial-gradient(circle_at_82%_22%,rgba(5,150,105,0.10),transparent_29%),linear-gradient(180deg,#ffffff_0%,#F8FAFC_74%,#ffffff_100%)]" />
-      <div className="pointer-events-none absolute right-0 top-20 h-[520px] w-[58vw] opacity-[0.09] bg-[radial-gradient(#0F172A_1px,transparent_1px)] bg-size-[10px_10px] mask-[radial-gradient(ellipse_at_center,black,transparent_70%)]" />
-      <div className="pointer-events-none absolute bottom-0 right-0 h-[460px] w-[46vw] bg-[linear-gradient(90deg,transparent,rgba(5,150,105,0.08),rgba(200,16,62,0.08))] [clip-path:polygon(58%_0,100%_0,100%_100%,0_100%)]" />
+    <section className="relative min-h-screen overflow-hidden bg-white pt-24 sm:pt-28 lg:pt-32">
+      {/* Background decoration */}
+      {/* <div className="pointer-events-none absolute inset-0">
+        <div className="absolute -left-[15%] -top-[10%] h-[60vw] w-[60vw] rounded-full bg-[radial-gradient(circle,rgba(200,16,62,0.06)_0%,transparent_65%)]" />
+        <div className="absolute -right-[10%] top-[15%] h-[50vw] w-[50vw] rounded-full bg-[radial-gradient(circle,rgba(0,179,134,0.07)_0%,transparent_60%)]" />
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--landing-border-light)] to-transparent" />
+      </div> */}
 
-      <div className="relative mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-7xl flex-col px-4 sm:px-6 lg:px-8">
-        <div className="grid flex-1 items-center gap-8 pb-12 sm:gap-10 sm:pb-24 lg:grid-cols-[minmax(0,0.92fr)_minmax(440px,1fr)]">
+      <div className="relative mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-7xl flex-col px-5 sm:px-6 lg:px-8">
+        {/* Main content — stacked mobile, side-by-side desktop */}
+        <div className="grid flex-1 items-center gap-8 pb-8 text-center lg:grid-cols-[1fr_minmax(400px,1fr)] lg:gap-12 lg:pb-20 lg:text-left">
+          {/* Text block */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45 }}
-            className="mx-auto max-w-3xl text-center sm:mx-0 sm:text-left"
+            transition={{ duration: 0.5 }}
+            className="mx-auto max-w-2xl pt-4 lg:mx-0 lg:pt-0"
           >
-            <div className="relative z-10 inline-flex max-w-full items-center gap-2 rounded-full border border-[#C8103E]/20 bg-white/95 px-3 py-1.5 text-[10px] font-bold text-[#A50D33] shadow-[0_8px_22px_rgba(15,23,42,0.07)] min-[380px]:text-[11px] sm:text-xs">
+            {/* Badge */}
+            <div className="mx-auto inline-flex max-w-full items-center gap-2 rounded-full border border-[#C8103E]/12 bg-white px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide text-[#A50D33] shadow-sm lg:mx-0">
               <Image src="/logo5.png" alt="" width={18} height={18} className="h-4 w-4 object-contain" />
               <span className="truncate">A Civilization of Heritage & Innovation</span>
             </div>
 
-            <h1 className="mx-auto mt-5 max-w-none text-[clamp(1.78rem,7.55vw,2rem)] font-black leading-[1.04] tracking-tight min-[380px]:text-[clamp(1.86rem,7.65vw,2.08rem)] sm:mx-0 sm:mt-7 sm:text-6xl sm:leading-[0.96] lg:text-7xl">
-              <span className="block whitespace-nowrap">Building a Legacy</span>
-              <span className="block whitespace-nowrap text-[#C8103E] sm:text-inherit">
-                Empowering <span className="text-[#0F172A] sm:block">Generations</span>
-              </span>
+            {/* Headline */}
+            <h1 className="mt-6 font-display text-[clamp(2.5rem,7vw,4.5rem)] font-black leading-[0.95] tracking-tight text-[var(--landing-text-dark)]">
+              Building a Legacy
+              <span className="block text-[#C8103E]">Empowering</span>
+              <span className="block">Generations</span>
             </h1>
 
-            <p className="mx-auto mt-5 max-w-[34rem] text-sm font-semibold leading-6 text-slate-600 min-[380px]:text-[15px] min-[380px]:leading-7 sm:mx-0 sm:mt-6 sm:text-lg sm:leading-8">
+            {/* Subtitle */}
+            <p className="mx-auto mt-5 max-w-lg text-[15px] font-medium leading-7 text-[var(--landing-text-muted)] sm:text-base sm:leading-8 lg:mx-0">
               At Sagenex, we blend trust, technology, and vision to create impact that lasts. Together, we grow, we evolve, and we lead.
             </p>
 
-            <div className="mx-auto mt-7 grid w-full max-w-[18rem] grid-cols-1 gap-3 min-[380px]:grid-cols-2 sm:mx-0 sm:mt-8 sm:flex sm:max-w-none sm:flex-wrap sm:gap-4">
+            {/* CTAs */}
+            <div className="mx-auto mt-7 grid max-w-md grid-cols-2 gap-3 sm:flex sm:max-w-none sm:flex-row sm:justify-center sm:gap-4 lg:mx-0 lg:justify-start">
               <Link
                 href="#ecosystem"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-[#C8103E] px-3 text-[13px] font-black text-white shadow-[0_16px_35px_rgba(200,16,62,0.24)] transition hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 sm:h-14 sm:px-7 sm:text-sm"
+                className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-2xl bg-[#C8103E] px-4 text-sm font-extrabold text-white shadow-[0_12px_30px_rgba(200,16,62,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 active:scale-[0.98] sm:gap-2.5 sm:px-7"
               >
                 <span className="sm:hidden">Explore</span>
                 <span className="hidden sm:inline">Explore Ecosystem</span>
@@ -54,10 +62,10 @@ export default function HomePage() {
               </Link>
               <Link
                 href="#about"
-                className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-3 text-[13px] font-black text-[#0F172A] shadow-sm transition hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20 sm:h-14 sm:gap-3 sm:px-6 sm:text-sm"
+                className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-2xl border border-[var(--landing-border-light)] bg-white px-3 text-sm font-extrabold text-[var(--landing-text-dark)] shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/15 active:scale-[0.98] sm:gap-3 sm:px-6"
               >
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-slate-200 sm:h-9 sm:w-9">
-                  <Play className="h-4 w-4 fill-[#C8103E] text-[#C8103E]" />
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--landing-border-light)] bg-[#FFF1F4] sm:h-9 sm:w-9">
+                  <Play className="h-3 w-3 fill-[#C8103E] text-[#C8103E] sm:h-3.5 sm:w-3.5" />
                 </span>
                 <span className="sm:hidden">Overview</span>
                 <span className="hidden sm:inline">Watch Overview</span>
@@ -65,41 +73,33 @@ export default function HomePage() {
             </div>
           </motion.div>
 
+          {/* Hero visual */}
           <motion.div
             initial={{ opacity: 0, scale: 0.97, y: 18 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
-            transition={{ duration: 0.55, delay: 0.08 }}
-            className="relative min-h-[260px] sm:min-h-[340px] lg:min-h-[500px]"
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="relative mx-auto flex w-full max-w-[540px] items-center justify-center lg:mx-0 lg:max-w-none"
             aria-label="Sagenex heritage and innovation visual."
           >
-            <div className="absolute inset-x-10 bottom-11 h-24 rounded-full bg-slate-900/10 blur-2xl" />
-            <div className="absolute inset-0 rounded-4xl bg-[radial-gradient(circle_at_50%_52%,rgba(200,16,62,0.08),transparent_28%),radial-gradient(circle_at_44%_44%,rgba(5,150,105,0.12),transparent_30%)]" />
-            <div className="absolute inset-x-8 bottom-12 h-24 rounded-[100%] border border-slate-200/70 bg-white/70 shadow-[0_18px_45px_rgba(15,23,42,0.08)]" />
-            <div className="relative flex h-full min-h-[260px] items-center justify-center px-2 py-4 sm:min-h-[340px] sm:px-4 sm:py-6 lg:min-h-[500px]">
-              {/*
-                Video hero temporarily disabled.
-                Restore this block when we want hover-play again:
-                <video src="/hero.mp4" muted loop playsInline preload="metadata" />
-              */}
-              <div className="relative z-10 w-full max-w-[560px] rounded-[1.75rem] border border-white/80 bg-[linear-gradient(180deg,#FFFFFF_0%,#FDFDFC_46%,#F3F5F7_100%)] p-3 shadow-[0_22px_60px_rgba(15,23,42,0.10)] ring-1 ring-slate-200/40 sm:max-w-[660px] sm:rounded-[2.35rem] sm:p-5">
-                <Image
-                  src="/hero.png"
-                  alt="Sagenex heritage and innovation emblem"
-                  width={680}
-                  height={520}
-                  priority
-                  className="relative z-10 max-h-[230px] w-full object-contain drop-shadow-[0_18px_28px_rgba(15,23,42,0.16)] sm:max-h-[410px]"
-                />
-              </div>
-            </div>
+            {/* Shadow */}
+            <div className="absolute inset-x-8 bottom-6 h-16 rounded-full bg-slate-900/8 blur-2xl lg:bottom-8 lg:h-20" />
+            <Image
+              src="/hero.png"
+              alt="Sagenex heritage and innovation emblem"
+              width={680}
+              height={520}
+              priority
+              className="relative z-10 max-h-[280px] w-full object-contain sm:max-h-[360px] lg:max-h-[420px]"
+            />
           </motion.div>
         </div>
 
+        {/* Stats bar — snap-scroll on mobile, grid on desktop */}
         <motion.div
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.45, delay: 0.16 }}
-          className="relative z-10 mt-2 rounded-[1.75rem] border border-slate-200/70 bg-white/95 p-4 shadow-[0_20px_55px_rgba(15,23,42,0.09)] backdrop-blur sm:-mt-20 sm:p-5"
+          transition={{ duration: 0.45, delay: 0.2 }}
+          className="relative z-10 -mt-4 mb-6 rounded-[var(--landing-radius-lg)] border border-[var(--landing-border-light)] bg-white/95 p-3 shadow-[0_14px_40px_rgba(15,23,42,0.07)] backdrop-blur sm:p-4 lg:-mt-14 lg:mb-0"
         >
           <div className="grid grid-cols-4 gap-1 sm:gap-3">
             {stats.map(({ icon: Icon, value, label, tone }) => (
@@ -119,20 +119,10 @@ export default function HomePage() {
           </div>
         </motion.div>
 
+        {/* Scroll hint — desktop only */}
         <div className="hidden justify-center pb-5 pt-10 text-sm font-semibold text-[var(--landing-text-muted)] sm:flex">
           <span className="inline-flex items-center gap-2 animate-bounce">
-            <svg
-              width="16"
-              height="16"
-              viewBox="0 0 16 16"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="1.5"
-              aria-hidden="true"
-              focusable="false"
-            >
-              <path d="M8 2v12M4 10l4 4 4-4" />
-            </svg>
+            <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2v12M4 10l4 4 4-4" /></svg>
             Scroll to explore
           </span>
         </div>

@@ -92,7 +92,7 @@ export default function AppDownloadSection() {
               ))}
             </div>
 
-            {/* Download buttons — full-width stacked on mobile */}
+            {/* Download links — full-width stacked on mobile */}
             <motion.div
               className="flex flex-col gap-3 sm:flex-row sm:gap-4 sm:justify-center lg:justify-start"
               initial={{ opacity: 0, y: 12 }}
@@ -104,7 +104,7 @@ export default function AppDownloadSection() {
                 href={apkUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-2xl bg-[var(--emerald)] px-7 text-sm font-extrabold text-white shadow-[0_8px_24px_rgba(0,179,134,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#009b74] active:scale-[0.98]"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-[var(--emerald)] px-7 text-sm font-extrabold text-white shadow-[0_8px_24px_rgba(0,179,134,0.25)] transition-all hover:-translate-y-0.5 hover:bg-[#009b74] active:scale-[0.98] sm:w-auto"
               >
                 <FaAndroid size={18} /> Android APK
               </Link>
@@ -112,7 +112,7 @@ export default function AppDownloadSection() {
                 href={iosUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full sm:w-auto inline-flex h-12 items-center justify-center gap-2 rounded-2xl border border-[var(--landing-border-light)] bg-white px-7 text-sm font-extrabold text-[var(--landing-text-dark)] shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 active:scale-[0.98]"
+                className="inline-flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-[var(--landing-border-light)] bg-white px-7 text-sm font-extrabold text-[var(--landing-text-dark)] shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 active:scale-[0.98] sm:w-auto"
               >
                 <FaApple size={18} /> App Store
               </Link>
