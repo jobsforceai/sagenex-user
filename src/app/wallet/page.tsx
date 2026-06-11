@@ -104,6 +104,9 @@ interface WalletSummary {
   withdrawalCap?: number;
   totalLifetimeWithdrawals?: number;
   remainingWithdrawalLimit?: number;
+  earningsCapTotal?: number;
+  earnedSinceBaseline?: number;
+  remainingEarningsCap?: number;
   // Daily (rolling 24h) withdrawal limit — surfaced by the backend
   // so the withdrawal form's MAX button can cap correctly instead of
   // letting the user submit an amount the backend will reject with
@@ -273,14 +276,23 @@ const WalletPage = () => {
         const dashboardRes = dashboardResult.value;
         if (dashboardRes?.error) {
           setDashboardError(dashboardRes.error);
-        } else if (!resolvedSummary) {
+        } else {
           const dashWallet = dashboardRes.wallet || null;
           if (dashWallet) {
-            resolvedSummary = {
+            const dashboardSummary: WalletSummary = {
               ...dashWallet,
               sgchainStakingBalance:
                 dashWallet.sgchainStakingBalance ?? dashboardRes.sgchainStakingBalance ?? 0,
             };
+            resolvedSummary = resolvedSummary
+              ? {
+                  ...resolvedSummary,
+                  ...dashboardSummary,
+                  bonuses: resolvedSummary.bonuses ?? dashboardSummary.bonuses,
+                  sgchainStakingBalance:
+                    resolvedSummary.sgchainStakingBalance ?? dashboardSummary.sgchainStakingBalance ?? 0,
+                }
+              : dashboardSummary;
           }
           setWalletSummary(resolvedSummary);
         }
@@ -349,6 +361,12 @@ const WalletPage = () => {
   );
   const capUsedPct = walletSummary?.withdrawalCap
     ? Math.min(100, Math.round((usedWithdrawal / walletSummary.withdrawalCap) * 100))
+    : 0;
+  const earnedSinceBaseline = Math.max(0, walletSummary?.earnedSinceBaseline ?? 0);
+  const earningsCapTotal = Math.max(0, walletSummary?.earningsCapTotal ?? 0);
+  const remainingEarningsCap = Math.max(0, walletSummary?.remainingEarningsCap ?? 0);
+  const earningsUsedPct = earningsCapTotal
+    ? Math.min(100, Math.round((earnedSinceBaseline / earningsCapTotal) * 100))
     : 0;
 
   return (
@@ -427,9 +445,9 @@ const WalletPage = () => {
               {[
                 { label: "Locked", shortLabel: "Locked", value: walletSummary?.capLockedBalance ?? 0, icon: LockKeyhole },
                 { label: "Can Withdraw", shortLabel: "Can", value: remainingWithdrawalLimit, icon: WalletIcon },
+                { label: "Earn Limit", shortLabel: "Limit", value: remainingEarningsCap, icon: TrendingUp },
                 { label: "Withdrawn", shortLabel: "Out", value: walletSummary?.totalLifetimeWithdrawals ?? 0, icon: ArrowUp },
-                { label: "Cap Used", shortLabel: "Cap", value: capUsedPct, suffix: "%", icon: TrendingUp },
-              ].map(({ label, shortLabel, value, suffix, icon: Icon }) => (
+              ].map(({ label, shortLabel, value, icon: Icon }) => (
                 <div key={label} className="min-w-0 rounded-xl border border-white/10 bg-white/10 p-2 backdrop-blur md:rounded-2xl md:p-3">
                   <div className="mb-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-white/15 md:mb-2 md:h-8 md:w-8">
                     <Icon className="h-3.5 w-3.5 !text-white md:h-4 md:w-4" />
@@ -439,7 +457,7 @@ const WalletPage = () => {
                     <span className="hidden md:inline">{label}</span>
                   </p>
                   <p className="mt-0.5 truncate text-[11px] font-black !text-white sm:text-xs md:mt-1 md:text-sm">
-                    {summaryLoading ? "—" : suffix ? `${value}${suffix}` : formatCompactCurrency(Number(value))}
+                    {summaryLoading ? "—" : formatCompactCurrency(Number(value))}
                   </p>
                 </div>
               ))}
@@ -458,7 +476,7 @@ const WalletPage = () => {
         </div>
       </section>
 
-      <section className="grid grid-cols-3 gap-2 md:grid-cols-2 md:gap-4 xl:grid-cols-3">
+      <section className="grid grid-cols-2 gap-2 md:gap-4 xl:grid-cols-4">
         <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
           <div className="flex items-start justify-between gap-2 sm:gap-4">
             <div className="min-w-0">
@@ -478,11 +496,11 @@ const WalletPage = () => {
         <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
           <div className="flex items-start justify-between gap-2 sm:gap-4">
             <div className="min-w-0">
-              <p className="truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Withdrawn</p>
+              <p className="truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Withdraw Limit</p>
               <p className="mt-1 truncate text-base font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
-                {summaryLoading ? "—" : formatCompactCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)}
+                {summaryLoading ? "—" : formatCompactCurrency(remainingWithdrawalLimit)}
               </p>
-              <p className="mt-0.5 hidden text-sm text-[#64748B] sm:block">{formatCompactCurrency(remainingWithdrawalLimit)} remaining</p>
+              <p className="mt-0.5 hidden text-sm text-[#64748B] sm:block">{formatCompactCurrency(walletSummary?.totalLifetimeWithdrawals ?? 0)} withdrawn</p>
             </div>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-amber-50 text-amber-600 sm:h-14 sm:w-14 sm:rounded-2xl">
               <ArrowUp className="h-4 w-4 sm:h-6 sm:w-6" />
@@ -490,23 +508,38 @@ const WalletPage = () => {
           </div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5 md:col-span-2 xl:col-span-1">
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
           <div className="absolute -bottom-8 right-0 h-24 w-40 rounded-full bg-violet-100 blur-2xl" />
           <div className="relative flex items-start justify-between gap-2 sm:gap-4">
             <div className="min-w-0">
-              <p className="truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Cycle Earned</p>
+              <p className="truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Earnings Cap</p>
               <p className="mt-1 truncate text-base font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
-                {cycleLoading ? "—" : formatCompactCurrency(cycleHistory?.summary?.currentCycleEarnings ?? 0)}
+                {summaryLoading ? "—" : formatCompactCurrency(earningsCapTotal)}
               </p>
-              <p className="mt-0.5 hidden text-sm text-[#64748B] sm:block">Current performance</p>
+              <p className="mt-0.5 hidden text-sm text-[#64748B] sm:block">{earningsUsedPct}% used</p>
             </div>
             <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-violet-50 text-violet-600 sm:h-14 sm:w-14 sm:rounded-2xl">
               <TrendingUp className="h-4 w-4 sm:h-6 sm:w-6" />
             </div>
           </div>
-          <svg className="relative mt-2 hidden h-10 w-full text-violet-500 sm:mt-5 sm:block" viewBox="0 0 280 48" fill="none" aria-hidden="true">
-            <path d="M2 38C35 12 61 25 88 18C121 9 135 6 164 23C193 40 220 39 278 8" stroke="currentColor" strokeWidth="4" strokeLinecap="round" />
-          </svg>
+          <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-slate-100 sm:mt-5 sm:h-2">
+            <div className="h-full rounded-full bg-violet-500" style={{ width: `${earningsUsedPct}%` }} />
+          </div>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:rounded-3xl sm:p-5">
+          <div className="flex items-start justify-between gap-2 sm:gap-4">
+            <div className="min-w-0">
+              <p className="truncate text-[8px] font-black uppercase tracking-[0.08em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">Earnings Limit</p>
+              <p className="mt-1 truncate text-base font-black tracking-tight text-[#0F172A] sm:mt-2 sm:text-3xl">
+                {summaryLoading ? "—" : formatCompactCurrency(remainingEarningsCap)}
+              </p>
+              <p className="mt-0.5 hidden text-sm text-[#64748B] sm:block">{formatCompactCurrency(earnedSinceBaseline)} earned this cycle</p>
+            </div>
+            <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-600 sm:h-14 sm:w-14 sm:rounded-2xl">
+              <WalletIcon className="h-4 w-4 sm:h-6 sm:w-6" />
+            </div>
+          </div>
         </div>
       </section>
 

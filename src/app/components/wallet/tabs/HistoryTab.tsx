@@ -49,8 +49,16 @@ interface HistoryTabProps {
   error: string | null;
 }
 
+const displayUnilevelLevel = (level: number) => level + 1;
+
+const normalizeUnilevelDescription = (tx: WalletTransaction, value?: string) => {
+  if (!value || tx.type !== "UNILEVEL") return value;
+  return value.replace(/\bL(\d+)\b/g, (_, raw) => `L${displayUnilevelLevel(Number(raw))}`);
+};
+
 const getTransactionTitle = (tx: WalletTransaction) => {
-  if (tx.description) return tx.description;
+  const description = normalizeUnilevelDescription(tx, tx.description);
+  if (description) return description;
   if (tx.type === "ROI_UPLINE_BONUS") return "ROI Upline Bonus";
   if (tx.type === "UNILEVEL" && tx.meta?.bonusType === "REINVESTMENT") return "Reinvestment Bonus";
   if (tx.type === "BONUS_UNLOCK") return "Bonus Unlocked";
@@ -202,14 +210,17 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
                         // Shift the displayed level by +1 for consistency with the
                         // Bonus Summary panel.
                         if (tx.type === "UNILEVEL" && (key === "level" || key === "unilevelLevel") && typeof value === "number") {
-                          return [formatLabel(key), value + 1] as const;
+                          return [formatLabel(key), displayUnilevelLevel(value)] as const;
+                        }
+                        if (key === "description" && typeof value === "string") {
+                          return [formatLabel(key), normalizeUnilevelDescription(tx, value)] as const;
                         }
                         return [formatLabel(key), value] as const;
                       })
                       .filter(([, value]) => !isEmptyValue(value));
 
-                    const detailItems = [
-                      ["Description", tx.description],
+                    const detailItems = ([
+                      ["Description", normalizeUnilevelDescription(tx, tx.description)],
                       ["Type", getTransactionTypeLabel(tx)],
                       ["Source Type", tx.sourceType],
                       ["Source ID", tx.sourceId],
@@ -220,7 +231,7 @@ export const HistoryTab = ({ transactions, loading, error }: HistoryTabProps) =>
                       ["Method", tx.method],
                       ["Currency", tx.currency || "INR"],
                       ["Created By", tx.createdBy],
-                    ]
+                    ] satisfies Array<readonly [string, unknown]>)
                       .map(([label, value]) => [label, formatDetailValue(value)] as const)
                       .filter(([, value]) => value !== null);
 

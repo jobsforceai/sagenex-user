@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, Clock, Crown, Lock, Sparkles, Target, Trophy } from "lucide-react";
 import { toast } from "sonner";
 import { getLuxuryProgress, claimLuxuryReward } from "@/actions/luxury-rewards";
@@ -161,8 +160,8 @@ export default function LuxuryRewardsCard() {
     {
       label: "Team Gate",
       metric: "Capped Team",
-      value: `${nextTier?.teamBizPct ?? 0}%`,
-      progress: nextTier?.teamBizPct ?? 0,
+      value: `${clampPct(nextTier?.teamBizPct)}%`,
+      progress: clampPct(nextTier?.teamBizPct),
       helper: (nextTier?.missing?.teamBizINR ?? 0) > 0
         ? `Need ${lakh(nextTier?.missing?.teamBizINR)} more`
         : "Complete",
@@ -170,8 +169,8 @@ export default function LuxuryRewardsCard() {
     {
       label: "Direct Gate",
       metric: "Direct Business",
-      value: `${nextTier?.directBizPct ?? 0}%`,
-      progress: nextTier?.directBizPct ?? 0,
+      value: `${clampPct(nextTier?.directBizPct)}%`,
+      progress: clampPct(nextTier?.directBizPct),
       helper: (nextTier?.missing?.directBizINR ?? 0) > 0
         ? `Need ${lakh(nextTier?.missing?.directBizINR)} more`
         : "Complete",
@@ -179,8 +178,8 @@ export default function LuxuryRewardsCard() {
     {
       label: "Leg Gate",
       metric: "Active Legs",
-      value: `${nextTier?.legsPct ?? 0}%`,
-      progress: nextTier?.legsPct ?? 0,
+      value: `${clampPct(nextTier?.legsPct)}%`,
+      progress: clampPct(nextTier?.legsPct),
       helper: (nextTier?.missing?.legs ?? 0) > 0
         ? `Need ${nextTier?.missing?.legs} more`
         : "Complete",

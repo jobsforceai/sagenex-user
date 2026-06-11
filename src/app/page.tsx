@@ -6,7 +6,6 @@ import InvestmentPillars from "@/components/landing/investment-pillars";
 // import FancyIdsSection from "@/components/landing/fancy-ids-section";
 import ProfitCalculator from "@/components/landing/profit-calculator";
 import EcosystemSection from "@/components/landing/ecosystem-section";
-import SagenexAcademy from "@/components/landing/sagenex-academy";
 import RoadmapSection from "@/components/landing/roadmap-section";
 import AppDownloadSection from "@/components/landing/app-download";
 import FAQSection from "@/components/landing/faq-section";

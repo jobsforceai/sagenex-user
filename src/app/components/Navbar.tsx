@@ -4,7 +4,7 @@ import { motion, useReducedMotion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import Image from "next/image";
 import { useState, useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useAuth } from "../context/AuthContext";
 import { getRankProgress } from "@/actions/user";
 import { stopImpersonation } from "@/actions/auth";
@@ -47,12 +47,13 @@ const navbarVariants = {
 interface NavbarProps {
   userLevel?: string;
   variant?: "full" | "minimal";
+  theme?: "light" | "dark";
+  showUpdateBanner?: boolean;
 }
 
-export default function Navbar({ userLevel: propUserLevel, variant = "full" }: NavbarProps) {
+export default function Navbar({ userLevel: propUserLevel, variant = "full", theme = "light", showUpdateBanner = true }: NavbarProps) {
   const { isAuthenticated, logout, user, replaceSession } = useAuth();
   const pathname = usePathname();
-  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [userLevel, setUserLevel] = useState<string | null>(null);
   const [cacheClearing, setCacheClearing] = useState(false);
@@ -108,6 +109,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
   }, [isAuthenticated, propUserLevel]);
 
   const isLandingNavbar = pathname === "/";
+  const isDarkNavbar = theme === "dark" && !isLandingNavbar;
   const links = isLandingNavbar ? guestLinks : isAuthenticated ? authLinks : guestLinks;
 
   const isActive = (href: string) =>
@@ -118,6 +120,8 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
       "relative px-2 py-1 text-sm md:text-[15px] transition",
       isLandingNavbar
         ? "text-slate-700 hover:text-[#0F172A]"
+        : isDarkNavbar && !scrolled
+          ? "text-white/80 hover:text-white"
         : scrolled
           ? "text-zinc-700 hover:text-zinc-900"
           : "text-zinc-800 hover:text-zinc-900",
@@ -291,28 +295,30 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
         role="banner"
       >
       {/* Glass shell */}
-      <div className="mx-auto max-w-7xl px-3 sm:px-4 lg:px-6">
+      <div className="mx-auto max-w-7xl px-4 sm:px-4 lg:px-6">
         <div
           className={[
-            "mt-3 rounded-2xl border transition-all duration-300",
+            "mt-2 rounded-2xl border transition-all duration-300 sm:mt-3",
             isLandingNavbar
               ? scrolled
                 ? "border-white/75 bg-[linear-gradient(135deg,rgba(255,253,248,0.93)_0%,rgba(255,244,247,0.88)_45%,rgba(244,248,250,0.90)_100%)] backdrop-blur-xl shadow-[0_16px_50px_rgba(15,23,42,0.12)]"
                 : "border-white/65 bg-[linear-gradient(135deg,rgba(255,255,255,0.78)_0%,rgba(255,243,246,0.68)_48%,rgba(245,248,250,0.76)_100%)] backdrop-blur-xl shadow-[0_14px_42px_rgba(15,23,42,0.08)]"
               : scrolled
                 ? "border-(--border-light) bg-white shadow-[0_2px_20px_rgba(0,0,0,0.08)]"
+                : isDarkNavbar
+                  ? "border-white/10 bg-black/30 backdrop-blur-xl shadow-[0_18px_50px_rgba(0,0,0,0.24)]"
                 : "border-white/10 bg-white/0 backdrop-blur-xl shadow-none",
           ].join(" ")}
         >
           {/* Top row */}
-          <div className="flex items-center justify-between gap-3 px-4 py-3 md:px-6">
+          <div className="flex items-center justify-between gap-3 px-4 py-2.5 md:px-6 md:py-3">
             {/* Logo + brand */}
             <Link
               href="/"
               className="group flex items-center gap-2.5"
               aria-label="Sagenex home"
             >
-              <span className="relative inline-block h-13 w-13">
+              <span className="relative inline-block h-10 w-10 md:h-13 md:w-13">
                 <Image
                   src="/logo5.png"
                   alt="Sagenex"
@@ -322,7 +328,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                   priority
                 />
               </span>
-              <span className={`text-base font-semibold tracking-tight group-hover:opacity-90 ${isLandingNavbar ? "text-slate-900" : "text-zinc-900"}`}>
+              <span className={`text-base font-semibold tracking-tight group-hover:opacity-90 ${isLandingNavbar ? "text-slate-900" : isDarkNavbar && !scrolled ? "text-white" : "text-zinc-900"}`}>
                 Sagenex
               </span>
             </Link>
@@ -406,6 +412,8 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                 className={`md:hidden inline-flex h-9 w-9 items-center justify-center rounded-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-[#00b386]/50 ${
                   isLandingNavbar
                     ? "border-white/60 bg-white/55 text-[#0F172A] hover:bg-white/80"
+                    : isDarkNavbar && !scrolled
+                      ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
                     : "border-[#e8e8e8] bg-white text-zinc-700 hover:bg-[#f7f8fa]"
                 }`}
                 aria-label="Toggle navigation"
@@ -435,7 +443,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
               initial={false}
               animate={open ? { height: "auto", opacity: 1 } : { height: 0, opacity: 0 }}
               transition={{ duration: 0.25, ease: "easeOut" }}
-              className={`md:hidden overflow-hidden rounded-b-2xl ${isLandingNavbar ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(255,246,248,0.92)_100%)] border-t border-slate-200/70" : "bg-white"}`}
+              className={`md:hidden overflow-hidden rounded-b-2xl ${isLandingNavbar ? "bg-[linear-gradient(180deg,rgba(255,255,255,0.96)_0%,rgba(255,246,248,0.92)_100%)] border-t border-slate-200/70" : isDarkNavbar ? "bg-zinc-950/95 border-t border-white/10" : "bg-white"}`}
             >
               <div className="px-4 pb-4 pt-1">
                 <nav className="flex flex-col">
@@ -452,6 +460,8 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full" }: N
                           "flex items-center justify-between rounded-lg px-3 py-2 text-sm",
                           isLandingNavbar
                             ? "text-slate-700 hover:text-[#0F172A] hover:bg-white/80"
+                            : isDarkNavbar
+                              ? "text-white/75 hover:text-white hover:bg-white/10"
                             : "text-zinc-700 hover:text-zinc-900 hover:bg-[#f7f8fa]",
                           "focus:outline-none focus-visible:ring-2 focus-visible:ring-emerald-400/70",
                           isActive(l.href) && (isLandingNavbar ? "bg-[#FFF1F4] text-[#C8103E]" : "bg-[#e6f7f3] text-[#00b386]"),

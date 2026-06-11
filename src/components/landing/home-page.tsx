@@ -35,7 +35,7 @@ export default function HomePage() {
             {/* Badge */}
             <div className="inline-flex items-center gap-2 rounded-full border border-[#C8103E]/12 bg-white px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide text-[#A50D33] shadow-sm">
               <Image src="/logo5.png" alt="" width={18} height={18} className="h-4 w-4 object-contain" />
-              A Civilization of Heritage & Innovation
+              <span className="truncate">A Civilization of Heritage & Innovation</span>
             </div>
 
             {/* Headline */}
@@ -56,7 +56,8 @@ export default function HomePage() {
                 href="#ecosystem"
                 className="inline-flex h-13 items-center justify-center gap-2.5 rounded-2xl bg-[#C8103E] px-7 text-sm font-extrabold text-white shadow-[0_12px_30px_rgba(200,16,62,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 active:scale-[0.98]"
               >
-                Explore Ecosystem
+                <span className="sm:hidden">Explore</span>
+                <span className="hidden sm:inline">Explore Ecosystem</span>
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
@@ -66,7 +67,8 @@ export default function HomePage() {
                 <span className="grid h-9 w-9 place-items-center rounded-full border border-[var(--landing-border-light)] bg-[#FFF1F4]">
                   <Play className="h-3.5 w-3.5 fill-[#C8103E] text-[#C8103E]" />
                 </span>
-                Watch Overview
+                <span className="sm:hidden">Overview</span>
+                <span className="hidden sm:inline">Watch Overview</span>
               </Link>
             </div>
           </motion.div>
