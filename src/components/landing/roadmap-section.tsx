@@ -136,7 +136,7 @@ export default function RoadmapSection() {
               whileInView={{ opacity: 1, x: 0 }}
               viewport={{ once: true }}
               transition={{ delay: idx * 0.08, duration: 0.5 }}
-              className="landing-card min-w-[300px] flex-shrink-0 snap-start relative group"
+              className="landing-card min-w-[300px] flex-shrink-0 snap-start relative group overflow-hidden"
             >
               {/* Top accent */}
               <div className="absolute top-0 left-0 right-0 h-[3px] bg-gradient-to-r from-[var(--emerald)] to-transparent rounded-t-[var(--landing-radius)]" />
