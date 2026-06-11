@@ -17,10 +17,6 @@ export default function Footer() {
   const sg5TradersUrl = process.env.NEXT_PUBLIC_SG5TRADERS_URL || "https://sg5trader.sgxmeta.ai";
   const androidAppUrl = process.env.NEXT_PUBLIC_ANDROID_APP_URL || FALLBACK_ANDROID_APP_URL;
 
-  const scrollToTop = () => {
-    window.scrollTo({ top: 0, behavior: "smooth" });
-  };
-
   return (
     <footer className="relative overflow-hidden border-t border-slate-200 bg-[#f8f9fa] pt-20 pb-10 text-[#0A0A0A]">
       <div className="absolute inset-0 pointer-events-none opacity-20">

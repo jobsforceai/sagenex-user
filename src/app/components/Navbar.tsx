@@ -274,7 +274,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
             <div className="flex items-start justify-between gap-3">
               <div className="text-[13px] leading-relaxed">
                 <strong className="block mb-1 text-amber-950 font-bold">Data Sync Delay</strong>
-                Updates to investments or bonuses can take up to 24 hours to appear. Use "Sync Profile" to refresh.
+                Updates to investments or bonuses can take up to 24 hours to appear. Use &quot;Sync Profile&quot; to refresh.
               </div>
               <button
                 onClick={dismissTopBanner}
