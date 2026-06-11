@@ -1,0 +1,21 @@
+src/components/landing/home-page.tsx
+  s_2a5b43d5f6b5c9::t_cef2127bbe019a 57,65
+src/app/components/Navbar.tsx
+  s_2a5b43d5f6b5c9::t_cef2127bbe019a 321
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "5ed54b19de317de88625e3d83c31a624e223080b",
+  "prompts": {},
+  "sessions": {
+    "s_2a5b43d5f6b5c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91a9-9968-7ab2-88eb-e63f03092772",
+        "model": "gpt-5.5"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
