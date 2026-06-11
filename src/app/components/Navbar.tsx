@@ -274,7 +274,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
             <div className="flex items-start justify-between gap-3">
               <div className="text-[13px] leading-relaxed">
                 <strong className="block mb-1 text-amber-950 font-bold">Data Sync Delay</strong>
-                Updates to investments or bonuses can take up to 24 hours to appear. Use "Sync Profile" to refresh.
+                Updates to investments or bonuses can take up to 24 hours to appear. Use &quot;Sync Profile&quot; to refresh.
               </div>
               <button
                 onClick={dismissTopBanner}
@@ -318,7 +318,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
               className="group flex items-center gap-2.5"
               aria-label="Sagenex home"
             >
-              <span className="relative inline-block h-10 w-10 md:h-13 md:w-13">
+              <span className="relative inline-block h-10 w-10 md:h-12 md:w-12">
                 <Image
                   src="/logo5.png"
                   alt="Sagenex"
