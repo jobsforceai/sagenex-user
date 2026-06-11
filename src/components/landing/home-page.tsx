@@ -24,16 +24,16 @@ export default function HomePage() {
 
       <div className="relative mx-auto flex min-h-[calc(100vh-6rem)] w-full max-w-7xl flex-col px-5 sm:px-6 lg:px-8">
         {/* Main content — stacked mobile, side-by-side desktop */}
-        <div className="grid flex-1 items-center gap-8 pb-8 lg:gap-12 lg:pb-20 lg:grid-cols-[1fr_minmax(400px,1fr)]">
+        <div className="grid flex-1 items-center gap-8 pb-8 text-center lg:grid-cols-[1fr_minmax(400px,1fr)] lg:gap-12 lg:pb-20 lg:text-left">
           {/* Text block */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="max-w-2xl pt-4 lg:pt-0"
+            className="mx-auto max-w-2xl pt-4 lg:mx-0 lg:pt-0"
           >
             {/* Badge */}
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#C8103E]/12 bg-white px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide text-[#A50D33] shadow-sm">
+            <div className="mx-auto inline-flex max-w-full items-center gap-2 rounded-full border border-[#C8103E]/12 bg-white px-3.5 py-1.5 text-[11px] font-extrabold tracking-wide text-[#A50D33] shadow-sm lg:mx-0">
               <Image src="/logo5.png" alt="" width={18} height={18} className="h-4 w-4 object-contain" />
               <span className="truncate">A Civilization of Heritage & Innovation</span>
             </div>
@@ -46,12 +46,12 @@ export default function HomePage() {
             </h1>
 
             {/* Subtitle */}
-            <p className="mt-5 max-w-lg text-[15px] font-medium leading-7 text-[var(--landing-text-muted)] sm:text-base sm:leading-8">
+            <p className="mx-auto mt-5 max-w-lg text-[15px] font-medium leading-7 text-[var(--landing-text-muted)] sm:text-base sm:leading-8 lg:mx-0">
               At Sagenex, we blend trust, technology, and vision to create impact that lasts. Together, we grow, we evolve, and we lead.
             </p>
 
             {/* CTAs */}
-            <div className="mt-7 grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:gap-4">
+            <div className="mx-auto mt-7 grid max-w-md grid-cols-2 gap-3 sm:flex sm:max-w-none sm:flex-row sm:justify-center sm:gap-4 lg:mx-0 lg:justify-start">
               <Link
                 href="#ecosystem"
                 className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-2xl bg-[#C8103E] px-4 text-sm font-extrabold text-white shadow-[0_12px_30px_rgba(200,16,62,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 active:scale-[0.98] sm:h-13 sm:gap-2.5 sm:px-7"
@@ -78,7 +78,7 @@ export default function HomePage() {
             initial={{ opacity: 0, scale: 0.97, y: 18 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.1 }}
-            className="relative mx-auto w-full max-w-[540px] flex items-center justify-center lg:mx-0 lg:max-w-none"
+            className="relative mx-auto flex w-full max-w-[540px] items-center justify-center lg:mx-0 lg:max-w-none"
             aria-label="Sagenex heritage and innovation visual."
           >
             {/* Shadow */}
@@ -122,7 +122,7 @@ export default function HomePage() {
         {/* Scroll hint — desktop only */}
         <div className="hidden justify-center pb-5 pt-10 text-sm font-semibold text-[var(--landing-text-muted)] sm:flex">
           <span className="inline-flex items-center gap-2 animate-bounce">
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2v12M4 10l4 4 4-4" /></svg>
+            <svg aria-hidden="true" focusable="false" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M8 2v12M4 10l4 4 4-4" /></svg>
             Scroll to explore
           </span>
         </div>
