@@ -51,10 +51,10 @@ export default function HomePage() {
             </p>
 
             {/* CTAs */}
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:gap-4">
+            <div className="mt-7 grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:gap-4">
               <Link
                 href="#ecosystem"
-                className="inline-flex h-13 items-center justify-center gap-2.5 rounded-2xl bg-[#C8103E] px-7 text-sm font-extrabold text-white shadow-[0_12px_30px_rgba(200,16,62,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 active:scale-[0.98]"
+                className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-2xl bg-[#C8103E] px-4 text-sm font-extrabold text-white shadow-[0_12px_30px_rgba(200,16,62,0.22)] transition-all hover:-translate-y-0.5 hover:bg-[#A50D33] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/30 active:scale-[0.98] sm:h-13 sm:gap-2.5 sm:px-7"
               >
                 <span className="sm:hidden">Explore</span>
                 <span className="hidden sm:inline">Explore Ecosystem</span>
@@ -62,10 +62,10 @@ export default function HomePage() {
               </Link>
               <Link
                 href="#about"
-                className="inline-flex h-13 items-center justify-center gap-3 rounded-2xl border border-[var(--landing-border-light)] bg-white px-6 text-sm font-extrabold text-[var(--landing-text-dark)] shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/15 active:scale-[0.98]"
+                className="inline-flex h-12 min-w-0 items-center justify-center gap-2 rounded-2xl border border-[var(--landing-border-light)] bg-white px-3 text-sm font-extrabold text-[var(--landing-text-dark)] shadow-sm transition-all hover:-translate-y-0.5 hover:border-slate-300 hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-[#C8103E]/15 active:scale-[0.98] sm:h-13 sm:gap-3 sm:px-6"
               >
-                <span className="grid h-9 w-9 place-items-center rounded-full border border-[var(--landing-border-light)] bg-[#FFF1F4]">
-                  <Play className="h-3.5 w-3.5 fill-[#C8103E] text-[#C8103E]" />
+                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-full border border-[var(--landing-border-light)] bg-[#FFF1F4] sm:h-9 sm:w-9">
+                  <Play className="h-3 w-3 fill-[#C8103E] text-[#C8103E] sm:h-3.5 sm:w-3.5" />
                 </span>
                 <span className="sm:hidden">Overview</span>
                 <span className="hidden sm:inline">Watch Overview</span>
