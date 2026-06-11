@@ -318,7 +318,7 @@ export default function Navbar({ userLevel: propUserLevel, variant = "full", the
               className="group flex items-center gap-2.5"
               aria-label="Sagenex home"
             >
-              <span className="relative inline-block h-10 w-10 md:h-13 md:w-13">
+              <span className="relative inline-block h-10 w-10 md:h-12 md:w-12">
                 <Image
                   src="/logo5.png"
                   alt="Sagenex"
