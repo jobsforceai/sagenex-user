@@ -7,6 +7,7 @@ import { Toaster } from "sonner";
 import { ThemeProvider as NextThemesProvider } from "next-themes";
 import AuthenticatedShell from "@/app/components/AuthenticatedShell";
 import PostHogProvider from "./posthog-provider";
+import AmplitudeProvider from "./amplitude-provider";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const bricolage = Bricolage_Grotesque({ subsets: ["latin"], variable: "--font-display" });
@@ -28,17 +29,19 @@ export default function RootLayout({
           clientId={process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!}
         >
           <PostHogProvider>
-            <AuthProvider>
-            <NextThemesProvider
-              attribute="class"
-              defaultTheme="light"
-              enableSystem
-              disableTransitionOnChange
-            >
-              <AuthenticatedShell>{children}</AuthenticatedShell>
-              <Toaster />
-            </NextThemesProvider>
-          </AuthProvider>
+            <AmplitudeProvider>
+              <AuthProvider>
+                <NextThemesProvider
+                  attribute="class"
+                  defaultTheme="light"
+                  enableSystem
+                  disableTransitionOnChange
+                >
+                  <AuthenticatedShell>{children}</AuthenticatedShell>
+                  <Toaster />
+                </NextThemesProvider>
+              </AuthProvider>
+            </AmplitudeProvider>
           </PostHogProvider>
         </GoogleOAuthProvider>
       </body>

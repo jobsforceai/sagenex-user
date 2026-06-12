@@ -5,6 +5,12 @@
  */
 "use client";
 
+import {
+  identifyAmplitudeUser,
+  resetAmplitudeUser,
+  trackAmplitude,
+} from "@/lib/amplitude";
+
 type PostHogClient = {
   identify: (id: string, props?: Record<string, unknown>) => void;
   reset: () => void;
@@ -19,10 +25,12 @@ function ph(): PostHogClient | null {
 
 export function identifyUser(userId: string, traits?: Record<string, unknown>) {
   ph()?.identify(userId, traits);
+  identifyAmplitudeUser(userId);
 }
 
 export function resetUser() {
   ph()?.reset();
+  resetAmplitudeUser();
 }
 
 export type AnalyticsEvent =
@@ -40,4 +48,5 @@ export type AnalyticsEvent =
 
 export function track(event: AnalyticsEvent, props?: Record<string, unknown>) {
   ph()?.capture(event, props);
+  trackAmplitude(event, props);
 }
