@@ -19,6 +19,15 @@ import { AnimatePresence, motion } from "framer-motion";
 import { getCompoundingStatus, toggleCompounding } from "@/actions/user";
 import { getLegacyTieredROIRate, getNewTieredROIRate, getTieredROIRate } from "@/lib/roi";
 import { toast } from "sonner";
+import {
+  Area,
+  AreaChart,
+  CartesianGrid,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from "recharts";
 
 type ChatStep = 0 | 1 | 2;
 
@@ -111,6 +120,27 @@ function buildSnapshot(packageAmount: number, rateFn: (amount: number) => number
   };
 }
 
+function buildSeries(packageAmount: number, rateFn: (amount: number) => number, months: number) {
+  const points = [{ month: 0, label: "Now", simple: packageAmount, compound: packageAmount }];
+  let compoundPackage = packageAmount;
+  let simpleEarnings = 0;
+
+  for (let month = 1; month <= months; month++) {
+    simpleEarnings += packageAmount * rateFn(packageAmount);
+    compoundPackage += compoundPackage * rateFn(compoundPackage);
+    points.push({
+      month,
+      label: month === months ? `${Math.round(months / 12)}Y` : `${month}M`,
+      simple: Math.round(packageAmount + simpleEarnings),
+      compound: Math.round(compoundPackage),
+    });
+  }
+
+  const step = months <= 12 ? 2 : months <= 36 ? 4 : 6;
+  const filtered = points.filter((point) => point.month === 0 || point.month === months || point.month % step === 0);
+  return filtered[filtered.length - 1]?.month === months ? filtered : [...filtered, points[points.length - 1]];
+}
+
 interface CompoundingProjectionModalProps {
   manualOpen?: boolean;
   onManualClose?: () => void;
@@ -161,18 +191,12 @@ export function CompoundingProjectionModal({
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [modelAmount, customRatePct, roiRate, roiPlanType, packageAmount]
   );
-  const midpointMonths = Math.max(1, Math.round(months / 2));
-  const midpoint = useMemo(
-    () => buildSnapshot(modelAmount, rateFn, midpointMonths),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [modelAmount, midpointMonths, customRatePct, roiRate, roiPlanType, packageAmount]
-  );
   const simpleTotalValue = modelAmount + report.simpleEarnings;
-  const chartPoints = [
-    { label: "Now", value: modelAmount, x: 12, y: 78 },
-    { label: midpointMonths >= 12 ? `Month ${midpointMonths}` : "Midpoint", value: midpoint.compoundPackage, x: 50, y: 52 },
-    { label: selectedPeriod, value: report.compoundPackage, x: 92, y: 24 },
-  ];
+  const chartData = useMemo(
+    () => buildSeries(modelAmount, rateFn, months),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [modelAmount, months, customRatePct, roiRate, roiPlanType, packageAmount]
+  );
   const hasProjection = chatStep === 2 && !isBuilding;
 
   const appendBot = (text: string) => {
@@ -647,58 +671,61 @@ export function CompoundingProjectionModal({
                       </span>
                     </div>
 
-                    <div className="relative mt-2 h-28 overflow-hidden rounded-3xl bg-gradient-to-b from-white to-emerald-50/40 p-3 sm:mt-3 sm:h-36">
-                      <svg className="absolute inset-3 h-[calc(100%-1.5rem)] w-[calc(100%-1.5rem)]" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-                        <defs>
-                          <linearGradient id="compoundFill" x1="0" x2="0" y1="0" y2="1">
-                            <stop offset="0%" stopColor="#10B981" stopOpacity="0.22" />
-                            <stop offset="100%" stopColor="#10B981" stopOpacity="0" />
-                          </linearGradient>
-                        </defs>
-                        <path d={`M ${chartPoints.map((point) => `${point.x} ${point.y}`).join(" L ")} L 92 88 L 12 88 Z`} fill="url(#compoundFill)" />
-                        <motion.path
-                          d={`M ${chartPoints.map((point) => `${point.x} ${point.y}`).join(" L ")}`}
-                          fill="none"
-                          stroke="#059669"
-                          strokeLinecap="round"
-                          strokeWidth="1.8"
-                          initial={{ pathLength: 0 }}
-                          animate={{ pathLength: 1 }}
-                          transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
-                          vectorEffect="non-scaling-stroke"
-                        />
-                        {chartPoints.map((point) => (
-                          <g key={point.label}>
-                            <line
-                              x1={point.x}
-                              x2={point.x}
-                              y1={point.y}
-                              y2="88"
-                              stroke="#CBD5E1"
-                              strokeDasharray="2 2"
-                              strokeWidth="1"
-                              vectorEffect="non-scaling-stroke"
-                            />
-                            <circle
-                              cx={point.x}
-                              cy={point.y}
-                              r="2.2"
-                              fill="#059669"
-                              stroke="#ECFDF5"
-                              strokeWidth="1.6"
-                              vectorEffect="non-scaling-stroke"
-                            />
-                          </g>
-                        ))}
-                      </svg>
-                      <div className="absolute inset-x-5 bottom-3 grid grid-cols-3">
-                        {chartPoints.map((point) => (
-                          <div key={point.label} className="text-center">
-                            <p className="truncate text-[10px] font-black text-emerald-700 sm:text-xs">{fmt(point.value)}</p>
-                            <p className="mt-1 text-[10px] font-bold text-[#64748B] sm:text-xs">{point.label}</p>
-                          </div>
-                        ))}
-                      </div>
+                    <div className="mt-2 h-32 overflow-hidden rounded-3xl bg-gradient-to-b from-white to-emerald-50/40 p-2 sm:mt-3 sm:h-40 sm:p-3">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 8, right: 8, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="modalCompoundArea" x1="0" x2="0" y1="0" y2="1">
+                              <stop offset="0%" stopColor="#10B981" stopOpacity={0.28} />
+                              <stop offset="100%" stopColor="#10B981" stopOpacity={0.04} />
+                            </linearGradient>
+                            <linearGradient id="modalSimpleArea" x1="0" x2="0" y1="0" y2="1">
+                              <stop offset="0%" stopColor="#94A3B8" stopOpacity={0.16} />
+                              <stop offset="100%" stopColor="#94A3B8" stopOpacity={0} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid stroke="#E2E8F0" strokeDasharray="4 8" vertical={false} />
+                          <XAxis
+                            dataKey="label"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: "#64748B", fontSize: 10, fontWeight: 800 }}
+                            interval="preserveStartEnd"
+                          />
+                          <YAxis hide domain={["dataMin", "dataMax"]} />
+                          <Tooltip
+                            formatter={(value: number, name) => [
+                              fmt(Number(value)),
+                              name === "compound" ? "Compounding" : "Simple ROI",
+                            ]}
+                            contentStyle={{
+                              border: "1px solid #E2E8F0",
+                              borderRadius: 14,
+                              boxShadow: "0 14px 35px rgba(15,23,42,0.12)",
+                              fontSize: 12,
+                              fontWeight: 700,
+                            }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="simple"
+                            stroke="#94A3B8"
+                            strokeWidth={2}
+                            fill="url(#modalSimpleArea)"
+                            dot={false}
+                            activeDot={{ r: 4, fill: "#94A3B8", stroke: "#FFFFFF", strokeWidth: 2 }}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="compound"
+                            stroke="#059669"
+                            strokeWidth={3}
+                            fill="url(#modalCompoundArea)"
+                            dot={{ r: 3, fill: "#059669", stroke: "#ECFDF5", strokeWidth: 3 }}
+                            activeDot={{ r: 5, fill: "#059669", stroke: "#ECFDF5", strokeWidth: 3 }}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
                     </div>
                   </div>
 
