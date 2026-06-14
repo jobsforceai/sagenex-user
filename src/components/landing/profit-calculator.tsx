@@ -131,7 +131,7 @@ export default function ProfitCalculator() {
   const [typingMessageId, setTypingMessageId] = useState<string | null>(null);
   const [responseText, setResponseText] = useState("");
   const [displayedResponse, setDisplayedResponse] = useState("");
-  const chatEndRef = useRef<HTMLDivElement | null>(null);
+  const chatScrollRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -249,7 +249,9 @@ export default function ProfitCalculator() {
   }, [responseText]);
 
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    const chatScroll = chatScrollRef.current;
+    if (!chatScroll) return;
+    chatScroll.scrollTo({ top: chatScroll.scrollHeight, behavior: "smooth" });
   }, [chatMessages]);
 
   const processMessage = (message: string) => {
@@ -393,7 +395,7 @@ export default function ProfitCalculator() {
                       </span>
                     </div>
 
-                    <div className="h-[240px] space-y-3 overflow-y-auto px-4 py-4">
+                    <div ref={chatScrollRef} className="h-[240px] space-y-3 overflow-y-auto px-4 py-4">
                       {chatMessages.map((message) =>
                         message.role === "user" ? (
                           <div key={message.id} className="flex justify-end">
@@ -416,7 +418,6 @@ export default function ProfitCalculator() {
                           </div>
                         )
                       )}
-                      <div ref={chatEndRef} />
                     </div>
 
                     <div className="border-t border-slate-200 bg-white px-3 py-3">
