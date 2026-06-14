@@ -268,7 +268,7 @@ export function CompoundingProjectionModal({
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
-  }, [chatMessages, displayedResponse]);
+  }, [chatMessages]);
 
   useEffect(() => {
     if (!isBuilding) return;
@@ -621,9 +621,6 @@ export function CompoundingProjectionModal({
                     </div>
                   </div>
 
-                  <div className="mt-auto rounded-2xl border border-slate-200 bg-slate-50 p-4 text-sm font-semibold text-[#64748B]">
-                    Waiting for {chatStep === 0 ? "starting amount" : "ROI and duration"}.
-                  </div>
                 </motion.div>
               ) : (
                 <motion.div
@@ -768,7 +765,7 @@ export function CompoundingProjectionModal({
                     </div>
                   </div>
 
-                  <div className="mt-auto grid gap-2 pt-2 sm:grid-cols-[1fr_auto] sm:gap-3 sm:pt-3">
+                  <div className="mt-auto hidden gap-2 pt-2 lg:grid lg:grid-cols-[1fr_auto] lg:gap-3 lg:pt-3">
                     <Button className="h-10 rounded-xl bg-emerald-600 text-sm font-black text-white hover:bg-emerald-700" onClick={handleToggle} disabled={enabling}>
                       {enabling ? "Updating..." : compoundingEnabled ? "Disable Compounding" : "Enable Compounding"}
                     </Button>
@@ -780,6 +777,18 @@ export function CompoundingProjectionModal({
               )}
             </AnimatePresence>
           </aside>
+        </div>
+
+        <div className="shrink-0 border-t border-slate-200 bg-white/95 p-3 backdrop-blur lg:hidden">
+          <Button
+            className={`h-11 w-full rounded-xl text-sm font-black text-white ${
+              compoundingEnabled ? "bg-rose-600 hover:bg-rose-700" : "bg-emerald-600 hover:bg-emerald-700"
+            }`}
+            onClick={handleToggle}
+            disabled={enabling}
+          >
+            {enabling ? "Updating..." : compoundingEnabled ? "Disable Compounding" : "Enable Compounding"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
