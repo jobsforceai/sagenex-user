@@ -410,6 +410,66 @@ export function CompoundingProjectionModal({
     }
   };
 
+  const selectProjection = (months: number) => {
+    setSelectedMonths(months);
+    setShowExplanation(false);
+    const label = PERIOD_OPTIONS.find((option) => option.months === months)?.label ?? `${months} Months`;
+    const message = `Show me ${label}`;
+    setInputValue(message);
+    appendExchange(message, buildProjectionResponse(months));
+  };
+
+  const handlePrompt = (message: string) => {
+    setInputValue(message);
+    if (/how|work|explain/i.test(message)) {
+      setShowExplanation(true);
+      appendExchange(message, buildExplanationResponse());
+      return;
+    }
+
+    const match = PERIOD_OPTIONS.find((option) => message.includes(option.label));
+    if (match) {
+      setSelectedMonths(match.months);
+      setShowExplanation(false);
+      appendExchange(message, buildProjectionResponse(match.months));
+    }
+  };
+
+  const handleSend = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const message = inputValue.trim();
+    if (!message) return;
+
+    const normalized = message.toLowerCase();
+
+    if (normalized.includes("how") || normalized.includes("work") || normalized.includes("explain")) {
+      setShowExplanation(true);
+      appendExchange(message, buildExplanationResponse());
+      return;
+    }
+
+    const months =
+      normalized.includes("3") || normalized.includes("three")
+        ? 36
+        : normalized.includes("2") || normalized.includes("two")
+          ? 24
+          : normalized.includes("1") || normalized.includes("one")
+            ? 12
+            : null;
+
+    if (months) {
+      setSelectedMonths(months);
+      setShowExplanation(false);
+      appendExchange(message, buildProjectionResponse(months));
+      return;
+    }
+
+    appendExchange(
+      message,
+      "I can calculate only 1 Year, 2 Years, 3 Years, or explain how compounding works. Try one of the quick prompts below."
+    );
+  };
+
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="flex h-[min(94vh,800px)] w-[calc(100vw-2rem)] max-w-lg flex-col overflow-hidden rounded-[1.75rem] border border-slate-200/80 bg-white p-0 text-[#0F172A] shadow-[0_30px_90px_rgba(15,23,42,0.2)] sm:max-w-6xl">
