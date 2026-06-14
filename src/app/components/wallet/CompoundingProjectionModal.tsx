@@ -91,10 +91,13 @@ const parseRate = (value: string) => {
 
 const parseMonths = (value: string) => {
   const normalized = value.toLowerCase();
-  if (normalized.includes("5") || normalized.includes("five")) return 60;
-  if (normalized.includes("3") || normalized.includes("three")) return 36;
-  if (normalized.includes("2") || normalized.includes("two")) return 24;
-  if (normalized.includes("1") || normalized.includes("one")) return 12;
+  const hasDurationToken = (token: string) =>
+    new RegExp(`(^|[^a-z0-9])${token}($|[^a-z0-9])`, "i").test(normalized);
+
+  if (hasDurationToken("5") || hasDurationToken("five")) return 60;
+  if (hasDurationToken("3") || hasDurationToken("three")) return 36;
+  if (hasDurationToken("2") || hasDurationToken("two")) return 24;
+  if (hasDurationToken("1") || hasDurationToken("one")) return 12;
   return null;
 };
 
@@ -222,6 +225,10 @@ export function CompoundingProjectionModal({
     setResponseText("");
     setDisplayedResponse("");
     setInputValue("Use current package");
+    setCustomRatePct(null);
+    setMonths(24);
+    setIsBuilding(false);
+    setBuildProgress(0);
     window.setTimeout(() => {
       appendBot(`Let's build your compounding projection. First confirm the starting amount. Your current package is ${fmt(amount)}.`);
     }, 80);
