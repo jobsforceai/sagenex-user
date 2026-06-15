@@ -76,6 +76,12 @@ const WithdrawalRequest = ({
   const [cancellingId, setCancellingId] = useState<string | null>(null);
 
   useEffect(() => {
+    if (user && !user.hasPasswordSet && authMethod === "password") {
+      setAuthMethod("otp");
+    }
+  }, [authMethod, user]);
+
+  useEffect(() => {
     if (withdrawalType !== "cash") return;
     setCashWithdrawalsLoading(true);
     getUserCashWithdrawals().then((res) => {
@@ -104,13 +110,26 @@ const WithdrawalRequest = ({
       toast.error(`Cannot withdraw ₹${amt.toFixed(2)} (₹${netCash.toFixed(2)} in hand after 5% tax) — ${reason}.`);
       return;
     }
+    if (authMethod === "otp" && (!otp || otp.length !== 6)) {
+      toast.error("Please enter a valid 6-digit OTP.");
+      return;
+    }
+    if (authMethod === "password" && !password) {
+      toast.error("Please enter your password.");
+      return;
+    }
     setCashLoading(true);
     try {
-      const res = await requestCashWithdrawal(amt);
+      const res = await requestCashWithdrawal(
+        amt,
+        authMethod === "otp" ? { otp } : { password },
+      );
       if (res?.error) { toast.error(res.error); }
       else {
         toast.success("Cash withdrawal requested. Amount held. Admin will schedule pickup.");
         setCashAmount("");
+        setOtp("");
+        setPassword("");
         setCashWithdrawals((prev) => [res, ...prev]);
       }
     } catch { toast.error("Request failed."); }
@@ -493,6 +512,82 @@ const WithdrawalRequest = ({
                     </div>
                   );
                 })()}
+              </div>
+              <div className="rounded-xl border border-[#E8E8E8] bg-white p-3">
+                <p className="text-sm font-semibold text-[#111827]">Verify cash withdrawal</p>
+                <div className="mt-3 grid grid-cols-2 gap-2 rounded-lg bg-zinc-100 p-1">
+                  {user?.hasPasswordSet && (
+                    <button
+                      type="button"
+                      onClick={() => setAuthMethod("password")}
+                      className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                        authMethod === "password"
+                          ? "bg-[#C41E3A] text-white"
+                          : "text-zinc-600 hover:bg-zinc-200"
+                      }`}
+                    >
+                      Password
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setAuthMethod("otp")}
+                    className={`rounded-md px-3 py-2 text-sm font-semibold transition-colors ${
+                      authMethod === "otp"
+                        ? "bg-[#C41E3A] text-white"
+                        : "text-zinc-600 hover:bg-zinc-200"
+                    } ${!user?.hasPasswordSet ? "col-span-2" : ""}`}
+                  >
+                    OTP
+                  </button>
+                </div>
+                {authMethod === "password" && user?.hasPasswordSet ? (
+                  <div className="mt-3">
+                    <label htmlFor="cash-withdrawal-password" className="mb-1 block text-sm font-medium text-zinc-600">
+                      Enter Password
+                    </label>
+                    <Input
+                      id="cash-withdrawal-password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="Your password"
+                      className="border-[#E8E8E8] bg-white text-[#111827]"
+                      required
+                    />
+                  </div>
+                ) : (
+                  <div className="mt-3 space-y-2">
+                    <label htmlFor="cash-withdrawal-otp" className="mb-1 block text-sm font-medium text-zinc-600">
+                      Enter OTP
+                    </label>
+                    <div className="flex flex-col gap-2 sm:flex-row">
+                      <Input
+                        id="cash-withdrawal-otp"
+                        type="text"
+                        value={otp}
+                        onChange={(e) => setOtp(e.target.value.replace(/\D/g, ""))}
+                        placeholder="123456"
+                        className="border-[#E8E8E8] bg-white text-[#111827]"
+                        required
+                        maxLength={6}
+                      />
+                      <Button
+                        type="button"
+                        onClick={handleRequestOtp}
+                        disabled={isSendingOtp || otpCooldown > 0}
+                        className="border-[#E8E8E8] text-[#111827] hover:bg-zinc-100 sm:w-48"
+                        variant="outline"
+                      >
+                        {isSendingOtp
+                          ? "Sending..."
+                          : otpCooldown > 0
+                            ? `Resend OTP in ${otpCooldown}s`
+                            : "Send OTP"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </div>
               <Button type="submit" disabled={cashLoading} className="w-full bg-[#C41E3A] text-white hover:bg-[#ad1b34]">
                 {cashLoading ? "Requesting..." : "Request Cash Withdrawal"}

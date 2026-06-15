@@ -1165,11 +1165,18 @@ export async function getCompoundingStatus() {
   return handleApiResponse(res);
 }
 
-export async function requestCashWithdrawal(amount: number) {
+export async function requestCashWithdrawal(
+  amount: number,
+  credentials?: { otp?: string; password?: string },
+) {
   const res = await fetch(`${API_BASE_URL}/api/v1/wallet/cash-withdrawal`, {
     method: 'POST',
     headers: { ...(await getAuthHeaders()), 'Content-Type': 'application/json' },
-    body: JSON.stringify({ amount }),
+    body: JSON.stringify({
+      amount,
+      ...(credentials?.otp ? { otp: credentials.otp } : {}),
+      ...(credentials?.password ? { password: credentials.password } : {}),
+    }),
   });
   return handleApiResponse(res);
 }
