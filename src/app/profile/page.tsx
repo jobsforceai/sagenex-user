@@ -56,6 +56,11 @@ interface BiometricsStatus {
   lastEnrolledAt?: string | null;
 }
 
+const formatPvPoints = (value: number) =>
+  value.toLocaleString("en-IN", {
+    maximumFractionDigits: 2,
+  });
+
 const KycStatusBadge = ({ status }: { status: KycStatus['status'] }) => {
     const kycStatusInfo = {
         VERIFIED: {
@@ -354,7 +359,7 @@ const ProfilePage = () => {
                 <CardTitle className="text-xs uppercase tracking-wide text-gray-400">PV Points</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-2xl font-semibold">{profile.pvPoints}</p>
+                <p className="text-xl font-semibold sm:text-2xl">{formatPvPoints(profile.pvPoints)}</p>
               </CardContent>
             </Card>
             <Card className="bg-black/50 border-white/10">
