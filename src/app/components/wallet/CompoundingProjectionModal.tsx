@@ -77,7 +77,7 @@ const parseAmount = (value: string) => {
   const base = Number(match[0]);
   if (!Number.isFinite(base) || base <= 0) return null;
   if (normalized.includes("cr")) return base * 10000000;
-  if (normalized.includes("lakh") || normalized.includes("lac") || normalized.includes(" l")) return base * 100000;
+  if (normalized.includes("lakh") || normalized.includes("lac") || /\d\s*l\b/.test(normalized)) return base * 100000;
   if (normalized.includes("k")) return base * 1000;
   return base;
 };
@@ -140,8 +140,11 @@ function buildSeries(packageAmount: number, rateFn: (amount: number) => number, 
   }
 
   const step = months <= 12 ? 2 : months <= 36 ? 4 : 6;
-  const filtered = points.filter((point) => point.month === 0 || point.month === months || point.month % step === 0);
-  return filtered[filtered.length - 1]?.month === months ? filtered : [...filtered, points[points.length - 1]];
+  const filtered = points.filter((point) => point.month === 0 || point.month % step === 0);
+  if (filtered[filtered.length - 1]?.month !== months) {
+    filtered.push(points[points.length - 1]);
+  }
+  return filtered;
 }
 
 interface CompoundingProjectionModalProps {
@@ -306,18 +309,22 @@ export function CompoundingProjectionModal({
     setBuildProgress(8);
     const values = [25, 50, 75, 100];
     let index = 0;
+    let finishTimer: number | undefined;
     const timer = window.setInterval(() => {
       setBuildProgress(values[index]);
       index += 1;
       if (index >= values.length) {
         window.clearInterval(timer);
-        window.setTimeout(() => {
+        finishTimer = window.setTimeout(() => {
           setIsBuilding(false);
           setChatStep(2);
         }, 360);
       }
     }, 430);
-    return () => window.clearInterval(timer);
+    return () => {
+      window.clearInterval(timer);
+      if (finishTimer !== undefined) window.clearTimeout(finishTimer);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isBuilding]);
 
@@ -540,6 +547,7 @@ export function CompoundingProjectionModal({
                     value={inputValue}
                     onChange={(event) => setInputValue(event.target.value)}
                     className="min-w-0 flex-1 bg-transparent px-2 text-xs font-semibold text-[#0F172A] outline-none placeholder:text-[#94A3B8]"
+                    aria-label={chatStep === 0 ? "Enter amount" : "Enter ROI and duration"}
                     placeholder={chatStep === 0 ? "Enter amount" : "Enter ROI and duration"}
                   />
                   <button type="submit" className="inline-flex h-7 shrink-0 items-center gap-1 rounded-full bg-[#C8103E] px-3 text-[10px] font-black text-white hover:bg-[#A50D33]">

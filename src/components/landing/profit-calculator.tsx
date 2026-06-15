@@ -75,17 +75,20 @@ const parseAmount = (value: string) => {
   const base = Number(match[0]);
   if (!Number.isFinite(base) || base <= 0) return null;
   if (normalized.includes("cr")) return base * 10000000;
-  if (normalized.includes("lakh") || normalized.includes("lac") || normalized.includes(" l")) return base * 100000;
+  if (normalized.includes("lakh") || normalized.includes("lac") || /\d\s*l\b/.test(normalized)) return base * 100000;
   if (normalized.includes("k")) return base * 1000;
   return base;
 };
 
 const parseMonths = (value: string) => {
   const normalized = value.toLowerCase();
-  if (normalized.includes("5") || normalized.includes("five")) return 60;
-  if (normalized.includes("3") || normalized.includes("three")) return 36;
-  if (normalized.includes("2") || normalized.includes("two")) return 24;
-  if (normalized.includes("1") || normalized.includes("one")) return 12;
+  const hasDurationToken = (token: string) =>
+    new RegExp(`(^|[^a-z0-9])${token}($|[^a-z0-9])`, "i").test(normalized);
+
+  if (hasDurationToken("5") || hasDurationToken("five")) return 60;
+  if (hasDurationToken("3") || hasDurationToken("three")) return 36;
+  if (hasDurationToken("2") || hasDurationToken("two")) return 24;
+  if (hasDurationToken("1") || hasDurationToken("one")) return 12;
   return null;
 };
 
@@ -444,6 +447,7 @@ export default function ProfitCalculator() {
                           value={inputValue}
                           onChange={(event) => setInputValue(event.target.value)}
                           className="min-w-0 flex-1 bg-transparent px-2 text-xs font-semibold text-[#0F172A] outline-none placeholder:text-[#94A3B8]"
+                          aria-label={chatStep === 0 ? "Enter amount" : "Enter duration"}
                           placeholder={chatStep === 0 ? "Enter amount" : "Enter duration"}
                         />
                         <button type="submit" className="inline-flex h-8 shrink-0 items-center gap-1 rounded-full bg-[#C8103E] px-3 text-[10px] font-black text-white hover:bg-[#A50D33]">
