@@ -17,6 +17,12 @@ import {
 } from "lucide-react";
 import { getApiV1BaseUrl } from "@/lib/api-base";
 import {
+  type ChatMessage,
+  type ChatStep,
+  parseCompoundingAmount,
+  parseProjectionMonths,
+} from "@/lib/compounding-chat";
+import {
   Area,
   AreaChart,
   CartesianGrid,
@@ -45,15 +51,6 @@ type RoiResponse = {
   };
 };
 
-type ChatStep = 0 | 1 | 2;
-type ChatRole = "bot" | "user";
-
-type ChatMessage = {
-  id: string;
-  role: ChatRole;
-  text: string;
-};
-
 const DURATIONS: { value: number; label: string }[] = [
   { value: 12, label: "1 Year" },
   { value: 24, label: "2 Years" },
@@ -67,30 +64,6 @@ const inr = (value: number) =>
     currency: "INR",
     maximumFractionDigits: 0,
   });
-
-const parseAmount = (value: string) => {
-  const normalized = value.toLowerCase().replace(/,/g, "").replace(/₹/g, "").trim();
-  const match = normalized.match(/[\d.]+/);
-  if (!match) return null;
-  const base = Number(match[0]);
-  if (!Number.isFinite(base) || base <= 0) return null;
-  if (normalized.includes("cr")) return base * 10000000;
-  if (normalized.includes("lakh") || normalized.includes("lac") || /\d\s*l\b/.test(normalized)) return base * 100000;
-  if (normalized.includes("k")) return base * 1000;
-  return base;
-};
-
-const parseMonths = (value: string) => {
-  const normalized = value.toLowerCase();
-  const hasDurationToken = (token: string) =>
-    new RegExp(`(^|[^a-z0-9])${token}($|[^a-z0-9])`, "i").test(normalized);
-
-  if (hasDurationToken("5") || hasDurationToken("five")) return 60;
-  if (hasDurationToken("3") || hasDurationToken("three")) return 36;
-  if (hasDurationToken("2") || hasDurationToken("two")) return 24;
-  if (hasDurationToken("1") || hasDurationToken("one")) return 12;
-  return null;
-};
 
 function findTier(tiers: Tier[], amount: number): Tier | null {
   for (const tier of tiers) {
@@ -261,7 +234,7 @@ export default function ProfitCalculator() {
     const normalized = message.toLowerCase();
 
     if (chatStep === 0) {
-      const nextAmount = parseAmount(message);
+      const nextAmount = parseCompoundingAmount(message);
       if (!nextAmount) {
         sendBot("Please send a clear amount like ₹1,00,000, 2 lakh, or 50000.");
         return;
@@ -273,7 +246,7 @@ export default function ProfitCalculator() {
       return;
     }
 
-    const nextMonths = parseMonths(message);
+    const nextMonths = parseProjectionMonths(message);
     if (nextMonths) {
       setMonths(nextMonths);
       setChatStep(2);
@@ -283,7 +256,7 @@ export default function ProfitCalculator() {
       return;
     }
 
-    const nextAmount = parseAmount(message);
+    const nextAmount = parseCompoundingAmount(message);
     if (nextAmount) {
       setAmount(nextAmount);
       setChatStep((step) => (step === 0 ? 1 : step));

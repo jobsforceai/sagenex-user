@@ -18,6 +18,12 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { getCompoundingStatus, toggleCompounding } from "@/actions/user";
 import { getLegacyTieredROIRate, getNewTieredROIRate, getTieredROIRate } from "@/lib/roi";
+import {
+  type ChatMessage,
+  type ChatStep,
+  parseCompoundingAmount,
+  parseProjectionMonths,
+} from "@/lib/compounding-chat";
 import { toast } from "sonner";
 import {
   Area,
@@ -28,16 +34,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-type ChatStep = 0 | 1 | 2;
-
-type ChatRole = "bot" | "user";
-
-interface ChatMessage {
-  id: string;
-  role: ChatRole;
-  text: string;
-}
 
 interface Snapshot {
   month: number;
@@ -70,35 +66,11 @@ const VALUE_PERIODS = [
 
 const fmt = (value: number) => `₹${Math.round(value).toLocaleString("en-IN")}`;
 
-const parseAmount = (value: string) => {
-  const normalized = value.toLowerCase().replace(/,/g, "").replace(/₹/g, "").trim();
-  const match = normalized.match(/[\d.]+/);
-  if (!match) return null;
-  const base = Number(match[0]);
-  if (!Number.isFinite(base) || base <= 0) return null;
-  if (normalized.includes("cr")) return base * 10000000;
-  if (normalized.includes("lakh") || normalized.includes("lac") || /\d\s*l\b/.test(normalized)) return base * 100000;
-  if (normalized.includes("k")) return base * 1000;
-  return base;
-};
-
 const parseRate = (value: string) => {
   const match = value.match(/(\d+(?:\.\d+)?)\s*%/);
   if (!match) return null;
   const rate = Number(match[1]);
   return Number.isFinite(rate) && rate > 0 ? rate : null;
-};
-
-const parseMonths = (value: string) => {
-  const normalized = value.toLowerCase();
-  const hasDurationToken = (token: string) =>
-    new RegExp(`(^|[^a-z0-9])${token}($|[^a-z0-9])`, "i").test(normalized);
-
-  if (hasDurationToken("5") || hasDurationToken("five")) return 60;
-  if (hasDurationToken("3") || hasDurationToken("three")) return 36;
-  if (hasDurationToken("2") || hasDurationToken("two")) return 24;
-  if (hasDurationToken("1") || hasDurationToken("one")) return 12;
-  return null;
 };
 
 function buildSnapshot(packageAmount: number, rateFn: (amount: number) => number, months: number): Snapshot {
@@ -185,6 +157,9 @@ export function CompoundingProjectionModal({
         : getTieredROIRate;
 
   const effectiveRate = customRatePct === null ? roiRate : customRatePct / 100;
+  const effectiveRatePct = effectiveRate * 100;
+  const hasEffectiveRate = effectiveRatePct > 0;
+  const accountRateLabel = `${Math.round(effectiveRatePct)}%`;
   const rateFn = customRatePct === null ? baseRateFn : () => effectiveRate;
   const selectedPeriod = PERIODS.find((period) => period.months === months)?.label ?? `${months} Months`;
   const report = useMemo(
@@ -342,7 +317,7 @@ export function CompoundingProjectionModal({
     const normalized = message.toLowerCase();
 
     if (chatStep === 0) {
-      const amount = normalized.includes("current") ? packageAmount : parseAmount(message);
+      const amount = normalized.includes("current") ? packageAmount : parseCompoundingAmount(message);
       if (!amount) {
         sendBot("Send a starting amount like ₹1,00,000, 1 lakh, or type current package.");
         return;
@@ -356,7 +331,7 @@ export function CompoundingProjectionModal({
 
     if (chatStep === 1) {
       const rate = parseRate(message);
-      const nextMonths = parseMonths(message);
+      const nextMonths = parseProjectionMonths(message);
       if (!rate && !nextMonths) {
         sendBot("For Step 2, send ROI and duration together. Example: 7% for 2 years.");
         return;
@@ -378,7 +353,7 @@ export function CompoundingProjectionModal({
       return;
     }
 
-    const nextMonths = parseMonths(message);
+    const nextMonths = parseProjectionMonths(message);
     const rate = parseRate(message);
     if (rate) setCustomRatePct(rate);
     if (nextMonths) rebuildProjection(nextMonths);
@@ -441,8 +416,8 @@ export function CompoundingProjectionModal({
           </DialogTitle>
         </DialogHeader>
 
-        <div className="min-h-0 flex-1 overflow-y-auto lg:grid lg:grid-cols-[minmax(320px,0.86fr)_minmax(0,1.7fr)] lg:overflow-hidden">
-          <section className="flex min-h-[520px] flex-col border-b border-slate-200/70 bg-white p-3 lg:min-h-0 lg:border-b-0 lg:border-r sm:p-5">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden lg:grid lg:grid-cols-[minmax(320px,0.86fr)_minmax(0,1.7fr)]">
+          <section className="flex min-h-0 flex-1 flex-col border-b border-slate-200/70 bg-white p-3 lg:border-b-0 lg:border-r sm:p-5">
             <div className="grid grid-cols-3 gap-2">
               {STEPS.map((step, index) => (
                 <div key={step.label} className="min-w-0">
@@ -465,16 +440,20 @@ export function CompoundingProjectionModal({
               ))}
             </div>
 
-            <div className="mt-4 grid grid-cols-3 gap-2">
+            <div className="mt-3 grid grid-cols-3 gap-1.5 sm:mt-4 sm:gap-2">
               {[
                 { icon: WalletCards, label: "Amount", value: fmt(modelAmount) },
-                { icon: BarChart3, label: "ROI", value: `${(effectiveRate * 100).toFixed(0)}%` },
+                { icon: BarChart3, label: "ROI", value: `${effectiveRatePct.toFixed(0)}%` },
                 { icon: CalendarDays, label: "Time", value: selectedPeriod },
               ].map((item) => (
-                <div key={item.label} className="rounded-2xl border border-slate-200 bg-white p-2.5 shadow-sm sm:p-3">
-                  <item.icon className="h-4 w-4 text-[#C8103E]" />
-                  <p className="mt-2 text-[10px] font-black uppercase tracking-wide text-[#94A3B8]">{item.label}</p>
-                  <p className="mt-1 truncate text-xs font-black text-[#0F172A] sm:text-sm">{item.value}</p>
+                <div key={item.label} className="rounded-xl border border-slate-200 bg-white px-2 py-2 shadow-sm sm:rounded-2xl sm:p-3">
+                  <div className="flex min-w-0 items-center gap-1.5 sm:block">
+                    <item.icon className="h-3.5 w-3.5 shrink-0 text-[#C8103E] sm:h-4 sm:w-4" />
+                    <div className="min-w-0">
+                      <p className="text-[8px] font-black uppercase tracking-wide text-[#94A3B8] sm:mt-2 sm:text-[10px]">{item.label}</p>
+                      <p className="truncate text-[11px] font-black text-[#0F172A] sm:mt-1 sm:text-sm">{item.value}</p>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -487,47 +466,194 @@ export function CompoundingProjectionModal({
                     {chatStep === 0 ? "Confirm amount" : chatStep === 1 ? "Add ROI and duration" : "Projection ready"}
                   </p>
                 </div>
-                <button
-                  type="button"
-                  onClick={handleToggle}
-                  disabled={enabling}
-                  className={`relative h-8 w-14 rounded-full transition ${compoundingEnabled ? "bg-emerald-600" : "bg-slate-300"}`}
-                >
-                  <span className={`absolute top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[8px] font-black transition ${
-                    compoundingEnabled ? "left-7 text-emerald-700" : "left-1 text-slate-500"
-                  }`}>
-                    {compoundingEnabled ? "ON" : "OFF"}
-                  </span>
-                </button>
+                <div className="flex shrink-0 items-center gap-2">
+                  {hasEffectiveRate && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-2.5 py-1.5 text-[10px] font-black text-emerald-700 shadow-[0_8px_20px_rgba(16,185,129,0.12)]">
+                      <BarChart3 className="h-3.5 w-3.5" />
+                      {effectiveRatePct.toFixed(0)}% ROI
+                    </span>
+                  )}
+                  <button
+                    type="button"
+                    onClick={handleToggle}
+                    disabled={enabling}
+                    className={`relative h-8 w-14 rounded-full transition ${compoundingEnabled ? "bg-emerald-600" : "bg-slate-300"}`}
+                  >
+                    <span className={`absolute top-1 grid h-6 w-6 place-items-center rounded-full bg-white text-[8px] font-black transition ${
+                      compoundingEnabled ? "left-7 text-emerald-700" : "left-1 text-slate-500"
+                    }`}>
+                      {compoundingEnabled ? "ON" : "OFF"}
+                    </span>
+                  </button>
+                </div>
               </div>
 
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 py-3">
-                {chatMessages.map((message) =>
-                  message.role === "user" ? (
-                    <div key={message.id} className="flex justify-end">
-                      <div className="flex max-w-[86%] items-center gap-2 rounded-2xl rounded-tr-md bg-[#C8103E] px-3 py-2 text-xs font-bold text-white shadow-[0_10px_24px_rgba(200,16,62,0.18)]">
-                        <UserRound className="h-3.5 w-3.5" />
-                        {message.text}
+              <div className="min-h-0 flex-1 space-y-4 overflow-y-auto px-4 py-4">
+                <div className={isBuilding || hasProjection ? "hidden lg:flex lg:flex-col lg:gap-4" : "flex flex-col gap-4"}>
+                  {chatMessages.map((message) =>
+                    message.role === "user" ? (
+                      <div key={message.id} className="flex justify-end pb-2">
+                        <div className="flex max-w-[86%] items-center gap-2 rounded-2xl rounded-tr-md bg-[#C8103E] px-3 py-2 text-xs font-bold text-white shadow-[0_10px_24px_rgba(200,16,62,0.18)]">
+                          <UserRound className="h-3.5 w-3.5" />
+                          {message.text}
+                        </div>
                       </div>
+                    ) : (
+                      <div key={message.id} className="flex items-start gap-2.5">
+                        <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+                          <Bot className="h-3.5 w-3.5" />
+                        </span>
+                        <div className="max-w-[86%] rounded-2xl rounded-tl-md border border-emerald-100 bg-white px-3 py-2 text-xs leading-relaxed shadow-sm">
+                          {message.id === typingMessageId ? displayedResponse : message.text}
+                          {message.id === typingMessageId && displayedResponse.length < responseText.length && (
+                            <span className="ml-0.5 inline-block h-3 w-1 animate-pulse rounded-full bg-emerald-500 align-middle" />
+                          )}
+                        </div>
+                      </div>
+                    )
+                  )}
+                </div>
+
+                {isBuilding && (
+                  <motion.div
+                    key="mobile-building"
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    className="lg:hidden rounded-3xl border border-slate-200 bg-white p-4 text-center shadow-sm"
+                  >
+                    <div className="relative mx-auto grid h-24 w-24 place-items-center">
+                      <svg className="absolute inset-0 h-full w-full -rotate-90" viewBox="0 0 100 100" aria-hidden="true">
+                        <circle cx="50" cy="50" r="42" fill="none" stroke="#E2E8F0" strokeWidth="8" />
+                        <motion.circle
+                          cx="50"
+                          cy="50"
+                          r="42"
+                          fill="none"
+                          stroke="#C8103E"
+                          strokeLinecap="round"
+                          strokeWidth="8"
+                          strokeDasharray={263.89}
+                          initial={{ strokeDashoffset: 263.89 }}
+                          animate={{ strokeDashoffset: 263.89 - (263.89 * buildProgress) / 100 }}
+                          transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                        />
+                      </svg>
+                      <span className="relative text-xl font-black text-[#C8103E]">{buildProgress}%</span>
                     </div>
-                  ) : (
-                    <div key={message.id} className="flex items-start gap-2.5">
-                      <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
-                        <Bot className="h-3.5 w-3.5" />
+                    <p className="mt-3 text-sm font-black text-[#0F172A]">Building your projection</p>
+                    <div className="mt-3 grid grid-cols-2 gap-2 text-left">
+                      {[
+                        ["Inputs", buildProgress >= 25],
+                        ["Monthly model", buildProgress >= 50],
+                        ["Growth curve", buildProgress >= 75],
+                        ["Report", buildProgress >= 100],
+                      ].map(([label, done]) => (
+                        <div key={String(label)} className="flex items-center gap-2 rounded-2xl bg-slate-50 px-3 py-2">
+                          <span className={`grid h-5 w-5 place-items-center rounded-full ${done ? "bg-emerald-500 text-white" : "bg-slate-200 text-[#94A3B8]"}`}>
+                            <Check className="h-3 w-3" />
+                          </span>
+                          <span className="text-[11px] font-black text-[#64748B]">{label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </motion.div>
+                )}
+
+                {hasProjection && (
+                  <motion.div
+                    key={`mobile-report-${months}-${Math.round(modelAmount)}-${customRatePct ?? "current"}`}
+                    initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    className="lg:hidden space-y-2 rounded-3xl border border-slate-200 bg-white p-3 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
+                        <p className="text-[10px] font-black uppercase tracking-[0.12em] text-[#64748B]">Future value</p>
+                        <p className="mt-1 truncate text-3xl font-black text-emerald-700">{fmt(report.compoundPackage)}</p>
+                        <p className="mt-1 text-[11px] font-bold leading-snug text-[#64748B]">
+                          After <span className="text-[#0F172A]">{selectedPeriod.toLowerCase()}</span> from {fmt(modelAmount)}
+                        </p>
+                      </div>
+                      <span className="shrink-0 rounded-full bg-emerald-50 px-2.5 py-1.5 text-[10px] font-black text-emerald-700">
+                        +{fmt(report.extra)}
                       </span>
-                      <div className="max-w-[86%] rounded-2xl rounded-tl-md border border-emerald-100 bg-white px-3 py-2 text-xs leading-relaxed shadow-sm">
-                        {message.id === typingMessageId ? displayedResponse : message.text}
-                        {message.id === typingMessageId && displayedResponse.length < responseText.length && (
-                          <span className="ml-0.5 inline-block h-3 w-1 animate-pulse rounded-full bg-emerald-500 align-middle" />
-                        )}
-                      </div>
                     </div>
-                  )
+
+                    <div className="h-28 rounded-2xl bg-gradient-to-b from-white to-emerald-50/40 p-1.5">
+                      <ResponsiveContainer width="100%" height="100%">
+                        <AreaChart data={chartData} margin={{ top: 6, right: 4, left: 0, bottom: 0 }}>
+                          <defs>
+                            <linearGradient id="mobileModalCompoundArea" x1="0" x2="0" y1="0" y2="1">
+                              <stop offset="0%" stopColor="#10B981" stopOpacity={0.28} />
+                              <stop offset="100%" stopColor="#10B981" stopOpacity={0.04} />
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid stroke="#E2E8F0" strokeDasharray="4 8" vertical={false} />
+                          <XAxis
+                            dataKey="label"
+                            axisLine={false}
+                            tickLine={false}
+                            tick={{ fill: "#64748B", fontSize: 9, fontWeight: 800 }}
+                            interval="preserveStartEnd"
+                          />
+                          <YAxis hide domain={["dataMin", "dataMax"]} />
+                          <Area
+                            type="monotone"
+                            dataKey="simple"
+                            stroke="#94A3B8"
+                            strokeWidth={2}
+                            fill="transparent"
+                            dot={false}
+                          />
+                          <Area
+                            type="monotone"
+                            dataKey="compound"
+                            stroke="#059669"
+                            strokeWidth={3}
+                            fill="url(#mobileModalCompoundArea)"
+                            dot={{ r: 2.5, fill: "#059669", stroke: "#ECFDF5", strokeWidth: 2 }}
+                            activeDot={false}
+                          />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-1.5">
+                      {[
+                        ["Simple", fmt(simpleTotalValue), "text-[#0F172A] bg-blue-50/50 border-blue-100"],
+                        ["Compound", fmt(report.compoundPackage), "text-emerald-700 bg-emerald-50 border-emerald-200"],
+                        ["Extra", `+${fmt(report.extra)}`, "text-amber-600 bg-amber-50 border-amber-200"],
+                      ].map(([label, value, className]) => (
+                        <div key={label} className={`min-w-0 rounded-2xl border p-2 ${className}`}>
+                          <p className="text-[9px] font-black uppercase tracking-wide text-[#64748B]">{label}</p>
+                          <p className="mt-1 truncate text-xs font-black">{value}</p>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="grid grid-cols-4 gap-1.5">
+                      {valueOptions.map(({ label, months: optionMonths, snapshot }) => (
+                        <button
+                          key={optionMonths}
+                          type="button"
+                          onClick={() => selectPeriod(optionMonths)}
+                          className={`rounded-xl border px-1.5 py-2 text-center transition ${
+                            months === optionMonths
+                              ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                              : "border-transparent bg-slate-50 text-[#64748B]"
+                          }`}
+                        >
+                          <span className="block text-[10px] font-black">{label}</span>
+                          <span className="mt-1 block truncate text-[9px] font-bold">{fmt(snapshot.compoundPackage)}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </motion.div>
                 )}
                 <div ref={chatEndRef} />
               </div>
 
-              <div className="border-t border-slate-200 bg-white px-3 py-3">
+              <div className={`border-t border-slate-200 bg-white px-3 py-3 ${isBuilding || hasProjection ? "hidden lg:block" : ""}`}>
                 <div className="mb-2 flex gap-2 overflow-x-auto">
                   {chatStep === 0 ? (
                     <>
@@ -536,6 +662,15 @@ export function CompoundingProjectionModal({
                     </>
                   ) : (
                     <>
+                      {hasEffectiveRate && ![7, 10].includes(Math.round(effectiveRatePct)) && (
+                        <button
+                          type="button"
+                          onClick={() => quickSend(`${accountRateLabel} for ${selectedPeriod.toLowerCase()}`)}
+                          className="shrink-0 rounded-full border border-amber-300 bg-gradient-to-r from-amber-100 via-yellow-50 to-amber-100 px-3 py-1.5 text-xs font-black text-amber-700 shadow-[0_10px_24px_rgba(245,158,11,0.16)]"
+                        >
+                          {accountRateLabel} · MY ROI
+                        </button>
+                      )}
                       <button type="button" onClick={() => quickSend("7% for 2 years")} className="shrink-0 rounded-full bg-[#FFF1F4] px-3 py-1.5 text-xs font-black text-[#C8103E]">7% · 2 yrs</button>
                       <button type="button" onClick={() => quickSend("10% for 3 years")} className="shrink-0 rounded-full bg-slate-100 px-3 py-1.5 text-xs font-black text-[#0F172A]">10% · 3 yrs</button>
                       <button type="button" onClick={() => quickSend("Explain compounding")} className="shrink-0 rounded-full bg-emerald-50 px-3 py-1.5 text-xs font-black text-emerald-700">Explain</button>
@@ -559,7 +694,7 @@ export function CompoundingProjectionModal({
             </div>
           </section>
 
-          <aside className="min-h-[560px] overflow-hidden bg-slate-50/40 p-3 lg:min-h-0 sm:p-4">
+          <aside className="hidden min-h-[560px] overflow-hidden bg-slate-50/40 p-3 lg:block lg:min-h-0 sm:p-4">
             <AnimatePresence mode="wait" initial={false}>
               {isBuilding ? (
                 <motion.div
