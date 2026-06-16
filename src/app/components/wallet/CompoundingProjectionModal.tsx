@@ -18,6 +18,12 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { getCompoundingStatus, toggleCompounding } from "@/actions/user";
 import { getLegacyTieredROIRate, getNewTieredROIRate, getTieredROIRate } from "@/lib/roi";
+import {
+  type ChatMessage,
+  type ChatStep,
+  parseCompoundingAmount,
+  parseProjectionMonths,
+} from "@/lib/compounding-chat";
 import { toast } from "sonner";
 import {
   Area,
@@ -28,16 +34,6 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-
-type ChatStep = 0 | 1 | 2;
-
-type ChatRole = "bot" | "user";
-
-interface ChatMessage {
-  id: string;
-  role: ChatRole;
-  text: string;
-}
 
 interface Snapshot {
   month: number;
@@ -70,35 +66,11 @@ const VALUE_PERIODS = [
 
 const fmt = (value: number) => `₹${Math.round(value).toLocaleString("en-IN")}`;
 
-const parseAmount = (value: string) => {
-  const normalized = value.toLowerCase().replace(/,/g, "").replace(/₹/g, "").trim();
-  const match = normalized.match(/[\d.]+/);
-  if (!match) return null;
-  const base = Number(match[0]);
-  if (!Number.isFinite(base) || base <= 0) return null;
-  if (normalized.includes("cr")) return base * 10000000;
-  if (normalized.includes("lakh") || normalized.includes("lac") || /\d\s*l\b/.test(normalized)) return base * 100000;
-  if (normalized.includes("k")) return base * 1000;
-  return base;
-};
-
 const parseRate = (value: string) => {
   const match = value.match(/(\d+(?:\.\d+)?)\s*%/);
   if (!match) return null;
   const rate = Number(match[1]);
   return Number.isFinite(rate) && rate > 0 ? rate : null;
-};
-
-const parseMonths = (value: string) => {
-  const normalized = value.toLowerCase();
-  const hasDurationToken = (token: string) =>
-    new RegExp(`(^|[^a-z0-9])${token}($|[^a-z0-9])`, "i").test(normalized);
-
-  if (hasDurationToken("5") || hasDurationToken("five")) return 60;
-  if (hasDurationToken("3") || hasDurationToken("three")) return 36;
-  if (hasDurationToken("2") || hasDurationToken("two")) return 24;
-  if (hasDurationToken("1") || hasDurationToken("one")) return 12;
-  return null;
 };
 
 function buildSnapshot(packageAmount: number, rateFn: (amount: number) => number, months: number): Snapshot {
@@ -345,7 +317,7 @@ export function CompoundingProjectionModal({
     const normalized = message.toLowerCase();
 
     if (chatStep === 0) {
-      const amount = normalized.includes("current") ? packageAmount : parseAmount(message);
+      const amount = normalized.includes("current") ? packageAmount : parseCompoundingAmount(message);
       if (!amount) {
         sendBot("Send a starting amount like ₹1,00,000, 1 lakh, or type current package.");
         return;
@@ -359,7 +331,7 @@ export function CompoundingProjectionModal({
 
     if (chatStep === 1) {
       const rate = parseRate(message);
-      const nextMonths = parseMonths(message);
+      const nextMonths = parseProjectionMonths(message);
       if (!rate && !nextMonths) {
         sendBot("For Step 2, send ROI and duration together. Example: 7% for 2 years.");
         return;
@@ -381,7 +353,7 @@ export function CompoundingProjectionModal({
       return;
     }
 
-    const nextMonths = parseMonths(message);
+    const nextMonths = parseProjectionMonths(message);
     const rate = parseRate(message);
     if (rate) setCustomRatePct(rate);
     if (nextMonths) rebuildProjection(nextMonths);
