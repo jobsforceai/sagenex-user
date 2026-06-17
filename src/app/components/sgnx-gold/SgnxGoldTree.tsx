@@ -20,7 +20,7 @@ interface GoldTreeNode {
 }
 
 const NODE_W = 220;
-const NODE_H = 100;
+const NODE_H = 114;
 
 function statusColor(status: string | null): string {
   switch (status) {
@@ -96,15 +96,20 @@ function transformTree(tree: GoldTreeNode): { nodes: Node[]; edges: Edge[] } {
               </div>
             )}
             {user.completedMonths != null && user.totalMonths != null && (
-              <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-[#E8E8E8]">
-                <div
-                  className="h-full rounded-full"
-                  style={{
-                    width: `${(user.completedMonths / user.totalMonths) * 100}%`,
-                    background: sc,
-                  }}
-                />
-              </div>
+              <>
+                <div className="mt-1 text-[10px] font-semibold text-zinc-500">
+                  Paid {user.completedMonths}/{user.totalMonths}
+                </div>
+                <div className="mt-1 h-1 w-full overflow-hidden rounded-full bg-[#E8E8E8]">
+                  <div
+                    className="h-full rounded-full"
+                    style={{
+                      width: `${(user.completedMonths / user.totalMonths) * 100}%`,
+                      background: sc,
+                    }}
+                  />
+                </div>
+              </>
             )}
           </div>
         ),
