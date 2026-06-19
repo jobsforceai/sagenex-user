@@ -63,6 +63,28 @@ interface DashboardData {
   wallet: Wallet;
   package: UserPackage;
   earningsMultiplier?: number;
+  rank?: {
+    name?: string;
+    badge?: string;
+    salary?: number;
+    achievedAt?: string | null;
+    consecutiveMonthsMissed?: number;
+  };
+  roiUplineMonthlyBreakdown?: RoiUplineMonthlyBreakdown;
+}
+
+interface RoiUplineMonthlyLevel {
+  level: number;
+  percentage: number;
+  percentageLabel: string;
+  amount: number;
+  count: number;
+}
+
+interface RoiUplineMonthlyBreakdown {
+  yearMonth: string;
+  total: number;
+  levels: RoiUplineMonthlyLevel[];
 }
 
 interface Referral {
@@ -150,6 +172,23 @@ interface LeaderboardEntry {
 
 const ALL_RANKS = ["Member", "Starter", "Builder","Leader","Manager", "Director", "Crown"];
 
+const formatCurrency = (amount?: number) => {
+  if (amount === undefined || amount === null) return "₹0";
+  return amount.toLocaleString("en-IN", {
+    style: "currency",
+    currency: "INR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  });
+};
+
+const DEFAULT_ROI_UPLINE_LEVELS: RoiUplineMonthlyLevel[] = [
+  { level: 1, percentage: 0.01, percentageLabel: "1%", amount: 0, count: 0 },
+  { level: 2, percentage: 0.005, percentageLabel: "0.5%", amount: 0, count: 0 },
+  { level: 3, percentage: 0.0025, percentageLabel: "0.25%", amount: 0, count: 0 },
+  { level: 4, percentage: 0.0025, percentageLabel: "0.25%", amount: 0, count: 0 },
+];
+
 import LockedBonusesCard from "../components/dashboard/LockedBonusesCard";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 import WithdrawalLimit from "../components/dashboard/WithdrawalLimit";
@@ -158,7 +197,7 @@ import WithdrawalLimit from "../components/dashboard/WithdrawalLimit";
 const DashboardPage = () => {
   const { token, isAuthenticated, loading, showSetPasswordModal, onPasswordSet } = useAuth();
   const router = useRouter();
-  const [dashboardData, setDashboardData] = useState<any | null>(null);
+  const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [rankProgress, setRankProgress] = useState<any | null>(null);
   const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
   const [treeData, setTreeData] = useState<TreeData | null>(null);
@@ -170,6 +209,7 @@ const DashboardPage = () => {
     dashboardData?.profile.referralCode
       ? `${process.env.NEXT_PUBLIC_APP_URL}/login?ref=${dashboardData.profile.referralCode}`
       : "";
+  const roiUplineBreakdown = dashboardData?.roiUplineMonthlyBreakdown;
 
   const handleCopy = () => {
     if (referralLink) {
@@ -413,7 +453,48 @@ const DashboardPage = () => {
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
             {financialSummary ? (
-              <EarningsSummary data={financialSummary} />
+              <div className="space-y-4">
+                <EarningsSummary data={financialSummary} />
+                <Card className="overflow-hidden border border-emerald-500/15 bg-gradient-to-br from-emerald-500/10 via-black/20 to-black shadow-[0_10px_24px_rgba(0,0,0,0.35)]">
+                  <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-xs font-black uppercase tracking-[0.12em] text-emerald-200/80">
+                        Monthly ROI upline split
+                      </p>
+                      <CardTitle className="mt-1 text-2xl font-black text-white">
+                        {formatCurrency(roiUplineBreakdown?.total ?? 0)}
+                      </CardTitle>
+                    </div>
+                    {roiUplineBreakdown?.yearMonth && (
+                      <span className="w-fit rounded-full border border-emerald-400/20 bg-emerald-400/10 px-3 py-1 text-xs font-black text-emerald-100">
+                        {roiUplineBreakdown.yearMonth}
+                      </span>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+                      {((roiUplineBreakdown?.levels ?? DEFAULT_ROI_UPLINE_LEVELS) as RoiUplineMonthlyLevel[]).map((level) => (
+                        <div key={level.level} className="min-w-0 rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+                          <div className="flex items-center justify-between gap-2">
+                            <p className="text-xs font-black uppercase tracking-[0.08em] text-gray-300">
+                              L{level.level}
+                            </p>
+                            <span className="rounded-full bg-emerald-400/15 px-2 py-0.5 text-xs font-black text-emerald-200">
+                              {level.percentageLabel}
+                            </span>
+                          </div>
+                          <p className="mt-3 truncate text-lg font-black text-white">
+                            {formatCurrency(level.amount)}
+                          </p>
+                          <p className="mt-1 text-xs font-semibold text-gray-400">
+                            {level.count} credit{level.count === 1 ? "" : "s"}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
             ) : (
               <Card>
                 <CardHeader><CardTitle>Earnings Summary</CardTitle></CardHeader>
