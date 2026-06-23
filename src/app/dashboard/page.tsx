@@ -92,10 +92,25 @@ interface MultiplierLegDetail {
   monthlyBusiness: number;
 }
 
+interface RoiUplineMonthlyLevel {
+  level: number;
+  percentage: number;
+  percentageLabel: string;
+  amount: number;
+  count: number;
+}
+
+interface RoiUplineMonthlyBreakdown {
+  yearMonth: string;
+  total: number;
+  levels: RoiUplineMonthlyLevel[];
+}
+
 interface DashboardData {
   profile: Profile;
   wallet: WalletData;
   package: UserPackage;
+  roiUplineMonthlyBreakdown?: RoiUplineMonthlyBreakdown;
   earningsMultiplier?: number;
   earningsMultiplierDeadline?: string | null;
   rank?: RankSnapshot;
@@ -324,6 +339,21 @@ const DashboardPage = () => {
     profile?.earningsMultiplierDeadline ?? dashboardData?.earningsMultiplierDeadline ?? null;
   const earningsMultiplier =
     dashboardData?.earningsMultiplier ?? profile?.earningsMultiplier;
+  const isLeadershipAchiever = (earningsMultiplier ?? 0) >= 3;
+  const leadershipLevels = dashboardData?.roiUplineMonthlyBreakdown?.levels?.length
+    ? dashboardData.roiUplineMonthlyBreakdown.levels
+    : [
+        { level: 1, percentage: 0.01, percentageLabel: "1%", amount: 0, count: 0 },
+        { level: 2, percentage: 0.005, percentageLabel: "0.5%", amount: 0, count: 0 },
+        { level: 3, percentage: 0.0025, percentageLabel: "0.25%", amount: 0, count: 0 },
+        { level: 4, percentage: 0.0025, percentageLabel: "0.25%", amount: 0, count: 0 },
+      ];
+  const leadershipTotalRate = leadershipLevels.reduce((sum, item) => sum + item.percentage, 0);
+  const leadershipTotal = dashboardData?.roiUplineMonthlyBreakdown?.total ?? 0;
+  const leadershipCardClass =
+    (earningsMultiplier ?? 0) >= 4
+      ? "border-blue-300/25 bg-[linear-gradient(135deg,rgba(15,23,42,0.92),rgba(15,37,92,0.9))]"
+      : "border-emerald-200/25 bg-[linear-gradient(135deg,rgba(6,95,70,0.94),rgba(16,185,129,0.74))]";
   const dashboardLegDetails =
     dashboardData?.multiplierLegDetails && dashboardData.multiplierLegDetails.length > 0
       ? dashboardData.multiplierLegDetails
@@ -453,6 +483,39 @@ const DashboardPage = () => {
                     )}
                   </div>
                 </div>
+
+                {isLeadershipAchiever && (
+                  <div className={`overflow-hidden rounded-xl border p-2.5 shadow-[0_16px_34px_rgba(15,23,42,0.18)] backdrop-blur md:rounded-2xl md:p-4 ${leadershipCardClass}`}>
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[8px] font-black uppercase tracking-[0.12em] !text-white/70 md:text-[10px]">
+                          Leadership monthly income
+                        </p>
+                        <p className="mt-0.5 text-lg font-black !text-white md:text-2xl">
+                          {formatCurrencyCompact(leadershipTotal)}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-white/16 px-2 py-1 text-[9px] font-black !text-white md:text-xs">
+                        Total {(leadershipTotalRate * 100).toLocaleString("en-IN", { maximumFractionDigits: 2 })}%
+                      </span>
+                    </div>
+                    <div className="mt-2 grid grid-cols-4 gap-1.5 md:mt-3 md:gap-2">
+                      {leadershipLevels.map((item) => (
+                        <div key={item.level} className="rounded-lg bg-white/14 px-2 py-1.5 md:rounded-xl md:px-3 md:py-2">
+                          <p className="text-[8px] font-black uppercase tracking-[0.08em] !text-white/55 md:text-[10px]">
+                            L{item.level}
+                          </p>
+                          <p className="mt-0.5 text-xs font-black !text-white md:text-sm">
+                            {item.percentageLabel}
+                          </p>
+                          <p className="mt-0.5 truncate text-[9px] font-bold !text-white/72 md:text-xs">
+                            {formatCurrencyCompact(item.amount)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-3 gap-1.5 md:gap-3">
                   {[
