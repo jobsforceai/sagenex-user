@@ -501,6 +501,39 @@ const DashboardPage = () => {
                   </div>
                 </div>
 
+                {isLeadershipAchiever && (
+                  <div className={`overflow-hidden rounded-xl border p-2.5 shadow-[0_16px_34px_rgba(15,23,42,0.18)] backdrop-blur md:rounded-2xl md:p-4 ${leadershipCardClass}`}>
+                    <div className="flex flex-wrap items-start justify-between gap-2">
+                      <div>
+                        <p className="text-[8px] font-black uppercase tracking-[0.12em] !text-white/70 md:text-[10px]">
+                          Leadership monthly income
+                        </p>
+                        <p className="mt-0.5 text-lg font-black !text-white md:text-2xl">
+                          {formatCurrencyCompact(leadershipTotal)}
+                        </p>
+                      </div>
+                      <span className="rounded-full bg-white/16 px-2 py-1 text-[9px] font-black !text-white md:text-xs">
+                        Total {(leadershipTotalRate * 100).toLocaleString("en-IN", { maximumFractionDigits: 2 })}%
+                      </span>
+                    </div>
+                    <div className="mt-2 grid grid-cols-4 gap-1.5 md:mt-3 md:gap-2">
+                      {leadershipLevels.map((item) => (
+                        <div key={item.level} className="rounded-lg bg-white/14 px-2 py-1.5 md:rounded-xl md:px-3 md:py-2">
+                          <p className="text-[8px] font-black uppercase tracking-[0.08em] !text-white/55 md:text-[10px]">
+                            L{item.level}
+                          </p>
+                          <p className="mt-0.5 text-xs font-black !text-white md:text-sm">
+                            {item.percentageLabel}
+                          </p>
+                          <p className="mt-0.5 truncate text-[9px] font-bold !text-white/72 md:text-xs">
+                            {formatCurrencyCompact(item.amount)}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-3 gap-1.5 md:gap-3">
                   {[
                     { label: "Available Balance", shortLabel: "Balance", value: formatCurrencyCompact(wallet?.availableBalance), icon: Wallet },
