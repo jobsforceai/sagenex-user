@@ -350,10 +350,13 @@ const DashboardPage = () => {
       ];
   const leadershipTotalRate = leadershipLevels.reduce((sum, item) => sum + item.percentage, 0);
   const leadershipTotal = dashboardData?.roiUplineMonthlyBreakdown?.total ?? 0;
-  const leadershipCardClass =
+  const leadershipSplitLabel = leadershipLevels.map((item) => item.percentageLabel).join(" + ");
+  const heroOverlayClass =
     (earningsMultiplier ?? 0) >= 4
-      ? "border-blue-300/25 bg-[linear-gradient(135deg,rgba(15,23,42,0.92),rgba(15,37,92,0.9))]"
-      : "border-emerald-200/25 bg-[linear-gradient(135deg,rgba(6,95,70,0.94),rgba(16,185,129,0.74))]";
+      ? "bg-[linear-gradient(135deg,rgba(12,27,67,0.96)_0%,rgba(13,42,96,0.86)_48%,rgba(8,13,32,0.97)_100%)]"
+      : (earningsMultiplier ?? 0) >= 3
+        ? "bg-[linear-gradient(135deg,rgba(5,95,70,0.96)_0%,rgba(13,148,136,0.84)_46%,rgba(15,23,42,0.96)_100%)]"
+        : "bg-[linear-gradient(135deg,rgba(196,30,58,0.95)_0%,rgba(122,0,31,0.78)_42%,rgba(15,23,42,0.96)_100%)]";
   const dashboardLegDetails =
     dashboardData?.multiplierLegDetails && dashboardData.multiplierLegDetails.length > 0
       ? dashboardData.multiplierLegDetails
@@ -445,7 +448,7 @@ const DashboardPage = () => {
               className="pointer-events-none absolute inset-y-0 right-0 h-full w-auto opacity-25"
               priority
             />
-            <div className="absolute inset-0 bg-[linear-gradient(135deg,rgba(196,30,58,0.95)_0%,rgba(122,0,31,0.78)_42%,rgba(15,23,42,0.96)_100%)]" />
+            <div className={`absolute inset-0 ${heroOverlayClass}`} />
             <div className="relative grid gap-2 p-3 md:gap-8 md:p-8 lg:grid-cols-[minmax(0,1fr)_360px] lg:p-10">
               <div className="space-y-2 md:space-y-7">
                 <div>
@@ -480,6 +483,20 @@ const DashboardPage = () => {
                           </button>
                         }
                       />
+                    )}
+                    {isLeadershipAchiever && (
+                      <span
+                        className="inline-flex items-center gap-1 rounded-full bg-white/16 px-2 py-0.5 text-[10px] font-bold !text-white backdrop-blur md:px-3 md:py-1 md:text-xs"
+                        title={`Leadership monthly income: ${formatCurrencyCompact(leadershipTotal)} (${leadershipSplitLabel} = ${(leadershipTotalRate * 100).toLocaleString("en-IN", { maximumFractionDigits: 2 })}%)`}
+                      >
+                        Leadership {formatCurrencyCompact(leadershipTotal)}
+                        <span className="hidden text-white/70 sm:inline">
+                          · {(leadershipTotalRate * 100).toLocaleString("en-IN", { maximumFractionDigits: 2 })}%
+                        </span>
+                        <span className="hidden text-white/60 md:inline">
+                          · {leadershipLevels.map((item) => `L${item.level} ${item.percentageLabel}`).join(" · ")}
+                        </span>
+                      </span>
                     )}
                   </div>
                 </div>
