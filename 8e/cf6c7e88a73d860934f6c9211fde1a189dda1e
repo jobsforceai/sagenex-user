@@ -1,0 +1,19 @@
+src/app/dashboard/page.tsx
+  s_2a5b43d5f6b5c9::t_53653395e4da72 360-363
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.1",
+  "base_commit_sha": "8ecf6c7e88a73d860934f6c9211fde1a189dda1e",
+  "prompts": {},
+  "sessions": {
+    "s_2a5b43d5f6b5c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91a9-9968-7ab2-88eb-e63f03092772",
+        "model": "gpt-5.5"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
