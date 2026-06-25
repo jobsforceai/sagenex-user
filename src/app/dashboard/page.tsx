@@ -357,6 +357,10 @@ const DashboardPage = () => {
       : (earningsMultiplier ?? 0) >= 3
         ? "bg-[linear-gradient(135deg,rgba(5,95,70,0.96)_0%,rgba(13,148,136,0.84)_46%,rgba(15,23,42,0.96)_100%)]"
         : "bg-[linear-gradient(135deg,rgba(196,30,58,0.95)_0%,rgba(122,0,31,0.78)_42%,rgba(15,23,42,0.96)_100%)]";
+  const leadershipCardClass =
+    (earningsMultiplier ?? 0) >= 4
+      ? "border-sky-100/25 bg-sky-200/12"
+      : "border-emerald-100/25 bg-emerald-200/12";
   const dashboardLegDetails =
     dashboardData?.multiplierLegDetails && dashboardData.multiplierLegDetails.length > 0
       ? dashboardData.multiplierLegDetails
