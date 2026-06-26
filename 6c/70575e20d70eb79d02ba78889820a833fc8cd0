@@ -1,0 +1,19 @@
+src/app/components/LandingPage.tsx
+  s_2a5b43d5f6b5c9::t_0413ab26147052 4,11,15,19-21,42,44,60-62,73-75
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "6c70575e20d70eb79d02ba78889820a833fc8cd0",
+  "prompts": {},
+  "sessions": {
+    "s_2a5b43d5f6b5c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91a9-9968-7ab2-88eb-e63f03092772",
+        "model": "gpt-5.5"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
