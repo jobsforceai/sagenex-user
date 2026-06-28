@@ -1,0 +1,25 @@
+src/app/components/dashboard/CountdownTimer.tsx
+  s_2a5b43d5f6b5c9::t_85df8900b92c2c 16,73,82,87,103,106
+src/app/dashboard/TeamPulseSection.tsx
+  s_2a5b43d5f6b5c9::t_e19324d6e8193f 487,492,498
+src/app/dashboard/page.tsx
+  s_2a5b43d5f6b5c9::t_26856bfd7c4159 832,837
+src/app/team-business/page.tsx
+  s_2a5b43d5f6b5c9::t_aff22e26fe9c31 483
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.3",
+  "base_commit_sha": "191ac2c076aaba5fe325a619070a318ed187fdcd",
+  "prompts": {},
+  "sessions": {
+    "s_2a5b43d5f6b5c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91a9-9968-7ab2-88eb-e63f03092772",
+        "model": "gpt-5.5"
+      },
+      "human_author": "jobsforceai <jobsforceai@gmail.com>"
+    }
+  }
+}
