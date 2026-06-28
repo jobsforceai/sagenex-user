@@ -829,12 +829,12 @@ const DashboardPage = () => {
                       <Calendar className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="text-xs font-black uppercase tracking-[0.1em] text-amber-700">Multiplier window</p>
+                      <p className="text-xs font-black uppercase tracking-[0.1em] text-amber-700">Current 30-day cycle</p>
                       <p className="text-lg font-black text-[#0F172A]">{earningsMultiplier ?? 0}x active</p>
                     </div>
                   </div>
                   <p className="mt-4 text-sm font-semibold text-amber-800">
-                    Deadline: {new Date(earningsMultiplierDeadline).toLocaleString()}
+                    Cycle ends: {new Date(earningsMultiplierDeadline).toLocaleString()}
                   </p>
                 </section>
               )}

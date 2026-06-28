@@ -484,18 +484,18 @@ export default function TeamPulseSection() {
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white md:mt-2 md:h-2">
                 <div className="h-full rounded-full bg-emerald-500" style={{ width: legPct + '%' }} />
               </div>
-              <p className="mt-1 hidden text-[11px] text-[#64748B] md:block">Each leg needs ₹{(rp.requiredLegBusinessPerLeg ?? 0).toLocaleString('en-IN')}+ business in last 120 days</p>
+              <p className="mt-1 hidden text-[11px] text-[#64748B] md:block">Each leg needs ₹{(rp.requiredLegBusinessPerLeg ?? 0).toLocaleString('en-IN')}+ business in this 30-day cycle</p>
             </div>
             {/* Team business progress */}
             <div className="rounded-xl border border-slate-100 bg-slate-50/60 p-2.5 md:p-3">
               <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-[0.08em] text-[#64748B] md:text-[11px]">
-                <span>Team business · 120d</span>
+                <span>Team business · cycle</span>
                 <span className="font-black text-[#0F172A]">{inrCompact(haveTeam)}/{inrCompact(targetTeam)}</span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-white md:mt-2 md:h-2">
                 <div className="h-full rounded-full bg-sky-500" style={{ width: teamPct + '%' }} />
               </div>
-              <p className="mt-1 hidden text-[11px] text-[#64748B] md:block">Across your full downline in the rolling 120-day window</p>
+              <p className="mt-1 hidden text-[11px] text-[#64748B] md:block">Across your full downline in the current 30-day cycle</p>
             </div>
           </div>
         ) : (
