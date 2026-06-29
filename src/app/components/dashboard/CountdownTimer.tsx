@@ -13,7 +13,7 @@ interface CountdownTimerProps {
   deadline: string | null | undefined;
 }
 
-const QUALIFICATION_WINDOW_DAYS = 120;
+const QUALIFICATION_WINDOW_DAYS = 30;
 
 const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
   const calculateTimeLeft = () => {
@@ -70,7 +70,7 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
   return (
     <div className="mt-6 border-t border-neutral-800/50 pt-6">
        <div className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <h3 className="text-sm font-medium text-gray-400">Earnings Multiplier Qualification Window</h3>
+            <h3 className="text-sm font-medium text-gray-400">Earnings Multiplier Cycle</h3>
             <TooltipProvider>
                 <Tooltip>
                     <TooltipTrigger>
@@ -79,12 +79,12 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
                     <TooltipContent className="max-w-xs bg-gray-800 text-white border-gray-700 p-4 rounded-lg shadow-lg">
                         <h4 className="font-bold text-lg mb-2">How this works:</h4>
                         <p className="text-sm">
-                            You have a fixed {QUALIFICATION_WINDOW_DAYS}-day window to qualify for higher multipliers.
+                            Your multiplier is checked in {QUALIFICATION_WINDOW_DAYS}-day cycles.
                         </p>
                         <ul className="list-disc list-inside mt-2 text-xs space-y-1">
                             <li>3.0x: 3 legs with ≥₹1,50,000 each + total team ≥₹5,00,000.</li>
                             <li>4.0x: 4 legs with ≥₹2,00,000 each + total team ≥₹10,00,000 + KYC.</li>
-                            <li>If the window ends without qualifying, your multiplier locks at 2.5x.</li>
+                            <li>Existing 3x/4x users maintain their level through the current cycle.</li>
                         </ul>
                     </TooltipContent>
                 </Tooltip>
@@ -100,10 +100,10 @@ const CountdownTimer = ({ deadline }: CountdownTimerProps) => {
                             style={{ width: `${progress}%` }}
                         ></div>
                     </div>
-                    <p className="text-xs text-gray-400 mt-1">{progress.toFixed(1)}% of qualification period passed.</p>
+                    <p className="text-xs text-gray-400 mt-1">{progress.toFixed(1)}% of current cycle passed.</p>
                 </>
             ) : (
-                <p className="text-sm text-red-500">The qualification period has ended.</p>
+                <p className="text-sm text-red-500">The current cycle has ended.</p>
             )}
         </div>
     </div>

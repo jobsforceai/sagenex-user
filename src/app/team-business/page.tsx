@@ -480,7 +480,7 @@ const TeamBusinessPage = () => {
                 )}
                 {earningsMultiplierDeadline && (
                   <p className="text-xs text-[#64748B]">
-                    Deadline: {new Date(earningsMultiplierDeadline).toLocaleString()}
+                    Cycle ends: {new Date(earningsMultiplierDeadline).toLocaleString()}
                   </p>
                 )}
               </div>
