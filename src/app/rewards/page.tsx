@@ -198,7 +198,7 @@ const ClosestRewardHero = ({
   if (!reward) {
     return (
       <section className="rounded-3xl border border-slate-200/70 bg-white p-6 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-        <p className="text-sm font-bold text-[#64748B]">Closest reward</p>
+        <p className="text-xs font-bold text-[#64748B]">Next trip reward</p>
         <h2 className="mt-2 text-2xl font-black text-[#0F172A]">No active travel rewards yet</h2>
         <p className="mt-2 text-sm text-[#64748B]">
           Keep building your sales and team to unlock travel rewards.
@@ -215,40 +215,46 @@ const ClosestRewardHero = ({
   return (
     <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       {promoImage && (
-        <div className="relative h-36 w-full bg-slate-100 sm:h-44">
+        <div className="relative h-36 w-full bg-slate-100 sm:h-44 lg:h-52">
           <Image src={promoImage} alt="" fill className="object-cover" sizes="100vw" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0F172A]/80 via-[#0F172A]/30 to-transparent" />
           <div className="absolute bottom-4 left-4 right-4">
-            <p className="text-xs font-bold text-white/80">Closest reward</p>
+            <p className="text-xs font-bold text-white/80">Next trip reward</p>
             <h2 className="text-xl font-black text-white sm:text-2xl">{programName}</h2>
           </div>
         </div>
       )}
-      <div className="p-5 sm:p-6">
-        {!promoImage && (
-          <>
-            <p className="text-xs font-bold text-[#64748B]">Closest reward</p>
-            <h2 className="mt-1 text-2xl font-black text-[#0F172A]">{programName}</h2>
-          </>
-        )}
-        <p className="mt-2 text-base font-bold text-[#0F172A]">{reward.rewardSnapshot.reward}</p>
-
-        <div className="mt-4">
-          <div className="mb-2 flex items-center justify-between text-sm">
-            <span className="font-semibold text-[#64748B]">{Math.round(progress)}% complete</span>
-            <span className="font-black text-[#0F172A]">
-              {formatCurrency(current)} / {formatCurrency(total)}
-            </span>
+      <div className="p-5 sm:p-6 lg:p-8">
+        <div className="lg:flex lg:items-start lg:justify-between lg:gap-10">
+          <div className="min-w-0 flex-1">
+            {!promoImage && (
+              <>
+                <p className="text-xs font-bold text-[#64748B]">Next trip reward</p>
+                <h2 className="mt-1 text-2xl font-black text-[#0F172A] lg:text-3xl">{programName}</h2>
+              </>
+            )}
+            <p className={`font-bold text-[#0F172A] lg:text-lg ${promoImage ? "text-base" : "mt-2 text-base"}`}>
+              {reward.rewardSnapshot.reward}
+            </p>
           </div>
-          <div className="h-3 overflow-hidden rounded-full bg-slate-100">
-            <div
-              className="h-full rounded-full bg-[#00b386]"
-              style={{ width: `${progress}%` }}
-            />
+
+          <div className="mt-4 w-full lg:mt-0 lg:max-w-sm lg:shrink-0">
+            <div className="mb-2 flex items-center justify-between text-sm">
+              <span className="font-semibold text-[#64748B]">{Math.round(progress)}% complete</span>
+              <span className="font-black text-[#0F172A]">
+                {formatCurrency(current)} / {formatCurrency(total)}
+              </span>
+            </div>
+            <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+              <div
+                className="h-full rounded-full bg-[#00b386]"
+                style={{ width: `${progress}%` }}
+              />
+            </div>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-wrap items-center gap-3">
+        <div className="mt-5 flex flex-wrap items-center gap-3 lg:mt-6">
           <span className={`rounded-full px-3 py-1 text-sm font-bold ${statusToneClass[status.tone]}`}>
             {status.label}
           </span>
@@ -313,23 +319,23 @@ const QuickStatusTiles = ({
     {
       label: "Claims pending",
       value: claimsPending.toString(),
-      sub: claimsPending === 1 ? "Needs attention" : "Needs attention",
+      sub: claimsPending === 0 ? "All clear" : "Needs attention",
       icon: ClipboardList,
       color: "#D97706",
     },
   ];
 
   return (
-    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+    <section className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-1 xl:gap-4">
       {tiles.map(({ label, value, sub, icon: Icon, color }) => (
         <div
           key={label}
-          className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)]"
+          className="rounded-2xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] lg:p-5"
         >
-          <Icon className="h-5 w-5" style={{ color }} />
+          <Icon className="h-5 w-5 lg:h-6 lg:w-6" style={{ color }} />
           <p className="mt-3 text-xs font-bold text-[#64748B]">{label}</p>
           <p className="mt-1 truncate text-lg font-black text-[#0F172A] sm:text-xl">{value}</p>
-          <p className="mt-0.5 truncate text-[11px] font-semibold text-[#94A3B8]">{sub}</p>
+          <p className="mt-0.5 truncate text-[11px] font-semibold text-[#94A3B8] lg:text-xs">{sub}</p>
         </div>
       ))}
     </section>
@@ -364,7 +370,7 @@ const TravelRewardTile = ({
       onClick={onSelect}
       className="flex h-full w-full flex-col overflow-hidden rounded-2xl border border-slate-200/70 bg-white text-left shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)]"
     >
-      <div className="relative h-24 bg-slate-100">
+      <div className="relative h-24 bg-slate-100 sm:h-28 lg:h-32">
         <Image src={promo.image} alt="" fill className="object-cover" sizes="50vw" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/50 to-transparent" />
         <span className="absolute left-3 top-3 flex h-9 w-9 items-center justify-center rounded-xl bg-white/90 text-[#C41E3A]">
@@ -942,10 +948,11 @@ const RewardsPage = () => {
   const scrollToDetails = useCallback((programId?: string) => {
     setShowDetails(true);
     requestAnimationFrame(() => {
-      const target = programId
-        ? document.getElementById(`tracker-${programId}`)
-        : detailsRef.current;
-      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (programId) {
+        document.getElementById(`tracker-${programId}`)?.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+      detailsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   }, []);
 
@@ -1045,39 +1052,50 @@ const RewardsPage = () => {
             </div>
           )}
 
-          <ClosestRewardHero
-            reward={heroReward}
-            programName={heroProgram?.name ?? "Reward"}
-            promoImage={heroReward ? TRAVEL_PROMO[heroReward.programId]?.image : undefined}
-            isProgramLocked={heroReward ? programConfigs[heroReward.programId]?.status === "locked" : false}
-            onUploadDocuments={setUploadModalReward}
-            onViewDetails={() => scrollToDetails(heroReward?.programId)}
-          />
+          <div className="space-y-4 xl:grid xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start xl:gap-6 xl:space-y-0">
+            <div className="space-y-4 sm:space-y-6">
+              <TodayDoThis tasks={todayTasks} />
 
-          <QuickStatusTiles
-            yourSales={yourSales}
-            teamSales={teamSales}
-            activeTeams={activeLegs}
-            claimsPending={claimsPending}
-          />
+              <div id="luxury-rewards" className="scroll-mt-4">
+                <LuxuryRewardsCard />
+              </div>
+            </div>
+
+            <QuickStatusTiles
+              yourSales={yourSales}
+              teamSales={teamSales}
+              activeTeams={activeLegs}
+              claimsPending={claimsPending}
+            />
+          </div>
 
           <section>
-            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#64748B]">All rewards</p>
-            <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-              {displayPrograms.map((program) => (
-                <TravelRewardTile
-                  key={program.programId}
-                  program={program}
-                  progress={getRewardProgress(rewardsByProgram[program.programId] ?? [])}
-                  rewards={rewardsByProgram[program.programId] ?? []}
-                  onSelect={() => scrollToDetails(program.programId)}
+            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[#64748B]">Trip rewards</p>
+            <p className="mb-3 text-sm text-[#64748B] lg:mb-5">Europe and cruise trips you can earn</p>
+            <div className="lg:grid lg:grid-cols-5 lg:items-stretch lg:gap-6">
+              <div className="lg:col-span-3">
+                <ClosestRewardHero
+                  reward={heroReward}
+                  programName={heroProgram?.name ?? "Reward"}
+                  promoImage={heroReward ? TRAVEL_PROMO[heroReward.programId]?.image : undefined}
+                  isProgramLocked={heroReward ? programConfigs[heroReward.programId]?.status === "locked" : false}
+                  onUploadDocuments={setUploadModalReward}
+                  onViewDetails={() => scrollToDetails(heroReward?.programId)}
                 />
-              ))}
-              <LuxuryRewardsCard variant="tile" onTileClick={() => scrollToDetails()} />
+              </div>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:col-span-2 lg:mt-0 lg:grid-cols-1">
+                {displayPrograms.map((program) => (
+                  <TravelRewardTile
+                    key={program.programId}
+                    program={program}
+                    progress={getRewardProgress(rewardsByProgram[program.programId] ?? [])}
+                    rewards={rewardsByProgram[program.programId] ?? []}
+                    onSelect={() => scrollToDetails(program.programId)}
+                  />
+                ))}
+              </div>
             </div>
           </section>
-
-          <TodayDoThis tasks={todayTasks} />
 
           <section ref={detailsRef} className="scroll-mt-6">
             <button
@@ -1086,8 +1104,8 @@ const RewardsPage = () => {
               className="flex w-full items-center justify-between rounded-2xl border border-slate-200/70 bg-white px-5 py-4 text-left shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:bg-slate-50"
             >
               <div>
-                <p className="text-sm font-black text-[#0F172A]">See more details</p>
-                <p className="text-xs text-[#64748B]">Luxury progress, rules, and all reward items</p>
+                <p className="text-sm font-black text-[#0F172A]">Rules & claim details</p>
+                <p className="text-xs text-[#64748B]">How rewards work, upload documents, transfer</p>
               </div>
               <ChevronDown
                 className={`h-5 w-5 text-[#64748B] transition-transform ${showDetails ? "rotate-180" : ""}`}
@@ -1096,7 +1114,6 @@ const RewardsPage = () => {
 
             {showDetails && (
               <div className="mt-4 space-y-4 sm:space-y-6">
-                <LuxuryRewardsCard />
                 <LuxuryTierRulesPanel />
                 <div className="space-y-4">
                   <div className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">

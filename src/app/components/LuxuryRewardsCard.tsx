@@ -3,7 +3,17 @@
 import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
-import { CheckCircle2, Clock, Crown, Lock, Sparkles, Target, Trophy } from "lucide-react";
+import {
+  CheckCircle2,
+  Circle,
+  Clock,
+  Crown,
+  Loader2,
+  Lock,
+  Sparkles,
+  Target,
+  Trophy,
+} from "lucide-react";
 import { toast } from "sonner";
 import { getLuxuryProgress, claimLuxuryReward } from "@/actions/luxury-rewards";
 
@@ -26,9 +36,6 @@ type TierProgress = {
 
 type LuxurySnapshot = {
   hasAnchor?: boolean;
-  // Backend sets this when the read path returned an empty placeholder and
-  // kicked a background recompute. The card uses it to show a "Calculating"
-  // state and poll until real data is available.
   computing?: boolean;
   cappedTeamBusinessINR?: number;
   rawTeamBusinessINR?: number;
@@ -51,20 +58,22 @@ type LuxuryProgressResponse = {
   error?: string;
 };
 
-const TIER_META: Record<TierId, { label: string; icon: typeof Crown; accent: string; soft: string }> = {
-  "10L": { label: "Starter", icon: Sparkles, accent: "text-[#C81E4A]", soft: "bg-white border-slate-200" },
-  "30L": { label: "Mid", icon: Trophy, accent: "text-[#C81E4A]", soft: "bg-white border-slate-200" },
-  "50L": { label: "Elite", icon: Target, accent: "text-[#C81E4A]", soft: "bg-white border-slate-200" },
-  "1CR": { label: "Crown", icon: Crown, accent: "text-[#C81E4A]", soft: "bg-white border-slate-200" },
+const TIER_META: Record<TierId, { label: string; icon: typeof Crown }> = {
+  "10L": { label: "Starter", icon: Sparkles },
+  "30L": { label: "Mid", icon: Trophy },
+  "50L": { label: "Elite", icon: Target },
+  "1CR": { label: "Crown", icon: Crown },
 };
 
 const TARGET_ORDER: TierId[] = ["10L", "30L", "50L", "1CR"];
 
 const inr = (n = 0) => `₹${Math.round(n).toLocaleString("en-IN")}`;
 const lakh = (n = 0) =>
-  n >= 10000000 ? `₹${(n / 10000000).toFixed(2)}Cr`
-  : n >= 100000 ? `₹${(n / 100000).toFixed(2)}L`
-  : inr(n);
+  n >= 10000000
+    ? `₹${(n / 10000000).toFixed(2)}Cr`
+    : n >= 100000
+      ? `₹${(n / 100000).toFixed(2)}L`
+      : inr(n);
 
 const clampPct = (value = 0) => Math.min(100, Math.max(0, Math.round(value)));
 
@@ -77,14 +86,20 @@ const daysLeft = (endsAt?: string | Date | null) => {
 const tierScore = (tier: TierProgress) =>
   clampPct(((tier.teamBizPct ?? 0) + (tier.directBizPct ?? 0) + (tier.legsPct ?? 0)) / 3);
 
-const missingText = (tier?: TierProgress) => {
-  if (!tier?.missing) return "Qualification data is being calculated.";
-  const missing: string[] = [];
-  if ((tier.missing.teamBizINR ?? 0) > 0) missing.push(`${lakh(tier.missing.teamBizINR)} team business`);
-  if ((tier.missing.directBizINR ?? 0) > 0) missing.push(`${lakh(tier.missing.directBizINR)} direct business`);
-  if ((tier.missing.legs ?? 0) > 0) missing.push(`${tier.missing.legs} active leg${tier.missing.legs === 1 ? "" : "s"}`);
-  return missing.length ? missing.join(" + ") : "All visible requirements are complete.";
-};
+function nextActionText(tier?: TierProgress) {
+  if (!tier?.missing) return "Keep building your team — you're on track.";
+  if ((tier.missing.legs ?? 0) > 0) {
+    const n = tier.missing.legs ?? 0;
+    return `Get ${n} more active team leg${n === 1 ? "" : "s"}`;
+  }
+  if ((tier.missing.teamBizINR ?? 0) > 0) {
+    return `Add ${lakh(tier.missing.teamBizINR)} more team sales`;
+  }
+  if ((tier.missing.directBizINR ?? 0) > 0) {
+    return `Add ${lakh(tier.missing.directBizINR)} more of your own sales`;
+  }
+  return "All requirements done — waiting for approval.";
+}
 
 type LuxuryRewardsCardProps = {
   variant?: "full" | "tile";
@@ -96,11 +111,6 @@ export default function LuxuryRewardsCard({ variant = "full", onTileClick }: Lux
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
 
-  // The backend serves SWR data instantly. If it returns `computing: true`
-  // (no cached cycle yet, background recompute kicked off), we silently
-  // re-fetch every 4s up to 8 times until the real cycle appears. The user
-  // never waits on a synchronous compute — they see "Calculating…" briefly
-  // and then real progress lands without re-rendering the whole page.
   const load = async (isPoll = false) => {
     if (!isPoll) setLoading(true);
     const res = await getLuxuryProgress();
@@ -155,49 +165,41 @@ export default function LuxuryRewardsCard({ variant = "full", onTileClick }: Lux
     return openUnqualified ?? tierProgress.find((tier) => !tier.qualified) ?? tierProgress[tierProgress.length - 1];
   }, [tierProgress]);
   const nextMeta = nextTier ? TIER_META[nextTier.tierId] : TIER_META["10L"];
-  const NextIcon = nextMeta.icon;
   const nextScore = tierScore(nextTier ?? { tierId: "10L" });
   const pendingApproval = cycle?.status === "REWARD_PENDING_APPROVAL";
   const claimable = pendingApproval && cycle?.approvedAt;
   const claimed = cycle?.status === "CLAIMED";
   const days = daysLeft(nextTier?.windowEndsAt);
+
   const requirementItems = [
     {
+      id: "team",
       label: "Team sales",
-      metric: "Team total",
-      value: `${clampPct(nextTier?.teamBizPct)}%`,
       progress: clampPct(nextTier?.teamBizPct),
-      helper: (nextTier?.missing?.teamBizINR ?? 0) > 0
-        ? `Need ${lakh(nextTier?.missing?.teamBizINR)} more`
-        : "Complete",
+      helper:
+        (nextTier?.missing?.teamBizINR ?? 0) > 0
+          ? `Need ${lakh(nextTier?.missing?.teamBizINR)} more`
+          : "Done",
     },
     {
+      id: "direct",
       label: "Your sales",
-      metric: "Direct sales",
-      value: `${clampPct(nextTier?.directBizPct)}%`,
       progress: clampPct(nextTier?.directBizPct),
-      helper: (nextTier?.missing?.directBizINR ?? 0) > 0
-        ? `Need ${lakh(nextTier?.missing?.directBizINR)} more`
-        : "Complete",
+      helper:
+        (nextTier?.missing?.directBizINR ?? 0) > 0
+          ? `Need ${lakh(nextTier?.missing?.directBizINR)} more`
+          : "Done",
     },
     {
+      id: "legs",
       label: "Active teams",
-      metric: "Teams active",
-      value: `${clampPct(nextTier?.legsPct)}%`,
       progress: clampPct(nextTier?.legsPct),
-      helper: (nextTier?.missing?.legs ?? 0) > 0
-        ? `Need ${nextTier?.missing?.legs} more`
-        : "Complete",
+      helper:
+        (nextTier?.missing?.legs ?? 0) > 0
+          ? `Need ${nextTier?.missing?.legs} more`
+          : "Done",
     },
   ];
-  const cycleStatusLabel = claimed
-    ? `Claimed: ${cycle?.qualifiedTierId}`
-    : pendingApproval
-      ? `Qualified for ${cycle?.qualifiedTierId}`
-      : cycle?.kind === "CARRY"
-        ? "Carry cycle active"
-        : "Luxury cycle active";
-  const remainingMissions = requirementItems.filter((item) => item.progress < 100).length;
 
   const renderTile = () => {
     const isComputing = !!snap?.computing;
@@ -208,19 +210,19 @@ export default function LuxuryRewardsCard({ variant = "full", onTileClick }: Lux
         ? "Calculating"
         : "Locked"
       : claimed
-        ? "You got it"
+        ? "Claimed"
         : claimable
-          ? "Action needed"
+          ? "Claim now"
           : pendingApproval
-            ? "Waiting for review"
+            ? "In review"
             : `${score}%`;
 
     const statusTone =
-      statusLabel === "You got it"
+      statusLabel === "Claimed"
         ? "bg-emerald-50 text-emerald-700"
-        : statusLabel === "Action needed" || statusLabel === "Locked"
+        : statusLabel === "Claim now"
           ? "bg-amber-50 text-amber-700"
-          : statusLabel === "Waiting for review"
+          : statusLabel === "In review"
             ? "bg-blue-50 text-blue-700"
             : "bg-slate-100 text-slate-600";
 
@@ -234,15 +236,11 @@ export default function LuxuryRewardsCard({ variant = "full", onTileClick }: Lux
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFF1F4] text-[#C41E3A]">
             <Crown className="h-5 w-5" />
           </span>
-          <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusTone}`}>
-            {statusLabel}
-          </span>
+          <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusTone}`}>{statusLabel}</span>
         </div>
-        <p className="mt-3 text-base font-black text-[#0F172A]">Luxury Rewards</p>
+        <p className="mt-3 text-base font-black text-[#0F172A]">Luxury rewards</p>
         <p className="mt-1 text-sm text-[#64748B]">
-          {hasAnchor
-            ? `${nextTier?.tierId ?? "10L"} ${nextMeta.label}`
-            : "Make a deposit to unlock"}
+          {hasAnchor ? `${nextTier?.tierId ?? "10L"} ${nextMeta.label}` : "Deposit to unlock"}
         </p>
         {hasAnchor && (
           <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
@@ -258,21 +256,13 @@ export default function LuxuryRewardsCard({ variant = "full", onTileClick }: Lux
 
   if (loading) {
     if (variant === "tile") {
-      return (
-        <div className="h-[168px] animate-pulse rounded-2xl border border-slate-200/70 bg-white" />
-      );
+      return <div className="h-[168px] animate-pulse rounded-2xl border border-slate-200/70 bg-white" />;
     }
     return (
-      <section className="rounded-[2rem] border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-7">
-        <div className="h-6 w-44 rounded-full bg-slate-100" />
-        <div className="mt-5 grid gap-4 lg:grid-cols-[0.8fr_1.2fr]">
-          <div className="h-56 rounded-3xl bg-slate-100" />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="h-24 rounded-3xl bg-slate-100" />
-            <div className="h-24 rounded-3xl bg-slate-100" />
-            <div className="h-24 rounded-3xl bg-slate-100" />
-            <div className="h-24 rounded-3xl bg-slate-100" />
-          </div>
+      <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+        <div className="flex items-center gap-3">
+          <Loader2 className="h-5 w-5 animate-spin text-[#C41E3A]" />
+          <p className="text-sm font-semibold text-[#64748B]">Loading luxury rewards…</p>
         </div>
       </section>
     );
@@ -282,37 +272,35 @@ export default function LuxuryRewardsCard({ variant = "full", onTileClick }: Lux
     const isComputing = !!snap?.computing;
     if (variant === "tile") return renderTile();
     return (
-      <section className="overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-        <div className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[0.9fr_1.1fr]">
-          <div className="rounded-[24px] border border-slate-200 bg-[#F8FAFC] p-5">
-            <div className="flex items-center gap-3">
-              <Lock className="h-11 w-11 rounded-2xl bg-white p-2.5 text-[#C81E4A] shadow-sm" />
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#C81E4A]">Your Progress</p>
-                <h2 className="text-2xl font-black text-[#0F172A]">
-                  {isComputing ? "Calculating progress…" : "Not started yet"}
-                </h2>
-              </div>
-            </div>
-            <p className="mt-4 text-sm font-semibold leading-6 text-slate-600">
+      <section className="rounded-3xl border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] lg:p-8">
+        <div className="flex items-start gap-4 lg:items-center lg:gap-6">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#FFF1F4]">
+            <Lock className="h-6 w-6 text-[#C41E3A]" />
+          </span>
+          <div>
+            <p className="text-xs font-bold uppercase tracking-wide text-[#64748B]">Luxury rewards</p>
+            <h2 className="mt-1 text-xl font-black text-[#0F172A]">
+              {isComputing ? "Calculating your progress…" : "Not started yet"}
+            </h2>
+            <p className="mt-2 text-sm leading-relaxed text-[#64748B]">
               {isComputing
-                ? "We're crunching your team's numbers. This usually completes in a few seconds — your luxury progress will appear here automatically."
-                : "Make your first new-plan deposit to unlock Luxury Rewards tracking. Once unlocked, this panel will show your closest reward, missing business, active legs, and cycle deadline."}
+                ? "Your numbers are being calculated. This usually takes a few seconds."
+                : "Make your first new-plan deposit to start tracking luxury rewards."}
             </p>
           </div>
-          <div className="grid gap-3 sm:grid-cols-4 lg:grid-cols-2">
-            {TARGET_ORDER.map((tierId) => {
-              const meta = TIER_META[tierId];
-              const Icon = meta.icon;
-              return (
-                <div key={tierId} className={`rounded-2xl border p-4 ${meta.soft}`}>
-                  <Icon className={`h-7 w-7 ${meta.accent}`} />
-                  <p className="mt-3 text-xl font-black text-[#0F172A]">{tierId}</p>
-                  <p className="text-xs font-bold text-slate-500">{meta.label} reward</p>
-                </div>
-              );
-            })}
-          </div>
+        </div>
+        <div className="mt-5 grid grid-cols-2 gap-2 sm:grid-cols-4 lg:gap-3">
+          {TARGET_ORDER.map((tierId) => {
+            const meta = TIER_META[tierId];
+            const Icon = meta.icon;
+            return (
+              <div key={tierId} className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-3">
+                <Icon className="h-5 w-5 text-[#C41E3A]" />
+                <p className="mt-2 text-sm font-black text-[#0F172A]">{tierId}</p>
+                <p className="text-xs text-[#64748B]">{meta.label}</p>
+              </div>
+            );
+          })}
         </div>
       </section>
     );
@@ -320,177 +308,286 @@ export default function LuxuryRewardsCard({ variant = "full", onTileClick }: Lux
 
   if (variant === "tile") return renderTile();
 
+  const incompleteCount = requirementItems.filter((item) => item.progress < 100).length;
+  const NextIcon = nextMeta.icon;
+
   return (
-    <section className="overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
-      <div className="space-y-4 p-5 sm:p-6">
-        <div className="grid gap-4 xl:grid-cols-[1.05fr_0.95fr]">
-          <div className="rounded-[24px] border border-slate-200 bg-[#F8FAFC] p-5">
-            <div className="grid gap-5 lg:grid-cols-[150px_1fr] lg:items-center">
-              <div className="mx-auto flex flex-col items-center lg:mx-0">
-                <div
-                  className="grid h-36 w-36 place-items-center rounded-full p-2 shadow-[0_18px_45px_rgba(200,30,74,0.12)]"
-                  style={{
-                    background: `conic-gradient(#C81E4A ${nextScore * 3.6}deg, #E2E8F0 0deg)`,
-                  }}
-                >
-                  <div className="grid h-full w-full place-items-center rounded-full border border-slate-200 bg-white text-center">
-                    <div>
-                      <p className="text-4xl font-black leading-none text-[#0F172A]">{nextScore}%</p>
-                      <p className="mt-1 text-sm font-bold text-[#64748B]">Complete</p>
-                    </div>
-                  </div>
-                </div>
-                <div className="mt-3 flex flex-wrap justify-center gap-2">
-                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-[#0F172A]">
-                    {remainingMissions === 0 ? "Ready" : `${remainingMissions} steps left`}
-                  </span>
-                  {days !== null && (
-                    <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-[#0F172A]">
-                      <Clock className="h-3.5 w-3.5 text-[#C81E4A]" />
-                      {days}d left
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div>
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#C81E4A]">Next reward</p>
-                    <h2 className="mt-2 text-3xl font-black leading-none text-[#0F172A] sm:text-4xl">
-                      {nextTier?.tierId ?? "10L"} {nextMeta.label}
-                    </h2>
-                    <p className="mt-2 text-sm font-semibold text-[#64748B]">Complete each step below to unlock this reward.</p>
-                  </div>
-                  <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-[#C81E4A] shadow-sm">
-                    <NextIcon className="h-6 w-6" />
-                  </span>
-                </div>
-
-                <div className="mt-4 rounded-2xl border border-[#F4B4C4] bg-white p-4">
-                  <p className="text-[10px] font-black uppercase tracking-[0.14em] text-[#C81E4A]">Next Unlock Move</p>
-                  <p className="mt-1 text-lg font-black text-[#0F172A]">{missingText(nextTier)}</p>
+    <section className="overflow-hidden rounded-3xl border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
+      {/* Hero */}
+      <div className="border-b border-slate-100 bg-gradient-to-b from-[#FFF8FA] to-white p-5 lg:p-8">
+        <div className="lg:flex lg:items-center lg:gap-10">
+          <div className="mx-auto hidden shrink-0 flex-col items-center lg:flex">
+            <div
+              className="grid h-36 w-36 place-items-center rounded-full p-2 shadow-[0_18px_45px_rgba(200,30,74,0.12)]"
+              style={{
+                background: `conic-gradient(#C41E3A ${nextScore * 3.6}deg, #E2E8F0 0deg)`,
+              }}
+            >
+              <div className="grid h-full w-full place-items-center rounded-full border border-slate-200 bg-white text-center">
+                <div>
+                  <p className="text-3xl font-black leading-none text-[#0F172A]">{nextScore}%</p>
+                  <p className="mt-1 text-xs font-bold text-[#64748B]">Complete</p>
                 </div>
               </div>
             </div>
+            <span className="mt-3 flex h-11 w-11 items-center justify-center rounded-2xl bg-[#FFF1F4] text-[#C41E3A]">
+              <NextIcon className="h-5 w-5" />
+            </span>
+          </div>
 
-            <div className="mt-5 grid gap-2 sm:grid-cols-3">
+          <div className="min-w-0 flex-1">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#64748B]">Luxury rewards</p>
+            <h2 className="mt-1 text-2xl font-black text-[#0F172A] lg:text-3xl">
+              {nextTier?.tierId ?? "10L"} {nextMeta.label}
+            </h2>
+
+            <div className="mt-4 lg:max-w-xl">
+              <div className="mb-2 flex items-center justify-between text-sm">
+                <span className="font-semibold text-[#64748B]">Overall progress</span>
+                <span className="font-black text-[#0F172A] lg:hidden">{nextScore}%</span>
+              </div>
+              <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                <div
+                  className="h-full rounded-full bg-[#C41E3A] transition-all"
+                  style={{ width: `${nextScore}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="mt-3 flex flex-wrap gap-2">
+              {incompleteCount > 0 && (
+                <span className="rounded-full bg-white px-3 py-1 text-xs font-bold text-[#0F172A] ring-1 ring-slate-200">
+                  {incompleteCount} step{incompleteCount === 1 ? "" : "s"} left
+                </span>
+              )}
+              {days !== null && (
+                <span className="inline-flex items-center gap-1 rounded-full bg-white px-3 py-1 text-xs font-bold text-[#0F172A] ring-1 ring-slate-200">
+                  <Clock className="h-3.5 w-3.5 text-[#C41E3A]" />
+                  {days} days left
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div className="lg:grid lg:grid-cols-2 lg:divide-x lg:divide-slate-100">
+        {/* Left: action + checklist */}
+        <div className="lg:flex lg:flex-col">
+          <div className="border-b border-slate-100 p-5 lg:p-6">
+            <p className="text-xs font-bold uppercase tracking-wide text-[#C41E3A]">Do this next</p>
+            <p className="mt-2 text-lg font-black leading-snug text-[#0F172A] lg:text-xl">
+              {nextActionText(nextTier)}
+            </p>
+          </div>
+
+          <div className="border-b border-slate-100 p-5 lg:flex-1 lg:border-b-0 lg:p-6">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#64748B]">Your checklist</p>
+            <ul className="space-y-3 md:grid md:grid-cols-3 md:gap-3 md:space-y-0 lg:grid-cols-1 lg:space-y-3">
               {requirementItems.map((item) => {
-                const complete = item.progress >= 100;
+                const done = item.progress >= 100;
                 return (
-                  <div
-                    key={item.label}
-                    className={`rounded-2xl border p-3 ${
-                      complete ? "border-emerald-200 bg-emerald-50" : "border-slate-200 bg-white"
-                    }`}
+                  <li
+                    key={item.id}
+                    className={`rounded-2xl border p-4 ${done ? "border-emerald-200 bg-emerald-50/80" : "border-slate-200 bg-[#F8FAFC]"}`}
                   >
-                    <div className="flex items-start justify-between gap-2">
-                      <div>
-                        <p className="text-[10px] font-black uppercase tracking-[0.1em] text-[#64748B]">
-                          {item.label}
+                    <div className="flex items-start gap-3">
+                      {done ? (
+                        <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
+                      ) : (
+                        <Circle className="mt-0.5 h-5 w-5 shrink-0 text-[#C41E3A]" />
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center justify-between gap-2">
+                          <p className={`text-sm font-black ${done ? "text-emerald-800" : "text-[#0F172A]"}`}>
+                            {item.label}
+                          </p>
+                          <span
+                            className={`shrink-0 text-xs font-bold ${done ? "text-emerald-700" : "text-[#64748B]"}`}
+                          >
+                            {done ? "Done" : `${item.progress}%`}
+                          </span>
+                        </div>
+                        <p className={`mt-1 text-sm ${done ? "text-emerald-700" : "text-[#64748B]"}`}>
+                          {item.helper}
                         </p>
-                        <p className="mt-1 text-xs font-semibold text-slate-500">
-                          {item.metric}
-                        </p>
+                        {!done && <Progress value={item.progress} className="mt-3 h-2 bg-slate-200" />}
                       </div>
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-black ${
-                        complete ? "bg-emerald-100 text-emerald-700" : "bg-[#FFF1F4] text-[#C81E4A]"
-                      }`}>
-                        {complete ? "Cleared" : item.value}
-                      </span>
                     </div>
-                    <p className={`mt-3 text-sm font-black ${complete ? "text-emerald-700" : "text-[#0F172A]"}`}>
-                      {item.helper}
-                    </p>
-                    <Progress value={item.progress} className="mt-3 h-1.5 bg-slate-200" />
-                  </div>
+                  </li>
                 );
               })}
+            </ul>
+          </div>
+        </div>
+
+        {/* Right: numbers + levels */}
+        <div className="lg:flex lg:flex-col">
+          <div className="border-b border-slate-100 p-5 lg:p-6">
+            <p className="mb-3 text-xs font-bold uppercase tracking-wide text-[#64748B]">Your numbers</p>
+            <div className="grid grid-cols-3 gap-2 lg:gap-3">
+              <div className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-3 text-center lg:p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[#94A3B8]">Team</p>
+                <p className="mt-1 text-sm font-black text-[#0F172A] lg:text-lg">
+                  {lakh(snap.cappedTeamBusinessINR)}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-3 text-center lg:p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[#94A3B8]">You</p>
+                <p className="mt-1 text-sm font-black text-[#0F172A] lg:text-lg">
+                  {lakh(snap.directBusinessINR)}
+                </p>
+              </div>
+              <div className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-3 text-center lg:p-4">
+                <p className="text-[10px] font-bold uppercase tracking-wide text-[#94A3B8]">Legs</p>
+                <p className="mt-1 text-sm font-black text-[#0F172A] lg:text-lg">
+                  {snap.activeLegsCount ?? 0}
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="rounded-[24px] border border-slate-200 bg-white p-5">
-            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
-              <div>
-                <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#64748B]">Level Map</p>
-                <h3 className="mt-1 text-xl font-black text-[#0F172A]">Reward ladder</h3>
-              </div>
-            </div>
+          <div className="p-5 lg:flex-1 lg:p-6">
+            <p className="mb-4 text-xs font-bold uppercase tracking-wide text-[#64748B]">All reward levels</p>
 
-            <div className="mt-6 grid gap-4 sm:grid-cols-4">
+            {/* Mobile: vertical ladder */}
+            <ol className="space-y-0 lg:hidden">
               {tierProgress.map((tier, index) => {
                 const meta = TIER_META[tier.tierId];
                 const Icon = meta.icon;
                 const score = tierScore(tier);
-                const current = tier.tierId === nextTier?.tierId;
+                const isCurrent = tier.tierId === nextTier?.tierId && !tier.qualified;
+                const isLast = index === tierProgress.length - 1;
+
                 return (
-                  <div
-                    key={tier.tierId}
-                    className="relative text-center"
-                  >
+                  <li key={tier.tierId} className="flex gap-3">
+                    <div className="flex flex-col items-center">
+                      <div
+                        className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 bg-white ${
+                          tier.qualified
+                            ? "border-emerald-300 text-emerald-600"
+                            : isCurrent
+                              ? "border-[#C41E3A] text-[#C41E3A]"
+                              : "border-slate-200 text-slate-400"
+                        }`}
+                      >
+                        {tier.qualified ? <CheckCircle2 className="h-5 w-5" /> : <Icon className="h-4 w-4" />}
+                      </div>
+                      {!isLast && (
+                        <span
+                          className={`my-1 min-h-[20px] w-0.5 flex-1 ${
+                            tier.qualified ? "bg-emerald-200" : "bg-slate-200"
+                          }`}
+                        />
+                      )}
+                    </div>
+                    <div
+                      className={`mb-4 min-w-0 flex-1 rounded-2xl border p-3 ${
+                        isCurrent ? "border-[#F4B4C4] bg-[#FFF8FA]" : "border-slate-200 bg-[#F8FAFC]"
+                      }`}
+                    >
+                      <div className="flex items-center justify-between gap-2">
+                        <div>
+                          <p className="text-sm font-black text-[#0F172A]">
+                            {tier.tierId} {meta.label}
+                          </p>
+                          {isCurrent && (
+                            <p className="mt-0.5 text-xs font-semibold text-[#C41E3A]">You are here</p>
+                          )}
+                        </div>
+                        <span
+                          className={`shrink-0 rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                            tier.qualified
+                              ? "bg-emerald-100 text-emerald-700"
+                              : isCurrent
+                                ? "bg-[#C41E3A] text-white"
+                                : "bg-slate-200 text-slate-600"
+                          }`}
+                        >
+                          {tier.qualified ? "Unlocked" : `${score}%`}
+                        </span>
+                      </div>
+                    </div>
+                  </li>
+                );
+              })}
+            </ol>
+
+            {/* Desktop: horizontal stepper */}
+            <ol className="hidden lg:grid lg:grid-cols-4 lg:gap-3">
+              {tierProgress.map((tier, index) => {
+                const meta = TIER_META[tier.tierId];
+                const Icon = meta.icon;
+                const score = tierScore(tier);
+                const isCurrent = tier.tierId === nextTier?.tierId && !tier.qualified;
+
+                return (
+                  <li key={tier.tierId} className="relative text-center">
                     {index < tierProgress.length - 1 && (
                       <span
-                        className={`absolute left-[calc(50%+28px)] right-[calc(-50%+28px)] top-7 hidden h-1 rounded-full sm:block ${
-                          tier.qualified ? "bg-emerald-300" : current ? "bg-[#F4B4C4]" : "bg-slate-200"
+                        className={`absolute left-[calc(50%+28px)] right-[calc(-50%+28px)] top-7 h-1 rounded-full ${
+                          tier.qualified ? "bg-emerald-300" : isCurrent ? "bg-[#F4B4C4]" : "bg-slate-200"
                         }`}
                       />
                     )}
-                    <div className={`relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border-4 bg-white shadow-sm ${
-                      tier.qualified
-                        ? "border-emerald-200 text-emerald-700"
-                        : current
-                          ? "border-[#F4B4C4] text-[#C81E4A]"
-                          : "border-slate-200 text-slate-400"
-                    }`}>
-                      {tier.qualified ? (
-                        <CheckCircle2 className="h-6 w-6" />
-                      ) : (
-                        <Icon className="h-4 w-4" />
-                      )}
+                    <div
+                      className={`relative mx-auto flex h-14 w-14 items-center justify-center rounded-2xl border-2 bg-white shadow-sm ${
+                        tier.qualified
+                          ? "border-emerald-300 text-emerald-600"
+                          : isCurrent
+                            ? "border-[#C41E3A] text-[#C41E3A]"
+                            : "border-slate-200 text-slate-400"
+                      }`}
+                    >
+                      {tier.qualified ? <CheckCircle2 className="h-6 w-6" /> : <Icon className="h-5 w-5" />}
                     </div>
                     <p className="mt-3 text-sm font-black text-[#0F172A]">{tier.tierId}</p>
                     <p className="text-xs font-semibold text-[#64748B]">{meta.label}</p>
-                    <span className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[10px] font-black ${
-                      tier.qualified
-                        ? "bg-emerald-100 text-emerald-700"
-                        : current
-                          ? "bg-[#C81E4A] text-white"
-                          : "bg-slate-100 text-slate-500"
-                    }`}>
-                      {tier.qualified ? "Cleared" : current ? "Current Boss" : `${score}%`}
+                    {isCurrent && (
+                      <p className="mt-1 text-[10px] font-bold uppercase tracking-wide text-[#C41E3A]">
+                        You are here
+                      </p>
+                    )}
+                    <span
+                      className={`mt-2 inline-flex rounded-full px-2.5 py-1 text-[10px] font-bold ${
+                        tier.qualified
+                          ? "bg-emerald-100 text-emerald-700"
+                          : isCurrent
+                            ? "bg-[#C41E3A] text-white"
+                            : "bg-slate-100 text-slate-600"
+                      }`}
+                    >
+                      {tier.qualified ? "Unlocked" : `${score}%`}
                     </span>
-                  </div>
+                  </li>
                 );
               })}
-            </div>
-
-            <div className="mt-4 grid gap-2 sm:grid-cols-3">
-              <div className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Capped Team</p>
-                <p className="mt-1 text-lg font-black text-[#0F172A]">{lakh(snap.cappedTeamBusinessINR)}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Direct</p>
-                <p className="mt-1 text-lg font-black text-[#0F172A]">{lakh(snap.directBusinessINR)}</p>
-              </div>
-              <div className="rounded-2xl border border-slate-200 bg-[#F8FAFC] p-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.12em] text-slate-400">Legs</p>
-                <p className="mt-1 text-lg font-black text-[#0F172A]">{snap.activeLegsCount ?? 0}</p>
-              </div>
-            </div>
+            </ol>
 
             {(cycle?.kind === "CARRY" || pendingApproval || claimed) && (
-              <div className="mt-4 rounded-2xl border border-[#F4B4C4] bg-[#FFF8FA] p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="mt-4 rounded-2xl border border-[#F4B4C4] bg-[#FFF8FA] p-4 lg:mt-6">
+                <div className="lg:flex lg:items-center lg:justify-between lg:gap-4">
                   <div>
-                    <p className="text-sm font-black text-[#7A001F]">{cycleStatusLabel}</p>
-                    <p className="text-xs font-semibold text-[#A90D32]">
-                      {claimable ? "Admin approved. Claim now to lock your reward." : "Reward status is being reviewed by admin."}
+                    <p className="text-sm font-black text-[#7A001F]">
+                      {claimed
+                        ? `Claimed: ${cycle?.qualifiedTierId}`
+                        : pendingApproval
+                          ? `Qualified for ${cycle?.qualifiedTierId}`
+                          : "Carry cycle active"}
+                    </p>
+                    <p className="mt-1 text-xs text-[#A90D32]">
+                      {claimable
+                        ? "Approved — tap below to claim your reward."
+                        : "Your reward is being reviewed."}
                     </p>
                   </div>
                   {claimable && (
-                    <Button disabled={claiming} onClick={handleClaim}>
-                      {claiming ? "Claiming..." : "Claim reward"}
+                    <Button
+                      disabled={claiming}
+                      onClick={handleClaim}
+                      className="mt-3 w-full shrink-0 rounded-xl bg-[#C41E3A] font-bold text-white hover:bg-[#ad1b34] lg:mt-0 lg:w-auto"
+                    >
+                      {claiming ? "Claiming…" : "Claim reward"}
                     </Button>
                   )}
                 </div>
