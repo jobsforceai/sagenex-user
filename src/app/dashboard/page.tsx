@@ -1,11 +1,12 @@
 "use client";
+import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
+import AppErrorState from "@/app/components/auth/AppErrorState";
 import TeamPulseSection from "./TeamPulseSection";
 import LuxuryPathSection from "./LuxuryPathSection";
 
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import Alert from "../components/dashboard/Alert";
 import { useAuth } from "@/app/context/AuthContext";
 import {
@@ -34,7 +35,6 @@ import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 import MultiplierProgress from "../components/dashboard/MultiplierProgress";
 import LegGauges from "../components/dashboard/LegGauges";
 import TicketRulesPanel from "../components/dashboard/TicketRulesPanel";
-import { DashboardSkeleton } from "../components/dashboard/DashboardSkeletons";
 import ScheduledCashBanner from "../components/wallet/ScheduledCashBanner";
 import { formatINR } from "@/lib/currency";
 
@@ -207,8 +207,7 @@ const avatarStyle = (name: string) => {
 // ─── Page Component ────────────────────────────────────────────────
 
 const DashboardPage = () => {
-  const { token, isAuthenticated, loading, showSetPasswordModal, onPasswordSet } = useAuth();
-  const router = useRouter();
+  const { token, showSetPasswordModal, onPasswordSet } = useAuth();
   const [dashboardData, setDashboardData] = useState<DashboardData | null>(null);
   const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
   const [referralSummary, setReferralSummary] = useState<ReferralSummary | null>(null);
@@ -239,11 +238,6 @@ const DashboardPage = () => {
   };
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-
     const fetchInitialData = async () => {
       try {
         const dashboardRes = await getDashboardData();
@@ -260,7 +254,6 @@ const DashboardPage = () => {
 
     if (token) {
       fetchInitialData();
-      // Silent auto-sync (throttled 1/day server-side); re-fetch dashboard if corrections applied
       autoSyncProfile()
         .then((res: AutoSyncResponse) => {
           if (res?.synced && (res?.corrections ?? 0) > 0) {
@@ -269,7 +262,7 @@ const DashboardPage = () => {
         })
         .catch(() => {});
     }
-  }, [token, isAuthenticated, loading, router]);
+  }, [token]);
 
   useEffect(() => {
     if (!token) return;
@@ -327,7 +320,7 @@ const DashboardPage = () => {
       })()
     : 0;
 
-  const showLoading = loading || !dashboardData;
+  const showLoading = !dashboardData;
   const showError = !showLoading && Boolean(error);
   const profile = dashboardData?.profile;
   const wallet = dashboardData?.wallet;
@@ -426,11 +419,9 @@ const DashboardPage = () => {
       {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
 
       {showLoading ? (
-        <DashboardSkeleton />
+        <AppLoadingScreen message="Loading dashboard…" fullScreen={false} />
       ) : showError ? (
-        <div className="flex items-center justify-center py-32 text-zinc-400">
-          Error: {error}
-        </div>
+        <AppErrorState title="Could not load dashboard" message={error ?? "Please try again."} />
       ) : (
         <div className="min-h-screen bg-[#F8FAFC] px-4 py-4 sm:px-6 md:py-5 lg:px-8">
           <div className="mx-auto max-w-7xl space-y-3 md:space-y-6">

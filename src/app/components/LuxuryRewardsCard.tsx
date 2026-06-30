@@ -86,7 +86,12 @@ const missingText = (tier?: TierProgress) => {
   return missing.length ? missing.join(" + ") : "All visible requirements are complete.";
 };
 
-export default function LuxuryRewardsCard() {
+type LuxuryRewardsCardProps = {
+  variant?: "full" | "tile";
+  onTileClick?: () => void;
+};
+
+export default function LuxuryRewardsCard({ variant = "full", onTileClick }: LuxuryRewardsCardProps) {
   const [data, setData] = useState<LuxuryProgressResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [claiming, setClaiming] = useState(false);
@@ -158,8 +163,8 @@ export default function LuxuryRewardsCard() {
   const days = daysLeft(nextTier?.windowEndsAt);
   const requirementItems = [
     {
-      label: "Team Gate",
-      metric: "Capped Team",
+      label: "Team sales",
+      metric: "Team total",
       value: `${clampPct(nextTier?.teamBizPct)}%`,
       progress: clampPct(nextTier?.teamBizPct),
       helper: (nextTier?.missing?.teamBizINR ?? 0) > 0
@@ -167,8 +172,8 @@ export default function LuxuryRewardsCard() {
         : "Complete",
     },
     {
-      label: "Direct Gate",
-      metric: "Direct Business",
+      label: "Your sales",
+      metric: "Direct sales",
       value: `${clampPct(nextTier?.directBizPct)}%`,
       progress: clampPct(nextTier?.directBizPct),
       helper: (nextTier?.missing?.directBizINR ?? 0) > 0
@@ -176,8 +181,8 @@ export default function LuxuryRewardsCard() {
         : "Complete",
     },
     {
-      label: "Leg Gate",
-      metric: "Active Legs",
+      label: "Active teams",
+      metric: "Teams active",
       value: `${clampPct(nextTier?.legsPct)}%`,
       progress: clampPct(nextTier?.legsPct),
       helper: (nextTier?.missing?.legs ?? 0) > 0
@@ -194,7 +199,69 @@ export default function LuxuryRewardsCard() {
         : "Luxury cycle active";
   const remainingMissions = requirementItems.filter((item) => item.progress < 100).length;
 
+  const renderTile = () => {
+    const isComputing = !!snap?.computing;
+    const hasAnchor = !!snap?.hasAnchor;
+    const score = hasAnchor ? nextScore : 0;
+    const statusLabel = !hasAnchor
+      ? isComputing
+        ? "Calculating"
+        : "Locked"
+      : claimed
+        ? "You got it"
+        : claimable
+          ? "Action needed"
+          : pendingApproval
+            ? "Waiting for review"
+            : `${score}%`;
+
+    const statusTone =
+      statusLabel === "You got it"
+        ? "bg-emerald-50 text-emerald-700"
+        : statusLabel === "Action needed" || statusLabel === "Locked"
+          ? "bg-amber-50 text-amber-700"
+          : statusLabel === "Waiting for review"
+            ? "bg-blue-50 text-blue-700"
+            : "bg-slate-100 text-slate-600";
+
+    return (
+      <button
+        type="button"
+        onClick={onTileClick}
+        className="flex h-full w-full flex-col rounded-2xl border border-slate-200/70 bg-white p-4 text-left shadow-[0_10px_30px_rgba(15,23,42,0.06)] transition hover:-translate-y-0.5 hover:shadow-[0_16px_38px_rgba(15,23,42,0.08)]"
+      >
+        <div className="flex items-start justify-between gap-2">
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FFF1F4] text-[#C41E3A]">
+            <Crown className="h-5 w-5" />
+          </span>
+          <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${statusTone}`}>
+            {statusLabel}
+          </span>
+        </div>
+        <p className="mt-3 text-base font-black text-[#0F172A]">Luxury Rewards</p>
+        <p className="mt-1 text-sm text-[#64748B]">
+          {hasAnchor
+            ? `${nextTier?.tierId ?? "10L"} ${nextMeta.label}`
+            : "Make a deposit to unlock"}
+        </p>
+        {hasAnchor && (
+          <div className="mt-3 h-2 overflow-hidden rounded-full bg-slate-100">
+            <div className="h-full rounded-full bg-[#C41E3A]" style={{ width: `${score}%` }} />
+          </div>
+        )}
+        {hasAnchor && days !== null && (
+          <p className="mt-2 text-xs font-semibold text-[#64748B]">{days} days left</p>
+        )}
+      </button>
+    );
+  };
+
   if (loading) {
+    if (variant === "tile") {
+      return (
+        <div className="h-[168px] animate-pulse rounded-2xl border border-slate-200/70 bg-white" />
+      );
+    }
     return (
       <section className="rounded-[2rem] border border-slate-200/70 bg-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-7">
         <div className="h-6 w-44 rounded-full bg-slate-100" />
@@ -213,6 +280,7 @@ export default function LuxuryRewardsCard() {
 
   if (!snap?.hasAnchor) {
     const isComputing = !!snap?.computing;
+    if (variant === "tile") return renderTile();
     return (
       <section className="overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
         <div className="grid gap-5 p-5 sm:p-7 lg:grid-cols-[0.9fr_1.1fr]">
@@ -250,6 +318,8 @@ export default function LuxuryRewardsCard() {
     );
   }
 
+  if (variant === "tile") return renderTile();
+
   return (
     <section className="overflow-hidden rounded-[2rem] border border-slate-200/70 bg-white shadow-[0_10px_30px_rgba(15,23,42,0.06)]">
       <div className="space-y-4 p-5 sm:p-6">
@@ -266,13 +336,13 @@ export default function LuxuryRewardsCard() {
                   <div className="grid h-full w-full place-items-center rounded-full border border-slate-200 bg-white text-center">
                     <div>
                       <p className="text-4xl font-black leading-none text-[#0F172A]">{nextScore}%</p>
-                      <p className="mt-1 text-[10px] font-black uppercase tracking-[0.12em] text-[#64748B]">Unlocked</p>
+                      <p className="mt-1 text-sm font-bold text-[#64748B]">Complete</p>
                     </div>
                   </div>
                 </div>
                 <div className="mt-3 flex flex-wrap justify-center gap-2">
                   <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-[#0F172A]">
-                    {remainingMissions === 0 ? "Ready" : `${remainingMissions} gates left`}
+                    {remainingMissions === 0 ? "Ready" : `${remainingMissions} steps left`}
                   </span>
                   {days !== null && (
                     <span className="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-white px-3 py-1 text-xs font-black text-[#0F172A]">
@@ -286,11 +356,11 @@ export default function LuxuryRewardsCard() {
               <div>
                 <div className="flex flex-wrap items-start justify-between gap-3">
                   <div>
-                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#C81E4A]">Mission Active</p>
+                    <p className="text-[11px] font-black uppercase tracking-[0.16em] text-[#C81E4A]">Next reward</p>
                     <h2 className="mt-2 text-3xl font-black leading-none text-[#0F172A] sm:text-4xl">
                       {nextTier?.tierId ?? "10L"} {nextMeta.label}
                     </h2>
-                    <p className="mt-2 text-sm font-semibold text-[#64748B]">Clear every gate below to unlock this reward.</p>
+                    <p className="mt-2 text-sm font-semibold text-[#64748B]">Complete each step below to unlock this reward.</p>
                   </div>
                   <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-white text-[#C81E4A] shadow-sm">
                     <NextIcon className="h-6 w-6" />

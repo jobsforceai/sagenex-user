@@ -5,7 +5,11 @@ import { usePathname } from "next/navigation";
 import AppShell from "@/app/components/AppShell";
 import SyncProfileFab from "@/app/components/SyncProfileFab";
 import ChatbotAssistant from "@/app/components/ChatbotAssistant";
+import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
+import LoginRequiredScreen from "@/app/components/auth/LoginRequiredScreen";
+import { useAuth } from "@/app/context/AuthContext";
 import { getDashboardData } from "@/actions/user";
+import { isPrivateRoute } from "@/lib/auth-routes";
 import { useShellStore } from "@/store/shellStore";
 
 const SHELL_ROUTES = [
@@ -29,14 +33,15 @@ function isShellRoute(pathname: string) {
 
 export default function AuthenticatedShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const { isAuthenticated, loading: authLoading } = useAuth();
   const { setShellData, hydrated, userName, userRank, avatarUrl, balance } = useShellStore();
 
+  const isPrivate = useMemo(() => isPrivateRoute(pathname), [pathname]);
   const shouldUseShell = useMemo(() => isShellRoute(pathname), [pathname]);
 
   useEffect(() => {
-    if (!shouldUseShell) return;
+    if (!shouldUseShell || authLoading || !isAuthenticated) return;
 
-    // Fetch sidebar identity/balance context once and refresh on shell route changes.
     getDashboardData().then((res) => {
       if (res?.error) return;
       setShellData({
@@ -46,7 +51,15 @@ export default function AuthenticatedShell({ children }: { children: React.React
         balance: res?.wallet?.availableBalance,
       });
     });
-  }, [shouldUseShell, pathname, setShellData]);
+  }, [shouldUseShell, authLoading, isAuthenticated, pathname, setShellData]);
+
+  if (isPrivate && authLoading) {
+    return <AppLoadingScreen message="Checking your session…" />;
+  }
+
+  if (isPrivate && !isAuthenticated) {
+    return <LoginRequiredScreen />;
+  }
 
   if (!shouldUseShell) {
     return (
@@ -69,7 +82,7 @@ export default function AuthenticatedShell({ children }: { children: React.React
         {children}
       </AppShell>
       <SyncProfileFab />
-        <ChatbotAssistant />
+      <ChatbotAssistant />
     </>
   );
 }
