@@ -7,7 +7,6 @@ import Image from "next/image";
 import clsx from "clsx";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getTieredROIRate } from "@/lib/roi";
-import CountdownTimer from "./CountdownTimer";
 
 type Props = {
   name?: string;
@@ -46,7 +45,6 @@ export default function AgentOverview({
   accentColorClass = "text-green-400",
   packageUSD,
   earningsMultiplier,
-  earningsMultiplierDeadline,
 }: Props) {
   const pct = Math.max(0, Math.min(100, progressPct || 0));
   const currentRankIndex = currentLevel ? ranks.indexOf(currentLevel) : -1;
@@ -120,8 +118,6 @@ export default function AgentOverview({
             </div>
           </div>
         </div>
-
-        <CountdownTimer deadline={earningsMultiplierDeadline} />
 
         <div className="mt-6 pt-6 border-t border-neutral-800/50">
           <h3 className="text-lg font-semibold text-white/90 mb-4">Earning Streams</h3>
