@@ -2,13 +2,13 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getRewardQuests } from "@/actions/reward-quests";
-import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
 import AppErrorState from "@/app/components/auth/AppErrorState";
 import { Button } from "@/components/ui/button";
 import ActiveQuestHero from "./ActiveQuestHero";
 import QuestDetailSheet from "./QuestDetailSheet";
 import RewardJourneyGrid from "./RewardJourneyGrid";
 import RewardsHeader from "./RewardsHeader";
+import RewardsPageSkeleton from "./RewardsPageSkeleton";
 import TodayMissions from "./TodayMissions";
 import TravelQuestCards from "./TravelQuestCards";
 import {
@@ -69,7 +69,7 @@ export default function GamifiedRewardsSection({ dateLabel, stats }: GamifiedRew
     new Date().toLocaleDateString("en-IN", { weekday: "short", month: "short", day: "numeric" });
 
   if (loading) {
-    return <AppLoadingScreen message="Loading your rewards…" fullScreen={false} />;
+    return <RewardsPageSkeleton />;
   }
 
   if (error) {

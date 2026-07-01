@@ -34,9 +34,22 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+function readStoredSession(): { token: string | null; user: User | null } {
+  if (typeof window === "undefined") return { token: null, user: null };
+  try {
+    const token = Cookies.get("authToken") ?? null;
+    const raw = localStorage.getItem("user");
+    if (!token) return { token: null, user: null };
+    const user = raw ? (JSON.parse(raw) as User) : null;
+    return { token, user };
+  } catch {
+    return { token: null, user: null };
+  }
+}
+
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
-  const [token, setToken] = useState<string | null>(null);
-  const [user, setUser] = useState<User | null>(null);
+  const [token, setToken] = useState<string | null>(() => readStoredSession().token);
+  const [user, setUser] = useState<User | null>(() => readStoredSession().user);
   const [loading, setLoading] = useState(true);
   const [showSetPasswordModal, setShowSetPasswordModal] = useState(false);
   const router = useRouter();
@@ -91,16 +104,24 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const parsedUser = JSON.parse(storedUser) as User;
           setToken(storedToken);
           setUser(parsedUser);
-          if (parsedUser?.userId) identifyUser(parsedUser.userId, { fullName: parsedUser.fullName, email: parsedUser.email });
+          if (parsedUser?.userId) {
+            identifyUser(parsedUser.userId, { fullName: parsedUser.fullName, email: parsedUser.email });
+          }
 
           const profile = await fetchProfileWithToken(storedToken);
           if (!("error" in profile)) {
             localStorage.setItem("user", JSON.stringify(profile));
             setUser(profile);
-            if (profile?.userId) identifyUser(profile.userId, { fullName: profile.fullName, email: profile.email });
+            if (profile?.userId) {
+              identifyUser(profile.userId, { fullName: profile.fullName, email: profile.email });
+            }
           }
         } else if (!storedToken && storedUser) {
           localStorage.removeItem("user");
+          setUser(null);
+        } else if (!storedToken) {
+          setToken(null);
+          setUser(null);
         }
       } catch (error) {
         console.error("Failed to access storage", error);
@@ -168,7 +189,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setShowSetPasswordModal(false);
   };
 
-  const isAuthenticated = !loading && !!token;
+  const isAuthenticated = !!token;
 
   return (
     <AuthContext.Provider

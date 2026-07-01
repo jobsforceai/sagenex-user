@@ -32,9 +32,9 @@ import {
   Circle,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
 import { RewardDocumentModal } from "@/app/components/rewards/RewardDocumentModal";
 import GamifiedRewardsSection from "@/app/components/rewards/gamified/GamifiedRewardsSection";
+import { RewardsClaimsSkeleton } from "@/app/components/rewards/gamified/RewardsPageSkeleton";
 import LuxuryTierRulesPanel from "@/app/components/rewards/LuxuryTierRulesPanel";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -916,7 +916,7 @@ const RewardsPage = () => {
   }, [fetchInitialData]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || dataLoading) return;
     const openClaimsFromHash = () => {
       if (window.location.hash === "#reward-claims") {
         setShowDetails(true);
@@ -925,7 +925,7 @@ const RewardsPage = () => {
     openClaimsFromHash();
     window.addEventListener("hashchange", openClaimsFromHash);
     return () => window.removeEventListener("hashchange", openClaimsFromHash);
-  }, []);
+  }, [dataLoading]);
 
   const handleTransferReward = async (rewardId: string, recipientId: string) => {
     setMessage(null);
@@ -1035,10 +1035,6 @@ const RewardsPage = () => {
     day: "numeric",
   });
 
-  if (dataLoading) {
-    return <AppLoadingScreen message="Loading rewards…" fullScreen={false} />;
-  }
-
   return (
     <>
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-5">
@@ -1057,15 +1053,23 @@ const RewardsPage = () => {
           <div id="luxury-rewards" className="scroll-mt-4">
             <GamifiedRewardsSection
               dateLabel={todayLabel}
-              stats={{
-                yourSales: formatCurrency(yourSales.current),
-                teamSales: formatCurrency(teamSales.current),
-                activeLegs,
-              }}
+              stats={
+                dataLoading
+                  ? undefined
+                  : {
+                      yourSales: formatCurrency(yourSales.current),
+                      teamSales: formatCurrency(teamSales.current),
+                      activeLegs,
+                    }
+              }
             />
           </div>
 
           <section id="reward-claims" ref={detailsRef} className="scroll-mt-6">
+            {dataLoading ? (
+              <RewardsClaimsSkeleton />
+            ) : (
+              <>
             <button
               type="button"
               onClick={() => setShowDetails((open) => !open)}
@@ -1102,6 +1106,8 @@ const RewardsPage = () => {
                   ))}
                 </div>
               </div>
+            )}
+              </>
             )}
           </section>
         </div>

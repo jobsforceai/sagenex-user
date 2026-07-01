@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/app/context/AuthContext";
-import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
+import { ProfilePageSkeleton } from "@/app/components/ui/PageSkeletons";
 import AppErrorState from "@/app/components/auth/AppErrorState";
 import { UserIdLabel } from "@/components/common/UserIdLabel";
 import {
@@ -284,7 +284,7 @@ const ProfilePage = () => {
   };
 
   if (dataLoading) {
-    return <AppLoadingScreen message="Loading profile…" fullScreen={false} />;
+    return <ProfilePageSkeleton />;
   }
 
   if (error || !profile) {

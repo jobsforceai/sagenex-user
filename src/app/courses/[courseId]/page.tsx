@@ -27,7 +27,7 @@ import {
 } from "lucide-react";
 import VideoPlayer from "@/app/components/courses/VideoPlayer";
 import { Button } from "@/components/ui/button";
-import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
+import { CourseDetailSkeleton } from "@/app/components/ui/PageSkeletons";
 import AppErrorState from "@/app/components/auth/AppErrorState";
 
 const CourseErrorState = ({
@@ -161,7 +161,7 @@ const CoursePage = () => {
   const needsUpgrade = error ? /access|upgrade|plan|invest/i.test(error) : false;
 
   if (dataLoading) {
-    return <AppLoadingScreen message="Loading course…" fullScreen={false} />;
+    return <CourseDetailSkeleton />;
   }
 
   if (error) {
