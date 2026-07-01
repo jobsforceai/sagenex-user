@@ -1,7 +1,6 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
-import { AnimatedProgressBar } from "./AnimatedProgress";
 import type { RewardQuest } from "./types";
 import { completedKeysCount } from "./quest-ui";
 import { QUEST_ICONS } from "./quest-icons";
@@ -22,7 +21,7 @@ export default function TravelQuestCards({ quests, onSelect }: TravelQuestCardsP
       <p className="mt-1 text-sm text-[#64748B]">Europe and cruise programs</p>
 
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {quests.map((quest, i) => {
+        {quests.map((quest) => {
           const Icon = QUEST_ICONS[quest.icon];
           const accent = getQuestAccent(quest);
           const keysDone = completedKeysCount(quest);
@@ -48,17 +47,13 @@ export default function TravelQuestCards({ quests, onSelect }: TravelQuestCardsP
               </div>
 
               <div className="p-4">
-                <div className="flex justify-between text-xs font-semibold text-[#64748B]">
-                  <span>{keysDone}/{quest.keys.length} steps · {quest.window.daysLeft}d left</span>
-                  <span className="text-[#0F172A]">{quest.overallProgressPct}%</span>
-                </div>
-                <AnimatedProgressBar
-                  value={quest.overallProgressPct}
-                  variant="crimson"
-                  size="sm"
-                  delay={0.08 + i * 0.05}
-                  className="mt-2"
-                />
+                <p className="text-xs font-semibold text-[#64748B]">
+                  {keysDone}/{quest.keys.length} steps
+                  <span className="mx-1.5 text-[#CBD5E1]">·</span>
+                  {quest.window.daysLeft}d left
+                  <span className="mx-1.5 text-[#CBD5E1]">·</span>
+                  <span className="font-bold text-[#0F172A]">{quest.overallProgressPct}%</span>
+                </p>
                 <p className="mt-2.5 flex items-center gap-1 text-xs font-semibold text-[#C41E3A]">
                   {quest.primaryBlocker}
                   <ChevronRight className="h-3.5 w-3.5" />

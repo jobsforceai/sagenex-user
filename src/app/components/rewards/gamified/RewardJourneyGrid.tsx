@@ -1,7 +1,6 @@
 "use client";
 
-import { ChevronRight, Lock } from "lucide-react";
-import { AnimatedProgressBar } from "./AnimatedProgress";
+import { Lock } from "lucide-react";
 import type { RewardQuest } from "./types";
 import { completedKeysCount } from "./quest-ui";
 import { QUEST_ICONS } from "./quest-icons";
@@ -29,10 +28,9 @@ export default function RewardJourneyGrid({
       <p className="mt-1 text-sm text-[#64748B]">{subtitle ?? "Tap a level to see requirements"}</p>
 
       <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
-        {quests.map((quest, i) => {
+        {quests.map((quest) => {
           const Icon = QUEST_ICONS[quest.icon];
           const accent = getQuestAccent(quest);
-          const isComplete = quest.status === "claimed" || quest.status === "claimable";
           const isCurrent = quest.isActiveQuest || quest.status === "in_progress";
           const isLocked = quest.status === "locked";
           const keysDone = completedKeysCount(quest);
@@ -61,17 +59,12 @@ export default function RewardJourneyGrid({
                 <p className="mt-0.5 line-clamp-2 text-[11px] leading-snug text-[#64748B]">{quest.rewardDescription}</p>
               </div>
 
-              <div className="space-y-2 p-3.5">
-                <div className="flex justify-between text-[11px] font-semibold text-[#64748B]">
+              <div className="p-3.5">
+                <p className="text-[11px] font-semibold text-[#64748B]">
                   <span>{keysDone}/{quest.keys.length} steps</span>
-                  <span className="text-[#0F172A]">{quest.overallProgressPct}%</span>
-                </div>
-                <AnimatedProgressBar
-                  value={quest.overallProgressPct}
-                  variant={isComplete ? "rose" : "crimson"}
-                  size="xs"
-                  delay={0.05 + i * 0.04}
-                />
+                  <span className="mx-1.5 text-[#CBD5E1]">·</span>
+                  <span className="font-bold text-[#0F172A]">{quest.overallProgressPct}%</span>
+                </p>
               </div>
             </button>
           );

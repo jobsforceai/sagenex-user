@@ -6,7 +6,6 @@ import {
   KeyRound,
   Lock,
 } from "lucide-react";
-import { AnimatedProgressBar } from "./AnimatedProgress";
 import { PrimaryButton } from "./rewards-ui";
 import type { QuestKey, RewardQuest } from "./types";
 
@@ -102,23 +101,15 @@ export function QuestKeyRow({
             <span className="font-semibold text-[#0F172A]">{questKey.currentDisplay}</span>
             <span className="mx-1.5 text-[#CBD5E1]">of</span>
             <span>{questKey.requiredDisplay}</span>
+            {!done && !locked && (
+              <span className="ml-2 text-xs font-semibold text-[#94A3B8]">{questKey.progressPct}%</span>
+            )}
           </p>
 
           {!done && questKey.remainingDisplay !== "Done" && (
             <p className={`mt-1 text-xs font-semibold ${locked ? "text-[#94A3B8]" : "text-[#C41E3A]"}`}>
               {questKey.remainingDisplay}
             </p>
-          )}
-
-          {!done && !locked && (
-            <div className="mt-3">
-              <AnimatedProgressBar
-                value={questKey.progressPct}
-                variant="crimson"
-                size="sm"
-                delay={animationDelay}
-              />
-            </div>
           )}
 
           {questKey.helpText && (

@@ -3,7 +3,6 @@
 import { useEffect } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, ChevronRight, X } from "lucide-react";
-import { HeroQuestProgress } from "./AnimatedProgress";
 import type { RewardQuest } from "./types";
 import { completedKeysCount, formatWindowDate, QuestKeyRow } from "./quest-ui";
 import { QUEST_ICONS } from "./quest-icons";
@@ -119,6 +118,9 @@ export default function QuestDetailSheet({ quest, onClose }: QuestDetailSheetPro
 
               <div className="mt-4 flex flex-wrap items-center gap-2">
                 <StatusPill label={STATUS_LABELS[quest.status]} tone={statusTone(quest.status)} />
+                <span className="inline-flex items-center rounded-lg bg-[#FFF1F4] px-2.5 py-1 text-xs font-bold text-[#C41E3A]">
+                  {quest.overallProgressPct}% · {keysDone}/{keysTotal} requirements
+                </span>
                 <span className="inline-flex items-center gap-1.5 rounded-lg bg-[#F8FAFC] px-2.5 py-1 text-xs font-semibold text-[#475569] ring-1 ring-[#E2E8F0]">
                   <CalendarDays className="h-3.5 w-3.5 text-[#94A3B8]" />
                   {formatWindowDate(quest.window.startsAt)} – {formatWindowDate(quest.window.endsAt)}
@@ -127,14 +129,7 @@ export default function QuestDetailSheet({ quest, onClose }: QuestDetailSheetPro
             </header>
 
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4 sm:px-6">
-              <HeroQuestProgress
-                percent={quest.overallProgressPct}
-                keysDone={keysDone}
-                keysTotal={keysTotal}
-                compact
-              />
-
-              <div className="mt-4 rounded-2xl border border-[#F4B4C4]/60 bg-[#FFF5F7] p-4">
+              <div className="rounded-2xl border border-[#F4B4C4]/60 bg-[#FFF5F7] p-4">
                 <p className="text-[11px] font-bold uppercase tracking-[0.12em] text-[#C41E3A]">
                   What you still need
                 </p>
