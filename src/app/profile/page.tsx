@@ -1,8 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useAuth } from "@/app/context/AuthContext";
+import { useCallback, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/context/AuthContext";
+import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
+import AppErrorState from "@/app/components/auth/AppErrorState";
 import { UserIdLabel } from "@/components/common/UserIdLabel";
 import {
   Card,
@@ -95,11 +97,12 @@ const KycStatusBadge = ({ status }: { status: KycStatus['status'] }) => {
 };
 
 const ProfilePage = () => {
-  const { isAuthenticated, loading, user } = useAuth();
   const router = useRouter();
+  const { user, token } = useAuth();
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [kycStatus, setKycStatus] = useState<KycStatus | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [dataLoading, setDataLoading] = useState(true);
   const [copyText, setCopyText] = useState("Copy");
   const [isEditing, setIsEditing] = useState(false);
   const [formData, setFormData] = useState({ fullName: '', phone: '', usdtTrc20Address: '' });
@@ -119,68 +122,64 @@ const ProfilePage = () => {
   const [rankData, setRankData] = useState<{ name?: string } | null>(null);
   const [walletData, setWalletData] = useState<{ availableBalance?: number } | null>(null);
 
-  useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
+  const fetchPageData = useCallback(async () => {
+    setDataLoading(true);
+    setError(null);
+    try {
+      const [profileData, kycData, nomineeData, biometricsData, ticketData, dashboardData] = await Promise.all([
+        getProfileData(),
+        getKycStatus(),
+        getNomineeStatus(),
+        getBiometricsStatus(),
+        getTicketBalance(),
+        getDashboardData(),
+      ]);
+      if (profileData.error) {
+        setError(profileData.error);
+      } else {
+        setProfile(profileData);
+        setFormData({
+          fullName: profileData.fullName,
+          phone: profileData.phone || "",
+          usdtTrc20Address: profileData.usdtTrc20Address || "",
+        });
+      }
 
-    const fetchPageData = async () => {
-        try {
-            const [profileData, kycData, nomineeData, biometricsData, ticketData, dashboardData] = await Promise.all([
-                getProfileData(),
-                getKycStatus(),
-                getNomineeStatus(),
-                getBiometricsStatus(),
-                getTicketBalance(),
-                getDashboardData(),
-            ]);
-            console.log("Fetched Profile Data:", profileData);
-            if (profileData.error) {
-                setError(profileData.error);
-            } else {
-                setProfile(profileData);
-                setFormData({
-                    fullName: profileData.fullName,
-                    phone: profileData.phone || '',
-                    usdtTrc20Address: profileData.usdtTrc20Address || '',
-                });
-            }
+      if (kycData.error) {
+        console.error("Could not fetch KYC status:", kycData.error);
+      } else {
+        setKycStatus(kycData);
+      }
 
-            if (kycData.error) {
-                console.error("Could not fetch KYC status:", kycData.error);
-            } else {
-                setKycStatus(kycData);
-            }
-            
-            // Extract dashboard data for AppShell
-            if (dashboardData && !dashboardData.error) {
-                if (dashboardData.rank || dashboardData.performanceRank) {
-                    setRankData(dashboardData.rank || dashboardData.performanceRank);
-                }
-                if (dashboardData.wallet) {
-                    setWalletData(dashboardData.wallet);
-                }
-            }
-
-            if (!nomineeData?.error) {
-                setNomineeStatus(nomineeData);
-            }
-            if (!biometricsData?.error) {
-                setBiometricsStatus(biometricsData);
-            }
-            if (!ticketData?.error) {
-                setTicketBalance(ticketData);
-            }
-        } catch (err) {
-            setError(err instanceof Error ? err.message : "An unknown error occurred");
+      if (dashboardData && !dashboardData.error) {
+        if (dashboardData.rank || dashboardData.performanceRank) {
+          setRankData(dashboardData.rank || dashboardData.performanceRank);
         }
-    };
+        if (dashboardData.wallet) {
+          setWalletData(dashboardData.wallet);
+        }
+      }
 
-    if (isAuthenticated) {
-      fetchPageData();
+      if (!nomineeData?.error) {
+        setNomineeStatus(nomineeData);
+      }
+      if (!biometricsData?.error) {
+        setBiometricsStatus(biometricsData);
+      }
+      if (!ticketData?.error) {
+        setTicketBalance(ticketData);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "An unknown error occurred");
+    } finally {
+      setDataLoading(false);
     }
-  }, [isAuthenticated, loading, router]);
+  }, []);
+
+  useEffect(() => {
+    if (!token) return;
+    fetchPageData();
+  }, [token, fetchPageData]);
 
   const handleCopy = () => {
     if (profile?.referralCode) {
@@ -284,12 +283,22 @@ const ProfilePage = () => {
     }
   };
 
-  if (loading || !profile) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Loading...</div>;
+  if (dataLoading) {
+    return <AppLoadingScreen message="Loading profile…" fullScreen={false} />;
   }
 
-  if (error) {
-    return <div className="bg-black text-white min-h-screen flex items-center justify-center">Error: {error}</div>;
+  if (error || !profile) {
+    return (
+      <AppErrorState
+        title="Unable to load profile"
+        message={error ?? "We couldn't load your profile. Please try again."}
+        actions={
+          <Button onClick={fetchPageData} className="bg-[#C41E3A] text-white hover:bg-[#A90D32]">
+            Try again
+          </Button>
+        }
+      />
+    );
   }
 
   const isNominee = user?.role === "nominee";

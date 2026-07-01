@@ -3,7 +3,6 @@
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useAuth } from "@/app/context/AuthContext";
-import { useRouter } from "next/navigation";
 import TreeClient from "./TreeClient";
 import PlacementQueue from "@/app/components/dashboard/PlacementQueue";
 import { Button } from "@/components/ui/button";
@@ -169,8 +168,7 @@ const TeamStatCard = ({
 );
 
 const TeamPage = () => {
-  const { isAuthenticated, loading: authLoading } = useAuth();
-  const router = useRouter();
+  const { token } = useAuth();
   const [treeData, setTreeData] = useState<TreeApiResponse | null>(null);
   const [queue, setQueue] = useState<QueuedUser[]>([]);
   const [bonusRules, setBonusRules] = useState<BonusRulesConfig | null>(null);
@@ -240,16 +238,11 @@ const TeamPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-    if (isAuthenticated) {
-      fetchTeamData();
-    }
-  }, [isAuthenticated, authLoading, router, fetchTeamData]);
+    if (!token) return;
+    fetchTeamData();
+  }, [token, fetchTeamData]);
 
-  if (authLoading || dataLoading) {
+  if (dataLoading) {
     return (
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">

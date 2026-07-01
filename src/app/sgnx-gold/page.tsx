@@ -2,7 +2,6 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useAuth } from "@/app/context/AuthContext";
-import { useRouter } from "next/navigation";
 import dynamic from "next/dynamic";
 import SgnxGoldHero from "@/app/components/sgnx-gold/SgnxGoldHero";
 import LivePriceCards from "@/app/components/sgnx-gold/LivePriceCards";
@@ -126,8 +125,7 @@ interface GoldRate {
 }
 
 export default function SgnxGoldPage() {
-  const { isAuthenticated, loading: authLoading } = useAuth();
-  const router = useRouter();
+  const { token } = useAuth();
 
   // Each section has its own loading state
   const [heroLoading, setHeroLoading] = useState(true);
@@ -194,40 +192,25 @@ export default function SgnxGoldPage() {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-    if (isAuthenticated) {
-      // Fire all fetches independently
-      fetchHeroData();
-      fetchPrices();
-      fetchCityPrices();
-      
-      // Fetch dashboard data for AppShell
-      getDashboardData().then((dashboardData) => {
-        if (dashboardData && !dashboardData.error) {
-          if (dashboardData.profile) {
-            setProfileData(dashboardData.profile);
-          }
-          if (dashboardData.rank || dashboardData.performanceRank) {
-            setRankData(dashboardData.rank || dashboardData.performanceRank);
-          }
-          if (dashboardData.wallet) {
-            setWalletData(dashboardData.wallet);
-          }
-        }
-      });
-    }
-  }, [isAuthenticated, authLoading, router, fetchHeroData, fetchPrices, fetchCityPrices]);
+    if (!token) return;
+    fetchHeroData();
+    fetchPrices();
+    fetchCityPrices();
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-[#f8f9fa] flex items-center justify-center">
-        <Loader2 className="h-6 w-6 animate-spin text-[#C41E3A]" />
-      </div>
-    );
-  }
+    getDashboardData().then((dashboardData) => {
+      if (dashboardData && !dashboardData.error) {
+        if (dashboardData.profile) {
+          setProfileData(dashboardData.profile);
+        }
+        if (dashboardData.rank || dashboardData.performanceRank) {
+          setRankData(dashboardData.rank || dashboardData.performanceRank);
+        }
+        if (dashboardData.wallet) {
+          setWalletData(dashboardData.wallet);
+        }
+      }
+    });
+  }, [token, fetchHeroData, fetchPrices, fetchCityPrices]);
 
   const activeEnrollments = enrollments.filter((e) => e.status === "ACTIVE");
   const hasEnrollment = enrollments.length > 0;

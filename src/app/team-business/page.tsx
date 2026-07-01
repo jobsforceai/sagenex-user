@@ -198,7 +198,7 @@ const ChecklistRow = ({
 
 const TeamBusinessPage = () => {
   const router = useRouter();
-  const { isAuthenticated, loading: authLoading } = useAuth();
+  const { token } = useAuth();
 
   const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
   // Always-live rolling-30d snapshot for the 3x/4x qualification panel.
@@ -282,13 +282,10 @@ const TeamBusinessPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-    if (isAuthenticated) fetchAll();
+    if (!token) return;
+    fetchAll();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, authLoading, router]);
+  }, [token]);
 
   // When the user changes the month, do a lightweight refetch.
   useEffect(() => {
@@ -357,7 +354,7 @@ const TeamBusinessPage = () => {
     return `What you need to reach 4x: ${parts.join(", ")}.`;
   }, [liveCounts.legsAt4x, liveTeamMath.capped, kycVerified, qualifies4x]);
 
-  if (authLoading || loading) {
+  if (loading) {
     return (
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-4 py-5 sm:px-6 lg:px-8">
         <div className="mx-auto max-w-7xl space-y-6">

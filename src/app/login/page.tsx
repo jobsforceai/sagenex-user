@@ -13,6 +13,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { registerUser, loginOtp, verifyEmail, login, verifyEmailOtp, passwordStatus, nomineeLogin } from "@/actions/auth";
+import { getSafeRedirectPath } from "@/lib/auth-routes";
 import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2, ShieldAlert } from "lucide-react";
 import Image from "next/image";
 
@@ -122,7 +123,8 @@ function Login() {
 
   const handleAuthSuccess = async (data: AuthResponse) => {
     const resolvedData = await resolvePasswordStatus(data);
-    authLogin(resolvedData);
+    const nextPath = getSafeRedirectPath(searchParams.get("next"));
+    authLogin(resolvedData, nextPath);
   };
 
   const isAuthResponse = (data: unknown): data is AuthResponse => {

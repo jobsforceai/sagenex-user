@@ -4,7 +4,6 @@ import { useEffect, useState, useCallback, useRef, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useAuth } from "@/app/context/AuthContext";
-import { useRouter } from "next/navigation";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { getPayouts, getCurrentPayoutProgress } from "@/actions/user";
@@ -526,8 +525,7 @@ const LoadingSkeleton = () => (
 );
 
 const PayoutsPage = () => {
-  const { isAuthenticated, loading: authLoading } = useAuth();
-  const router = useRouter();
+  const { token } = useAuth();
 
   const [currentPayout, setCurrentPayout] = useState<CurrentPayout | null>(null);
   const [payoutHistory, setPayoutHistory] = useState<Payout[]>([]);
@@ -597,15 +595,9 @@ const PayoutsPage = () => {
   }, [historyLoading, pagination, loadMorePayouts]);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
-
-    if (isAuthenticated) {
-      fetchInitialData();
-    }
-  }, [isAuthenticated, authLoading, router, fetchInitialData]);
+    if (!token) return;
+    fetchInitialData();
+  }, [token, fetchInitialData]);
 
   useEffect(() => {
     if (!currentPayout?.nextPayoutDate || currentPayout?.isCapReached) {
@@ -678,7 +670,7 @@ const PayoutsPage = () => {
 
   const nextPayoutStatus = getPayoutStatus(currentPayout, progressPercentage);
 
-  if (authLoading || initialLoading) return <LoadingSkeleton />;
+  if (initialLoading) return <LoadingSkeleton />;
 
   if (error) {
     return (

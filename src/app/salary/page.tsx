@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/app/context/AuthContext";
-import { useRouter } from "next/navigation";
 import { getRankProgress } from "@/actions/user";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
@@ -598,8 +597,7 @@ const LoadingSkeleton = () => (
 );
 
 const SalaryPage = () => {
-  const { token, isAuthenticated, loading } = useAuth();
-  const router = useRouter();
+  const { token } = useAuth();
   const [rankProgress, setRankProgress] = useState<RankProgress | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [dataLoading, setDataLoading] = useState(true);
@@ -644,13 +642,9 @@ const SalaryPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!loading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
     if (!token) return;
     fetchRankProgress();
-  }, [token, isAuthenticated, loading, router]);
+  }, [token]);
 
   const derived = useMemo(() => {
     if (!rankProgress) return null;
@@ -687,7 +681,7 @@ const SalaryPage = () => {
     };
   }, [rankProgress]);
 
-  if (loading || dataLoading) return <LoadingSkeleton />;
+  if (dataLoading) return <LoadingSkeleton />;
 
   if (error || !rankProgress || !derived) {
     return (

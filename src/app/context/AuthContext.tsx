@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from "react
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
 import { getBackendBaseUrl } from "@/lib/api-base";
+import { getSafeRedirectPath } from "@/lib/auth-routes";
 
 const API_BASE_URL = getBackendBaseUrl();
 
@@ -21,7 +22,7 @@ interface User {
 interface AuthContextType {
   token: string | null;
   user: User | null;
-  login: (data: { token: string; user: User }) => void;
+  login: (data: { token: string; user: User }, redirectPath?: string) => void;
   logout: () => void;
   bootstrapImpersonationSession: (token: string, userData?: { userId: string; fullName: string; email: string }) => Promise<{ error?: string }>;
   replaceSession: (data: { token: string; user: User | null }, redirectPath?: string) => void;
@@ -111,15 +112,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     hydrateAuth();
   }, []);
 
-  const login = (data: { token: string; user: User }) => {
+  const login = (data: { token: string; user: User }, redirectPath?: string) => {
     const { token, user } = data;
     persistSession(token, user);
 
     if (user.hasPasswordSet === false) {
       setShowSetPasswordModal(true);
     }
-    
-    router.push("/dashboard");
+
+    const destination = getSafeRedirectPath(redirectPath) ?? "/dashboard";
+    router.push(destination);
   };
 
   const replaceSession = (

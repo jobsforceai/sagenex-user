@@ -1,5 +1,9 @@
 "use client";
 
+"use client";
+
+import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
+
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
 import { useAuth } from "@/app/context/AuthContext";
@@ -183,7 +187,7 @@ const walletAsset = {
 } as const;
 
 const WalletPage = () => {
-  const { isAuthenticated, loading: authLoading, user } = useAuth();
+  const { user } = useAuth();
   const router = useRouter();
   const [transactions, setTransactions] = useState<WalletTransaction[]>([]);
   const [walletSummary, setWalletSummary] = useState<WalletSummary | null>(null);
@@ -327,30 +331,18 @@ const WalletPage = () => {
   }, []);
 
   useEffect(() => {
-    if (!authLoading && !isAuthenticated) {
-      router.push("/login");
-      return;
-    }
+    fetchData();
+    autoSyncProfile()
+      .then((res: AutoSyncResponse) => {
+        if (res?.synced && (res?.corrections ?? 0) > 0) {
+          fetchData();
+        }
+      })
+      .catch(() => {});
+  }, [fetchData]);
 
-    if (isAuthenticated) {
-      fetchData();
-      // Silent auto-sync (throttled 1/day server-side); refresh wallet data if corrections were applied
-      autoSyncProfile()
-        .then((res: AutoSyncResponse) => {
-          if (res?.synced && (res?.corrections ?? 0) > 0) {
-            fetchData();
-          }
-        })
-        .catch(() => {});
-    }
-  }, [isAuthenticated, authLoading, router, fetchData]);
-
-  if (authLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-[#f8f9fa] text-[#0a0a0a]">
-        Loading...
-      </div>
-    );
+  if (walletLoading && dashboardLoading) {
+    return <AppLoadingScreen message="Loading wallet…" fullScreen={false} />;
   }
 
   const remainingWithdrawalLimit = Math.max(0, walletSummary?.remainingWithdrawalLimit ?? 0);
