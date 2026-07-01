@@ -34,7 +34,7 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
 import { RewardDocumentModal } from "@/app/components/rewards/RewardDocumentModal";
-import LuxuryRewardsCard from "@/app/components/LuxuryRewardsCard";
+import GamifiedRewardsSection from "@/app/components/rewards/gamified/GamifiedRewardsSection";
 import LuxuryTierRulesPanel from "@/app/components/rewards/LuxuryTierRulesPanel";
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -915,6 +915,18 @@ const RewardsPage = () => {
     fetchInitialData();
   }, [fetchInitialData]);
 
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const openClaimsFromHash = () => {
+      if (window.location.hash === "#reward-claims") {
+        setShowDetails(true);
+      }
+    };
+    openClaimsFromHash();
+    window.addEventListener("hashchange", openClaimsFromHash);
+    return () => window.removeEventListener("hashchange", openClaimsFromHash);
+  }, []);
+
   const handleTransferReward = async (rewardId: string, recipientId: string) => {
     setMessage(null);
     setError(null);
@@ -1031,16 +1043,6 @@ const RewardsPage = () => {
     <>
       <div className="dashboard-light-scope min-h-screen bg-[#F8FAFC] px-3 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-5">
         <div className="mx-auto max-w-7xl space-y-4 sm:space-y-6">
-          <header className="flex flex-wrap items-end justify-between gap-3">
-            <div>
-              <h1 className="text-2xl font-black text-[#0F172A] sm:text-3xl">My rewards</h1>
-              <p className="mt-1 text-sm font-medium text-[#64748B]">
-                See what you can earn and what to do next
-              </p>
-            </div>
-            <p className="text-sm font-semibold text-[#94A3B8]">{todayLabel}</p>
-          </header>
-
           {error && (
             <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-semibold text-red-700">
               {error}
@@ -1052,52 +1054,18 @@ const RewardsPage = () => {
             </div>
           )}
 
-          <div className="space-y-4 xl:grid xl:grid-cols-[minmax(0,1fr)_300px] xl:items-start xl:gap-6 xl:space-y-0">
-            <div className="space-y-4 sm:space-y-6">
-              <TodayDoThis tasks={todayTasks} />
-
-              <div id="luxury-rewards" className="scroll-mt-4">
-                <LuxuryRewardsCard />
-              </div>
-            </div>
-
-            <QuickStatusTiles
-              yourSales={yourSales}
-              teamSales={teamSales}
-              activeTeams={activeLegs}
-              claimsPending={claimsPending}
+          <div id="luxury-rewards" className="scroll-mt-4">
+            <GamifiedRewardsSection
+              dateLabel={todayLabel}
+              stats={{
+                yourSales: formatCurrency(yourSales.current),
+                teamSales: formatCurrency(teamSales.current),
+                activeLegs,
+              }}
             />
           </div>
 
-          <section>
-            <p className="mb-2 text-xs font-bold uppercase tracking-wide text-[#64748B]">Trip rewards</p>
-            <p className="mb-3 text-sm text-[#64748B] lg:mb-5">Europe and cruise trips you can earn</p>
-            <div className="lg:grid lg:grid-cols-5 lg:items-stretch lg:gap-6">
-              <div className="lg:col-span-3">
-                <ClosestRewardHero
-                  reward={heroReward}
-                  programName={heroProgram?.name ?? "Reward"}
-                  promoImage={heroReward ? TRAVEL_PROMO[heroReward.programId]?.image : undefined}
-                  isProgramLocked={heroReward ? programConfigs[heroReward.programId]?.status === "locked" : false}
-                  onUploadDocuments={setUploadModalReward}
-                  onViewDetails={() => scrollToDetails(heroReward?.programId)}
-                />
-              </div>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:col-span-2 lg:mt-0 lg:grid-cols-1">
-                {displayPrograms.map((program) => (
-                  <TravelRewardTile
-                    key={program.programId}
-                    program={program}
-                    progress={getRewardProgress(rewardsByProgram[program.programId] ?? [])}
-                    rewards={rewardsByProgram[program.programId] ?? []}
-                    onSelect={() => scrollToDetails(program.programId)}
-                  />
-                ))}
-              </div>
-            </div>
-          </section>
-
-          <section ref={detailsRef} className="scroll-mt-6">
+          <section id="reward-claims" ref={detailsRef} className="scroll-mt-6">
             <button
               type="button"
               onClick={() => setShowDetails((open) => !open)}
