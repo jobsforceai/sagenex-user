@@ -76,7 +76,7 @@ function MapNode({
         <div className="mt-3 w-full">
           <AnimatedProgressBar
             value={quest.overallProgressPct}
-            variant={isComplete ? "emerald" : "crimson"}
+            variant={isComplete ? "rose" : "crimson"}
             size="xs"
             delay={0.1 + index * 0.06}
           />
