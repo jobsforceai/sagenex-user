@@ -50,7 +50,7 @@ export function QuestKeyRow({
   return (
     <li
       style={{ animationDelay: `${animationDelay}s` }}
-      className={`rounded-xl border p-4 ${
+      className={`animate-in fade-in slide-in-from-bottom-1 rounded-xl border p-4 duration-300 ${
         done
           ? "border-[#F4B4C4] bg-[#FFF8FA]"
           : locked
