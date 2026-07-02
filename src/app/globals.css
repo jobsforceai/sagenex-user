@@ -701,3 +701,190 @@
 .dashboard-light-scope .salary-dark-rank .salary-dark-gold * {
   color: #fde68a !important;
 }
+
+/* ── Rewards quest UI ── */
+.rewards-hero-active {
+  background:
+    radial-gradient(80% 60% at 50% 20%, rgba(226, 16, 41, 0.55) 0%, rgba(166, 7, 27, 0.72) 45%, rgba(88, 0, 10, 0.92) 85%),
+    linear-gradient(165deg, #c41e3a 0%, #9d122f 42%, #61000f 100%);
+}
+
+.rewards-hero-tier-2 {
+  background:
+    radial-gradient(70% 55% at 30% 25%, rgba(196, 30, 58, 0.45) 0%, transparent 60%),
+    linear-gradient(155deg, #8f0014 0%, #61000f 55%, #2a0008 100%);
+}
+
+.rewards-hero-tier-3 {
+  background:
+    radial-gradient(65% 50% at 70% 20%, rgba(0, 179, 134, 0.22) 0%, transparent 55%),
+    linear-gradient(155deg, #61000f 0%, #3d0009 50%, #0f172a 100%);
+}
+
+.rewards-hero-tier-4 {
+  background:
+    radial-gradient(60% 50% at 50% 15%, rgba(253, 224, 71, 0.18) 0%, transparent 50%),
+    linear-gradient(155deg, #9d122f 0%, #61000f 40%, #1a0508 100%);
+}
+
+.rewards-hero-travel {
+  background:
+    radial-gradient(70% 55% at 20% 30%, rgba(0, 179, 134, 0.28) 0%, transparent 55%),
+    radial-gradient(60% 50% at 80% 20%, rgba(196, 30, 58, 0.35) 0%, transparent 50%),
+    linear-gradient(155deg, #0f172a 0%, #1e293b 55%, #61000f 100%);
+}
+
+.rewards-hero-travel-alt {
+  background:
+    radial-gradient(70% 55% at 75% 25%, rgba(196, 30, 58, 0.3) 0%, transparent 55%),
+    linear-gradient(155deg, #1e293b 0%, #0f172a 60%, #3d0009 100%);
+}
+
+.rewards-hero-vignette::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 110%, rgba(0, 0, 0, 0.35) 0%, transparent 55%),
+    radial-gradient(80% 60% at 50% -20%, rgba(255, 255, 255, 0.08) 0%, transparent 50%);
+}
+
+.rewards-dot-grid {
+  background-image: radial-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 20px 20px;
+}
+
+@keyframes rewards-shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+@keyframes rewards-pulse-glow {
+  0%, 100% { box-shadow: 0 0 8px rgba(196, 30, 58, 0.25); }
+  50% { box-shadow: 0 0 18px rgba(196, 30, 58, 0.45); }
+}
+
+@keyframes rewards-pulse-glow-emerald {
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 179, 134, 0.25); }
+  50% { box-shadow: 0 0 18px rgba(0, 179, 134, 0.45); }
+}
+
+.rewards-progress-shimmer::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.45) 50%,
+    transparent 100%
+  );
+  animation: rewards-shimmer 2.2s ease-in-out infinite;
+}
+
+.rewards-progress-glow-crimson {
+  animation: rewards-pulse-glow 2.5s ease-in-out infinite;
+}
+
+.rewards-progress-glow-emerald {
+  animation: rewards-pulse-glow-emerald 2.5s ease-in-out infinite;
+}
+
+.rewards-active-pulse {
+  animation: rewards-pulse-glow 2s ease-in-out infinite;
+}
+
+.rewards-card {
+  border: 1px solid rgba(226, 232, 240, 0.85);
+  background: #ffffff;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
+}
+
+.rewards-card:hover {
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.09);
+}
+
+.rewards-eyebrow {
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--crimson);
+}
+
+.rewards-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.75rem;
+  background: var(--crimson);
+  padding: 0.625rem 1.25rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #fff;
+  box-shadow: 0 4px 20px var(--crimson-glow);
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+.rewards-btn-primary:hover {
+  background: #a81831;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 28px var(--crimson-glow);
+}
+
+/* Pinterest-inspired vault & pin cards */
+.rewards-vault-mesh {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 10%, rgba(255, 255, 255, 0.14) 0%, transparent 55%),
+    radial-gradient(ellipse 60% 50% at 85% 20%, rgba(0, 179, 134, 0.18) 0%, transparent 50%),
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgba(0, 0, 0, 0.35) 0%, transparent 55%),
+    linear-gradient(145deg, #d4203f 0%, #c41e3a 35%, #8f0014 70%, #4a000c 100%);
+}
+
+.rewards-tier-rose {
+  background: linear-gradient(145deg, #fff8fa 0%, #ffd6de 45%, #fff1f4 100%);
+}
+
+.rewards-tier-wine {
+  background: linear-gradient(145deg, #fff5f7 0%, #f4b4c4 50%, #ffe8ec 100%);
+}
+
+.rewards-tier-slate {
+  background: linear-gradient(145deg, #f8fafc 0%, #e2e8f0 55%, #f1f5f9 100%);
+}
+
+.rewards-tier-gold {
+  background: linear-gradient(145deg, #fffbeb 0%, #fde68a 45%, #fff7ed 100%);
+}
+
+.rewards-tier-sky {
+  background: linear-gradient(145deg, #f0f9ff 0%, #bae6fd 50%, #ecfeff 100%);
+}
+
+.rewards-tier-sea {
+  background: linear-gradient(145deg, #ecfdf5 0%, #6ee7b7 45%, #f0fdfa 100%);
+}
+
+.rewards-pin-card {
+  border-radius: 1.25rem;
+  border: 1px solid rgba(226, 232, 240, 0.9);
+  background: #fff;
+  box-shadow: 0 10px 36px rgba(15, 23, 42, 0.08);
+  transition: transform 0.25s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.25s ease;
+}
+
+.rewards-pin-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 18px 48px rgba(196, 30, 58, 0.14);
+}
+
+.rewards-glass-dark {
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(12px);
+}
+
+.rewards-float-card {
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.12);
+}

@@ -2,7 +2,7 @@
 
 "use client";
 
-import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
+import { WalletPageSkeleton } from "@/app/components/ui/PageSkeletons";
 
 import { useEffect, useState, useCallback } from "react";
 import Image from "next/image";
@@ -342,7 +342,7 @@ const WalletPage = () => {
   }, [fetchData]);
 
   if (walletLoading && dashboardLoading) {
-    return <AppLoadingScreen message="Loading wallet…" fullScreen={false} />;
+    return <WalletPageSkeleton />;
   }
 
   const remainingWithdrawalLimit = Math.max(0, walletSummary?.remainingWithdrawalLimit ?? 0);

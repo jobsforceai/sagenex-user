@@ -1,6 +1,6 @@
 "use client";
-import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
 import AppErrorState from "@/app/components/auth/AppErrorState";
+import { DashboardSkeleton } from "@/app/components/dashboard/DashboardSkeletons";
 import TeamPulseSection from "./TeamPulseSection";
 import LuxuryPathSection from "./LuxuryPathSection";
 
@@ -419,7 +419,7 @@ const DashboardPage = () => {
       {showSetPasswordModal && <SetPasswordModal onPasswordSet={onPasswordSet} />}
 
       {showLoading ? (
-        <AppLoadingScreen message="Loading dashboard…" fullScreen={false} />
+        <DashboardSkeleton />
       ) : showError ? (
         <AppErrorState title="Could not load dashboard" message={error ?? "Please try again."} />
       ) : (

@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import AppShell from "@/app/components/AppShell";
 import SyncProfileFab from "@/app/components/SyncProfileFab";
 import ChatbotAssistant from "@/app/components/ChatbotAssistant";
-import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
 import LoginRequiredScreen from "@/app/components/auth/LoginRequiredScreen";
 import { useAuth } from "@/app/context/AuthContext";
 import { getDashboardData } from "@/actions/user";
@@ -53,11 +52,11 @@ export default function AuthenticatedShell({ children }: { children: React.React
     });
   }, [shouldUseShell, authLoading, isAuthenticated, pathname, setShellData]);
 
-  if (isPrivate && authLoading) {
-    return <AppLoadingScreen message="Checking your session…" />;
+  if (isPrivate && authLoading && !isAuthenticated) {
+    return <div className="min-h-screen bg-[#F8FAFC]" aria-busy="true" aria-label="Loading" />;
   }
 
-  if (isPrivate && !isAuthenticated) {
+  if (isPrivate && !authLoading && !isAuthenticated) {
     return <LoginRequiredScreen />;
   }
 

@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { getAllCourses } from "@/actions/user";
 import { Button } from "@/components/ui/button";
-import AppLoadingScreen from "@/app/components/auth/AppLoadingScreen";
+import { CoursesPageSkeleton } from "@/app/components/ui/PageSkeletons";
 import { CourseSummary } from "@/types";
 import {
   ArrowRight,
@@ -347,7 +347,7 @@ const CoursesPage = () => {
     [visibleCourses],
   );
 
-  if (dataLoading) return <AppLoadingScreen message="Loading courses…" fullScreen={false} />;
+  if (dataLoading) return <CoursesPageSkeleton />;
 
   return (
     <main className="dashboard-light-scope min-h-screen overflow-x-hidden bg-[#F8FAFC] px-3 py-4 pb-24 sm:px-6 sm:py-5 lg:px-8 lg:pb-5">
