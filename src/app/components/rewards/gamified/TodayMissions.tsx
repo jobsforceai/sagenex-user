@@ -55,7 +55,7 @@ export default function TodayMissions({ missions }: TodayMissionsProps) {
                 {mission.actionLabel}
                 <ChevronRight className="h-3.5 w-3.5" />
               </PrimaryButton>
-            ) : (
+            ) : mission.onAction ? (
               <button
                 type="button"
                 onClick={mission.onAction}
@@ -63,7 +63,7 @@ export default function TodayMissions({ missions }: TodayMissionsProps) {
               >
                 {mission.actionLabel}
               </button>
-            )}
+            ) : null}
           </li>
         ))}
       </ul>

@@ -49,6 +49,7 @@ export function QuestKeyRow({
 
   return (
     <li
+      style={{ animationDelay: `${animationDelay}s` }}
       className={`rounded-xl border p-4 ${
         done
           ? "border-[#F4B4C4] bg-[#FFF8FA]"

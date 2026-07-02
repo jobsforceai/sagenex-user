@@ -78,20 +78,20 @@ export function AnimatedProgressRing({
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
   const clamped = Math.min(100, Math.max(0, percent));
+  const motionValue = useMotionValue(0);
+  const offset = useTransform(motionValue, (v) => circumference - (v / 100) * circumference);
   const [display, setDisplay] = useState(0);
   const onDark = variant === "dark";
 
   useEffect(() => {
-    const controls = animate(0, clamped, {
+    const controls = animate(motionValue, clamped, {
       duration: 0.85,
       delay,
       ease: [0.22, 1, 0.36, 1],
       onUpdate: (v) => setDisplay(Math.round(v)),
     });
     return controls.stop;
-  }, [clamped, delay]);
-
-  const offset = circumference - (display / 100) * circumference;
+  }, [clamped, delay, motionValue]);
 
   return (
     <div
@@ -122,9 +122,7 @@ export function AnimatedProgressRing({
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={circumference}
-          initial={{ strokeDashoffset: circumference }}
-          animate={{ strokeDashoffset: offset }}
-          transition={{ duration: 0.85, delay, ease: [0.22, 1, 0.36, 1] }}
+          style={{ strokeDashoffset: offset }}
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">

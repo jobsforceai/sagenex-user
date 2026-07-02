@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { CalendarDays, ChevronRight, X } from "lucide-react";
 import type { RewardQuest } from "./types";
-import { completedKeysCount, formatWindowDate, QuestKeyRow } from "./quest-ui";
+import { completedKeysCount, formatWindowDate, QuestKeyRow, STATUS_LABELS } from "./quest-ui";
 import { QUEST_ICONS } from "./quest-icons";
 import {
   getQuestAccent,
@@ -12,7 +12,6 @@ import {
   statusTone,
   StatusPill,
 } from "./rewards-ui";
-import { STATUS_LABELS } from "./quest-ui";
 
 type QuestDetailSheetProps = {
   quest: RewardQuest | null;
@@ -32,14 +31,36 @@ function resolvePrimaryCta(quest: RewardQuest) {
 }
 
 export default function QuestDetailSheet({ quest, onClose }: QuestDetailSheetProps) {
+  const panelRef = useRef<HTMLDivElement>(null);
+
   useEffect(() => {
     if (!quest) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose();
+      if (e.key === "Escape") {
+        onClose();
+        return;
+      }
+      if (e.key !== "Tab") return;
+
+      const focusables = panelRef.current?.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])',
+      );
+      if (!focusables?.length) return;
+
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
     };
     window.addEventListener("keydown", onKey);
+    requestAnimationFrame(() => panelRef.current?.focus());
     return () => {
       document.body.style.overflow = prev;
       window.removeEventListener("keydown", onKey);
@@ -72,10 +93,12 @@ export default function QuestDetailSheet({ quest, onClose }: QuestDetailSheetPro
           />
 
           <motion.div
+            ref={panelRef}
             key="panel"
             role="dialog"
             aria-modal="true"
             aria-labelledby="quest-detail-title"
+            tabIndex={-1}
             initial={{ opacity: 0, y: 48 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 48 }}

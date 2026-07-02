@@ -3,7 +3,7 @@
 import { ChevronRight } from "lucide-react";
 import { HeroQuestProgress } from "./AnimatedProgress";
 import type { RewardQuest } from "./types";
-import { completedKeysCount, DaysLeftBadge, QuestKeyRow } from "./quest-ui";
+import { completedKeysCount, DaysLeftBadge, QuestKeyRow, STATUS_LABELS } from "./quest-ui";
 import { QUEST_ICONS } from "./quest-icons";
 import {
   CARD,
@@ -13,7 +13,6 @@ import {
   statusTone,
   StatusPill,
 } from "./rewards-ui";
-import { STATUS_LABELS } from "./quest-ui";
 
 type ActiveQuestHeroProps = {
   quest: RewardQuest;

@@ -2,10 +2,9 @@
 
 import { ChevronRight } from "lucide-react";
 import type { RewardQuest } from "./types";
-import { completedKeysCount } from "./quest-ui";
+import { completedKeysCount, STATUS_LABELS } from "./quest-ui";
 import { QUEST_ICONS } from "./quest-icons";
 import { CARD, getQuestAccent, SectionLabel, statusTone, StatusPill } from "./rewards-ui";
-import { STATUS_LABELS } from "./quest-ui";
 
 type TravelQuestCardsProps = {
   quests: RewardQuest[];
