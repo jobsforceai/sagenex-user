@@ -146,7 +146,7 @@ function CardBack() {
             <p className="mt-1.5 text-[9px] font-semibold uppercase tracking-[0.16em] text-[#E85D75]">
               Global Pay · Platinum
             </p>
-            <p className="mt-2 font-mono text-[11px] tracking-[0.2em] text-white/55">4937 2410 0594 7056</p>
+            <p className="mt-2 font-mono text-[11px] tracking-[0.2em] text-white/55">4000 0000 0000 0000</p>
           </div>
           <div className="text-right">
             <span className="font-display text-[22px] font-black italic text-white/25">VISA</span>
@@ -684,9 +684,7 @@ export default function GlobalPayCardSection() {
             <ArrowRight className="h-4 w-4" />
           </a>
           <a
-            href={CARD_APPLY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
+            href="#card-steps"
             className="inline-flex min-h-[44px] items-center justify-center rounded-2xl border border-[#E2E8F0] bg-white/90 px-7 text-sm font-bold text-[#0F172A] shadow-sm backdrop-blur-sm transition hover:-translate-y-0.5 hover:shadow-md"
           >
             How it works

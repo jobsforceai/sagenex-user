@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowRight } from "lucide-react";
-import { BACKUP_FOOTER, BACKUP_HEADER, BACKUP_STEPS, CARD_APPLY_LABEL, CARD_APPLY_URL } from "@/lib/card-content";
+import { CARD_APPLY_LABEL, CARD_APPLY_URL, CARD_ONBOARDING_FOOTER, CARD_ONBOARDING_HEADER, CARD_ONBOARDING_STEPS } from "@/lib/card-content";
 import { CardPhoneMock } from "./card-phone-mock";
 
 const EASE = [0.22, 1, 0.36, 1] as const;
@@ -15,18 +15,18 @@ export function CardOnboardingSteps() {
     <div id="card-steps" className="relative mt-14 scroll-mt-24 border-t border-[#E2E8F0] pt-12 sm:mt-16">
       <header className="mx-auto max-w-2xl text-center">
         <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#C41E3A]">
-          {BACKUP_HEADER.label}
+          {CARD_ONBOARDING_HEADER.label}
         </p>
         <h3 className="mt-3 font-display text-[clamp(1.5rem,4.5vw,2.25rem)] font-black leading-tight tracking-tight text-[#0F172A]">
-          {BACKUP_HEADER.title}
+          {CARD_ONBOARDING_HEADER.title}
         </h3>
         <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-[#64748B] sm:text-[15px]">
-          {BACKUP_HEADER.desc}
+          {CARD_ONBOARDING_HEADER.desc}
         </p>
       </header>
 
       <div className="mt-8 flex w-full max-w-xl mx-auto items-center justify-center gap-2 px-2">
-        {BACKUP_STEPS.map((step, i) => (
+        {CARD_ONBOARDING_STEPS.map((step, i) => (
           <button
             key={step.title}
             type="button"
@@ -52,7 +52,7 @@ export function CardOnboardingSteps() {
           <div className="relative min-h-[100px] text-center lg:min-h-[120px] lg:text-left">
             <AnimatePresence mode="wait">
               <motion.div
-                key={BACKUP_STEPS[activeStep].title}
+                key={CARD_ONBOARDING_STEPS[activeStep].title}
                 initial={{ opacity: 0, y: 12 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -8 }}
@@ -60,10 +60,10 @@ export function CardOnboardingSteps() {
                 className="flex flex-col justify-center gap-2"
               >
                 <p className="m-0 font-display text-[clamp(1.25rem,4vw,1.75rem)] font-bold tracking-tight text-[#0F172A]">
-                  {BACKUP_STEPS[activeStep].title}
+                  {CARD_ONBOARDING_STEPS[activeStep].title}
                 </p>
                 <p className="m-0 text-[14px] leading-[1.55] text-[#64748B] sm:text-[15px]">
-                  {BACKUP_STEPS[activeStep].desc}
+                  {CARD_ONBOARDING_STEPS[activeStep].desc}
                 </p>
               </motion.div>
             </AnimatePresence>
@@ -72,7 +72,7 @@ export function CardOnboardingSteps() {
       </div>
 
       <p className="mx-auto mt-8 max-w-xl px-4 text-center text-sm leading-relaxed text-[#64748B]">
-        {BACKUP_FOOTER}
+        {CARD_ONBOARDING_FOOTER}
       </p>
 
       <div className="mt-8 flex justify-center">

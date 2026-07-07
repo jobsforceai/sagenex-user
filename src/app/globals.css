@@ -210,8 +210,8 @@
 }
 
 @keyframes global-pay-coin-orbit {
-  0% { transform: rotate(0deg) translateX(148px) rotate(0deg); }
-  100% { transform: rotate(360deg) translateX(148px) rotate(-360deg); }
+  0% { transform: rotate(0deg) translateX(var(--global-pay-coin-orbit-radius, 148px)) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(var(--global-pay-coin-orbit-radius, 148px)) rotate(-360deg); }
 }
 
 @keyframes global-pay-gradient-shift {
@@ -271,6 +271,7 @@
 }
 
 .global-pay-orbit-coin {
+  --global-pay-coin-orbit-radius: 148px;
   animation: global-pay-coin-orbit 28s linear infinite;
 }
 

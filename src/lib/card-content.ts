@@ -39,13 +39,13 @@ export const CARD_TRUST_CHIPS = [
   "Rugged, sealed build",
 ] as const;
 
-export const BACKUP_HEADER = {
+export const CARD_ONBOARDING_HEADER = {
   label: "Get started",
   title: "Your card in three steps.",
   desc: "Create an account, verify your identity, and we'll ship your Sagenex Global Pay Card — your cold wallet and Visa card in one.",
 } as const;
 
-export const BACKUP_STEPS = [
+export const CARD_ONBOARDING_STEPS = [
   {
     title: "Create your account",
     desc: "Sign up with your email, set a password, and download the Sagenex app.",
@@ -63,7 +63,7 @@ export const BACKUP_STEPS = [
   },
 ] as const;
 
-export const BACKUP_FOOTER =
+export const CARD_ONBOARDING_FOOTER =
   "Once activated, your private keys are generated and stored on the card's tamper-resistant secure element — they never leave the chip.";
 
 export const CHIP_FEATURES = [
@@ -96,7 +96,7 @@ export const CARD_FAQS = [
   },
   {
     q: "Do I need a seed phrase?",
-    a: "No. Your private key is generated and stored on the card's secure chip, so there's no seed phrase to manage. You can still generate a traditional recovery phrase if you prefer, but it's optional.",
+    a: "Not for everyday signing. Your private key is generated and stored on the card's secure chip, but you should create the recovery phrase during setup so your wallet can be restored if the card is lost.",
   },
   {
     q: "Which cryptocurrencies does Sagenex support?",
@@ -104,6 +104,6 @@ export const CARD_FAQS = [
   },
   {
     q: "What happens if I lose my card?",
-    a: "As long as you created a recovery phrase during setup, you can restore your wallet on a new card. Your funds always live on the blockchain — the card is simply the secure key to access them.",
+    a: "If you created the recovery phrase during setup, you can restore your wallet on a new card. Without it, support can help with card replacement, but the wallet itself cannot be restored from the lost card.",
   },
 ] as const;

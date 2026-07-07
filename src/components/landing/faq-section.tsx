@@ -25,7 +25,7 @@ function FAQRow({ faq, index, open, onToggle }: { faq: { q: string; a: string };
       className={`border-b border-[var(--landing-border-light)] transition-colors ${open ? "border-l-2 border-l-[var(--crimson)]" : "border-l-2 border-l-transparent"}`}
     >
       <button
-        className="flex min-h-[52px] w-full cursor-pointer items-center justify-between gap-4 border-0 border-b border-[var(--landing-border-light)] bg-none py-4 text-left text-[var(--landing-text-dark)] hover:text-[var(--crimson)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--emerald)]/30 rounded-lg sm:py-5"
+        className="flex min-h-[52px] w-full cursor-pointer items-center justify-between gap-4 border-0 bg-none py-4 text-left text-[var(--landing-text-dark)] hover:text-[var(--crimson)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--emerald)]/30 rounded-lg sm:py-5"
         onClick={onToggle}
         aria-expanded={open}
       >

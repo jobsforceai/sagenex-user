@@ -1,24 +1,31 @@
 "use client";
 
+import { CARD_ONBOARDING_STEPS } from "@/lib/card-content";
+
 type ScreenVariant = "signup" | "kyc" | "card";
 
-const SCREENS: { title: string; subtitle?: string; variant: ScreenVariant }[] = [
+const SCREEN_VARIANTS: ScreenVariant[] = ["signup", "kyc", "card"];
+
+const SCREENS: { title: string; subtitle?: string; variant: ScreenVariant }[] = CARD_ONBOARDING_STEPS.map((step, index) => ({
+  title: step.title,
+  subtitle: step.desc,
+  variant: SCREEN_VARIANTS[index] ?? "signup",
+}));
+
+const SCREEN_HINTS = [
   {
-    title: "Create account",
-    subtitle: "Join Sagenex in under a minute.",
-    variant: "signup",
+    label: "Sign up",
+    progress: "67%",
   },
   {
-    title: "Verify identity",
-    subtitle: "Quick KYC — usually approved within 24 hours.",
-    variant: "kyc",
+    label: "Upload ID & selfie",
+    progress: "67%",
   },
   {
-    title: "Card activated",
-    subtitle: "Your Sagenex Global Pay Card is ready to use.",
-    variant: "card",
+    label: "Activated",
+    progress: "100%",
   },
-];
+] as const;
 
 function SignupScreen() {
   return (
@@ -30,7 +37,7 @@ function SignupScreen() {
         ••••••••
       </div>
       <div className="mt-1 h-8 rounded-lg bg-[#C41E3A] text-center text-[10px] font-medium leading-8 text-white">
-        Sign up
+        {SCREEN_HINTS[0].label}
       </div>
     </div>
   );
@@ -46,12 +53,12 @@ function KycScreen() {
           <path d="M7 18c0-2.8 2.2-5 5-5s5 2.2 5 5" stroke="#C41E3A" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
       </div>
-      <p className="m-0 text-center text-[9px] leading-[1.4] text-[#64748B]">Upload ID &amp; selfie</p>
+      <p className="m-0 text-center text-[9px] leading-[1.4] text-[#64748B]">{SCREEN_HINTS[1].label}</p>
       <div className="flex w-full items-center gap-1.5">
         <div className="h-1 flex-1 overflow-hidden rounded-full bg-[#F1F5F9]">
           <div className="h-full w-2/3 rounded-full bg-[#C41E3A]" />
         </div>
-        <span className="text-[9px] font-medium text-[#C41E3A]">67%</span>
+        <span className="text-[9px] font-medium text-[#C41E3A]">{SCREEN_HINTS[1].progress}</span>
       </div>
     </div>
   );
@@ -65,7 +72,7 @@ function CardScreen() {
         <p className="absolute top-1.5 left-1.5 m-0 text-[5px] font-bold tracking-wider text-white/90">SAGENEX</p>
         <div className="absolute right-1 bottom-1 h-2.5 w-5 rounded-sm bg-[#1a1f71]" />
       </div>
-      <p className="m-0 text-center text-[9px] font-medium text-[#C41E3A]">✓ Activated</p>
+      <p className="m-0 text-center text-[9px] font-medium text-[#C41E3A]">✓ {SCREEN_HINTS[2].label}</p>
     </div>
   );
 }
