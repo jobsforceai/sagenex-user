@@ -19,6 +19,7 @@ import { Copy, BadgeCheck, XCircle, ShieldCheck, ShieldAlert, ShieldClose, Edit 
 import { getProfileData, getKycStatus, updateUserProfile, getNomineeStatus, setNomineePhrase, disableNomineeAccess, getBiometricsStatus, getTicketBalance, getDashboardData } from "@/actions/user";
 import { KycStatus } from "@/types";
 import { formatINR } from "@/lib/currency";
+import { normalizePhoneNumber } from "@/lib/phone";
 
 interface UserProfile {
   userId: string;
@@ -204,13 +205,19 @@ const ProfilePage = () => {
         setIsSubmitting(false);
         return;
     }
+    const phoneCheck = normalizePhoneNumber(formData.phone);
+    if (!phoneCheck.ok) {
+        setMessage({ type: 'error', text: phoneCheck.error });
+        setIsSubmitting(false);
+        return;
+    }
 
     const dataToUpdate: { fullName?: string; phone?: string; usdtTrc20Address?: string } = {};
     if (formData.fullName !== profile?.fullName) {
         dataToUpdate.fullName = formData.fullName;
     }
-    if (formData.phone !== (profile?.phone || '')) {
-        dataToUpdate.phone = formData.phone;
+    if (phoneCheck.phone !== (profile?.phone || '')) {
+        dataToUpdate.phone = phoneCheck.phone;
     }
     if (formData.usdtTrc20Address !== (profile?.usdtTrc20Address || '')) {
         dataToUpdate.usdtTrc20Address = formData.usdtTrc20Address;
@@ -607,6 +614,7 @@ const ProfilePage = () => {
                             <Input
                                 id="phone"
                                 name="phone"
+                                type="tel"
                                 value={formData.phone}
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-2 rounded-md bg-gray-800 border border-gray-600 text-white"

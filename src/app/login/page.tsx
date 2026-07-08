@@ -14,6 +14,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { registerUser, loginOtp, verifyEmail, login, verifyEmailOtp, passwordStatus, nomineeLogin } from "@/actions/auth";
 import { getSafeRedirectPath } from "@/lib/auth-routes";
+import { normalizePhoneNumber } from "@/lib/phone";
 import { Mail, User, Phone, KeyRound, ArrowLeft, LogIn, UserPlus, ShieldCheck, Loader2, ShieldAlert } from "lucide-react";
 import Image from "next/image";
 
@@ -210,9 +211,15 @@ function Login() {
       setIsLoading(false);
       return;
     }
+    const phoneCheck = normalizePhoneNumber(phone);
+    if (!phoneCheck.ok) {
+      setAuthError(phoneCheck.error);
+      setIsLoading(false);
+      return;
+    }
 
     try {
-      const data = await registerUser(fullName, email, phone, sponsorId, password);
+      const data = await registerUser(fullName, email, phoneCheck.phone, sponsorId, password);
       if (data.error) {
         setAuthError(data.error);
       } else {

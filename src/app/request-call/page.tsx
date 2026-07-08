@@ -4,15 +4,18 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { PhoneCall } from "lucide-react";
-import { getDashboardData, requestTelebeliCall } from "@/actions/user";
+import { getDashboardData, requestTelebeliCall, updateUserProfile } from "@/actions/user";
 import { useAuth } from "@/app/context/AuthContext";
 import { DashboardSkeleton } from "@/app/components/dashboard/DashboardSkeletons";
+import { normalizePhoneNumber } from "@/lib/phone";
 
 export default function RequestCallPage() {
   const { token } = useAuth();
   const [phone, setPhone] = useState("");
+  const [savedPhone, setSavedPhone] = useState("");
   const [language, setLanguage] = useState<"hi" | "en" | "te">("hi");
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -20,21 +23,50 @@ export default function RequestCallPage() {
     getDashboardData()
       .then((res) => {
         if (res?.error) toast.error(res.error);
-        if (res?.profile?.phone) setPhone(res.profile.phone);
+        if (res?.profile?.phone) {
+          setPhone(res.profile.phone);
+          setSavedPhone(res.profile.phone);
+        }
       })
       .finally(() => setLoading(false));
   }, [token]);
 
-  const digits = phone.replace(/\D/g, "");
-  const invalidPhone = !digits || /^0+$/.test(digits);
+  const phoneCheck = normalizePhoneNumber(phone);
+  const invalidPhone = !phoneCheck.ok;
+  const normalizedPhone = phoneCheck.ok ? phoneCheck.phone : "";
+  const hasUnsavedPhone = Boolean(normalizedPhone && normalizedPhone !== savedPhone);
+
+  const savePhone = async () => {
+    if (!phoneCheck.ok) return toast.error(phoneCheck.error);
+    setSaving(true);
+    try {
+      const result = await updateUserProfile({ phone: phoneCheck.phone });
+      if (result?.error) return toast.error(result.error);
+      setPhone(phoneCheck.phone);
+      setSavedPhone(phoneCheck.phone);
+      toast.success("Phone number saved.");
+    } catch {
+      toast.error("Unable to save phone number.");
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const submit = async () => {
-    if (invalidPhone) return toast.error("Please enter a valid phone number.");
+    if (!phoneCheck.ok) return toast.error(phoneCheck.error);
     setSubmitting(true);
     try {
-      const result = await requestTelebeliCall({ phone, language });
+      if (hasUnsavedPhone) {
+        const saveResult = await updateUserProfile({ phone: phoneCheck.phone });
+        if (saveResult?.error) return toast.error(saveResult.error);
+        setSavedPhone(phoneCheck.phone);
+      }
+      const result = await requestTelebeliCall({ phone: phoneCheck.phone, language });
       if (result?.error) return toast.error(result.error);
-      if (result?.phone) setPhone(result.phone);
+      if (result?.phone) {
+        setPhone(result.phone);
+        setSavedPhone(result.phone);
+      }
       toast.success(result?.message || "Call queued. You should receive a call shortly.");
     } catch {
       toast.error("Unable to request call right now. Please try again.");
@@ -64,7 +96,19 @@ export default function RequestCallPage() {
             placeholder="+91 98765 43210"
             className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold outline-none transition focus:border-[#C41E3A] focus:bg-white"
           />
-          {invalidPhone && <p className="text-xs font-semibold text-amber-700">Add your mobile number before requesting a call.</p>}
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <button
+              type="button"
+              onClick={savePhone}
+              disabled={saving || invalidPhone || !hasUnsavedPhone}
+              className="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-black text-[#0F172A] transition hover:bg-slate-50 disabled:cursor-not-allowed disabled:text-slate-400"
+            >
+              {saving ? "Saving..." : "Save Phone Number"}
+            </button>
+            <p className={`text-xs font-semibold ${invalidPhone ? "text-amber-700" : hasUnsavedPhone ? "text-blue-700" : "text-emerald-700"}`}>
+              {invalidPhone ? phoneCheck.error : hasUnsavedPhone ? "Save this number before calling, or Request Call will save it first." : "Phone number is saved."}
+            </p>
+          </div>
 
           <div className="grid grid-cols-3 gap-2">
             {[
@@ -88,7 +132,7 @@ export default function RequestCallPage() {
           <button
             type="button"
             onClick={submit}
-            disabled={submitting || invalidPhone}
+            disabled={submitting || saving || invalidPhone}
             className="flex w-full items-center justify-center gap-2 rounded-2xl bg-[#0F172A] py-3 text-sm font-black !text-white transition hover:bg-[#1E293B] disabled:cursor-not-allowed disabled:bg-slate-300"
           >
             <PhoneCall className="h-4 w-4" />
