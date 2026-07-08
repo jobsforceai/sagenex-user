@@ -135,6 +135,168 @@
   animation: landing-reveal 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ── Global Pay Card Hero ── */
+.global-pay-scene {
+  perspective: 1400px;
+  perspective-origin: 50% 50%;
+}
+
+.global-pay-card-3d {
+  transform-style: preserve-3d;
+}
+
+.global-pay-card-flip {
+  transform-style: preserve-3d;
+  width: 100%;
+  height: 100%;
+}
+
+.global-pay-card-tilt {
+  transform-style: preserve-3d;
+  width: 100%;
+  height: 100%;
+}
+
+.global-pay-card-face {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.global-pay-hero-bg {
+  background:
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(196, 30, 58, 0.09) 0%, transparent 55%),
+    radial-gradient(ellipse 50% 40% at 85% 65%, rgba(232, 93, 117, 0.06) 0%, transparent 50%),
+    radial-gradient(ellipse 45% 35% at 10% 70%, rgba(15, 23, 42, 0.04) 0%, transparent 45%),
+    linear-gradient(180deg, #fafbfc 0%, #ffffff 42%, #f8fafc 100%);
+}
+
+.global-pay-hero-mesh {
+  background:
+    radial-gradient(circle at 20% 30%, rgba(196, 30, 58, 0.08) 0%, transparent 42%),
+    radial-gradient(circle at 78% 58%, rgba(212, 179, 106, 0.06) 0%, transparent 38%),
+    radial-gradient(circle at 52% 88%, rgba(157, 18, 47, 0.05) 0%, transparent 40%);
+  animation: global-pay-bg-drift 36s ease-in-out infinite alternate;
+}
+
+.global-pay-hero-noise {
+  opacity: 0.35;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+}
+
+@keyframes global-pay-bg-drift {
+  0% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(2%, -1.5%) scale(1.03); }
+  100% { transform: translate(-1.5%, 2%) scale(1.01); }
+}
+
+@keyframes global-pay-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+
+@keyframes global-pay-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.012); }
+}
+
+@keyframes global-pay-ring-spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+@keyframes global-pay-coin-orbit {
+  0% { transform: rotate(0deg) translateX(var(--global-pay-coin-orbit-radius, 148px)) rotate(0deg); }
+  100% { transform: rotate(360deg) translateX(var(--global-pay-coin-orbit-radius, 148px)) rotate(-360deg); }
+}
+
+@keyframes global-pay-gradient-shift {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+@keyframes global-pay-sheen {
+  0%, 100% { opacity: 0.18; }
+  50% { opacity: 0.42; }
+}
+
+@keyframes global-pay-sweep {
+  0% { transform: translateX(-130%) skewX(-10deg); opacity: 0; }
+  25% { opacity: 0.85; }
+  100% { transform: translateX(130%) skewX(-10deg); opacity: 0; }
+}
+
+@keyframes global-pay-glow-pulse {
+  0%, 100% { opacity: 0.55; transform: translate(-50%, -50%) scale(1); }
+  50% { opacity: 0.85; transform: translate(-50%, -50%) scale(1.06); }
+}
+
+.global-pay-card-gradient-band {
+  background: linear-gradient(90deg, #0f172a, #9d122f, #c41e3a, #e85d75);
+  background-size: 200% 100%;
+  animation: global-pay-gradient-shift 8s ease-in-out infinite;
+}
+
+.global-pay-card-sheen {
+  background: linear-gradient(115deg, transparent 36%, rgba(255, 255, 255, 0.55) 48%, transparent 58%);
+  animation: global-pay-sheen 7s ease-in-out infinite;
+}
+
+.global-pay-card-sweep {
+  background: linear-gradient(
+    105deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.55) 44%,
+    rgba(255, 255, 255, 0.85) 50%,
+    rgba(255, 255, 255, 0.55) 56%,
+    transparent 100%
+  );
+  animation: global-pay-sweep 7s ease-in-out 2s infinite;
+}
+
+.global-pay-card-float {
+  animation: global-pay-float 6.5s ease-in-out infinite;
+}
+
+.global-pay-card-breathe {
+  animation: global-pay-breathe 5s ease-in-out infinite;
+}
+
+.global-pay-hero-ring {
+  animation: global-pay-ring-spin 60s linear infinite;
+}
+
+.global-pay-orbit-coin {
+  --global-pay-coin-orbit-radius: 148px;
+  animation: global-pay-coin-orbit 28s linear infinite;
+}
+
+.global-pay-glass {
+  background: rgba(255, 255, 255, 0.72);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.85);
+  box-shadow:
+    0 8px 32px rgba(15, 23, 42, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.global-pay-btn-primary {
+  background: linear-gradient(135deg, #c41e3a 0%, #9d122f 50%, #c41e3a 100%);
+  background-size: 200% 200%;
+  transition: background-position 0.45s ease, transform 0.35s ease, box-shadow 0.35s ease;
+}
+
+.global-pay-btn-primary:hover {
+  background-position: 100% 0;
+  transform: translateY(-2px);
+  box-shadow: 0 18px 40px rgba(196, 30, 58, 0.32);
+}
+
 /* ── Landing Range Slider (custom) ── */
 .landing-range {
   -webkit-appearance: none;

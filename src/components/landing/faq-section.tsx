@@ -2,8 +2,9 @@
 
 import { motion, AnimatePresence, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { useRef, useState } from "react";
+import { CARD_FAQS } from "@/lib/card-content";
 
-const FAQS = [
+const ECOSYSTEM_FAQS = [
   { q: "What is Sagenex?", a: "Sagenex is a diversified global ecosystem combining business networking, technology, capital deployment, and community-driven growth across multiple sectors." },
   { q: "Is my money guaranteed or fixed?", a: "No. Sagenex does not offer fixed or guaranteed returns. All earnings are performance-based and depend on participation, leadership, and business conditions." },
   { q: "How is risk controlled?", a: "Through a multi-layered approach designed for long-term stability — earnings caps (2.5X / 3X / 4X), a 12-leg distributed structure, multi-sector & multi-geography diversification, and ongoing governance & compliance reviews." },
@@ -11,6 +12,8 @@ const FAQS = [
   { q: "What happens in slow market conditions?", a: "The system is designed to slow down safely, not collapse. Caps, carryforward rules, and diversification protect stability in adverse conditions." },
   { q: "Why should I trust Sagenex long-term?", a: "Because it is Capped, Structured, Diversified, Governed, and Transparent. Short-term systems fail. Structured systems endure." },
 ];
+
+const FAQS = [...CARD_FAQS, ...ECOSYSTEM_FAQS];
 
 function FAQRow({ faq, index, open, onToggle }: { faq: { q: string; a: string }; index: number; open: boolean; onToggle: () => void }) {
   return (
@@ -22,7 +25,7 @@ function FAQRow({ faq, index, open, onToggle }: { faq: { q: string; a: string };
       className={`border-b border-[var(--landing-border-light)] transition-colors ${open ? "border-l-2 border-l-[var(--crimson)]" : "border-l-2 border-l-transparent"}`}
     >
       <button
-        className="flex w-full items-center justify-between gap-4 py-5 px-2 sm:px-4 text-left text-[var(--landing-text-dark)] hover:text-[var(--crimson)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--emerald)]/30 rounded-lg"
+        className="flex min-h-[52px] w-full cursor-pointer items-center justify-between gap-4 border-0 bg-none py-4 text-left text-[var(--landing-text-dark)] hover:text-[var(--crimson)] transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[var(--emerald)]/30 rounded-lg sm:py-5"
         onClick={onToggle}
         aria-expanded={open}
       >

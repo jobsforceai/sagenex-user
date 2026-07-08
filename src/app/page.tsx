@@ -4,6 +4,7 @@ import AboutSection from "@/components/landing/about-section";
 import InvestmentPillars from "@/components/landing/investment-pillars";
 // FancyIdsSection is rendered inside the authenticated app at /fancy-ids instead of on the landing page.
 // import FancyIdsSection from "@/components/landing/fancy-ids-section";
+import GlobalPayCardSection from "@/components/landing/global-pay-card-section";
 import ProfitCalculator from "@/components/landing/profit-calculator";
 import EcosystemSection from "@/components/landing/ecosystem-section";
 import RoadmapSection from "@/components/landing/roadmap-section";
@@ -20,6 +21,7 @@ export default function Home() {
       <MarqueeTicker />
       <AboutSection />
       <InvestmentPillars />
+      <GlobalPayCardSection />
       {/* <FancyIdsSection /> */}
       <ProfitCalculator />
       <EcosystemSection />
