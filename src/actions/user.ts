@@ -108,6 +108,15 @@ export async function updateUserProfile(data: { fullName?: string; phone?: strin
       return handleApiResponse(res);
 }
 
+export async function requestTelebeliCall(data: { phone?: string; language?: "hi" | "en" | "te" }) {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/telebeli/request-call`, {
+        method: "POST",
+        headers: await getAuthHeaders(),
+        body: JSON.stringify(data),
+      });
+      return handleApiResponse(res);
+}
+
 export async function getPayouts(page: number = 1, limit: number = 20) {
     const res = await fetch(`${API_BASE_URL}/api/v1/user/payouts?page=${page}&limit=${limit}`, {
         headers: await getAuthHeaders(),
