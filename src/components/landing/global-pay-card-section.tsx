@@ -10,11 +10,10 @@ import {
   useSpring,
   useTransform,
 } from "framer-motion";
-import { useEffect, useRef, useState } from "react";
+import { useRef, useState } from "react";
 import {
   ArrowRight,
   Globe2,
-  IndianRupee,
   KeyRound,
   Layers,
   ShieldCheck,
@@ -25,7 +24,6 @@ import {
 import { CARD_APPLY_LABEL, CARD_APPLY_URL, CARD_FEATURES, CARD_HERO, CARD_TRUST_CHIPS } from "@/lib/card-content";
 import { CardOnboardingSteps } from "./card-onboarding-steps";
 
-const TARGET_INR = 1250;
 const EASE = [0.22, 1, 0.36, 1] as const;
 
 const FEATURE_ICONS = {
@@ -36,21 +34,6 @@ const FEATURE_ICONS = {
 } as const;
 
 const TRUST_ICONS = [KeyRound, Layers, ShieldCheck] as const;
-
-function CountUp({ to, prefix = "₹", active }: { to: number; prefix?: string; active: boolean }) {
-  const [value, setValue] = useState(0);
-  useEffect(() => {
-    if (!active) return;
-    const c = animate(0, to, { duration: 1.4, ease: EASE, onUpdate: (v) => setValue(Math.round(v)) });
-    return c.stop;
-  }, [active, to]);
-  return (
-    <span className="tabular-nums">
-      {prefix}
-      {value.toLocaleString("en-IN")}
-    </span>
-  );
-}
 
 function CardFront() {
   return (
@@ -428,51 +411,6 @@ function FeatureCard({
   );
 }
 
-function BalanceCard({
-  active,
-  delay,
-  parallaxX,
-  parallaxY,
-}: {
-  active: boolean;
-  delay: number;
-  parallaxX: ReturnType<typeof useMotionValue<number>>;
-  parallaxY: ReturnType<typeof useMotionValue<number>>;
-}) {
-  const x = useTransform(parallaxX, (v) => v * 8);
-  const y = useTransform(parallaxY, (v) => v * 6);
-
-  return (
-    <motion.div
-      className="global-pay-glass rounded-2xl p-4"
-      style={{ x, y }}
-      initial={{ opacity: 0, y: 20 }}
-      animate={active ? { opacity: 1, y: 0 } : {}}
-      transition={{ duration: 0.55, delay, ease: EASE }}
-      whileHover={{ y: -2 }}
-    >
-      <p className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8]">Your balance</p>
-      <div className="mt-2 flex items-center gap-2">
-        <Image src="/logo5.png" alt="" width={28} height={28} className="h-7 w-7" />
-        <p className="text-lg font-black text-[#0F172A]">
-          <CountUp to={TARGET_INR} prefix="" active={active} /> SGC
-        </p>
-      </div>
-      <div className="my-3 flex justify-center">
-        <ArrowRight className="h-4 w-4 text-[#C41E3A]" />
-      </div>
-      <div className="flex items-center gap-2">
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#C41E3A] text-white shadow-[0_4px_12px_rgba(196,30,58,0.35)]">
-          <IndianRupee className="h-4 w-4" />
-        </span>
-        <p className="text-xl font-black text-[#C41E3A]">
-          <CountUp to={TARGET_INR} active={active} />
-        </p>
-      </div>
-    </motion.div>
-  );
-}
-
 export default function GlobalPayCardSection() {
   const sectionRef = useRef<HTMLElement>(null);
   const reducedMotion = useReducedMotion();
@@ -645,10 +583,6 @@ export default function GlobalPayCardSection() {
 
           <div className="lg:hidden">
             <PayCard3D active={reveal} />
-
-            <div className="mx-auto mt-8 max-w-md">
-              <BalanceCard active={reveal} delay={0.8} parallaxX={pointerX} parallaxY={pointerY} />
-            </div>
 
             <div className="mt-6 grid gap-3 sm:grid-cols-2">
               {CARD_FEATURES.map((feature, i) => (
