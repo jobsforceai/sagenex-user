@@ -342,12 +342,12 @@ const SubmitReviewCard = ({
   onSubmit: () => void;
 }) => (
   <section className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-5">
-    <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+    <div className="flex flex-col gap-4">
       <div className="flex items-start gap-4">
         <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#ECFDF5] text-emerald-600">
           <ShieldCheck className="h-6 w-6" />
         </span>
-        <div>
+        <div className="min-w-0">
           <h3 className="text-lg font-black text-[#0F172A]">Submit for Review</h3>
           <p className="mt-1 text-sm text-[#64748B]">Upload all required documents, then send your profile for admin verification.</p>
         </div>
@@ -356,7 +356,7 @@ const SubmitReviewCard = ({
         type="button"
         onClick={onSubmit}
         disabled={!canSubmit || submitting}
-        className="wallet-red-control h-12 rounded-2xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-6 text-white hover:from-[#C8103E] hover:to-[#68001A] disabled:opacity-50"
+        className="wallet-red-control h-12 w-full rounded-2xl bg-gradient-to-r from-[#D4143F] to-[#7A001F] px-6 text-white hover:from-[#C8103E] hover:to-[#68001A] disabled:opacity-50"
       >
         {submitting ? "Submitting..." : "Submit for Review"}
         {!submitting && <CheckCircle2 className="ml-2 h-5 w-5" />}
