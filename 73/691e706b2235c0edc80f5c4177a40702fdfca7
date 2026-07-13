@@ -1,0 +1,19 @@
+src/app/kyc/page.tsx
+  s_2a5b43d5f6b5c9::t_60d01f5c47282b 345,350,359
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.12",
+  "base_commit_sha": "73691e706b2235c0edc80f5c4177a40702fdfca7",
+  "prompts": {},
+  "sessions": {
+    "s_2a5b43d5f6b5c9": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019e91a9-9968-7ab2-88eb-e63f03092772",
+        "model": "gpt-5.5"
+      },
+      "human_author": "abhi-apple <abhinayreddy0112@gmail.com>"
+    }
+  }
+}
