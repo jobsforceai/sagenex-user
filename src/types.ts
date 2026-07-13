@@ -17,15 +17,18 @@ export interface ParentNode {
 }
 
 export interface KycDocument {
-    docType: 'AADHAAR_FRONT' | 'AADHAAR_BACK' | 'PAN' | 'OTHER';
+    docType: 'LEGAL_AGREEMENT' | 'ID_FRONT' | 'ID_BACK' | 'AADHAAR_FRONT' | 'AADHAAR_BACK' | 'PAN' | 'BANK_PROOF' | 'SOURCE_OF_FUNDS' | 'OTHER';
     url: string;
+    kycVersion?: string;
 }
 
 export interface KycStatus {
-  status: 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+  status: 'NOT_SUBMITTED' | 'REQUIRES_REKYC' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+  kycVersion?: string;
   documents: {
     docType: string;
     url: string;
+    kycVersion?: string;
     uploadedAt: string;
   }[];
   rejectionReason?: string;
@@ -174,6 +177,5 @@ export interface ExpenseTicket {
     ticketId: string;
     rejectionReason?: string;
 }
-
 
 

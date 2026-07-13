@@ -20,7 +20,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { KycStatus } from "@/types";
 
-type DocType = "LEGAL_AGREEMENT" | "ID_FRONT" | "ID_BACK";
+const CURRENT_KYC_VERSION = "SGNX_GOLD_KYC_V1_3";
+
+type DocType = "LEGAL_AGREEMENT" | "PAN" | "ID_FRONT" | "ID_BACK" | "BANK_PROOF";
 
 const documentSteps: Array<{
   docType: DocType;
@@ -33,26 +35,42 @@ const documentSteps: Array<{
   {
     docType: "LEGAL_AGREEMENT",
     step: 1,
-    label: "Signed Legal Agreement",
-    shortLabel: "Agreement",
-    description: "Download, sign, and upload your agreement.",
-    helper: "PDF or clear image accepted.",
+    label: "Signed SGNX Gold KYC v1.3 Form",
+    shortLabel: "KYC Form",
+    description: "Download, complete, sign, and upload the SGNX Gold KYC and risk acknowledgement form.",
+    helper: "Signed PDF or clear scanned image accepted.",
   },
   {
-    docType: "ID_FRONT",
+    docType: "PAN",
     step: 2,
-    label: "ID Front",
-    shortLabel: "ID Front",
-    description: "Upload the front side of your government ID.",
+    label: "PAN",
+    shortLabel: "PAN",
+    description: "Upload a clear PAN copy.",
     helper: "Make sure all text is readable.",
   },
   {
-    docType: "ID_BACK",
+    docType: "ID_FRONT",
     step: 3,
-    label: "ID Back",
+    label: "Identity / Address Proof Front",
+    shortLabel: "ID Front",
+    description: "Upload the front side of your Aadhaar or other valid OVD/address proof.",
+    helper: "Mask Aadhaar where required and keep all text readable.",
+  },
+  {
+    docType: "ID_BACK",
+    step: 4,
+    label: "Identity / Address Proof Back",
     shortLabel: "ID Back",
-    description: "Upload the back side of your government ID.",
+    description: "Upload the back side of your Aadhaar or other valid OVD/address proof.",
     helper: "Avoid glare, blur, and cropped edges.",
+  },
+  {
+    docType: "BANK_PROOF",
+    step: 5,
+    label: "Bank Proof",
+    shortLabel: "Bank Proof",
+    description: "Upload cancelled cheque, passbook, or bank statement proof for verified settlements.",
+    helper: "Account holder name, account number, and IFSC should be visible.",
   },
 ];
 
@@ -70,6 +88,13 @@ const statusCopy: Record<
     title: "Verify Your Identity",
     eyebrow: "KYC Not Submitted",
     description: "Upload your documents to unlock withdrawals, rewards, and secure wallet actions.",
+    badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
+    iconClass: "text-amber-500 bg-amber-50",
+  },
+  REQUIRES_REKYC: {
+    title: "New KYC Required",
+    eyebrow: "Re-KYC Required",
+    description: "SGNX Gold KYC v1.3 is now mandatory. Upload the new signed form and required proofs to restore KYC access.",
     badgeClass: "bg-amber-50 text-amber-700 border-amber-200",
     iconClass: "text-amber-500 bg-amber-50",
   },
@@ -97,7 +122,7 @@ const statusCopy: Record<
 };
 
 const isDocUploaded = (status: KycStatus | null, docType: DocType) =>
-  Boolean(status?.documents.some((doc) => doc.docType === docType));
+  Boolean(status?.documents.some((doc) => doc.docType === docType && doc.kycVersion === CURRENT_KYC_VERSION));
 
 const getStatusIcon = (status: KycStatus["status"]) => {
   if (status === "VERIFIED") return CheckCircle2;
@@ -166,7 +191,7 @@ const KycHeroCard = ({
 
           <div className="mt-6 grid gap-3 sm:grid-cols-3 xl:max-w-4xl">
             {[
-              ["Documents", `${uploadedCount}/3`, "Uploaded"],
+              ["Documents", `${uploadedCount}/${documentSteps.length}`, "Uploaded"],
               ["Review Time", "48 hrs", "Typical window"],
               ["Access", status === "VERIFIED" ? "Unlocked" : "Protected", "Wallet features"],
             ].map(([label, value, helper]) => (
@@ -273,7 +298,7 @@ const DocumentUploadCard = ({
             <p className="text-sm font-semibold text-emerald-800">Download the agreement, sign it, then upload the completed file.</p>
           </div>
           <a
-            href="/withdrawal-agreement-form.pdf"
+            href="/sgnx-gold-kyc-risk-acknowledgement-v1.3.pdf"
             download
             className="inline-flex h-11 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 text-sm font-black text-white transition hover:bg-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-600/25"
           >
@@ -339,7 +364,7 @@ const SubmitReviewCard = ({
     </div>
     {!canSubmit && (
       <p className="mt-4 rounded-2xl bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-700">
-        All three documents are required before final submission.
+        All required SGNX Gold KYC v1.3 documents are needed before final submission.
       </p>
     )}
   </section>
@@ -387,8 +412,10 @@ export default function KycPage() {
   const [message, setMessage] = useState<string | null>(null);
   const [selectedFiles, setSelectedFiles] = useState<Record<DocType, File | null>>({
     LEGAL_AGREEMENT: null,
+    PAN: null,
     ID_FRONT: null,
     ID_BACK: null,
+    BANK_PROOF: null,
   });
 
   const fetchKycStatus = async () => {
@@ -423,7 +450,9 @@ export default function KycPage() {
     });
     const canSubmit =
       kycStatus &&
-      documentSteps.every((doc) => kycStatus.documents.some((uploadedDoc) => uploadedDoc.docType === doc.docType));
+      documentSteps.every((doc) =>
+        kycStatus.documents.some((uploadedDoc) => uploadedDoc.docType === doc.docType && uploadedDoc.kycVersion === CURRENT_KYC_VERSION)
+      );
 
     return { uploadedCount, progressPercent, currentStep, completedSteps, canSubmit };
   }, [kycStatus]);
@@ -431,7 +460,7 @@ export default function KycPage() {
   if (loading) return <LoadingSkeleton />;
 
   const status = kycStatus?.status ?? "NOT_SUBMITTED";
-  const canEdit = status === "NOT_SUBMITTED" || status === "REJECTED";
+  const canEdit = status === "NOT_SUBMITTED" || status === "REQUIRES_REKYC" || status === "REJECTED";
 
   const handleFileChange = (docType: DocType, file: File | null) => {
     setSelectedFiles((prev) => ({ ...prev, [docType]: file }));
@@ -569,7 +598,7 @@ export default function KycPage() {
           <ShieldCheck className="h-8 w-8 text-emerald-700" />
           <div className="min-w-0">
             <p className="text-lg font-black text-emerald-700">Verified accounts keep the SAGENEX ecosystem safer.</p>
-            <p className="mt-1 text-sm text-emerald-800/80">Complete KYC once to improve trust, withdrawal readiness, and reward eligibility.</p>
+            <p className="mt-1 text-sm text-emerald-800/80">Complete the latest SGNX Gold KYC to improve trust, withdrawal readiness, and reward eligibility.</p>
           </div>
           <Button
             type="button"
