@@ -332,10 +332,11 @@ export async function uploadKycDocument(formData: FormData) {
       return handleApiResponse(res);
 }
 
-export async function submitKycForReview() {
+export async function submitKycForReview(payload?: { applicantType?: 'INDIVIDUAL' | 'ENTITY'; entityType?: string }) {
     const res = await fetch(`${API_BASE_URL}/api/v1/kyc/submit-for-review`, {
         method: "POST",
         headers: await getAuthHeaders(),
+        body: JSON.stringify(payload ?? {}),
       });
       return handleApiResponse(res);
 }
