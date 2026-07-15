@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { KycStatus } from "@/types";
 
 const CURRENT_KYC_VERSION = "SGNX_GOLD_KYC_V1_3";
+const MAX_KYC_FILE_SIZE_MB = 10;
 
 type ApplicantType = "INDIVIDUAL" | "ENTITY";
 type DocType =
@@ -463,15 +464,19 @@ const DocumentUploadCard = ({
   doc,
   uploaded,
   selectedFile,
+  documentPassword,
   uploading,
   onFileChange,
+  onPasswordChange,
   onUpload,
 }: {
   doc: DocumentStep;
   uploaded: boolean;
   selectedFile: File | null;
+  documentPassword: string;
   uploading: boolean;
   onFileChange: (file: File | null) => void;
+  onPasswordChange: (password: string) => void;
   onUpload: () => void;
 }) => (
   <article className="rounded-3xl border border-slate-200/70 bg-white p-4 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-5">
@@ -518,7 +523,7 @@ const DocumentUploadCard = ({
     <div className="mt-5 grid gap-3 lg:grid-cols-[minmax(0,1fr)_140px] lg:items-center">
       <label className="block rounded-2xl border border-dashed border-slate-300 bg-slate-50 p-4 transition hover:border-[#C8103E]/50 hover:bg-[#FFF1F4]/50">
         <span className="block text-sm font-black text-[#0F172A]">{selectedFile?.name || "Choose file"}</span>
-        <span className="mt-1 block text-xs text-[#64748B]">Images or PDF files are supported.</span>
+        <span className="mt-1 block text-xs text-[#64748B]">Images or PDF files up to {MAX_KYC_FILE_SIZE_MB} MB are supported.</span>
         <input
           type="file"
           accept="image/*,.pdf"
@@ -535,6 +540,22 @@ const DocumentUploadCard = ({
         {uploading ? "Uploading..." : uploaded ? "Re-upload" : "Upload"}
       </Button>
     </div>
+    {doc.docType === "BANK_PROOF" && (
+      <div className="mt-3 rounded-2xl border border-amber-100 bg-amber-50 p-4">
+        <label htmlFor="bank-proof-password" className="text-sm font-black text-[#0F172A]">
+          Statement password, if any
+        </label>
+        <input
+          id="bank-proof-password"
+          type="text"
+          value={documentPassword}
+          onChange={(event) => onPasswordChange(event.target.value)}
+          placeholder="Enter PDF password only if the statement asks for one"
+          className="mt-2 h-11 w-full rounded-xl border border-amber-200 bg-white px-3 text-sm font-semibold text-[#0F172A] outline-none focus:border-[#C8103E] focus:ring-2 focus:ring-[#C8103E]/15"
+        />
+        <p className="mt-2 text-xs font-semibold text-amber-700">Leave this empty for cancelled cheque, passbook, or statements without a password.</p>
+      </div>
+    )}
   </article>
 );
 
@@ -633,6 +654,21 @@ export default function KycPage() {
     TAX_RESIDENCY: null,
     GOLD_INVOICE_CUSTODY: null,
   });
+  const [documentPasswords, setDocumentPasswords] = useState<Record<DocType, string>>({
+    LEGAL_AGREEMENT: "",
+    PAN: "",
+    ID_FRONT: "",
+    ID_BACK: "",
+    BANK_PROOF: "",
+    RECENT_ADDRESS: "",
+    PHOTO_VERIFICATION: "",
+    CONSTITUTIONAL_DOCS: "",
+    AUTHORITY_DOC: "",
+    OWNERSHIP_CHART: "",
+    SOURCE_OF_FUNDS: "",
+    TAX_RESIDENCY: "",
+    GOLD_INVOICE_CUSTODY: "",
+  });
   const documentSteps = documentStepsByApplicantType[applicantType];
   const requiredDocumentSteps = documentSteps.filter((doc) => doc.required);
 
@@ -699,6 +735,11 @@ export default function KycPage() {
       return;
     }
 
+    if (file.size > MAX_KYC_FILE_SIZE_MB * 1024 * 1024) {
+      setMessage(`${doc?.label || "Document"} must be ${MAX_KYC_FILE_SIZE_MB} MB or smaller.`);
+      return;
+    }
+
     setUploading(docType);
     setMessage(null);
 
@@ -706,6 +747,9 @@ export default function KycPage() {
       const formData = new FormData();
       formData.append("document", file, file.name);
       formData.append("docType", docType);
+      if (docType === "BANK_PROOF" && documentPasswords.BANK_PROOF.trim()) {
+        formData.append("documentPassword", documentPasswords.BANK_PROOF.trim());
+      }
 
       const uploadResult = await uploadKycDocument(formData);
       if (uploadResult.error) {
@@ -714,6 +758,9 @@ export default function KycPage() {
       }
       setKycStatus(uploadResult.kyc);
       setSelectedFiles((prev) => ({ ...prev, [docType]: null }));
+      if (docType === "BANK_PROOF") {
+        setDocumentPasswords((prev) => ({ ...prev, BANK_PROOF: "" }));
+      }
       setMessage(`${doc?.label || "Document"} uploaded successfully.`);
     } catch (err) {
       console.error(err);
@@ -841,8 +888,10 @@ export default function KycPage() {
                     doc={doc}
                     uploaded={isDocUploaded(kycStatus, doc.docType)}
                     selectedFile={selectedFiles[doc.docType]}
+                    documentPassword={documentPasswords[doc.docType]}
                     uploading={uploading === doc.docType}
                     onFileChange={(file) => handleFileChange(doc.docType, file)}
+                    onPasswordChange={(password) => setDocumentPasswords((prev) => ({ ...prev, [doc.docType]: password }))}
                     onUpload={() => handleUpload(doc.docType)}
                   />
                 ))}
