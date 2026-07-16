@@ -32,8 +32,6 @@ import {
   Users,
   Wallet,
   Info,
-  AlertTriangle,
-  X,
 } from "lucide-react";
 import SetPasswordModal from "../components/dashboard/SetPasswordModal";
 import MultiplierProgress from "../components/dashboard/MultiplierProgress";
@@ -226,7 +224,6 @@ const DashboardPage = () => {
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
-  const [showPayoutNotice, setShowPayoutNotice] = useState(true);
 
   const referralLink = useMemo(() => {
     const code = dashboardData?.profile?.referralCode;
@@ -419,8 +416,6 @@ const DashboardPage = () => {
       ? Math.min(100, Math.round(((wallet.earnedSinceBaseline ?? 0) / wallet.earningsCapTotal) * 100))
       : 0;
   const remainingEarningsCap = Math.max(0, wallet?.remainingEarningsCap ?? 0);
-  const payoutNoticeText =
-    "Payout processing will be slower until Monday, 13 July. The Sagenex team, family, and members are currently on a cruise trip for the next 3-4 days, so payout service is temporarily limited. Normal payout speed will resume from Monday.";
 
   return (
     <>
@@ -433,48 +428,7 @@ const DashboardPage = () => {
       ) : (
         <div className="min-h-screen bg-[#F8FAFC] px-4 py-4 sm:px-6 md:py-5 lg:px-8">
           <div className="mx-auto max-w-7xl space-y-3 md:space-y-6">
-          {showPayoutNotice && (
-            <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/55 px-4 backdrop-blur-sm">
-              <div className="w-full max-w-lg rounded-3xl border border-amber-200 bg-white p-5 shadow-[0_24px_80px_rgba(15,23,42,0.22)]">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-amber-100 text-amber-700">
-                      <AlertTriangle className="h-5 w-5" />
-                    </div>
-                    <div>
-                      <h2 className="text-lg font-black text-slate-950">Payout service notice</h2>
-                      <p className="mt-1 text-sm leading-6 text-slate-600">{payoutNoticeText}</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setShowPayoutNotice(false)}
-                    className="rounded-full p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700"
-                    aria-label="Close payout notice"
-                  >
-                    <X className="h-5 w-5" />
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setShowPayoutNotice(false)}
-                  className="mt-5 w-full rounded-2xl bg-[#C41E3A] px-4 py-3 text-sm font-black text-white"
-                >
-                  I understand
-                </button>
-              </div>
-            </div>
-          )}
           <ScheduledCashBanner />
-          <div className="rounded-3xl border border-amber-200 bg-amber-50 p-4 text-amber-950 shadow-[0_10px_30px_rgba(217,119,6,0.08)]">
-            <div className="flex gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-700" />
-              <div>
-                <p className="font-black">Payout processing is temporarily slower</p>
-                <p className="mt-1 text-sm leading-6 text-amber-900">{payoutNoticeText}</p>
-              </div>
-            </div>
-          </div>
           <section className="relative overflow-hidden rounded-[28px] bg-[#0F172A] !text-white shadow-[0_24px_70px_rgba(15,23,42,0.16)] md:rounded-3xl">
             <Image
               src="/dashboard/dashboard-hero-figurine.png"

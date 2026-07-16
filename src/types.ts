@@ -17,15 +17,22 @@ export interface ParentNode {
 }
 
 export interface KycDocument {
-    docType: 'AADHAAR_FRONT' | 'AADHAAR_BACK' | 'PAN' | 'OTHER';
+    docType: 'LEGAL_AGREEMENT' | 'ID_FRONT' | 'ID_BACK' | 'AADHAAR_FRONT' | 'AADHAAR_BACK' | 'PAN' | 'BANK_PROOF' | 'RECENT_ADDRESS' | 'PHOTO_VERIFICATION' | 'CONSTITUTIONAL_DOCS' | 'AUTHORITY_DOC' | 'OWNERSHIP_CHART' | 'SOURCE_OF_FUNDS' | 'TAX_RESIDENCY' | 'GOLD_INVOICE_CUSTODY' | 'OTHER';
     url: string;
+    kycVersion?: string;
+    documentPassword?: string;
 }
 
 export interface KycStatus {
-  status: 'NOT_SUBMITTED' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+  status: 'NOT_SUBMITTED' | 'REQUIRES_REKYC' | 'PENDING' | 'VERIFIED' | 'REJECTED';
+  kycVersion?: string;
+  applicantType?: 'INDIVIDUAL' | 'ENTITY';
+  entityType?: string;
   documents: {
     docType: string;
     url: string;
+    kycVersion?: string;
+    documentPassword?: string;
     uploadedAt: string;
   }[];
   rejectionReason?: string;
@@ -174,6 +181,3 @@ export interface ExpenseTicket {
     ticketId: string;
     rejectionReason?: string;
 }
-
-
-

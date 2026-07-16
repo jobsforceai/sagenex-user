@@ -76,6 +76,11 @@ const KycStatusBadge = ({ status }: { status: KycStatus['status'] }) => {
             text: "KYC Pending",
             className: "bg-yellow-500/20 text-yellow-400",
         },
+        REQUIRES_REKYC: {
+            icon: <ShieldAlert className="h-4 w-4" />,
+            text: "Re-KYC Required",
+            className: "bg-yellow-500/20 text-yellow-400",
+        },
         REJECTED: {
             icon: <ShieldClose className="h-4 w-4" />,
             text: "KYC Rejected",

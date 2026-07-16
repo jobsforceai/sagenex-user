@@ -82,14 +82,14 @@ const TransferToSGChain = ({ currentBalance, className }: TransferToSGChainProps
     <Card className={`bg-gray-900/40 border-gray-800 relative overflow-hidden flex flex-col ${className ?? ''}`}>
       {showConfetti && <Confetti />}
       <CardHeader>
-        <CardTitle>Transfer to SGChain</CardTitle>
+        <CardTitle>SG Staking Purchase Code</CardTitle>
       </CardHeader>
       <CardContent className="flex-1 flex flex-col">
         {!transferCode ? (
           <div className="flex flex-col gap-4 h-full">
             <div>
               <label htmlFor="amount" className="block text-sm font-medium text-gray-400 mb-1">
-                Amount to Transfer
+                Staking Amount
               </label>
               <Input
                 id="amount"
@@ -104,12 +104,12 @@ const TransferToSGChain = ({ currentBalance, className }: TransferToSGChainProps
               </p>
             </div>
             <Button onClick={handleTransfer} disabled={loading} className="w-full mt-auto">
-              {loading ? "Generating Code..." : "Get Transfer Code"}
+              {loading ? "Generating Code..." : "Create Staking Code"}
             </Button>
           </div>
         ) : (
           <div className="space-y-4 text-center flex flex-col h-full">
-            <p className="text-gray-300">Your transfer code is ready. It is valid for 5 minutes.</p>
+            <p className="text-gray-300">Your SG staking code is ready. It is valid for 5 minutes.</p>
             <div className="p-4 bg-gray-800 rounded-lg flex items-center justify-center space-x-2">
               <p className="text-lg font-mono text-amber-400 break-all">{transferCode}</p>
               <Button onClick={copyToClipboard} size="icon" variant="ghost">
@@ -117,10 +117,10 @@ const TransferToSGChain = ({ currentBalance, className }: TransferToSGChainProps
               </Button>
             </div>
             <p className="text-sm text-gray-400">
-              Copy this code and go to the SGChain website to complete your transfer.
+              Copy this code and use it on the SG staking website.
             </p>
             <Button onClick={handleReset} variant="outline" className="w-full mt-auto">
-              Generate New Code
+              Create New Code
             </Button>
           </div>
         )}
