@@ -932,6 +932,34 @@
   50% { box-shadow: 0 0 18px rgba(0, 179, 134, 0.45); }
 }
 
+/* Subtle float for the active Luxury Road checkpoint card */
+@keyframes luxury-road-current-float {
+  0%, 100% { transform: scale(1.1) translateY(0); }
+  50% { transform: scale(1.1) translateY(-8px); }
+}
+
+.luxury-road-current-card {
+  transform: scale(1.1);
+  animation: luxury-road-current-float 2.4s ease-in-out infinite;
+  transform-origin: center bottom;
+  will-change: transform;
+  filter: drop-shadow(0 16px 28px rgba(196, 30, 58, 0.24));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .luxury-road-current-card {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .luxury-road-current-card {
+    transform: scale(1.04);
+    animation: none;
+    filter: drop-shadow(0 10px 18px rgba(196, 30, 58, 0.2));
+  }
+}
+
 .rewards-progress-shimmer::after {
   content: "";
   position: absolute;

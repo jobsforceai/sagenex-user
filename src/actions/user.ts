@@ -1253,6 +1253,14 @@ export async function getTeamPulse() {
     return handleApiResponse(res);
 }
 
+/** Current 30-day cycle progress for 2.5x / 3x / 4x (stored vs projected). */
+export async function getMultiplierProgress() {
+    const res = await fetch(`${API_BASE_URL}/api/v1/user/multiplier-progress`, {
+        headers: await getAuthHeaders(),
+    });
+    return handleApiResponse(res);
+}
+
 export async function getTeamMemberContact(userId: string) {
     const res = await fetch(
         `${API_BASE_URL}/api/v1/user/team/member/${encodeURIComponent(userId)}`,

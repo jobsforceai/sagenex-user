@@ -16,16 +16,13 @@ import {
   AlertCircle,
   CheckCircle2,
   ChevronRight,
-  Crown,
   Info,
   RefreshCw,
-  Sparkles,
-  Target,
   TrendingUp,
   Users,
-  XCircle,
   Loader2,
 } from "lucide-react";
+import MultiplierCycleDetail from "@/app/components/dashboard/MultiplierCycleDetail";
 
 // ─── Types ──────────────────────────────────────────────────────────
 
@@ -107,7 +104,6 @@ interface LeaderboardEntry {
 
 const LEG_3X_THRESHOLD = 150_000;
 const LEG_4X_THRESHOLD = 200_000;
-const TEAM_3X_THRESHOLD = 500_000;
 const TEAM_4X_THRESHOLD = 1_000_000;
 const LEG_CAP_PCT = 0.5;
 
@@ -169,28 +165,6 @@ const StatCard = ({
     <p className="text-sm font-medium text-[#64748B]">{label}</p>
     <p className={`mt-2 text-2xl font-black leading-none sm:text-3xl ${accent}`}>{value}</p>
     {subtitle && <p className="mt-2 text-xs text-[#64748B]">{subtitle}</p>}
-  </div>
-);
-
-const ChecklistRow = ({
-  ok,
-  title,
-  detail,
-}: {
-  ok: boolean;
-  title: string;
-  detail: string;
-}) => (
-  <div className="flex items-start gap-3 rounded-2xl border border-slate-200/70 bg-white p-4">
-    {ok ? (
-      <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-    ) : (
-      <XCircle className="mt-0.5 h-5 w-5 shrink-0 text-[#C8103E]" />
-    )}
-    <div className="min-w-0">
-      <p className="text-sm font-black text-[#0F172A]">{title}</p>
-      <p className="mt-0.5 text-xs text-[#64748B]">{detail}</p>
-    </div>
   </div>
 );
 
@@ -317,12 +291,9 @@ const TeamBusinessPage = () => {
 
   const liveCounts = useMemo(() => {
     const legsAt4x = liveLegs.filter((l) => l.monthlyBusiness >= LEG_4X_THRESHOLD).length;
-    const legsAt3x = liveLegs.filter((l) => l.monthlyBusiness >= LEG_3X_THRESHOLD).length;
-    return { legsAt4x, legsAt3x };
+    return { legsAt4x };
   }, [liveLegs]);
 
-  const earningsMultiplier =
-    dashboard?.earningsMultiplier ?? dashboard?.profile?.earningsMultiplier ?? 0;
   const earningsMultiplierFloor = dashboard?.profile?.earningsMultiplierFloor;
   const earningsMultiplierDeadline =
     dashboard?.earningsMultiplierDeadline ?? dashboard?.profile?.earningsMultiplierDeadline ?? null;
@@ -335,8 +306,6 @@ const TeamBusinessPage = () => {
   const downlineVolume = referralSummary?.totalDownlineVolume ?? 0;
   const unilevelBonuses = dashboard?.wallet?.bonuses ?? [];
 
-  const qualifies3x =
-    liveCounts.legsAt3x >= 3 && liveTeamMath.capped >= TEAM_3X_THRESHOLD;
   const qualifies4x =
     liveCounts.legsAt4x >= 4 && liveTeamMath.capped >= TEAM_4X_THRESHOLD && kycVerified;
 
@@ -456,98 +425,22 @@ const TeamBusinessPage = () => {
           </div>
         )}
 
-        {/* Multiplier Status */}
-        <section className="rounded-3xl border border-slate-200/70 bg-gradient-to-br from-[#FFF1F4] to-white p-5 shadow-[0_10px_30px_rgba(15,23,42,0.06)] sm:p-6">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[#C8103E] text-white shadow-md">
-                <Sparkles className="h-6 w-6" />
-              </div>
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.16em] text-[#C8103E]">
-                  Multiplier Status
-                </p>
-                <p className="mt-1 text-2xl font-black text-[#0F172A]">
-                  {earningsMultiplier ? `${earningsMultiplier}x active` : "No multiplier"}
-                </p>
-                {earningsMultiplierFloor !== undefined && earningsMultiplierFloor > 0 && (
-                  <p className="text-xs text-[#64748B]">
-                    Floor: {earningsMultiplierFloor}x
-                  </p>
-                )}
-                {earningsMultiplierDeadline && (
-                  <p className="text-xs text-[#64748B]">
-                    Cycle ends: {new Date(earningsMultiplierDeadline).toLocaleString()}
-                  </p>
-                )}
-              </div>
-            </div>
-            <div className="rounded-2xl border border-slate-200/70 bg-white px-4 py-3">
-              <p className="text-xs text-[#64748B]">Capped team business (rolling 30d)</p>
-              <p className="mt-1 text-lg font-black text-[#0F172A]">
-                {formatCurrencyCompact(liveTeamMath.capped)}{" "}
-                <span className="text-xs font-medium text-[#64748B]">
-                  / {formatCurrencyCompact(TEAM_4X_THRESHOLD)} (4x)
-                </span>
-              </p>
-            </div>
-          </div>
+        {/* Full 30-day multiplier path (API: /user/multiplier-progress) */}
+        <MultiplierCycleDetail />
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <ChecklistRow
-              ok={kycVerified}
-              title="KYC verified"
-              detail={kycVerified ? "Required for 4x — done" : "Required for 4x"}
-            />
-            <ChecklistRow
-              ok={liveCounts.legsAt3x >= 3}
-              title="3 legs ≥ ₹1.5L (rolling 30d)"
-              detail={`${liveCounts.legsAt3x} of 3 legs qualifying for 3x`}
-            />
-            <ChecklistRow
-              ok={liveCounts.legsAt4x >= 4}
-              title="4 legs ≥ ₹2L (rolling 30d)"
-              detail={`${liveCounts.legsAt4x} of 4 legs qualifying for 4x`}
-            />
-            <ChecklistRow
-              ok={liveTeamMath.capped >= TEAM_4X_THRESHOLD}
-              title="Capped team ≥ ₹10L (rolling 30d)"
-              detail={`${formatCurrencyCompact(liveTeamMath.capped)} / ${formatCurrencyCompact(TEAM_4X_THRESHOLD)}`}
-            />
-          </div>
-
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <span
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-black ${
-                qualifies3x
-                  ? "bg-emerald-50 text-emerald-700"
-                  : "bg-slate-100 text-[#64748B]"
-              }`}
-            >
-              <Target className="h-3.5 w-3.5" />
-              3x indicators {qualifies3x ? "met" : "not met"}
-            </span>
-            <span
-              className={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-xs font-black ${
-                qualifies4x
-                  ? "bg-amber-50 text-amber-700"
-                  : "bg-slate-100 text-[#64748B]"
-              }`}
-            >
-              <Crown className="h-3.5 w-3.5" />
-              4x indicators {qualifies4x ? "met" : "not met"}
-            </span>
-          </div>
-
-          <p className="mt-4 flex items-start gap-2 rounded-2xl bg-white/70 p-3 text-xs text-[#64748B]">
-            <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#C8103E]" />
-            <span>
-              {nextHint} These qualification indicators always reflect the <strong>last 30 days</strong>,
-              regardless of the month selected below. The month picker only affects the leg-by-leg
-              monthly history.
-            </span>
-          </p>
-        </section>
+        <p className="flex items-start gap-2 rounded-2xl border border-slate-200/70 bg-white px-4 py-3 text-xs text-[#64748B] shadow-sm">
+          <Info className="mt-0.5 h-4 w-4 shrink-0 text-[#C8103E]" />
+          <span>
+            {nextHint} The path above always reflects the <strong>current 30-day cycle</strong>.
+            The month picker only affects the leg-by-leg monthly history below.
+            {earningsMultiplierFloor !== undefined && earningsMultiplierFloor > 0 && (
+              <> Floor: {earningsMultiplierFloor}x.</>
+            )}
+            {earningsMultiplierDeadline && (
+              <> Stored multiplier deadline: {new Date(earningsMultiplierDeadline).toLocaleString()}.</>
+            )}
+          </span>
+        </p>
 
         {/* Hero metrics */}
         <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
