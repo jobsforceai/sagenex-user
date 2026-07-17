@@ -82,9 +82,9 @@ const universalRules = [
   },
   {
     icon: RefreshCw,
-    title: "Carry Forward",
-    value: "Up to 50%",
-    text: "Eligible volume can be carried forward for a maximum of 2 months only.",
+    title: "Fresh Cycle",
+    value: "Reset on claim",
+    text: "When you claim a reward, a new cycle starts from that date with progress reset. Unused volume does not carry forward.",
   },
   {
     icon: CalendarDays,

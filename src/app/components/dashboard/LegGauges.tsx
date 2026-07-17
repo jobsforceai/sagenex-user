@@ -1,8 +1,15 @@
 "use client";
 
-import MultiplierProgress from "./MultiplierProgress";
+import Link from "next/link";
+import { ArrowRight, Loader2 } from "lucide-react";
+import {
+  formatCompactInr,
+  MultiplierWidgetSummary,
+  useMultiplierProgress,
+  type MultiplierProgressData,
+} from "./MultiplierCycleDetail";
 
-type Leg = {
+type LegFallback = {
   userId: string;
   fullName?: string;
   monthlyBusiness: number;
@@ -10,23 +17,24 @@ type Leg = {
 
 type Props = {
   earningsMultiplier?: number;
-  legDetails?: Leg[];
+  legDetails?: LegFallback[];
   kycStatus?: string;
 };
 
 const LEG_3X = 150000;
 const LEG_4X = 200000;
-const NEEDED_4X = 4;
-const NEEDED_3X = 3;
+const SHOW_LEGS = 4;
 
-const formatCompact = (n: number) => {
-  if (n >= 100000) return `₹${(n / 100000).toFixed(n >= 1000000 ? 0 : 1)}L`;
-  if (n >= 1000) return `₹${(n / 1000).toFixed(0)}K`;
-  return `₹${n}`;
-};
-
-function Gauge({ value, max, name, userId }: { value: number; max: number; name: string; userId: string }) {
-  const pct = Math.max(0, Math.min(1, value / max));
+function Gauge({
+  value,
+  max,
+  name,
+}: {
+  value: number;
+  max: number;
+  name: string;
+}) {
+  const pct = Math.max(0, Math.min(1, max > 0 ? value / max : 0));
   const arcPath = "M 12 48 A 38 38 0 0 1 88 48";
   const done = value >= max;
   const color = done ? "#10b981" : pct >= 0.5 ? "#f59e0b" : "#fb923c";
@@ -60,78 +68,116 @@ function Gauge({ value, max, name, userId }: { value: number; max: number; name:
           fontWeight="800"
           fill={done ? "#10b981" : "#0F172A"}
         >
-          {done ? "✓" : formatCompact(value)}
+          {done ? "✓" : formatCompactInr(value)}
         </text>
       </svg>
       <p className="mt-0.5 w-full truncate text-center text-xs font-semibold text-slate-700" title={name}>
-        {name || userId}
+        {name}
       </p>
       <p className="text-center text-[9px] leading-tight text-slate-500 md:text-[10px]">
-        {done ? "Qualified" : `${Math.round(pct * 100)}% of ${formatCompact(max)}`}
+        {done ? "Qualified" : `${Math.round(pct * 100)}% of ${formatCompactInr(max)}`}
       </p>
     </div>
   );
 }
 
-export default function LegGauges({ earningsMultiplier = 2.5, legDetails = [], kycStatus }: Props) {
-  const sorted = [...legDetails].sort((a, b) => (b.monthlyBusiness || 0) - (a.monthlyBusiness || 0));
-  const at4x = earningsMultiplier >= 4;
-  const target = at4x ? null : earningsMultiplier >= 3 ? 4 : 3;
-  const threshold = target === 4 ? LEG_4X : LEG_3X;
-  const needed = target === 4 ? NEEDED_4X : NEEDED_3X;
-  const qualifying = sorted.filter((l) => (l.monthlyBusiness || 0) >= threshold).length;
-  const visibleLegs = sorted.slice(0, at4x ? NEEDED_4X : needed);
+function resolveThreshold(data: MultiplierProgressData | null, fallbackMultiplier: number) {
+  if (data) {
+    const nextOpen = data.tiers.find((t) => !t.qualified);
+    const perLeg = nextOpen?.requirements?.qualifyingLegs?.perLegBusinessRequired;
+    if (perLeg) return perLeg;
+    if (data.projectedNextMultiplier >= 4 || data.storedMultiplier >= 4) return LEG_4X;
+    return LEG_3X;
+  }
+  if (fallbackMultiplier >= 3) return LEG_4X;
+  return LEG_3X;
+}
+
+/** Dashboard widget: multiplier strip + top 4 leg gauges. Full path on My Business. */
+export default function LegGauges({
+  earningsMultiplier = 2.5,
+  legDetails = [],
+}: Props) {
+  const { data, loading, error } = useMultiplierProgress();
+  const threshold = resolveThreshold(data, earningsMultiplier);
+
+  const apiLegs =
+    data?.legs.map((l) => ({
+      userId: l.userId,
+      fullName: l.fullName,
+      monthlyBusiness: l.business,
+    })) ?? [];
+
+  const source = apiLegs.length > 0 ? apiLegs : [...legDetails].sort(
+    (a, b) => (b.monthlyBusiness || 0) - (a.monthlyBusiness || 0),
+  );
+  const visibleLegs = source.slice(0, SHOW_LEGS);
 
   return (
-    <section className="rounded-[22px] border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:rounded-3xl md:p-5">
-      <div className="mb-2.5 flex items-center justify-between gap-2 md:mb-3">
-        <div>
-          <p className="text-[9px] font-bold uppercase tracking-[0.08em] text-slate-500 md:text-[11px]">
-            {at4x ? "All targets met" : `Path to ${target}x`}
-          </p>
-          <p className="text-sm font-black leading-tight text-[#0F172A] md:text-base">
-            {at4x ? "You're at maximum (4x)" : `${qualifying} / ${needed} legs at ${formatCompact(threshold)}`}
-          </p>
+    <section className="rounded-[22px] border border-slate-200/70 bg-white p-3 shadow-[0_10px_30px_rgba(15,23,42,0.06)] md:rounded-3xl md:p-4">
+      {loading && !data ? (
+        <div className="flex items-center gap-2 text-xs font-semibold text-slate-500">
+          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+          Loading multiplier…
         </div>
-        <MultiplierProgress
-          earningsMultiplier={earningsMultiplier}
-          legDetails={legDetails}
-          kycStatus={kycStatus}
-          trigger={
-            <button
-              type="button"
-              className="shrink-0 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[10px] font-semibold text-slate-700 hover:bg-slate-50 md:px-3 md:text-xs"
-            >
-              View details
-            </button>
-          }
-        />
-      </div>
-      <div
-        className="grid gap-2 md:gap-3"
-        style={{ gridTemplateColumns: `repeat(${Math.max(1, Math.min(visibleLegs.length || 1, 4))}, minmax(0, 1fr))` }}
-      >
-        {visibleLegs.length > 0 ? (
-          visibleLegs.map((leg) => (
-            <Gauge
-              key={leg.userId}
-              value={leg.monthlyBusiness || 0}
-              max={threshold}
-              name={leg.fullName || leg.userId}
-              userId={leg.userId}
-            />
-          ))
-        ) : (
-          <p className="rounded-2xl bg-slate-50 px-3 py-4 text-center text-xs font-semibold text-slate-500">
-            Leg business will appear once direct team activity is available.
+      ) : data ? (
+        <MultiplierWidgetSummary data={data} />
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <p className="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-500">
+              Earnings multiplier
+            </p>
+            <p className="mt-0.5 text-base font-black text-[#0F172A]">
+              {earningsMultiplier}x active
+            </p>
+            {error && (
+              <p className="mt-0.5 text-xs text-slate-500">
+                Open My Business for full 30-day progress.
+              </p>
+            )}
+          </div>
+          <Link
+            href="/team-business"
+            className="inline-flex shrink-0 items-center gap-1 rounded-full bg-[#0F172A] px-3 py-1.5 text-xs font-bold text-white hover:opacity-90"
+          >
+            My Business <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </div>
+      )}
+
+      <div className="mt-3 border-t border-slate-100 pt-3">
+        <div
+          className="grid gap-2 md:gap-3"
+          style={{
+            gridTemplateColumns: `repeat(${Math.max(1, Math.min(visibleLegs.length || 1, SHOW_LEGS))}, minmax(0, 1fr))`,
+          }}
+        >
+          {visibleLegs.length > 0 ? (
+            visibleLegs.map((leg) => (
+              <Gauge
+                key={leg.userId}
+                value={leg.monthlyBusiness || 0}
+                max={threshold}
+                name={leg.fullName || leg.userId}
+              />
+            ))
+          ) : (
+            <p className="rounded-2xl bg-slate-50 px-3 py-4 text-center text-xs font-semibold text-slate-500">
+              Leg business will appear once direct team activity is available.
+            </p>
+          )}
+        </div>
+        {source.length > visibleLegs.length && (
+          <p className="mt-2 text-center text-[11px] text-slate-500">
+            Showing top {visibleLegs.length} of {source.length} legs.{" "}
+            <Link href="/team-business" className="font-bold text-[#C41E3A] hover:underline">
+              My Business
+            </Link>{" "}
+            for the full list.
           </p>
         )}
       </div>
-      {sorted.length > visibleLegs.length && (
-        <p className="mt-3 text-center text-[11px] text-slate-500">
-          Showing top {visibleLegs.length} of {sorted.length} legs. Tap View details for the full list.
-        </p>
-      )}
     </section>
   );
 }
