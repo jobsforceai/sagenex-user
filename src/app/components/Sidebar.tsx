@@ -15,7 +15,6 @@ import {
   Gem,
   Crown,
   BookOpen,
-  FileSearch,
   ShieldCheck,
   User,
   LogOut,
@@ -33,7 +32,6 @@ export const NAV_ITEMS = [
   { href: "/fancy-ids", icon: Crown, label: "Fancy IDs" },
   { href: "/courses", icon: BookOpen, label: "Courses" },
   { href: "/kyc", icon: ShieldCheck, label: "KYC" },
-  { href: "/new-kyc-docs", icon: FileSearch, label: "KYC Docs", newTab: true },
   { href: "/profile", icon: User, label: "Profile" },
 ];
 
