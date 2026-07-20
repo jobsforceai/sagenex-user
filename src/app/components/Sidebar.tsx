@@ -15,6 +15,7 @@ import {
   Gem,
   Crown,
   BookOpen,
+  FileSearch,
   ShieldCheck,
   User,
   LogOut,
@@ -32,6 +33,7 @@ export const NAV_ITEMS = [
   { href: "/fancy-ids", icon: Crown, label: "Fancy IDs" },
   { href: "/courses", icon: BookOpen, label: "Courses" },
   { href: "/kyc", icon: ShieldCheck, label: "KYC" },
+  { href: "/new-kyc-docs", icon: FileSearch, label: "KYC Docs", newTab: true },
   { href: "/profile", icon: User, label: "Profile" },
 ];
 
@@ -99,12 +101,14 @@ export default function Sidebar({ balance, userName, userRank, avatarUrl }: Side
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 space-y-0.5 px-2">
-        {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
+        {NAV_ITEMS.map(({ href, icon: Icon, label, newTab }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
           return (
             <Link
               key={href}
               href={href}
+              target={newTab ? "_blank" : undefined}
+              rel={newTab ? "noopener noreferrer" : undefined}
               className={`flex h-9 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors duration-150 ${
                 active
                   ? "bg-[#C41E3A] text-white"
