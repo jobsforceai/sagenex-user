@@ -99,14 +99,12 @@ export default function Sidebar({ balance, userName, userRank, avatarUrl }: Side
 
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto py-3 space-y-0.5 px-2">
-        {NAV_ITEMS.map(({ href, icon: Icon, label, newTab }) => {
+        {NAV_ITEMS.map(({ href, icon: Icon, label }) => {
           const active = pathname === href || (href !== "/dashboard" && pathname.startsWith(href + "/"));
           return (
             <Link
               key={href}
               href={href}
-              target={newTab ? "_blank" : undefined}
-              rel={newTab ? "noopener noreferrer" : undefined}
               className={`flex h-9 items-center gap-3 rounded-xl px-3 text-sm font-medium transition-colors duration-150 ${
                 active
                   ? "bg-[#C41E3A] text-white"
