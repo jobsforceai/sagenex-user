@@ -213,6 +213,7 @@ export default function SgnxGoldPage() {
   }, [token, fetchHeroData, fetchPrices, fetchCityPrices]);
 
   const activeEnrollments = enrollments.filter((e) => e.status === "ACTIVE");
+  const pausedEnrollments = enrollments.filter((e) => e.status === "PAUSED");
   const hasEnrollment = enrollments.length > 0;
 
   // Build a short label for each enrollment — amount + enrollment date.
@@ -296,6 +297,25 @@ export default function SgnxGoldPage() {
             planType={activeEnrollments.length > 1 ? e.planType : undefined}
           />
         ))}
+
+        {!heroLoading && pausedEnrollments.length > 0 && (
+          <section className="space-y-3">
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-extrabold text-[#111827]">Paused Plans</h2>
+              <span className="rounded-full bg-amber-100 px-2 py-0.5 text-xs font-bold text-amber-800">
+                {pausedEnrollments.length}
+              </span>
+            </div>
+            {pausedEnrollments.map((e) => (
+              <PaymentProgress
+                key={e._id}
+                enrollmentId={e._id}
+                planLabel={formatPlanLabel(e)}
+                planType={e.planType}
+              />
+            ))}
+          </section>
+        )}
 
         {/* Transaction History (toggle) */}
         {showHistory && hasEnrollment && (
