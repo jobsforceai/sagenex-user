@@ -86,6 +86,7 @@ interface Enrollment {
   bonusGoldQuantityGrams?: number;
   goldRateLockedPerGram?: number;
   nextDueDate?: string;
+  enrollmentDate?: string;
   createdAt: string;
 }
 
@@ -220,9 +221,9 @@ export default function SgnxGoldPage() {
   // The plan TYPE (Gold/Cash) is now shown as a colored badge in the card
   // header, so we drop the redundant "Gold · " / "Cash · " prefix.
   const formatPlanLabel = (e: Enrollment) => {
-    const planName = e.planType === "gold" ? "Gold" : "Cash";
     const amount = `${formatINR(e.monthlyAmountInr ?? e.monthlyAmountUsd)}/month`;
-    const date = e.createdAt ? new Date(e.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
+    const dateValue = e.enrollmentDate ?? e.createdAt;
+    const date = dateValue ? new Date(dateValue).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "";
     return `${amount}${date ? ` · enrolled ${date}` : ""}`;
   };
 
@@ -285,16 +286,13 @@ export default function SgnxGoldPage() {
         {/* City Prices - own loading */}
         {cityLoading ? null : <CityPricesGrid prices={cityPrices} />}
 
-        {/* Payment Progress — render one card per active enrollment.
-            For multi-enrollment users, each card gets a colored plan-type
-            badge (Gold / Cash) + amount/date label so they can tell cards
-            apart at a glance. */}
+        {/* Payment Progress — render one card per active enrollment. */}
         {!heroLoading && activeEnrollments.map((e) => (
           <PaymentProgress
             key={e._id}
             enrollmentId={e._id}
-            planLabel={activeEnrollments.length > 1 ? formatPlanLabel(e) : undefined}
-            planType={activeEnrollments.length > 1 ? e.planType : undefined}
+            planLabel={formatPlanLabel(e)}
+            planType={e.planType}
           />
         ))}
 
