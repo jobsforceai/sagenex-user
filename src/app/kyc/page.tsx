@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import {
   AlertTriangle,
@@ -350,6 +351,15 @@ const KycHeader = ({ status }: { status: KycStatus["status"] }) => {
           <p className="mt-2 max-w-2xl text-sm text-[#64748B] sm:text-base">{copy.description}</p>
         </div>
         <div className="flex w-full flex-wrap items-center gap-3 sm:w-auto">
+          <Link
+            href="/new-kyc-docs"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-4 text-sm font-black text-[#0F172A] transition hover:border-rose-200 hover:bg-[#FFF1F4] hover:text-[#C8103E] focus:outline-none focus:ring-2 focus:ring-[#C8103E]/20"
+          >
+            <FileText aria-hidden="true" className="h-4 w-4" />
+            KYC document guide
+          </Link>
           <div className="flex h-12 min-w-0 items-center gap-3 rounded-xl border border-slate-200 bg-white px-3 shadow-[0_10px_30px_rgba(15,23,42,0.05)]">
             <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${copy.iconClass}`}>
               <StatusIcon className="h-4 w-4" />

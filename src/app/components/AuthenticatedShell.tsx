@@ -26,8 +26,14 @@ const SHELL_ROUTES = [
   "/profile",
 ];
 
+const STANDALONE_ROUTES = ["/new-kyc-docs"];
+
 function isShellRoute(pathname: string) {
   return SHELL_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
+}
+
+function isStandaloneRoute(pathname: string) {
+  return STANDALONE_ROUTES.some((route) => pathname === route || pathname.startsWith(`${route}/`));
 }
 
 export default function AuthenticatedShell({ children }: { children: React.ReactNode }) {
@@ -37,6 +43,7 @@ export default function AuthenticatedShell({ children }: { children: React.React
 
   const isPrivate = useMemo(() => isPrivateRoute(pathname), [pathname]);
   const shouldUseShell = useMemo(() => isShellRoute(pathname), [pathname]);
+  const shouldUseStandaloneLayout = useMemo(() => isStandaloneRoute(pathname), [pathname]);
 
   useEffect(() => {
     if (!shouldUseShell || authLoading || !isAuthenticated) return;
@@ -58,6 +65,10 @@ export default function AuthenticatedShell({ children }: { children: React.React
 
   if (isPrivate && !authLoading && !isAuthenticated) {
     return <LoginRequiredScreen />;
+  }
+
+  if (shouldUseStandaloneLayout) {
+    return <>{children}</>;
   }
 
   if (!shouldUseShell) {
